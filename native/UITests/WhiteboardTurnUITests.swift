@@ -56,6 +56,20 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(app, strokes: 0)
   }
 
+  /// Story 1113 (bead context-grabber-h5c0): holding the mic, closed, offers its own row and the microphones, and that
+  /// row still talks. The simulator has no microphone to pick; the pocket mic is the iPad's to show.
+  func testHoldingTheMicPicksTheMicrophone() throws {
+    let (app, ghosts) = try openBoard(say: "draw a circle")
+    app.buttons["whiteboard-mic"].press(forDuration: 1.2)
+    let talk = app.buttons["Talk to Claude"]
+    XCTAssertTrue(talk.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["Automatic"].exists, app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-mic-find"].exists, app.debugDescription)
+    shot("whiteboard-mic-hold")
+    talk.tap()
+    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
+  }
+
   /// The one path from a streamed answer to a ghost on screen (story 370's reading is `WhiteboardGhostTurnsTests`).
   func testAPauseBringsAGhostAndLarryTakesATurn() throws {
     let (app, ghosts) = try openBoard()

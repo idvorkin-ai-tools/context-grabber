@@ -483,12 +483,20 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
   microphone; the name and the bar follow.
 - **The list is read each time the mic opens**, so a pocket mic plugged in or paired since the last time shows up.
   One connected while the mic is already open shows up at the next opening.
+- **A long press on Talk picks the microphone too, open or closed** (Igor, 2026-11-22: "Hold mic should let me do mic
+  selection as well!"; story 1113). Under the menu's *Talk* row, a *Microphone* section lists *Automatic* and the
+  microphones the board knows (read at the last opening, or by *Find microphones*), the picked one ticked; a pick
+  kept from before a relaunch and not read since shows ticked by its name. Picking one with the mic closed keeps it
+  for the next opening, on any board, and opens nothing; with the mic open it does what a pick from the note's line
+  does. With the mic closed, a last row, *Find microphones*, reads the ones connected now (asking for the microphone
+  the first time, as the first opening does), and the next long press lists them. A plain tap on Talk still opens
+  and closes the mic; a tap in the moment the list is being read does nothing, and the session log says why.
 - **The pick is kept** for the next opening, on any board, and after a relaunch. It is the same pick as Chat's and the
   problem report's microphone. A picked microphone that is no longer connected falls back to *Automatic* when the
   list is next read.
 - **Nothing moves for it**: the name and the bar sit in the note's line, which keeps its height.
-- **The session log says** how many microphones each opening listed and which one the mic hears, and each pick:
-  whether it was *Automatic* and whether the mic was open.
+- **The session log says** how many microphones each opening and each *Find microphones* listed and which one the mic
+  hears, and each pick: whether it was *Automatic* and whether the mic was open.
 - **Not here: replaying a board with its sound**, as Notability plays a recording back with the ink (#1139's second
   ask, `context-grabber-3tdv`). The board's mic is dictation; it hears the words, not the sound. Playback is proposed
   in [Whiteboard with Claude](2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*.

@@ -1909,3 +1909,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the board's mic is open on the iPad's own microphone, its name and moving level bar at the end of the note's line, and a pocket mic is connected
 - **When:** I tap the name and pick the pocket mic
 - **Then:** the mic closes, its words so far still go, and opens again on the pocket mic: the line names it, the bar moves with it as I talk, and the next opening, on any board, uses it too
+
+---
+
+### User Story 1113:
+
+- **Summary:** Hold the mic to pick the microphone, even with the mic closed
+- **Status:** in progress (bead context-grabber-h5c0)
+- **Issues:** bead `context-grabber-h5c0`
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Which microphone, and what it hears*
+
+#### Use Case:
+- **As someone** about to talk to the board through a pocket mic
+- **I want to** hold the mic button and pick the microphone before I open it
+- **so that** my first words already go through the pocket mic, without opening the mic on the wrong one first
+
+#### Acceptance Criteria:
+- **Scenario:** Picking the pocket mic with the mic closed
+- **Given:** a board open with its mic closed, and a pocket mic connected
+- **When:** I press and hold the mic button
+- **Then:** the menu shows *Talk to Claude* under *Talk*, and under *Microphone* *Automatic* and the microphones the board knows, the picked one ticked, and *Find microphones*
+- **When:** I tap *Find microphones*, hold the mic button again and pick the pocket mic
+- **Then:** nothing opens; the next tap on the mic opens it on the pocket mic, on this board or any other
+- **And:** a plain tap on the mic still opens and closes it, and holding it with the mic open lists the same microphones, where a pick closes the mic and opens it again on the new one, as a pick from the note's line does
