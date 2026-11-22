@@ -1,4 +1,4 @@
-//  The board's Talk button (story 1055: a long press names it; bead context-grabber-h5c0, story 1113: and picks the
+//  The board's Talk button (story 1055: a long press names it; bead context-grabber-h5c0, story 926: and picks the
 //  microphone, open or closed). A plain tap opens and closes the mic.
 
 import BugKit
@@ -34,7 +34,7 @@ struct WhiteboardMicButton: View {
   }
 }
 
-/// Stories 1103, 1113: *Automatic* and each microphone the board knows, the pick ticked; shared by the note's line and
+/// Stories 1103, 926: *Automatic* and each microphone the board knows, the pick ticked; shared by the note's line and
 /// Talk's long press.
 struct WhiteboardMicRows: View {
   let menu: BoardMicMenu

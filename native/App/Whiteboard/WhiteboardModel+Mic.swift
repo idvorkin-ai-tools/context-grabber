@@ -71,7 +71,7 @@ extension WhiteboardModel {
       return
     }
     guard !dictation.busy, !micOpening else {
-      // Story 1113: a tap while Find microphones reads them does nothing; the log says why.
+      // Story 926: a tap while Find microphones reads them does nothing; the log says why.
       if dictation.refreshingMicrophones {
         log.event("whiteboard", ["action": "mic_refused", "board": board.id, "why": "listing"])
       }
@@ -161,13 +161,13 @@ extension WhiteboardModel {
     }
   }
 
-  /// Stories 1103, 1113: the microphone rows, in the note's line and under Talk's long press, from what the dictation
+  /// Stories 1103, 926: the microphone rows, in the note's line and under Talk's long press, from what the dictation
   /// has read and the kept pick.
   var micMenu: BoardMicMenu {
     dictation.boardMicMenu(micOpen: micOn || micStarting, busy: dictation.busy || micOpening)
   }
 
-  /// Story 1113: *Find microphones* under Talk's long press, with the mic closed, reads the connected ones so the next
+  /// Story 926: *Find microphones* under Talk's long press, with the mic closed, reads the connected ones so the next
   /// long press lists them. Never while a call holds the microphone (reading them reconfigures the audio session).
   func findMicrophones() {
     guard micMenu.canFind else { return }
@@ -235,7 +235,7 @@ extension WhiteboardModel {
 }
 
 extension NoteDictation {
-  /// Stories 1103, 1113: the board's microphone rows from what this dictation has read and its kept pick.
+  /// Stories 1103, 926: the board's microphone rows from what this dictation has read and its kept pick.
   func boardMicMenu(micOpen: Bool, busy: Bool) -> BoardMicMenu {
     BoardMicMenu(
       microphones: microphones.map { BoardMicMenu.Microphone(id: $0.id, name: $0.name) }, picked: selectedMicrophoneID,

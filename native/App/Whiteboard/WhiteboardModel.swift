@@ -253,7 +253,7 @@ final class WhiteboardModel: ObservableObject {
     watchNotices()
     checkMeaningBehind()
     opLedger.onChange = { [weak self] in self?.meaningChanged() }
-    // Story 1113: Talk's long press reads the dictation from the first frame; made here, its watches' first values land
+    // Story 926: Talk's long press reads the dictation from the first frame; made here, its watches' first values land
     // before any view observes the model, not inside a view update.
     _ = dictation
   }

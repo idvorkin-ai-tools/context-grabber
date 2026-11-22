@@ -1932,7 +1932,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1113:
+### User Story 926:
 
 - **Summary:** Hold the mic to pick the microphone, even with the mic closed
 - **Status:** implemented in [b7a1cb54](https://github.com/idvorkin/context-grabber/commit/b7a1cb54) and [f0b27eb8](https://github.com/idvorkin/context-grabber/commit/f0b27eb8) (the dictation made at the board's opening, the *Find microphones* row matched by its label); verified by the lint and host rungs (`BoardMicMenuTests`: the rows, the tick, a pick kept from before a relaunch, when *Find microphones* shows), the Mac build, and the iPad simulator (`WhiteboardTurnUITests.testHoldingTheMicPicksTheMicrophone`: holding the closed mic shows *Talk to Claude*, *Automatic* and *Find microphones*, and the row still talks; the rest of WhiteboardTurnUITests green, and the whole whiteboard suite green apart from this test before its fix). The simulator has no microphone to pick: the pocket mic in the list, *Find microphones* on a paired one, and what reading them does to music playing are the iPad's to show
@@ -1952,7 +1952,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1114:
+### User Story 927:
 
 - **Summary:** A microphone picked with the mic closed waits for the next opening
 - **Status:** implemented in [b7a1cb54](https://github.com/idvorkin/context-grabber/commit/b7a1cb54); verified by the lint and host rungs (`BoardMicMenuTests`: a pick kept from before a relaunch, when *Find microphones* shows) and the Mac build. The simulator has no microphone to find or pick: *Find microphones* on a paired pocket mic and the opening on it are the iPad's to show
@@ -1972,7 +1972,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1115:
+### User Story 928:
 
 - **Summary:** Hold the open mic to switch microphones
 - **Status:** implemented in [b7a1cb54](https://github.com/idvorkin/context-grabber/commit/b7a1cb54); verified by the lint and host rungs (`BoardMicMenuTests`: the rows and the tick with the mic open) and the Mac build. The simulator has no second microphone: the switch itself is the iPad's to show

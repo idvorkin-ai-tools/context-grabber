@@ -1,4 +1,4 @@
-//  Stories 1103 and 1113: the board's microphone rows and when *Find microphones* shows.
+//  Stories 1103 and 926: the board's microphone rows and when *Find microphones* shows.
 
 import ContextCore
 import XCTest
@@ -28,7 +28,7 @@ final class BoardMicMenuTests: XCTestCase {
     XCTAssertEqual(menu.rows.map(\.ticked), [false, true])
   }
 
-  /// Story 1113: reading the microphones is for a closed mic with nothing on its way; an open one read them at opening.
+  /// Story 926: reading the microphones is for a closed mic with nothing on its way; an open one read them at opening.
   func testFindShowsOnlyWithTheMicClosedAndIdle() {
     func find(open: Bool, busy: Bool) -> Bool {
       BoardMicMenu(microphones: [pocket], picked: nil, savedName: "Automatic", micOpen: open, busy: busy).canFind
