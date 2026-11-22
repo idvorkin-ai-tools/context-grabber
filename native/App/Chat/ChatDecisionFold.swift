@@ -13,16 +13,30 @@ struct ChatDecisionFoldable: View {
   let place: String
   let voice: ChatVoiceModel?
   let logger: BugLogger
+  @State private var contextOpen = false
 
   var body: some View {
-    if decisions.folds.isFolded(ask.id) {
-      ChatDecisionFoldedLine(ask: ask) { decisions.fold(ask, false, from: place) }
-    } else {
-      ChatDecisionCard(
-        decisions: decisions, ask: ask, place: place, voice: voice, logger: logger,
-        fold: { decisions.fold(ask, true, from: place) })
+    VStack(alignment: .leading, spacing: 0) {
+      if decisions.folds.isFolded(ask.id) {
+        ChatDecisionFoldedLine(ask: ask) { fold(false) }
+      } else {
+        ChatDecisionCard(
+          decisions: decisions, ask: ask, place: place, voice: voice, logger: logger, contextOpen: $contextOpen,
+          fold: { fold(true) })
+      }
     }
+    #if targetEnvironment(simulator)
+      .task(id: ask.id) {
+        guard ProcessInfo.processInfo.environment["GRABBER_CHAT_DECISION_FOLD"] == ask.id else { return }
+        fold(true)
+        try? await Task.sleep(for: .milliseconds(300))
+        guard !Task.isCancelled else { return }
+        fold(false)
+      }
+    #endif
   }
+
+  private func fold(_ folded: Bool) { decisions.fold(ask, folded, from: place) }
 }
 
 /// The folded card: its question on one line, a tap away from the whole card.

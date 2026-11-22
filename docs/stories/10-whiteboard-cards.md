@@ -164,8 +164,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** I fold an opened question
 - **Given:** an open question card's popup over the board
-- **When:** I tap the chevron beside the decision card's **⋯**
-- **Then:** the popup closes, the card is its one open line *? \<question\> ···* again, nothing is answered, the session log says the card was collapsed unanswered, and a tap opens it whole
+- **When:** I tap the chevron beside the decision card's **⋯**, even while a request is on its way
+- **Then:** the popup closes, the card is its one open line *? \<question\> ···* again, and a tap opens it whole. Folding sends nothing and the log records an unanswered collapse. A request already on its way can update the original card when it finishes, and another question's popup stays open.
 
 ---
 

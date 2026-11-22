@@ -105,6 +105,14 @@ struct WhiteboardQuestionSheet: ViewModifier {
       WhiteboardQuestionPopup(
         questions: questions, decisions: decisions, voice: voice, logger: logger, cardID: opened.id)
     }
+    #if targetEnvironment(simulator)
+      .task {
+        guard let ask = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_QUESTION_FOLD"] else { return }
+        await questions.sync(reason: "fold_hook")
+        guard !Task.isCancelled, let card = questions.board.cards.first(where: { $0.ask == ask }) else { return }
+        questions.tap(card)
+      }
+    #endif
   }
 }
 
@@ -116,8 +124,7 @@ private struct WhiteboardQuestionPopup: View {
   let logger: BugLogger
   let cardID: String
   @State private var words = ""
-  /// Story 1130: Larry's own-answer option puts the cursor here.
-  @FocusState private var wordsFocused: Bool
+  @State private var contextOpen = false
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
@@ -148,9 +155,19 @@ private struct WhiteboardQuestionPopup: View {
     if let answer = card.answered, !card.needsAnswer {
       answered(card, answer)
     } else if let ask = questions.asks[card.ask] {
+      let fold = { questions.fold(card) }
       ChatDecisionCard(
-        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, fold: { questions.fold(card) },
-        done: { verb, outcome in questions.decided(card, ask: ask, verb: verb, outcome: outcome) })
+        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, contextOpen: $contextOpen, fold: fold,
+        done: { verb, outcome in questions.decided(card, ask: ask, verb: verb, outcome: outcome) }
+      )
+      #if targetEnvironment(simulator)
+        .task(id: ask.id) {
+          guard !Task.isCancelled,
+            ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_QUESTION_FOLD"] == ask.id
+          else { return }
+          fold()
+        }
+      #endif
       ownWords(card, ask)
     } else if questions.reading {
       ProgressView("Loading the question…")

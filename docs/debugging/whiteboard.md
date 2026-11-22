@@ -104,7 +104,8 @@ to that event's own bullet; never join two events on one line.
   - landed (board, from: asks — open asks naming the board's thread, put near the top-left of the view — or larry — a question mark in Larry's reply, put where it says —, cards: how many new cards)
   - answers (board, asked: the cards whose ask is no longer open, found: how many the Cockpit's GET /ink/answers returned, filled: how many cards took an answer)
   - open (board, ask, answered: whether it opens read-only)
-  - expand and collapse (board, ask: an answered card folded to its chip or opened out)
+  - expand (board, ask: an answered chip opened out)
+  - collapse (board, ask: an answered card folded to its chip. With answered: false, the open question's popup folded back to its line, story 1149)
   - answered (board, ask, verb: what the card's decision did, after Chat's own decision_answer or decision_menu line with from: board)
   - erased (board, asks: the answered cards the eraser took, story 886)
 - `error` with where:

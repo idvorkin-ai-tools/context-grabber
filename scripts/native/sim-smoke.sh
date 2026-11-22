@@ -520,10 +520,7 @@ else bad "drill: open_card '$card', drill '$drill'"; fi
 
 fi  # drill
 
-if want chat; then
-# Chat (spec 2026-10-25): against a fake Cockpit (scripts/native/fake-cockpit.py), a message written for a new thread
-# goes up once as POST /chat with its id and the app as source, and one written in a thread as POST /chat/<key>;
-# opening that thread reads it and marks it seen. The log names the thread, never the text.
+if want chat || want whiteboard; then
 CHAT_PORT=${CHAT_PORT:-$((8797 + ${BUILD_LANE_PORT_OFFSET:-0}))}
 CHAT_REPORT=$(mktemp -t fake-cockpit); : >"$CHAT_REPORT"
 nc -z localhost "$CHAT_PORT" 2>/dev/null && bad "chat: port $CHAT_PORT is taken before the fake Cockpit started"
@@ -531,6 +528,32 @@ nc -z localhost "$CHAT_PORT" 2>/dev/null && bad "chat: port $CHAT_PORT is taken 
 COCKPIT=$!
 listening "$CHAT_PORT"
 kill -0 "$COCKPIT" 2>/dev/null || bad "chat: the fake Cockpit did not start on port $CHAT_PORT"
+if want chat; then
+  curl -fsS -d '{"open":true}' "http://localhost:$CHAT_PORT/fake/asks" >/dev/null
+  SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_DECISION_FOLD=igor2-88g.881 \
+    SIMCTL_CHILD_GRABBER_LINK="grabbernative://chat?thread=igor2-88g.878" relaunch
+  if wait_js '[.[] | select(.type=="chat" and .ask=="igor2-88g.881" and .from=="thread"
+    and (.action=="decision_fold" or .action=="decision_unfold")) | .action] == ["decision_fold", "decision_unfold"]' 20; then
+    ok "chat: the decision card folded and reopened from its line"
+  else bad "chat: missing the decision fold and reopen events in order"; fi
+fi
+if want whiteboard; then
+  curl -fsS -d '{"open":true,"board":"smoke-question-fold"}' "http://localhost:$CHAT_PORT/fake/asks" >/dev/null
+  SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-question-fold \
+    SIMCTL_CHILD_GRABBER_WHITEBOARD_QUESTION_FOLD=igor2-88g.879 \
+    SIMCTL_CHILD_GRABBER_LINK="grabbernative://whiteboard?board=smoke-question-fold" relaunch
+  if wait_js '[.[] | select(.type=="whiteboard_questions" and .board=="smoke-question-fold" and .ask=="igor2-88g.879"
+    and (.action=="open" or .action=="collapse")) | [.action, .answered]] == [["open", false], ["collapse", false]]' 20; then
+    ok "whiteboard: the question opened and folded back to its unanswered line"
+  else bad "whiteboard: missing the unanswered question open and collapse events in order"; fi
+fi
+curl -fsS -d '{"open":false}' "http://localhost:$CHAT_PORT/fake/asks" >/dev/null
+fi
+
+if want chat; then
+# Chat (spec 2026-10-25): against a fake Cockpit (scripts/native/fake-cockpit.py), a message written for a new thread
+# goes up once as POST /chat with its id and the app as source, and one written in a thread as POST /chat/<key>;
+# opening that thread reads it and marks it seen. The log names the thread, never the text.
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND="new|smoke: a new thread" relaunch
 wait_for chat 20 || echo "      (timed out waiting for chat)"
 sleep 2

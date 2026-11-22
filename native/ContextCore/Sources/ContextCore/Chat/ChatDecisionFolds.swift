@@ -9,7 +9,7 @@ public struct ChatDecisionFolds: Equatable, Sendable {
   public private(set) var ids: [String]
 
   public init(_ ids: [String] = []) {
-    self.ids = Array(Self.unique(ids).suffix(Self.cap))
+    self.ids = Array(ids.suffix(Self.cap))
   }
 
   public func isFolded(_ ask: String) -> Bool { ids.contains(ask) }
@@ -25,10 +25,5 @@ public struct ChatDecisionFolds: Equatable, Sendable {
       ids.removeAll { $0 == ask }
     }
     return true
-  }
-
-  private static func unique(_ ids: [String]) -> [String] {
-    var seen = Set<String>()
-    return ids.filter { !$0.isEmpty && seen.insert($0).inserted }
   }
 }

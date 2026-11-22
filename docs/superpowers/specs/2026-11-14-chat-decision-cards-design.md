@@ -80,11 +80,13 @@ A snooze writes nothing in the chat: the ask will be back.
 
 **Folding a card** (Igor, 2026-11-22, bead context-grabber-fjh0: *"anytime in chat I see a decision card, I should be
 able to collapse it"*). Every decision card in Chat, at the top of its thread and on *Decisions*, has a fold control
-(a chevron) beside its **⋯**. A tap folds the card to one line: the question-mark icon, the question cut with *…* to the
-width, and a chevron pointing down. Folding answers nothing, closes nothing and tells the Cockpit nothing: the row's
+(a chevron) beside its **⋯**, including while an answer or menu action is on its way. A tap folds the card to one line:
+the question-mark icon, the question cut with *…* to the width, and a chevron pointing down. Folding answers nothing,
+closes nothing and tells the Cockpit nothing: the row's
 *Decision waiting* and the count on *Decisions (N)* stay as they were. A tap anywhere on the folded line opens the card
-again, as it was. The fold is remembered for that ask on this device: the card stays folded when Igor leaves the thread
-and comes back, when he opens it from the other place (folded in its thread, it is folded on *Decisions* too), and
+again, with its context still expanded if Igor had opened it on this screen. The fold is remembered for that ask on
+this device: the card stays folded when Igor leaves the thread and comes back, when he opens it from the other place
+(folded in its thread, it is folded on *Decisions* too), and
 after the app restarts, until he opens it again. Another device's cards are not folded by it. Once the ask is finished
 the fold no longer matters; the app forgets the oldest folds once it holds a few hundred.
 

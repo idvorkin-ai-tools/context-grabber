@@ -231,6 +231,11 @@ final class ChatDecisionUITests: XCTestCase {
     decisions.tap()
     let card = app.otherElements["decision-card-igor2-88g.881"]
     XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+    let context = card.staticTexts["decision-context"]
+    let collapsedHeight = context.frame.height
+    context.tap()
+    let expanded = NSPredicate { _, _ in context.frame.height > collapsedHeight }
+    wait(for: [expectation(for: expanded, evaluatedWith: context)], timeout: 5)
     card.buttons["decision-fold"].tap()
     let folded = app.buttons["decision-folded-igor2-88g.881"]
     XCTAssertTrue(folded.appears(within: 5), app.debugDescription)
@@ -241,6 +246,11 @@ final class ChatDecisionUITests: XCTestCase {
     line.name = "decision-card-folded"
     line.lifetime = .keepAlways
     add(line)
+    folded.tap()
+    XCTAssertTrue(card.appears(within: 5), app.debugDescription)
+    XCTAssertGreaterThan(context.frame.height, collapsedHeight, "fold and reopen kept the expanded context")
+    card.buttons["decision-fold"].tap()
+    XCTAssertTrue(folded.appears(within: 5), app.debugDescription)
 
     // The fold is the ask's: in its thread too, while the row still says a decision waits.
     app.navigationBars.buttons.element(boundBy: 0).tap()

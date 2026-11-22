@@ -15,6 +15,7 @@ struct ChatDecisionSlot: View {
   var body: some View {
     if let ask = decisions.ask(on: key) {
       ChatDecisionFoldable(decisions: decisions, ask: ask, place: "thread", voice: voice, logger: logger)
+        .id(ask.id)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color(.systemGroupedBackground))
@@ -54,9 +55,8 @@ struct ChatDecisionCard: View {
   let ownAnswer: (() -> Void)?
   /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
   let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
-  /// Story 1130: the fold control's action; no control without one.
-  let fold: (() -> Void)?
-  @State private var contextOpen = false
+  let fold: () -> Void
+  @Binding private var contextOpen: Bool
   @State private var closing = false
   @State private var closeReason = ""
   @State private var otherOpen = false
@@ -66,7 +66,7 @@ struct ChatDecisionCard: View {
 
   init(
     decisions: ChatDecisionsModel, ask: ChatAsk, place: String, voice: ChatVoiceModel?, logger: @escaping BugLogger,
-    fold: (() -> Void)? = nil,
+    contextOpen: Binding<Bool>, fold: @escaping () -> Void,
     done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
   ) {
     self.decisions = decisions
@@ -74,6 +74,7 @@ struct ChatDecisionCard: View {
     self.place = place
     self.voice = voice
     self.logger = logger
+    self._contextOpen = contextOpen
     self.fold = fold
     self.done = done
   }
@@ -84,8 +85,9 @@ struct ChatDecisionCard: View {
         Image(systemName: "questionmark.bubble").foregroundStyle(.orange)
         Text(ask.title).font(.headline).fixedSize(horizontal: false, vertical: true)
         Spacer(minLength: 8)
-        if let fold { ChatDecisionFoldButton(fold: fold) }
+        ChatDecisionFoldButton(fold: fold)
         menu
+          .disabled(state.sending)
       }
       if !ask.context.isEmpty {
         Text(ask.context)
@@ -119,6 +121,7 @@ struct ChatDecisionCard: View {
           .multilineTextAlignment(.leading)
         }
         .buttonStyle(.bordered)
+        .disabled(state.sending)
         .accessibilityIdentifier("decision-option-\(option.key)")
       }
       if let voice {
@@ -140,8 +143,6 @@ struct ChatDecisionCard: View {
         BugProblemView(problem: problem, logger: logger)
       }
     }
-    .disabled(state.sending)
-    .opacity(state.sending ? 0.6 : 1)
     .padding(12)
     .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .contain)
@@ -152,7 +153,7 @@ struct ChatDecisionCard: View {
     .alert("Close this decision", isPresented: $closing) {
       TextField("What finished it", text: $closeReason)
       Button("Close") { go(.close(reason: closeReason)) }
-        .disabled(!ChatDecisions.canClose(reason: closeReason))
+        .disabled(state.sending || !ChatDecisions.canClose(reason: closeReason))
       Button("Cancel", role: .cancel) {}
     } message: {
       Text("One line, and it goes to Larry.")

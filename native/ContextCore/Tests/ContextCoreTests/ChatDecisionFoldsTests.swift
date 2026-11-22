@@ -17,10 +17,14 @@ final class ChatDecisionFoldsTests: XCTestCase {
     XCTAssertEqual(folds.ids, [])
   }
 
-  func testWhatWasSavedReadsBackWithoutRepeatsOrBlanks() {
-    let folds = ChatDecisionFolds(["a", "", "b", "a"])
-    XCTAssertEqual(folds.ids, ["a", "b"])
-    XCTAssertEqual(ChatDecisionFolds(folds.ids), folds, "the saved list is the folds")
+  func testTheSavedListRestoresFoldsInTheirOriginalOrder() {
+    var folds = ChatDecisionFolds()
+    folds.set("z", folded: true)
+    folds.set("a", folded: true)
+    let restored = ChatDecisionFolds(folds.ids)
+    XCTAssertEqual(restored.ids, ["z", "a"])
+    XCTAssertTrue(restored.isFolded("z"))
+    XCTAssertTrue(restored.isFolded("a"))
   }
 
   func testTheOldestFoldsGoPastTheCap() {

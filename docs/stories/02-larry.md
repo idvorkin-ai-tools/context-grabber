@@ -3186,18 +3186,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **so that** it stops filling the screen without my answering, closing or snoozing it
 
 #### Acceptance Criteria:
-- **Scenario:** I fold a card
+- **Scenario:** I put a decision card aside and return to it
 - **Given:** a decision card, in its chat or under *Decisions*
-- **When:** I tap the chevron beside its **⋯**
-- **Then:** the card becomes one line, its question with a chevron pointing down; nothing is answered or sent, and the row's *Decision waiting* and *Decisions (N)* are unchanged
-
-- **Scenario:** The fold is remembered
-- **Given:** a card I folded
-- **When:** I leave and come back, open the ask from its other place (its thread or *Decisions*), or restart the app
-- **Then:** the card is still folded, on this device
-
-- **Scenario:** I open it again
-- **Given:** a folded card
-- **When:** I tap its line
-- **Then:** the whole card is back, its options answerable, and it stays open next time
+- **When:** I tap the chevron beside its **⋯**, even while a request is on its way
+- **Then:** it becomes one line with the question and a downward chevron. Folding sends nothing, and the row's *Decision waiting* and *Decisions (N)* stay the same. The fold survives leaving the screen, opening the ask in its other place, and restarting the app on this device. Tapping the line brings back the whole card, including any context I expanded on that screen, and keeps it open next time.
 

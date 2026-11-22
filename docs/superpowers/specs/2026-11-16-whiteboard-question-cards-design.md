@@ -56,7 +56,9 @@ the popup closes and the card is answered. A snooze leaves the card open. A clos
 **Folding an open card** (Igor, 2026-11-22, bead context-grabber-fjh0: *"I should also be able to re-collapse decision
 cards"*). The opened question's decision card carries Chat's fold control beside its **⋯**. On the board a tap on it
 folds the card back to its one line on the paper: the popup closes, nothing is answered, and the card is open as
-before, a tap away. The popup always opens with the decision card whole, whatever its fold in Chat.
+before, a tap away. The control still works while an answer or menu action is on its way. If Igor opens another
+question before that request finishes, the other popup stays open. The popup always opens with the decision card
+whole, whatever its fold in Chat.
 
 **When it fails.** As Chat's card: a refused answer leaves the popup open with a copyable problem, and its buttons live
 again; one changed since it loaded says so and shows the ask as it now is. One already answered elsewhere, or no longer
