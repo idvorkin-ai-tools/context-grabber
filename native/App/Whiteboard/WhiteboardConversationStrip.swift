@@ -233,14 +233,22 @@ struct WhiteboardConversationText: UIViewRepresentable {
   final class Coordinator: NSObject, UITextViewDelegate {
     var links: [URL: ChatLink] = [:]
     var linkOpened: (ChatLink) -> Void = { _ in }
+    var shown: (rows: [WhiteboardNote.Row], size: CGFloat)?
 
     func textView(_ textView: UITextView, primaryActionFor textItem: UITextItem, defaultAction: UIAction) -> UIAction? {
       guard case .link(let url) = textItem.content, let link = links[url] else { return defaultAction }
       let opened = linkOpened
+      let target = Self.target(link)
       return UIAction { _ in
         opened(link)
-        UIApplication.shared.open(url)
+        UIApplication.shared.open(target)
       }
+    }
+
+    /// Story 1127: an Inbox chip opens its thread in the app, in either spelling; any other link where it points.
+    static func target(_ link: ChatLink) -> URL {
+      guard case .inbox = link.kind, let short = URL(string: ChatLinks.address(link)) else { return link.url }
+      return short
     }
   }
 
@@ -260,11 +268,13 @@ struct WhiteboardConversationText: UIViewRepresentable {
   }
 
   func updateUIView(_ view: NewestInView, context: Context) {
-    let (text, links) = Self.text(rows)
-    context.coordinator.links = links
     context.coordinator.linkOpened = linkOpened
     fingersOnly(view)
-    guard view.attributedText != text else { return }
+    let size = UIFont.preferredFont(forTextStyle: .footnote).pointSize
+    if let shown = context.coordinator.shown, shown.rows == rows, shown.size == size { return }
+    let (text, links) = Self.text(rows)
+    context.coordinator.links = links
+    context.coordinator.shown = (rows, size)
     view.attributedText = text
     view.showNewest()
   }
