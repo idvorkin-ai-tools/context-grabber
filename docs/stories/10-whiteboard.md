@@ -8350,7 +8350,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1098:
 
 - **Summary:** A board opens drawing with the tool the picker shows, so a kept eraser erases from the first stroke
-- **Status:** implemented in [ad6546c9](https://github.com/idvorkin/context-grabber/commit/ad6546c9); verified by `just native-test`, the Mac build, and the iPad simulator (`WhiteboardEraserUITests`: the eraser kept from the last launch drew a black line before the fix, and draws no ink after it; the eraser picked after the report sheet draws no ink); the iPad's Pencil is still owed
+- **Status:** implemented in [3fe2f43d](https://github.com/idvorkin/context-grabber/commit/3fe2f43d); verified by `just native-test`, the Mac build, and the iPad simulator (`WhiteboardEraserUITests`: the eraser kept from the last launch drew a black line before the fix, and draws no ink after it; the eraser picked after the report sheet draws no ink); the iPad's Pencil is still owed
 - **Issues:** [#1078](https://github.com/idvorkin/context-grabber/issues/1078): "Switched to eraser still drew normally"; bead context-grabber-8o93. The picker opened on the eraser kept from before, and the board drew with its own black pen until the next pick
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *A board opens drawing with the tool the picker shows*
 
