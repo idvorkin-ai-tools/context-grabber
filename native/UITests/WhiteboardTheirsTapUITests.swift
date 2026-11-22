@@ -1,6 +1,6 @@
 //  Story 1101 (#1171) on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): Larry's
-//  three circles kept with Keep all, each its own thing; a finger tap on the first selects that circle alone, a finger
-//  drags it alone, and one Undo puts it back. Where the circles sit is read from the screen's pixels (`PaperScreen`,
+//  three circles kept with Keep all, each its own thing; a finger tap on the first selects that circle alone (its Delete
+//  takes it and leaves the other two), and one Undo puts it back. A finger drag of a selection is story 947's test. Where the circles sit is read from the screen's pixels (`PaperScreen`,
 //  in WhiteboardPaperGhostsUITests.swift); what is selected, from To text, which shows beside the selected ink. Which
 //  strokes a tap reaches is `BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`.
 
@@ -37,7 +37,7 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     add(picture)
   }
 
-  func testAFingerTapOnOneOfLarrysKeptMarksSelectsItAloneAndItDragsAlone() throws {
+  func testAFingerTapOnOneOfLarrysKeptMarksSelectsItAlone() throws {
     let cockpit = try cockpit()
     let app = XCUIApplication.forTests(animated: true)
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
@@ -79,23 +79,25 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     XCTAssertEqual(send.label, label, "no dot drawn for the tap")
     shot(app, "one circle selected by a tap")
 
-    // A finger drags it down by a tenth of the window, from its middle.
-    let first = CGPoint(x: kept.minX + kept.width / 6, y: kept.center.y)
-    let from = app.coordinate(withNormalizedOffset: CGVector(dx: first.x, dy: first.y))
-    let to = app.coordinate(withNormalizedOffset: CGVector(dx: first.x, dy: first.y + 0.1))
-    from.press(forDuration: 0.3, thenDragTo: to)
-    let moved = PaperScreen.showing(app, { $0.larryKept }, { abs($0.maxY - kept.maxY - 0.1) < 0.03 })
-    shot(app, "dragged")
-    let after = try XCTUnwrap(moved, "his circles, after the drag")
-    XCTAssertEqual(after.minY, kept.minY, accuracy: 0.01, "the other two stayed: \(kept) to \(after)")
-    XCTAssertEqual(after.maxY, kept.maxY + 0.1, accuracy: 0.03, "one moved down: \(kept) to \(after)")
-    XCTAssertEqual(send.label, label, "moved, not drawn")
+    // One circle is too small to drag by its middle (PaperKit's handles cover it, and a drag there resizes it), so its
+    // Delete shows what the tap selected: the first circle goes, the other two stay.
+    let delete = app.buttons["Delete"].firstMatch
+    XCTAssertTrue(delete.appears(within: 5), app.debugDescription)
+    delete.tap()
+    let gone = PaperScreen.showing(app, { $0.larryKept }, { $0.minX > kept.minX + kept.width / 4 })
+    shot(app, "the selected circle deleted")
+    let after = try XCTUnwrap(gone, "his other two circles, after the Delete")
+    XCTAssertEqual(after.maxX, kept.maxX, accuracy: 0.01, "the other two stayed: \(kept) to \(after)")
+    XCTAssertEqual(after.width, kept.width * 2 / 3, accuracy: kept.width / 6, "one of three went: \(kept) to \(after)")
 
     let undo = app.buttons["whiteboard-undo"]
     waitUntil(NSPredicate(format: "isEnabled == true"), undo, timeout: 5)
     undo.tap()
-    let back = PaperScreen.showing(app, { $0.larryKept }, { abs($0.maxY - kept.maxY) < 0.01 })
+    sleep(1)
+    // The Undo selects the circle again, and To text beside it covers the other two: a tap on blank paper puts it away.
+    PaperScreen.tap(app, CGPoint(x: kept.center.x, y: kept.maxY + 0.2))
+    let back = PaperScreen.showing(app, { $0.larryKept }, { abs($0.width - kept.width) < 0.01 })
     shot(app, "after one undo")
-    XCTAssertEqual(try XCTUnwrap(back).maxY, kept.maxY, accuracy: 0.01, "one Undo put it back")
+    XCTAssertEqual(try XCTUnwrap(back).width, kept.width, accuracy: 0.01, "one Undo put it back")
   }
 }
