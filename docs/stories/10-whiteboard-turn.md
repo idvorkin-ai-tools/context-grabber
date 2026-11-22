@@ -92,7 +92,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1119:
 
 - **Summary:** A spoken turn waits until I have finished my sentence
-- **Status:** implemented in (this PR); the rule verified on the host by `BoardSpeechEndTests` with the 2026-11-22 iPad log's timings, the app by `just native-build-mac`; real dictation on the iPad not yet
+- **Status:** implemented in [0ebb998e](https://github.com/idvorkin/context-grabber/commit/0ebb998e); the rule verified on the host by `BoardSpeechEndTests` with the 2026-11-22 iPad log's timings, the app by `just native-build-mac`; real dictation on the iPad not yet
 - **Issues:** bead `context-grabber-u1yy`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
