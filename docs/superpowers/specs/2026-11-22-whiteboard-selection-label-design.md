@@ -43,7 +43,8 @@ said how much was selected.
 - **Not shown** on a look-only board, beside a paste (it has its own Delete), or while a text is open for rewording.
 - **The buttons don't change.** To text and Connect show exactly as before; the label only names them.
 - **VoiceOver** reads it as *Selected: Text, tap to reword*, and it is reachable as one element.
-- **The board's ? sheet** has a row for it: *Select something: a label says what it is and what applies.*
+- **The board's ? sheet** has a row for it: *Select something: a label above it says what it is and what applies*, with a
+  few of the labels as examples.
 - **The session log** says what each new label said: its kind, how many strokes, and the words.
 
 ## Acceptance criteria
