@@ -1,4 +1,4 @@
-//  #1136 (story 428): a connection lost under Larry's turn gets one quiet second try; a second loss, another error or a
+//  #1136 (stories 908, 909): a connection lost under Larry's turn gets one quiet second try; a second loss, another error or a
 //  turn taken over in the meantime is said as before.
 
 import XCTest

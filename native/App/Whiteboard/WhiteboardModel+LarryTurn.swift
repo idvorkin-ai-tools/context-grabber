@@ -249,7 +249,7 @@ extension WhiteboardModel {
     }
   }
 
-  /// The picture uploaded, then the message that names it. #1136 (story 428): a connection lost under either is sent
+  /// The picture uploaded, then the message that names it. #1136 (stories 908, 909): a connection lost under either is sent
   /// once more by itself, once the app is back on screen and if the hand-off still speaks for the board; `facts` gets
   /// what became of it, and the app's state when it was lost and when it went again.
   private func deliver(

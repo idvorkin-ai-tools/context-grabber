@@ -1,4 +1,4 @@
-//  #1136 (story 428): the system dropping the connection under Larry's turn is not an outage. On the iPad it came, in
+//  #1136 (stories 908, 909): the system dropping the connection under Larry's turn is not an outage. On the iPad it came, in
 //  every log that had one, as the app left the screen for a moment while the picture was going, and landed just before
 //  the app was back. One more try, once the app is back, is what Igor would have done himself; a second loss, or any
 //  other error, is said as before.
