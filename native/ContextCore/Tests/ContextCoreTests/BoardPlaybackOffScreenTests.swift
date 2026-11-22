@@ -3,8 +3,8 @@ import XCTest
 
 @testable import ContextCore
 
-/// The oracle is story 955 (#1169): while a board plays back, a label says when the stroke being drawn (or drawn last) is
-/// wholly above or below the screen, and on which page; ink any of which shows needs no label.
+/// The oracle is story 1111 (#1169): while a board plays back, a label says when the stroke being drawn (or drawn last)
+/// is wholly above or below the screen, and on which page; ink any of which shows needs no label.
 final class BoardPlaybackOffScreenTests: XCTestCase {
   private let pages = BoardPages()
   /// Page 2 on the screen: pages are 1060 points tall.
