@@ -72,17 +72,34 @@ final class AudioFloorTests: XCTestCase {
     XCTAssertEqual(decide(.audioReset, everyone.subtracting([.call])), [])
   }
 
-  // MARK: today's gaps
+  // MARK: the call keeps the mic (context-grabber-2r55, story 1071)
 
-  /// #802 open question for Igor: should the timer/breathing refuse during a call?
-  /// Today nothing checks: GymAudio.swift:187 and BreatheAudio.swift:189 set `.playback` on the session a live call
-  /// holds as `.playAndRecord` / `.voiceChat`, and the call is not told.
-  func testTimerStartAndBreathingDuringACallAreNotArbitrated() {
-    XCTAssertEqual(decide(.timerStarts, [.call]), [])
-    XCTAssertEqual(decide(.breatheStarts, [.call]), [])
+  /// Igor, 2026-11-21: the call keeps the mic. A workout or a breathing session asking for the session while a call
+  /// is connecting or live goes without it (silent, with a note), at START and at every cue and session change
+  /// after; without a call it goes ahead. Opening breathing still pauses a workout, call or no call.
+  func testTimerAndBreathingAreSilentDuringACall() {
+    XCTAssertEqual(decide(.timerStarts, [.call]), [.refuse(by: .call)])
+    XCTAssertEqual(decide(.breatheStarts, [.call]), [.refuse(by: .call)])
+    XCTAssertEqual(decide(.timerStarts, everyone), [.refuse(by: .call)])
+    XCTAssertEqual(decide(.breatheStarts, everyone), [.refuse(by: .call)])
+    XCTAssertEqual(decide(.timerStarts, everyone.subtracting([.call])), [])
+    XCTAssertEqual(decide(.breatheStarts, everyone.subtracting([.call])), [])
     XCTAssertEqual(decide(.breatheOpens, [.call]), [.yield(.timer, to: "breathe")])
-    XCTAssertEqual(decide(.timerStarts, everyone), [])
-    XCTAssertEqual(decide(.breatheStarts, everyone), [])
+  }
+
+  /// The gate the audio queues read: it follows the call as AppModel reports it, and answers from the table.
+  func testTheGateFollowsTheCall() {
+    let gate = AudioFloorGate()
+    var changes: [Bool] = []
+    gate.onChange { changes.append($0.contains(.call)) }
+    XCTAssertNil(gate.refusal(.timerStarts))
+    gate.set(.call, holding: true)
+    XCTAssertEqual(gate.refusal(.timerStarts), .call)
+    XCTAssertEqual(gate.refusal(.breatheStarts), .call)
+    gate.set(.call, holding: true)  // no change, no news
+    gate.set(.call, holding: false)
+    XCTAssertNil(gate.refusal(.breatheStarts))
+    XCTAssertEqual(changes, [true, false])
   }
 
   /// Nothing else gives way either: a call starting leaves a workout started since, or a breathing session, alone;
@@ -100,9 +117,9 @@ final class AudioFloorTests: XCTestCase {
     let expected: [AudioAsk: [AudioDecision]] = [
       .callScreenOpens: [.yield(.timer, to: "call")],
       .callStarts: [.yield(.song, to: "call")],
-      .timerStarts: [],
+      .timerStarts: [.refuse(by: .call)],
       .breatheOpens: [.yield(.timer, to: "breathe")],
-      .breatheStarts: [],
+      .breatheStarts: [.refuse(by: .call)],
       .songOpens: [.yield(.timer, to: "eulogy_song")],
       .songPlays: [.refuse(by: .call)],
       .cardSpeaks: [.refuse(by: .call)],
@@ -113,7 +130,7 @@ final class AudioFloorTests: XCTestCase {
     for ask in AudioAsk.allCases {
       XCTAssertEqual(decide(ask, everyone), expected[ask], ask.rawValue)
     }
-    XCTAssertEqual(AudioFloor.rules.count, 9, "the seven microphone rows are MicFloor's")
+    XCTAssertEqual(AudioFloor.rules.count, 11, "the seven microphone rows are MicFloor's")
     XCTAssertTrue(AudioFloor.rules.allSatisfy { !$0.source.isEmpty })
   }
 
@@ -133,7 +150,9 @@ final class AudioFloorTests: XCTestCase {
         asked.append($0)
         return false
       }
-      XCTAssertEqual(asked, [.songPlays, .cardSpeaks, .audioReset].contains(ask) ? [.call] : [], ask.rawValue)
+      XCTAssertEqual(
+        asked, [.timerStarts, .breatheStarts, .songPlays, .cardSpeaks, .audioReset].contains(ask) ? [.call] : [],
+        ask.rawValue)
     }
   }
 

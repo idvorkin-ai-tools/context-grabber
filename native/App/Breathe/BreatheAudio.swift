@@ -15,8 +15,11 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
   private let log: SessionLog
   private let queue = DispatchQueue(label: "grabber.breathe.audio")
   private let session = AVAudioSession.sharedInstance()
+  private let gate: AudioFloorGate
 
   // Touched only on `queue`.
+  /// context-grabber-2r55: a call held the session at the last ask, so breathing let go of nothing it did not own.
+  private var heldByCall = false
   /// A session is running and wants the keepalive.
   private var wanted = false
   private var active = false
@@ -27,8 +30,21 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
   private let speech = AVSpeechSynthesizer()
   private var interruptionObserver: NSObjectProtocol?
 
-  init(log: SessionLog) {
+  init(log: SessionLog, gate: AudioFloorGate) {
     self.log = log
+    self.gate = gate
+    // The call let go: a session still running takes the audio back, after the call's own letting go.
+    // A call starting under a running session: breathing goes quiet at once, not at its next cue.
+    gate.onChange { [weak self] holding in
+      guard holding.contains(.call) else {
+        self?.queue.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.takeBack() }
+        return
+      }
+      self?.queue.async { [weak self] in
+        guard let self, self.wanted || self.active else { return }
+        _ = self.held("call_started")
+      }
+    }
     // A phone call or Siri takes the session; when it gives it back the keepalive has to be started again or the
     // app is suspended with the phone locked.
     interruptionObserver = NotificationCenter.default.addObserver(
@@ -40,7 +56,7 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
         guard let self else { return }
         self.log.event("breath_interruption", ["kind": ended ? "ended" : "began", "wanted": self.wanted])
         self.active = false
-        if ended, self.wanted { self.startLoop() }
+        if ended, self.wanted, !self.held("interruption_ended") { self.startLoop() }
       }
     }
   }
@@ -59,6 +75,11 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
 
   func say(_ phrase: BreathPhrase) {
     queue.async { [self] in
+      if let holder = gate.refusal(.breatheStarts) {
+        standDown()
+        log.event("breath_cue", ["kind": "voice", "name": phrase.rawValue, "ok": false, "held_by": holder.rawValue])
+        return
+      }
       activate()
       if let player = player(phrase) {
         player.currentTime = 0
@@ -78,6 +99,11 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
 
   func play(_ tone: BreathTone) {
     queue.async { [self] in
+      if let holder = gate.refusal(.breatheStarts) {
+        standDown()
+        log.event("breath_cue", ["kind": "tone", "name": tone.rawValue, "ok": false, "held_by": holder.rawValue])
+        return
+      }
       activate()
       guard let player = player(tone) else {
         log.event("breath_cue", ["kind": "tone", "name": tone.rawValue, "ok": false])
@@ -94,6 +120,7 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
     queue.async { [self] in
       wanted = on
       if on {
+        guard !held("keepalive") else { return }
         startLoop()
       } else if let loop, loop.isPlaying {
         loop.pause()
@@ -116,7 +143,7 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
         loop.pause()
         log.event("breath_keepalive", ["action": "stop", "ok": true])
       }
-      guard active else { return }
+      guard !held("stop"), active else { return }
       active = false
       do {
         try session.setActive(false, options: .notifyOthersOnDeactivation)
@@ -128,6 +155,32 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
   }
 
   // MARK: - on the queue
+
+  /// Whether a call holds the session (story 1071): then breathing stands down without touching it, and logs what
+  /// it held back.
+  private func held(_ what: String) -> Bool {
+    guard let holder = gate.refusal(.breatheStarts) else { return false }
+    standDown()
+    log.event("breath_session", ["action": "held", "what": what, "held_by": holder.rawValue])
+    return true
+  }
+
+  /// The call has the session: stop what breathing plays and forget it was active, so the session is taken again
+  /// (category and all) once the call lets go. No `setActive` or `setCategory` here: either would reach the call.
+  private func standDown() {
+    silence()
+    loop?.pause()
+    active = false
+    heldByCall = true
+  }
+
+  /// The call ended: a session still running takes the audio back with its keepalive.
+  private func takeBack() {
+    guard heldByCall, gate.refusal(.breatheStarts) == nil else { return }
+    heldByCall = false
+    log.event("breath_session", ["action": "taken_back", "wanted": wanted])
+    if wanted { startLoop() }
+  }
 
   private func startLoop() {
     activate()

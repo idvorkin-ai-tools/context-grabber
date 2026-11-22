@@ -45,7 +45,7 @@ struct BreatheView: View {
     self.onExit = onExit
     _model = StateObject(
       wrappedValue: BreatheModel(
-        log: app.log, database: app.database, liveActivity: app.liveActivity,
+        log: app.log, database: app.database, liveActivity: app.liveActivity, audioGate: app.audioGate,
         saveMindful: { [weak app] span, why in app?.saveMindful(span, why: why) }))
   }
 
@@ -58,6 +58,8 @@ struct BreatheView: View {
       case .done: BreatheDone(model: model)
       }
     }
+    // Story 1071: centred in the header row, clear of Close, the gear and Back.
+    .overlay(alignment: .top) { CallSoundsNote(call: app.call).padding(.top, 8) }
     .preferredColorScheme(.dark)
     .onAppear { if launch.begins { model.begin(launch) } }
     .onDisappear { model.disappear() }

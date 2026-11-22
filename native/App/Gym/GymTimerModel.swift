@@ -45,10 +45,10 @@ final class GymTimerModel: ObservableObject {
   private static let chosenKey = "gym_active_preset"
   private static let setsKey = "gym_sets_count"
   private static let modeKey = "gym_mode"
-  init(log: SessionLog, database: AppDatabase, liveActivity: LiveActivityController) {
+  init(log: SessionLog, database: AppDatabase, liveActivity: LiveActivityController, audioGate: AudioFloorGate) {
     self.log = log
     self.database = database
-    let audio = GymAudio(log: log)
+    let audio = GymAudio(log: log, gate: audioGate)
     self.audio = audio
     var record: (TimerProfile) -> Void = { _ in }
     session = TimerSession(

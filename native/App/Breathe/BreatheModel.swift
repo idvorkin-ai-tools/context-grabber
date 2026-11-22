@@ -54,12 +54,12 @@ final class BreatheModel: ObservableObject {
   private static let cueKey = "breathe_cue"
 
   init(
-    log: SessionLog, database: AppDatabase, liveActivity: LiveActivityController,
+    log: SessionLog, database: AppDatabase, liveActivity: LiveActivityController, audioGate: AudioFloorGate,
     saveMindful: @escaping (TimeSpan, String) -> Void = { _, _ in }
   ) {
     self.log = log
     self.database = database
-    let audio = BreatheAudio(log: log)
+    let audio = BreatheAudio(log: log, gate: audioGate)
     self.audio = audio
     let (setup, seeds) = BreathSetup.restore(database.setting)
     for seed in seeds { database.setSetting(seed.key, seed.value) }
