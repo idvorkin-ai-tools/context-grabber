@@ -18,7 +18,7 @@ holds. What the app does today is in the stories, the whiteboard journey's files
 
 Igor's picks on the design board, 2026-11-22. Each rule is stated here once; the stories cite it.
 
-### The six principles
+### The five principles
 
 1. **Nothing joins the board without his say.** What Larry or Claude draws is a suggestion until he keeps it, and a
    stray touch never keeps or loses anything.
@@ -27,10 +27,12 @@ Igor's picks on the design board, 2026-11-22. Each rule is stated here once; the
 3. **One touch, one meaning.** A tap picks up one thing, and he can tell beforehand what that thing is.
 4. **He always knows who he is talking to, and where.** Larry answers a board unless he picks someone else, with one
    conversation per board.
-5. **It is paper and ink.** Pages of ink that the iPad draws and the phone only looks at; no text boxes, no layers, not
-   a notes app. Marks stay inside the page and paper stays light.
-6. **Ink moves like the text it would have been if it were typed.** It reflows like text (his thesis of 2026-11-16,
-   decision 9, now a principle).
+5. **Ink that behaves like text.** Igor: "it's actually ink that behaves like text, and it has layers, and it has
+   collapsing and all that jazz." Handwriting reflows, folds and collapses like the sections of an outline, and has
+   layers: his own ink, Larry's, suggestions and what is hidden (his thesis of 2026-11-16, decision 9, now a
+   principle). Two rules under it: marks stay inside the page, and paper stays light. The iPad draws and the phone
+   only looks. Layers here are whose ink it is and whether it shows, not a layers palette; what showing or hiding one
+   looks like is not designed yet.
 
 ### One thing
 
@@ -93,8 +95,8 @@ is dropped, even on ink": a selection dropped onto writing pushes the writing do
 | Rewording a kept text (940); the selection label (1095) | One conversation from any device (context-grabber-da1) |
 | Erasing part of a thing leaves plain ink (854, 871, 915) | |
 
-Still design, with no decision: what "reflows like text" asks beyond a rigid push (blank paper further down absorbing a
-push, a deleted line closing up, connectors stretching across a cut). That is bead context-grabber-0sf, to be proposed to Igor
+Still design, with no decision: what principle 5 asks beyond a rigid push and today's folds (blank paper further down
+absorbing a push, a deleted line closing up, connectors stretching across a cut, showing or hiding a layer). That is bead context-grabber-0sf, to be proposed to Igor
 before any code.
 
 ## How this document is laid out
@@ -1071,7 +1073,7 @@ board of 2026-11-22.
 | 12 | No cross-page linking, no knowledge base: boards are sessions on one topic. | "This isn't a Wikipedia or a knowledge base." |
 | 13 | Anchors and smart arrows are in the object model. | "We can turn arrows into real smart arrows." |
 | 14 | The object model has a must-support list that the prototype and the native build both meet. | "Things we need to be able to support" |
-| 15 | The whiteboard has six principles; the sixth is that ink moves like the text it would have been if it were typed. | Design board: the five accepted, "plus a sixth: ink moves like the text it would have been if it were typed (reflows like text)" |
+| 15 | The whiteboard has five principles; the fifth is ink that behaves like text: it reflows, folds and collapses, and has layers. | Design board: four accepted as written, and of the fifth, "it's actually ink that behaves like text, and it has layers, and it has collapsing and all that jazz" |
 | 16 | One rule for making room: Larry's ink never covers writing he didn't see; newer writing moves down in whole lines; every cut lands between lines; Keep all behaves like Keep group. | Design board pick |
 | 17 | A fold is erased only by its words or its marker. | Design board pick |
 | 18 | What he kept together moves together: Keep is that piece, Keep group or Keep all is the reply. | Design board pick |
