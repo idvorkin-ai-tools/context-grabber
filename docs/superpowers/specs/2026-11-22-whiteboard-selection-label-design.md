@@ -50,7 +50,7 @@ said how much was selected.
 
 - A lasso round Igor's handwriting shows *Ink · To text* above it, and To text beside it as before.
 - A selected kept text shows *Text · tap to reword*; erasing part of it and selecting the rest shows *Ink · To text*;
-  Undo, and the label (with the text selected again) says *Text · tap to reword*.
+  Undo brings the erased strokes back as ink, so the label on them still says *Ink · To text*.
 - A selected connector shows *Connector · follows its two ends*; a word a connector ends on, selected, says *Group ·
   moves as one · a connector follows it*.
 - The first Pencil stroke after a selection, even starting on the label, draws; the label never takes a tap.
