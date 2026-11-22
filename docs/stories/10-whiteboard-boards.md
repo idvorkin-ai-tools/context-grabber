@@ -505,6 +505,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1107:
+
+- **Summary:** A pick in the open Board menu always takes
+- **Status:** in progress
+- **Issues:** bead `context-grabber-664d`, [#880](https://github.com/idvorkin/context-grabber/issues/880), [#850](https://github.com/idvorkin/context-grabber/issues/850)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** choosing a colour, lines or *Tidy overlaps* on a board Larry has seen
+- **I want to** have my tap on a row in the Board menu take every time
+- **so that** I never pick something, see the menu stay open, and have to wonder whether it happened
+
+#### Acceptance Criteria:
+- **Scenario:** The board works behind an open menu
+- **Given:** a board of mine is open with its Board menu up, and the board is looking at Larry's thread every few seconds or has just saved
+- **When:** I tap any row in the menu, at any moment
+- **Then:** that row is chosen and the menu closes; the menu is never put up again while it stays open unless what it shows (the colour, the lines, the font or the responder) changed
+
+---
+
 ### User Story 403:
 
 - **Summary:** The colour follows light and dark mode

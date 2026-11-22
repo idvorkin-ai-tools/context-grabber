@@ -298,6 +298,10 @@ so." New boards are on paper from now on, on every device, though the rest of th
 - **Changing the colour or the lines leaves the ink alone.** Ink already on screen stays on screen, where it was, the view
   doesn't move, nothing is added to undo, and the board's stroke count doesn't change.
 - **The Board menu never costs a stroke.** The first stroke after the menu closes draws, whether something was chosen or not.
+- **A pick in the open Board menu always takes.** The menu holds still while it is open, whatever the board does behind
+  it: Larry's thread being looked at every few seconds, a save, a ghost coming or going. A row tapped at any moment is
+  chosen and the menu closes, never a tap lost because the menu was put up again under the finger. Only a change to
+  what the menu itself shows (its colour, lines, font or responder) may redraw it.
 - **What a board on paper can't do yet.** *Send to Larry*, *Larry's turn*, ghosts, the mic and paste work: see
   *Ghosts and Larry on paper* and *Paste on paper*. The picture is still the whole drawing.
 - **Undo and a new page.** Adding a page can count as a step of undo: one press may take back the page and not a stroke.
