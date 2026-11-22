@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run right before `gh pr merge` (story 1029, bead context-grabber-jg3w): the story ID check on the branch as it
+# Run right before `gh pr merge` (story 793, bead context-grabber-jg3w): the story ID check on the branch as it
 # would merge into main now. Each PR passes the check alone, yet two that took the same "next free ID" collide once
 # both merge; this sees main as it is at the moment of merging. It fetches origin/main and the branch as pushed (the
 # pipeline adds its own commits to the PR, so the local branch can be behind), merges them with git merge-tree,

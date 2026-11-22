@@ -718,7 +718,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 791:
 
 - **Summary:** A new story's ID is reserved, never picked from the branch alone
-- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations started at once get six different IDs; six reservations held open at once inside the ledger's lock get six different IDs, and a journey is found by a word from its row. This story's own ID, and 792 to 794, came from the command
+- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations held open at once inside the ledger's lock get six different IDs, and a journey is found by a word from its row. This story's own ID, and 792 to 794, came from the command
 - **Issues:** bead context-grabber-jg3w (parallel PRs each took "the next free ID" from their own branch; each passed story 789's check alone, and main took duplicates four times on 2026-11-22: 955, 1101, 1155, 1113–1115)
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 

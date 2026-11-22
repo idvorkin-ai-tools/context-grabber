@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Host test for scripts/native/story-ids.py (#993, story 789): hand-written story trees, each with the exact failures
-# a reader finds in it; its reserve command against a fake gh and a fake main (stories 1027, 1028); the pre-merge
-# check on a throwaway repository (story 1029); then the repo's own docs/stories, which must pass. Runs anywhere with
+# a reader finds in it; its reserve command against a fake gh and a fake main (stories 791, 792, 794); the pre-merge
+# check on a throwaway repository (story 793); then the repo's own docs/stories, which must pass. Runs anywhere with
 # python3 and git.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
@@ -148,7 +148,7 @@ story tworows 02-b.md 10
 story tworows 01-x.md 2
 expect "a file linked by two journeys fails" tworows 1 "FAIL README.md:2: 01-x.md is listed twice"
 
-# --- reserve (story 1027, 1028; bead context-grabber-jg3w): a fake gh, a dir standing in for main, a ledger in $tmp.
+# --- reserve (stories 791, 792, 794; bead context-grabber-jg3w): a fake gh, a dir standing in for main, a ledger in $tmp.
 mkdir -p "$tmp/prs"
 cat >"$tmp/gh" <<'F'
 #!/usr/bin/env bash
@@ -202,7 +202,7 @@ for k in 1 2 3 4 5 6; do STORY_IDS_HOLD=0.3 reserve "$tmp/race.json" 02-b.md >"$
 wait
 check "six reservations at once, each holding the ledger a while, get six different IDs" "$(cat "$tmp"/race.? | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
 
-# --- pre-merge (story 1029): two branches that each pass alone but add the same ID fail once merged with main.
+# --- pre-merge (story 793): two branches that each pass alone but add the same ID fail once merged with main.
 g() { git -c user.name=t -c user.email=t@t -c core.hooksPath=/dev/null -c init.defaultBranch=main "$@"; }
 repo=$tmp/repo
 entry() { printf '### User Story %s:\n\n- **Summary:** s%s\n\n---\n\n' "$1" "$1"; }

@@ -11,7 +11,7 @@ files (story 796); its last column lists that journey's IDs, like "001–019, 44
   - a "User Story" heading not in the "### User Story <n>:" form, which would otherwise go unchecked
 Usage: story-ids.py [stories-dir]   (default docs/stories)
 
-       story-ids.py reserve <journey> [n] [--dir stories-dir]   (story 1027, bead context-grabber-jg3w)
+       story-ids.py reserve <journey> [n] [--dir stories-dir]   (story 791, bead context-grabber-jg3w)
 Hands out the next n free IDs (one by default) in a journey's ranges, one per line on stdout and nothing else.
 <journey> is one of its story files or a word from its row ("building", "whiteboard"). An ID is
 free when it is in none of: the stories on origin/main (fetched first), the stories in stories-dir, the story
