@@ -82,14 +82,18 @@ public enum WhiteboardNote {
     public var keep: String?
     /// The middle is Larry's own line, which takes the emphasis (#1003, story 1053).
     public var larrySpeaks = false
+    /// Story 929: Larry is holding for more, in his words; the line starts with an ear and these.
+    public var listening: String?
   }
 
   /// The line, or nil with nothing to say.
   public static func line(
     larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
-    mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool, notice: Notice?, ghosts: Int
+    mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool, notice: Notice?, ghosts: Int,
+    listening: String? = nil
   ) -> Line? {
     var line = Line()
+    line.listening = WhiteboardLarryListening.shown(listening, turn: larry)
     if let clock = WhiteboardLarryClock.state(
       larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark),
       let spoken = WhiteboardLarryClock.spoken(
@@ -187,12 +191,15 @@ public enum WhiteboardNote {
     public let kind: Kind
     public let who: String
     public let text: String
+    /// Story 929: the chip says Larry is holding for more, and carries the ear.
+    public let listening: Bool
 
-    public init(id: String, kind: Kind, who: String, text: String) {
+    public init(id: String, kind: Kind, who: String, text: String, listening: Bool = false) {
       self.id = id
       self.kind = kind
       self.who = who
       self.text = text
+      self.listening = listening
     }
   }
 
@@ -234,7 +241,7 @@ public enum WhiteboardNote {
   /// picture's mark in words; nil with neither.
   public static func chip(
     thread: [ChatMessage], larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
-    mark: WhiteboardLarryWait.Mark = .unknown
+    mark: WhiteboardLarryWait.Mark = .unknown, listening: String? = nil
   ) -> String? {
     if larry.looking,
       let clock = WhiteboardLarryClock.state(larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark)
@@ -242,6 +249,8 @@ public enum WhiteboardNote {
       guard let next = waiting(larry) else { return clock }
       return "\(clock) · next: " + (larry.queued.map { "\(next): \($0)" } ?? next)
     }
+    // Story 929: his hold, in his words, in place of *Larry has it*: one chip, one vocabulary.
+    if let listening { return listening }
     guard let picture = thread.last(where: { $0.fromIgor && !$0.attachments.isEmpty }) else { return nil }
     return chipWord(picture.receipt)
   }
@@ -249,11 +258,14 @@ public enum WhiteboardNote {
   /// The panel's live rows, under its thread: the status chip, and what the mic is hearing.
   public static func live(
     thread: [ChatMessage] = [], larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
-    mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool
+    mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool, listening: String? = nil
   ) -> [Row] {
     var rows: [Row] = []
-    if let chip = chip(thread: thread, larry: larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark) {
-      rows.append(Row(id: "live-chip", kind: .live, who: "Your board", text: chip))
+    let ear = WhiteboardLarryListening.shown(listening, turn: larry)
+    if let chip = chip(
+      thread: thread, larry: larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark, listening: ear)
+    {
+      rows.append(Row(id: "live-chip", kind: .live, who: "Your board", text: chip, listening: ear != nil))
     }
     if micOn {
       rows.append(Row(id: "live-mic", kind: .live, who: "Hearing", text: said.you ?? "Listening…"))

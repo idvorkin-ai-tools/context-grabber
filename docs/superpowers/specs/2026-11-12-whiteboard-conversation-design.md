@@ -146,7 +146,8 @@ The note is one line and never two. It doesn't change height, so it never moves 
 on a board just opened, its line is kept empty, so the paper doesn't jump when Larry's state or a message first shows.
 
 - **First: Larry's state**, when a turn is out: the clock, then what is waiting to go when he answers, as
-  **next: ink**, **next: words** or **next: ink + words**.
+  **next: ink**, **next: words** or **next: ink + words**. With no turn out and Larry holding for more, an ear in
+  its place (*Larry is listening*, below).
 - **Then the newest thing said, by whoever said it last**: Larry's line, or what the mic last heard (*You: …*), or
   *Listening…* with the mic open and nothing heard. When Igor's words don't fit, the end is kept and the start is
   cut, because the newest words are the ones he is checking. Larry's line keeps its start.
@@ -189,7 +190,8 @@ of the screen is just under the panel.
 - **One status chip, one vocabulary.** Under the messages, one chip says where Igor's newest board picture is. While
   a turn is out it says exactly what the closed line's state says, the clock and what waits to go next: *Your board ·
   Sent · 0:02* or *Your board · Larry · 0:36 · next: ink*. With no turn out it says where the last picture got to:
-  *Sent* (on its way, or the Cockpit has it and Larry hasn't picked it up), *Larry has it*, or *Answered*. The chip
+  *Sent* (on its way, or the Cockpit has it and Larry hasn't picked it up), *Larry has it*, or *Answered*; while Larry
+  is holding for more, the ear and his words for it instead (*Your board · Larry: waiting for more*). The chip
   replaces the *Now* and *Next* rows and each picture's *received*, *seen* and *done* marks, so the panel never shows
   two words for one state. With no picture on the thread and no turn out there is no chip.
 - **The Cockpit's own lines are left out** (*Moved to a new chat*, where a message was sent on to a chat of its own):
@@ -218,6 +220,26 @@ of the screen is just under the panel.
   iPhone*, below, #1161, #1163); these words are for when neither finds one.
 - **Not here:** how each picture was sent, how much ink was new, how long each answer took. That is for a page on
   the Cockpit.
+
+## Larry is listening (Igor, 2026-11-22, context-grabber-4fww)
+
+Igor, on his board: when Larry has seen a post but is waiting for more, because Igor is mid-thought, Larry says
+nothing, and the board shows a tiny indicator instead. The Cockpit marks Igor's newest message as *seen* and *waiting*,
+with Larry's words for it, until Larry's next message or a done clears it.
+
+- **An ear, gently animated, with Larry's words**: *Larry: waiting for more* when he gives none. It shows at the start
+  of the note's line, where his state would be, and as the panel's chip, *Your board · Larry: waiting for more*, in
+  place of *Larry has it*: one chip, one vocabulary. With Reduce Motion on, the ear holds still.
+- **Only on Igor's newest message.** A hold on an older message, or one Larry has since answered, shows nothing. It
+  shows whether that message carried a picture or only words.
+- **It is an answer, not a silence.** A hold on the picture of a turn that is out ends that turn as his answer would:
+  the clock stops, no *Interrupt* is offered, *Larry didn't answer* never comes, and the line never says *nothing to add*.
+  Ink or words that waited for him go at once as the next picture, since more is what he is waiting for.
+- **It clears** when Larry's next message lands, when the Cockpit stops marking the hold, or when a new picture or
+  message of Igor's goes. While a turn is out, the turn's own clock speaks, not the ear.
+- **No reply is expected** while the ear shows: nothing on the board waits for one or says he is late.
+- **A Cockpit that never holds** shows no ear, and everything else reads as before.
+- **The session log says when it starts and stops**, with Larry's words and what ended it.
 
 ## The board's chat from the iPhone (Igor, 2026-11-22, #1163)
 
@@ -316,6 +338,9 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
 - Larry is looking at a picture with ink waiting: the chip reads *Your board · Larry · 0:12 · next: ink*, the same
   words as the closed line.
 - Larry's lines read in the main text colour; every other line in the panel and the note is at least 4.5:1.
+- Larry holds on the picture he is looking at with *waiting for more*: the clock stops, an ear and *Larry: waiting
+  for more* start the note's line, the chip reads *Your board · Larry: waiting for more*, and no *Interrupt* or *Larry
+  didn't answer* ever comes. His next reply takes the ear away.
 - On an iPad in landscape, Larry's long reply wraps at about seventy characters.
 - With more messages than fit, the panel is a fifth of the board tall, shows the newest message at its bottom, and
   scrolls with a finger to the older ones; another reply arrives and the panel stays the same height, the reply in view.

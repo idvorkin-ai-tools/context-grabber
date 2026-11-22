@@ -316,7 +316,8 @@ struct WhiteboardView: View {
       WhiteboardNoteStrip.Shown(
         line: WhiteboardNote.line(
           larry: model.larry, now: now, cockpitAnswering: !model.larryAway, mark: model.larryMark(now: now),
-          said: model.lastSaid, micOn: model.micOn, notice: model.notice, ghosts: model.ghosts.count),
+          said: model.lastSaid, micOn: model.micOn, notice: model.notice, ghosts: model.ghosts.count,
+          listening: model.larryListening),
         tap: WhiteboardNote.tap(onPhone: onPhone, thread: model.threadKey), conversationOpen: model.conversationOpen,
         keepAll: model.editable && model.larrysMarks > 0 ? { model.keepLarrysMarks() } : nil,
         interrupt: model.larryWait == .working ? { model.interruptLarry() } : nil)
@@ -334,7 +335,7 @@ struct WhiteboardView: View {
     let live: (ContinuousClock.Instant) -> [WhiteboardNote.Row] = { now in
       WhiteboardNote.live(
         thread: model.thread, larry: model.larry, now: now, cockpitAnswering: !model.larryAway,
-        mark: model.larryMark(now: now), said: model.lastSaid, micOn: model.micOn)
+        mark: model.larryMark(now: now), said: model.lastSaid, micOn: model.micOn, listening: model.larryListening)
     }
     let openInChat: (() -> Void)? = model.threadKey.map { key in { openChat(key) } }
     return WhiteboardConversationPanel(

@@ -137,6 +137,8 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var notice: WhiteboardNote.Notice?
   /// The recent end of the board's thread, from the looks that bring Larry's marks: the open note's panel (story 768).
   @Published var thread: [ChatMessage] = []
+  /// Larry is holding for more on Igor's newest message, in his words: the note's ear (story 929); nil otherwise.
+  @Published var larryListening: String?
   /// The note's panel is open, remembered for the next board (story 768).
   @Published var conversationOpen = UserDefaults.standard.bool(forKey: WhiteboardModel.conversationKey)
   let board: BoardEntry

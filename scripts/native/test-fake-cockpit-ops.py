@@ -99,6 +99,17 @@ try:
     check(ink.get("base_rev") == 9 and kinds == ["add_strokes", "overlay"], "his ink and a button: %s" % ink)
     check(ink["list"][1]["tap_event"] == {"type": "make_room"} and ink["list"][0]["strokes"][0]["points"][0] == [140, 830],
           "the line and the button sit below the picture")
+    # Story 929: a hold is no row, the picture's receipt seen and waiting; his next row clears it.
+    before = len(larry_rows(key))
+    call("/fake/larry-ops", {"kind": "hold", "label": "Larry: go on"})
+    call("/chat/" + key, dict(turn, id="p5", picture_id="p5", rev=10, op_result=None, events=[]))
+    rows = larry_rows(key)
+    held = [m for m in call("/chat/" + key)["messages"] if m["id"] == "p5"][0].get("receipt") or {}
+    check(len(rows) == before and held.get("state") == "seen" and held.get("waiting", {}).get("label") == "Larry: go on"
+          and held["waiting"].get("ts"), "a hold is seen and waiting, with no answer: %s" % held)
+    call("/fake/larry-draws", {"count": 1})
+    held = [m for m in call("/chat/" + key)["messages"] if m["id"] == "p5"][0].get("receipt") or {}
+    check(held.get("state") == "seen" and "waiting" not in held, "his next row clears the hold: %s" % held)
     answer = call("/whiteboard/events", {"board": "b1", "rev": 9, "events": [{"type": "tap", "target_id": "x"}]})
     check(answer["ok"] and answer["woke"] is False and answer["rev"] == 9 and "ts_ms" in answer,
           "a plain tap is taken but wakes nobody: %s" % answer)

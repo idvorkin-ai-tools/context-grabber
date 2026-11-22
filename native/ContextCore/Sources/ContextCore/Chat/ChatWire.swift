@@ -134,6 +134,24 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
   /// The chat one of Igor's messages was sent on to (Send to new chat, context-grabber-9yo): the Cockpit's one-line
   /// system row left where the message was. Nil on any other row.
   public let movedTo: String?
+  /// Larry has seen this message and is holding for more (story 929, context-grabber-4fww): the Cockpit's
+  /// `receipt.waiting`, present only while his hold is active, on Igor's newest message. Nil on any other row.
+  public let waiting: Waiting?
+
+  /// Larry's hold on a message: his words for it and when it began.
+  public struct Waiting: Equatable, Sendable {
+    /// What the board says while he holds when the Cockpit gives no words.
+    public static let defaultLabel = "Larry: waiting for more"
+
+    public let label: String
+    public let ts: String
+
+    public init(label: String? = nil, ts: String = "") {
+      let words = label?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+      self.label = words.isEmpty ? Self.defaultLabel : words
+      self.ts = ts
+    }
+  }
 
   public var fromIgor: Bool { who == "igor" }
   /// A line from the Cockpit itself, neither Igor's nor an answer: drawn as a quiet centred line, with no menu.
@@ -144,7 +162,8 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
 
   public init(
     id: String, ts: String, who: String, text: String, attachments: [String] = [], receipt: Receipt = .sent,
-    doneNote: String? = nil, board: String? = nil, author: String? = nil, isError: Bool = false, movedTo: String? = nil
+    doneNote: String? = nil, board: String? = nil, author: String? = nil, isError: Bool = false, movedTo: String? = nil,
+    waiting: Waiting? = nil
   ) {
     self.id = id
     self.ts = ts
@@ -157,6 +176,7 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     self.author = author
     self.isError = isError
     self.movedTo = movedTo
+    self.waiting = waiting
   }
 
   enum CodingKeys: String, CodingKey {
@@ -167,6 +187,30 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
   struct ReceiptBody: Decodable {
     let state: String?
     let note: String?
+    let waiting: WaitingBody?
+
+    enum CodingKeys: String, CodingKey { case state, note, waiting }
+
+    // Each field on its own: a hold the board can't read never costs the receipt's state (story 929).
+    init(from decoder: Decoder) throws {
+      let c = try decoder.container(keyedBy: CodingKeys.self)
+      state = try? c.decode(String.self, forKey: .state)
+      note = try? c.decode(String.self, forKey: .note)
+      waiting = try? c.decode(WaitingBody.self, forKey: .waiting)
+    }
+  }
+  /// `receipt.waiting`: `{"label": "Larry: waiting for more", "ts": "…"}`; either may be missing.
+  struct WaitingBody: Decodable {
+    let label: String?
+    let ts: String?
+
+    enum CodingKeys: String, CodingKey { case label, ts }
+
+    init(from decoder: Decoder) throws {
+      let c = try decoder.container(keyedBy: CodingKeys.self)
+      label = try? c.decode(String.self, forKey: .label)
+      ts = try? c.decode(String.self, forKey: .ts)
+    }
   }
 
   public init(from decoder: Decoder) throws {
@@ -183,6 +227,7 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     author = (try? c.decode(String.self, forKey: .author)).flatMap { $0.isEmpty ? nil : $0 }
     isError = (try? c.decode(Bool.self, forKey: .error)) ?? false
     movedTo = (try? c.decode(String.self, forKey: .movedTo)).flatMap { $0.isEmpty ? nil : $0 }
+    waiting = body?.waiting.map { Waiting(label: $0.label, ts: $0.ts ?? "") }
   }
 }
 
