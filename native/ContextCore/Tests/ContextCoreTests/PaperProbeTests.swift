@@ -56,6 +56,16 @@ final class PaperProbeTests: XCTestCase {
     XCTAssertFalse(PaperProbe.isFingerTap(travel: 3, seconds: 0.1, fingers: 2), "the start of a pinch")
   }
 
+  /// Story 968: the iPad's own start views, 2026-11-22. The menu's Delete was taken for a board tap that let the selection go.
+  func testATapOnTheSelectionMenuIsTheMenus() {
+    XCTAssertTrue(PaperProbe.isSelectionMenu("_UIHostingView<MiniMenu<MiniMenuPalette>>"))
+    for board in [
+      "ShapeView", "PKSelectionGestureView", "PaperView", "HandwritingReflowView", "CanvasElementResizeHandle", "",
+    ] {
+      XCTAssertFalse(PaperProbe.isSelectionMenu(board), board)
+    }
+  }
+
   /// Stories 616, 825 (#883): PaperKit draws a dot where a finger taps, even in selection mode with its drawing off, a
   /// few tenths of a second after the lift; on the iPad simulator, 2026-11-14, the dot was 3 x 4 board points at the tap.
   /// While marks show, that dot is the tap's and is taken back; a stroke, or ink anywhere else or later, isn't.

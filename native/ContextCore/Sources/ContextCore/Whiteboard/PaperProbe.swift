@@ -115,6 +115,12 @@ public enum PaperProbe {
     fingers == 1 && travel < 10 && seconds < 0.5
   }
 
+  /// Story 968 (context-grabber-tcy0): a touch that began on PaperKit's small menu beside a selection (Delete among it),
+  /// by the class of the view it began on. A tap there is the menu's, never the board's.
+  public static func isSelectionMenu(_ viewClass: String) -> Bool {
+    viewClass.contains("MiniMenu")
+  }
+
   /// Stories 616, 825 (#883): the dot PaperKit draws where a finger tapped, even with a finger set not to draw, a few
   /// tenths of a second after the lift. One stroke, a few screen points across, at the tap (in board points, `zoom`
   /// screen points to one), within `tapDotSeconds` of it; anything bigger, elsewhere or later is drawing.

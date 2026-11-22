@@ -155,6 +155,12 @@ suggest changes the board until Igor keeps it.
   that reaches a mark chooses that mark (and lets the selection go), and a tap off both the marks and the selection
   lets the selection go and puts Keep and Dismiss away, as before. The session log's tap line says whether the tap was
   inside the selection and whether the selection was kept.
+- **A tap on the selection's menu is the menu's, marks showing or not** (context-grabber-tcy0; Igor, 2026-11-22: "I'm
+  gonna select this text, then hit delete... when I delete nothing happens"). With something selected (his ink, a text,
+  a shape) and Larry's marks on the board, the small menu that floats beside the selection (Delete among it) does what
+  its button says: Delete removes what was selected. A tap on that menu is never a tap on the board: it does not let
+  the selection go, does not choose a mark beneath it, does not open a text's words or select a group under it. The
+  session log says when a tap landed on the menu and what was selected as it did.
 - **Where a finger draws** (an iPhone, an iPad with no Pencil, or with the system's Pencil-only setting off), it stops
   drawing while ghosts show: it taps and pans, so a tap on a mark leaves no dot. With no ghost left (kept, dismissed or faded) it draws again.
   - **A tap off the marks gives the finger its pen back** (context-grabber-2eml; Igor, 2026-11-22: "the iPad looks like

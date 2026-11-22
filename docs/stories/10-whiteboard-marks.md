@@ -370,6 +370,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 968:
+
+- **Summary:** Delete on the selection's menu works while Larry's marks show
+- **Status:** implemented in PENDING; verified by host tests (`PaperProbeTests`: a tap that begins on PaperKit's menu is the menu's; `just native-test`) and the Mac build (`just native-build-mac`); the simulator (rung 2) and the iPad still to do
+- **Issues:** bead context-grabber-tcy0 (the iPad, 2026-11-22, board 8f986938: a text selected with Larry's three marks showing, four taps on the menu's Delete, each `paper_tap` with `selected_at_tap` 1 at the menu, `paper_selection` 0 a millisecond before it, and no `paper_ink` removed)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on the selection's menu is the menu's*
+
+#### Use Case:
+- **As someone** who selected something on the board while Larry's marks are showing
+- **I want to** tap Delete on the small menu beside my selection
+- **so that** it is gone, as it would be with no marks on the board
+
+#### Acceptance Criteria:
+- **Scenario:** Deleting from the selection's menu with Larry's marks showing
+- **Given:** Larry's marks are showing and a text (or some of my ink) is selected, with its small menu beside it
+- **When:** I tap Delete on that menu with a finger
+- **Then:** what was selected is removed, the marks stay, and no mark under the menu is chosen
+
+---
+
 ### User Story 355:
 
 - **Summary:** Keep Larry's mark
