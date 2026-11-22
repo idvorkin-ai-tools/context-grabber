@@ -118,7 +118,8 @@ public enum PaperProbe {
   /// Stories 616, 825 (#883): the dot PaperKit draws where a finger tapped, even with a finger set not to draw, a few
   /// tenths of a second after the lift. One stroke, a few screen points across, at the tap (in board points, `zoom`
   /// screen points to one), within `tapDotSeconds` of it; anything bigger, elsewhere or later is drawing.
-  /// `within`: how long it may take to land (`tapDotSeconds`, or `rewordDotSeconds` for a tap that opened a text).
+  /// `within`: how long it may take to land (`tapDotSeconds`, `rewordDotSeconds` for a tap that opened a text, or
+  /// `groupTapSeconds` for a tap that selected a group).
   public static func isTapDot(
     added: [CGRect], tap: CGPoint, secondsSince: Double, zoom: CGFloat, within: Double = tapDotSeconds
   ) -> Bool {
