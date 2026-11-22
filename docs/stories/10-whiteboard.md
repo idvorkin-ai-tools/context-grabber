@@ -8330,7 +8330,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1104:
 
 - **Summary:** The log keeps each pen touch's path, and the stroke each gesture's verdict judged
-- **Status:** implemented; verified by `just native-test` (host tests: the path's encoding, and Igor's real scratch-outs judged the same after it) and the Mac build; the iPad's own paths are still owed
+- **Status:** implemented in [d644b7c8](https://github.com/idvorkin/context-grabber/commit/d644b7c8); verified by `just native-test` (host tests: the path's encoding, and Igor's real scratch-outs judged the same after it), the Mac build, and the iPad simulator (`WhiteboardScratchOutUITests` wrote `board_touch` paths and scratch lines with their zigzag, which `just touch-fixture` read back); the iPad's own Pencil paths are still owed
 - **Issues:** bead context-grabber-y544 (whiteboard architecture review 2026-11-21, item 4): the log held only tallies, so a gesture bug on the iPad could not be replayed; bead context-grabber-x1zk waits on it
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *A pen touch's path is in the log, and a pulled log replays on the Mac*
 
@@ -8350,7 +8350,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1105:
 
 - **Summary:** A pulled iPad log becomes a host fixture of its gesture touches
-- **Status:** implemented; verified by `just native-test` (host tests: a log's lines become cases, and every fixture's cases keep their verdicts) and the Mac build
+- **Status:** implemented in [d644b7c8](https://github.com/idvorkin/context-grabber/commit/d644b7c8); verified by `just native-test` (host tests: a log's lines become cases, and every fixture's cases keep their verdicts) and the Mac build; `just touch-fixture` turned the iPad simulator's log into `Fixtures/touches/sim-scratch-out-2026-11-21.json`, the iPad and the Mac agreeing on all 3 scratch-outs
 - **Issues:** bead context-grabber-y544
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *A pen touch's path is in the log, and a pulled log replays on the Mac*
 
