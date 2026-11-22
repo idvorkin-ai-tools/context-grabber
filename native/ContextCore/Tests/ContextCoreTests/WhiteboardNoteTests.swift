@@ -264,8 +264,8 @@ final class WhiteboardNoteTests: XCTestCase {
       "no picture and no turn out: no chip")
   }
 
-  /// Story 1047, 801 (bead context-grabber-l9u): a reply of Larry's after the picture is his answer, and a Cockpit that
-  /// marks nothing never shows *Sent*.
+  /// Stories 1161, 1162 (bead context-grabber-l9u): a reply of Larry's after the picture is his answer, and a Cockpit
+  /// that marks nothing never shows *Sent*.
   func testAReplyIsAnsweredAndACockpitThatMarksNothingNeverSaysSent() {
     let idle = WhiteboardLarryTurn()
     func chip(_ thread: [ChatMessage]) -> String? {

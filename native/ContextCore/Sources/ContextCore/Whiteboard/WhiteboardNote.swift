@@ -231,7 +231,7 @@ public enum WhiteboardNote {
   /// Where a picture of Igor's got to, in the chip's words, with no turn out (#1003, story 1047). `answered`: a row of
   /// Larry's follows it, which is his answer whatever the mark says; `marks`: the Cockpit marks Igor's messages, so a
   /// missing mark means something. On one that marks nothing the picture on the thread is with Larry, never *Sent*
-  /// (story 801, bead context-grabber-l9u).
+  /// (stories 1161, 1162, bead context-grabber-l9u).
   static func chipWord(_ receipt: ChatMessage.Receipt, answered: Bool = false, marks: Bool = true) -> String {
     if answered { return "Answered" }
     switch receipt {

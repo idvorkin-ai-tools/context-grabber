@@ -1467,8 +1467,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1047:
 
 - **Summary:** Igor's turns are one status chip, in one vocabulary
-- **Status:** implemented in [60c8129](https://github.com/idvorkin/context-grabber/commit/60c8129); verified by host tests (`WhiteboardNoteTests`; `just test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`just test-ladder`: `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply`: no row for a wordless picture and the chip *Your board · Sent*). Not yet seen on the iPad. A reply reads *Answered* on a Cockpit that marks nothing (bead `context-grabber-l9u`; Larry's recommendation, Igor has not ruled) in [cc33cc1](https://github.com/idvorkin/context-grabber/commit/cc33cc1); verified by host tests (`WhiteboardNoteTests.testAReplyIsAnsweredAndACockpitThatMarksNothingNeverSaysSent`; `just native-test`) and the Mac build (`just native-build-mac`), and on the iPad simulator (`WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` against the fake Cockpit, which marks nothing: the chip *Your board · Answered*)
-- **Issues:** [#1003](https://github.com/idvorkin/context-grabber/issues/1003) (the banner covered Igor's top line of ink and was mostly *You: Your turn on the board · done* rows; iPad screenshots 2026-11-20); bead `context-grabber-l9u` (the chip read *Your board · Sent* after Larry's reply, on a Cockpit that marks nothing)
+- **Status:** implemented in [60c8129](https://github.com/idvorkin/context-grabber/commit/60c8129); verified by host tests (`WhiteboardNoteTests`; `just test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`just test-ladder`: `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply`: no row for a wordless picture and the chip *Your board · Sent*). Not yet seen on the iPad. That UI test's chip now reads *Your board · Answered* (story 1161)
+- **Issues:** [#1003](https://github.com/idvorkin/context-grabber/issues/1003) (the banner covered Igor's top line of ink and was mostly *You: Your turn on the board · done* rows; iPad screenshots 2026-11-20)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
 
 #### Use Case:
@@ -1482,6 +1482,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I open the conversation
 - **Then:** it shows Larry's three replies one after another with no *You: Your turn on the board* row, and under them one chip, *Your board · Answered*; while a turn is out the chip says what the closed line says, *Your board · Larry · 0:12 · next: ink*; a picture that went with my spoken words shows as a row of those words
 
+---
+
+### User Story 1161:
+
+- **Summary:** Larry's reply after my picture reads Answered, marked or not
+- **Status:** implemented in [35a0bdec](https://github.com/idvorkin/context-grabber/commit/35a0bdec) (bead `context-grabber-l9u`; Larry's recommendation, Igor has not ruled); split from story 1047. Verified by host tests (`WhiteboardNoteTests.testAReplyIsAnsweredAndACockpitThatMarksNothingNeverSaysSent`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` against the fake Cockpit, which marks nothing: the chip *Your board · Answered*). Not yet seen on the iPad
+- **Issues:** bead `context-grabber-l9u` (the chip read *Your board · Sent* after Larry's reply, on a Cockpit that marks nothing)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
+
+#### Use Case:
+- **As someone** reading Larry's reply to my picture in the open conversation
+- **I want to** see the chip say he answered once his reply is there
+- **so that** a Cockpit that marks nothing never leaves my answered picture reading *Sent*
+
+#### Acceptance Criteria:
 - **Scenario:** His reply is the answer, marked or not
 - **Given:** a Cockpit that puts no marks on messages, and a picture I sent without words
 - **When:** Larry's reply, words or only marks, comes after it on the thread and I open the conversation
@@ -1732,8 +1747,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 801:
 
 - **Summary:** On a Cockpit that marks nothing the board never says Sent
-- **Status:** implemented in [d055f34](https://github.com/idvorkin/context-grabber/commit/d055f34), [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); split from story 773. Verified by host tests (`WhiteboardLarryWaitTests.testAnOlderCockpitIsNeverStuck`, `WhiteboardLarryClockTests.testTheClockCountsFromThePicture`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad. The panel's chip, too, in [cc33cc1](https://github.com/idvorkin/context-grabber/commit/cc33cc1) (bead `context-grabber-l9u`): verified by host tests (`WhiteboardNoteTests.testAReplyIsAnsweredAndACockpitThatMarksNothingNeverSaysSent`; `just native-test`) and the Mac build (`just native-build-mac`)
-- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879); bead `context-grabber-l9u` (the panel's chip read *Sent*)
+- **Status:** implemented in [d055f34](https://github.com/idvorkin/context-grabber/commit/d055f34), [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); split from story 773. Verified by host tests (`WhiteboardLarryWaitTests.testAnOlderCockpitIsNeverStuck`, `WhiteboardLarryClockTests.testTheClockCountsFromThePicture`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad. The panel's chip is story 1162
+- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Where the picture is*
 
 #### Use Case:
@@ -1747,6 +1762,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** a picture goes and he is slow
 - **Then:** the state reads *Larry · 0:42* throughout, never *Sent*
 
+---
+
+### User Story 1162:
+
+- **Summary:** On a Cockpit that marks nothing the panel's chip never says Sent
+- **Status:** implemented in [35a0bdec](https://github.com/idvorkin/context-grabber/commit/35a0bdec) (bead `context-grabber-l9u`; Larry's recommendation, Igor has not ruled); split from story 801. Verified by host tests (`WhiteboardNoteTests.testAReplyIsAnsweredAndACockpitThatMarksNothingNeverSaysSent`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` against the fake Cockpit: the chip *Your board · Answered*). Not yet seen on the iPad
+- **Issues:** bead `context-grabber-l9u` (the panel's chip read *Sent*)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Where the picture is*
+
+#### Use Case:
+- **As someone** opening the conversation against a Cockpit from before it marked messages
+- **I want to** see the chip say where my picture is without a mark to go on
+- **so that** a missing mark is never read as *Sent*
+
+#### Acceptance Criteria:
 - **Scenario:** The chip after the turn
 - **Given:** a Cockpit that puts no marks on messages
 - **When:** no turn is out and I open the conversation
