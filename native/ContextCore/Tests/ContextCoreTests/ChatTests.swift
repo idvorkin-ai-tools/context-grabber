@@ -305,7 +305,7 @@ final class ChatTests: XCTestCase {
     XCTAssertNil(ChatWire.attachmentURL("../../etc/passwd", cockpit: cockpit))
   }
 
-  /// #633, story 1122: a document the Cockpit minted (Cockpit story 167) is served and drawn as a file row.
+  /// #633, story 1125: a document the Cockpit minted (Cockpit story 167) is served and drawn as a file row.
   func testADeliveredDocumentIsAFileRowNamedFromTheMessage() {
     let pdf = "2026-11-21/0123456789abcdef.pdf"
     XCTAssertEqual(ChatWire.attachment(pdf), .document(ext: "pdf", label: "PDF"))
@@ -328,7 +328,7 @@ final class ChatTests: XCTestCase {
     XCTAssertEqual(ChatWire.documentName(pdf, text: ""), "0123456789abcdef.pdf")
   }
 
-  /// Story 1123: a fetch that can't open says why; a good one says nothing.
+  /// Story 1126: a fetch that can't open says why; a good one says nothing.
   func testADocumentThatCannotBeFetchedSaysWhy() {
     XCTAssertNil(ChatWire.documentProblem(name: "Lease.pdf", status: 200, bytes: 10))
     XCTAssertEqual(

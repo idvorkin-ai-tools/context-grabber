@@ -30,7 +30,7 @@ offers Interrupt (story 777). FAKE_COCKPIT_BOARD_HOLD=<seconds> makes this a Coc
 picture's message done, and a later picture on that thread is held that long, once, before the Cockpit takes it, so past
 20 the board says it is stuck and a resend of it lands at once (stories 775, 776; under 30, the app's own limit on the
 request).
-Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). By default this is a Cockpit with no skill threads (story 516). POST /fake/file-thread adds igor2-88g.633, titled The lease, whose one message from Igor carries a one-page PDF (story 1122). POST /fake/skill-thread is a test's way to add one (#632, cockpit#90), igor2-88g.632: pinned under Larry's, listed with no messages, refusing an archive, its replies from "idvorkin"; a message saying "fail" gets a failure row instead, with Igor's messages marked done either way, as on the Cockpit. Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
+Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). By default this is a Cockpit with no skill threads (story 516). POST /fake/file-thread adds igor2-88g.633, titled The lease, whose one message from Igor carries a one-page PDF (story 1125). POST /fake/skill-thread is a test's way to add one (#632, cockpit#90), igor2-88g.632: pinned under Larry's, listed with no messages, refusing an archive, its replies from "idvorkin"; a message saying "fail" gets a failure row instead, with Igor's messages marked done either way, as on the Cockpit. Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
 Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-603 (the UI test makes it with GRABBER_BOARD_FIXTURE) and board-gone-603, which no device has (stories 317, 319, #603).
 Decision cards (#878): POST /fake/asks {"open": true} adds (and resets, with what was answered) three open asks for GET /asks, the shape of the
@@ -139,7 +139,7 @@ def document(raw):
     return "txt"
 
 
-# One blank page, for the delivered file row's preview (story 1122).
+# One blank page, for the delivered file row's preview (story 1125).
 MINIMAL_PDF = (b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
                b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n")
 LEASE_PDF = "2026-11-21/0000000000000633.pdf"
@@ -545,7 +545,7 @@ class Handler(BaseHTTPRequestHandler):
                 LARRY_OPS = data
             return self._json(200, {"ok": True})
         if path == "/fake/file-thread":
-            # Story 1122 (#633): a PDF Igor sent, delivered, on a thread of its own so no other test sees it.
+            # Story 1125 (#633): a PDF Igor sent, delivered, on a thread of its own so no other test sees it.
             with LOCK:
                 IMAGES[LEASE_PDF] = MINIMAL_PDF
                 THREADS["igor2-88g.633"] = {"title": "The lease", "seen": "", "messages": [

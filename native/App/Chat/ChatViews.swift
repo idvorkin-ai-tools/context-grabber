@@ -805,7 +805,7 @@ struct ChatThreadView: View {
     .chatTextSize()
   }
 
-  /// #1091, story 1122: the board this thread belongs to, for *Board* in the bar.
+  /// #1091, story 1125: the board this thread belongs to, for *Board* in the bar.
   private var threadBoard: ChatThreadBoard? {
     ChatThreadBoard.find(thread: key, messages: messages, deviceThreads: WhiteboardThreads().all())
   }

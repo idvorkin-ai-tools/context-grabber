@@ -1,4 +1,4 @@
-//  Story 1122 (#633) on the simulator: a PDF delivered to a thread, against the fake Cockpit
+//  Story 1125 (#633) on the simulator: a PDF delivered to a thread, against the fake Cockpit
 //  (scripts/native/test-chat-ui.sh starts it), shows as a file row with its name and opens in the system preview.
 //  The name and the fetch's problems are `ChatTests`' (host).
 
