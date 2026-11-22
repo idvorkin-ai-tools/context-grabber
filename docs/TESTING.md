@@ -102,6 +102,7 @@ script's dry run:
 | Chat or the Inbox, in the app or `ContextCore`; the chat suite's script; the fake bridge | chat's |
 | The whiteboard, in the app or `ContextCore`; the whiteboard suite's script | a rule in `ContextCore` runs only the classes that show it (paste, lines and pages, the board list, the turn and ghosts — the picture's frame, Larry's clock and the note among them; stories 753, 756), Larry's question cards, in the app or `ContextCore`, run `WhiteboardQuestionUITests`; the app's board fixture hook runs `WhiteboardRowDeleteUITests` and chat's `ChatImageUITests`, the two that launch with a fixture board (story 784); the board's views, its hooks in `ContextCore` and the suite's script run every class: the whiteboard's, on an iPad simulator (`WHITEBOARD_SIM`, default *iPad Pro 11-inch (M5)*; the iPhone's is shut first, and the iPad's stays up for the next climb). An iPhone only looks at boards (story 746): that is the smoke's whiteboard section on the iPhone, from the session log (no New board, its own board look-only with the bar's reason), so no class runs on the iPhone and there's no second test session (story 770) |
 | The fake Cockpit | chat's and the whiteboard's |
+| A file that drives PaperKit (one that imports it: the board's canvas and whatever it is split into, the reword and to-text flows, the scratch-out, the shape snapping), the tool the board reads, its ink kinds and its board files; the contract tests themselves, their stage and its hook | the contract tests (`GrabberNativeContractTests` and `PaperKitTouchContractUITests`, story 1021) on the iPad's simulator, in a step of their own after the whiteboard's and the iPad's classes, with no retry; beside the classes the file has of its own. The contracts' own files run them alone, with no whiteboard class and no smoke |
 | The replay of Larry's board changes on a copy of a board (`BoardReplay.swift`), and the board-ops harness | none, and no smoke section and no simulator build (#1036, story 1014): the app never runs the replay, so no screen can show it. The host rung's replay fixtures (`BoardReplayTests`, `BoardMarksReplayTests`, `WhiteboardWordsOnlyTests`) hold it, and the Mac build still compiles the replay, as the app links the package. The planner and applier it calls (`BoardOps*.swift`, `BoardOpApplier.swift`) are the canvas's too and run every whiteboard class; a change to both the replay and the canvas gets the union. The route holds while the app never calls the replay: once it does, the replay goes back to the whiteboard's every-class row |
 | The Gym Timer, in the app or `ContextCore` | `GymTimerDialsUITests`, `GymTimerUITests` |
 | Breathing, in the app or `ContextCore` | `BreathePresetsUITests`, `BreatheStyleUITests`; when a session is saved to Health is `BreathSessionTests`, on the host |
@@ -267,6 +268,7 @@ and it sets the app's players to zero volume, so every cue still plays and still
 | `GRABBER_WHATS_NEW=open` | open What's new (logs `ui` action: open_whats_new with from, days, changes), for a screenshot of the build's own history (story 148) |
 | `GRABBER_WINDOW=<screen>[,again][,close]` | on an iPad simulator (a phone has one window): once the home window is up, opens that screen (`chat`, `today`, `cockpit`, `places`, `whiteboard`, `card`) in its own window as *New window* would, then three seconds apart asks again and closes it (story 460, 461). Read `window` from the log: `open`, `appear`, `bring_forward`, `close` and `gone`, with `scenes`, the windows connected; and `title`, what the app just named a window, read back from the scene, and what it was (#661). A hold on a tile, iPadOS's own New Window, what the windows look like beside each other and where iPadOS shows a window's name are checked on the iPad |
 | `GRABBER_WINDOW_CHOOSE=<screen>` | on an iPad simulator: once the home window is up, opens a new window as the Mac's Option+Command+N or iPadOS's New Window would, which shows the chooser since home is taken, and the chooser picks that screen as a tap would (story 731, #782). Read `window` from the log: `extra_home` and `appear` for the chooser, then `choose` with screen and scenes, `open` (or `bring_forward`) with from: new_window, and the chooser's `gone`; `choose_close` with ok: false when iOS refused to close it. The chooser's rows and their order are checked on the iPad or the Mac |
+| `GRABBER_PAPER_STAGE=<draw\|select>[,cancel]` | a bare PaperKit paper over the app, set up as the board sets it up (its feature set and inks, the tool picker shown, its touch watcher on the view around it) with none of the board's handling, and a state line above it (`paper-stage-state`: strokes, markup changes, whether PaperKit can undo, the watcher's ended and cancelled lifts and the last lift's touch phase, the undo's name) and an Undo for PaperKit's stack. `select` sets a finger to select, as the board does while marks show; `cancel` calls off any touch still down 0.3 s after it began. `PaperKitTouchContractUITests` uses it (story 1020) |
 | `GRABBER_WHITEBOARD=open` | open the boards, as the Whiteboard tile on the home screen would (`ui` open_whiteboard, from: hook, then `whiteboard` list with the count, and `whiteboard_sync`: on a simulator with no iCloud account, ok: false with skipped: account_…, never an error). `just native-test-sim` runs it and reads those three. Drawing, the tool picker and a board from another device need a real iPad and iPhone signed into iCloud |
 | `GRABBER_HOME=settings` | open the home screen's Settings sheet (logs `ui` action: home_settings), for a screenshot of the launchers and the diagnostics (story 147) |
 | `GRABBER_SUPERMIX=workout\|liked\|feel_good` | open that mix as a choice from the music tile's press-and-hold popover would (story 221; the simulator has no YouTube Music, so it opens in Safari); the log's `ui` open_workout_supermix carries the mix, from: hook and how |
@@ -535,8 +537,21 @@ What it pins (iOS 27.2 simulator, 2026-11-21):
   kind the Swift enum lacks (#1083) rides them unchanged, and a drawing holding one writes but is refused when read
   back ("from a future version").
 
-What it can't see: anything that needs a touch (a finger tap's dot, a touch cancelled rather than ended, a pick made
-with a finger in the picker, a drawn stroke's undo name). Those are UI tests' and the iPad's.
+What needs a real touch is `PaperKitTouchContractUITests` (story 1020), in the same recipe and also with no retry: a UI
+test that launches a bare PaperKit paper over the app (`GRABBER_PAPER_STAGE`: the board's feature set, inks and picker
+and its own touch watcher, none of its handling) and touches it with a finger, reading what PaperKit did off the stage's
+state line. It pins:
+
+- **A stroke's undo name.** A finger's stroke is one step on PaperKit's undo stack named *Add Strokes*, the name the
+  bar's Undo reads as plain *Undo* (#965), and its lift reaches the watcher as ended.
+- **Cancelled against ended.** A touch called off while it is down (the stage takes its view out of the window and puts
+  it back, as the system calls off a palm) reaches the watcher as cancelled, its phase cancelled, and never also as
+  ended: the fold erase reads that to take no fold by its marker (#1105).
+- **A finger tap's dot.** With the finger set to select, as the board sets it while marks show, a tap still leaves a
+  dot, and PaperKit's own undo takes it back: what the board's tap-dot take-back rests on (#883).
+
+The ladder runs both whenever a change drives PaperKit (the map above). What none of it sees: the Pencil, and a pick
+made with a finger in the tool picker (#1078's, the iPad's).
 
 ## A worktree that keeps its build
 

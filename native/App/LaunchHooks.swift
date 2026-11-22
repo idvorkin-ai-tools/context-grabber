@@ -29,6 +29,8 @@ extension AppModel {
       case .cockpit: openCockpit(from: "hook")
       case .boardFixture(let hook): runBoardFixtureHook(hook)
       case .whiteboard: openWhiteboard(from: "hook")
+      // Story 1020: a bare PaperKit paper over the app, for the touch contracts' UI tests.
+      case .paperStage(let hook): PaperTouchStage.show(hook)
       case .whatsNew: openWhatsNew(from: "hook")
       case .homeSettings: openHomeSettings()
       case .supermix(let mix): openWorkoutSupermix(from: "hook", mix: mix)

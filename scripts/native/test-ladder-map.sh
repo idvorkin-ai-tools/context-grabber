@@ -171,6 +171,29 @@ says "whiteboard code: the smoke's whiteboard section" "rung 2 smoke, on the sam
 never "whiteboard code: no chat" "Chat"
 
 # The whiteboard's rules run only the classes that show them; its views still run them all.
+# Story 1021: a file that drives PaperKit runs the contract tests beside its own classes; the contracts' own files run
+# them alone, with no smoke; a whiteboard file that doesn't import PaperKit doesn't run them.
+contracts_line="rung 2 contract tests (real PaperKit, on the iPad, no retry): GrabberNativeContractTests PaperKitTouchContractUITests"
+dry --changed native/App/Whiteboard/PaperBoard.swift
+says "the canvas: the contract tests too" "$contracts_line"
+dry --changed native/App/Whiteboard/PaperBoard+FoldErase.swift
+says "a split file of the canvas: the contract tests" "$contracts_line"
+dry --changed native/App/Whiteboard/PaperScratch.swift
+says "a file that imports PaperKit: the contract tests" "$contracts_line"
+dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardInk.swift
+says "the ink kinds: the contract tests" "$contracts_line"
+for f in native/ContractTests/PaperStage.swift native/UITests/PaperKitTouchContractUITests.swift native/App/Whiteboard/PaperTouchStage.swift; do
+  dry --changed "$f"
+  says "$(basename "$f"): the contract tests" "$contracts_line"
+  says "$(basename "$f"): no smoke" "rung 2 smoke, on the same build and boot: none"
+  never "$(basename "$f"): no whiteboard class" "rung 2 UI tests (whiteboard"
+  never "$(basename "$f"): not on the phone" "rung 2 UI tests: PaperKit"
+done
+dry --changed native/App/Whiteboard/WhiteboardQuestionsModel.swift
+never "a board file with no PaperKit: no contract tests" "rung 2 contract tests"
+dry --all --changed docs/TESTING.md
+says "--all: the contract tests" "$contracts_line"
+never "--all: the touch class not on the phone" "PaperKitTouchContractUITests CardUITests"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardPaste.swift
 says "a paste rule: the two paste classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperPasteUITests WhiteboardPasteUITests"
 dry --changed scripts/lead-times.py

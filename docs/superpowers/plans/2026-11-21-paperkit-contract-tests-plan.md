@@ -32,8 +32,24 @@ PaperKit, what the board relies on, so the next iOS surprise fails a test rather
 | an unknown kind rides a markup and the paper | `WhiteboardInk` (#1083) |
 | a drawing with an unknown kind writes but doesn't read back | the board files (`WhiteboardStore`) |
 
-## Left for UI tests (follow-up bead)
+## The touches (bead context-grabber-8o93, story 1020)
 
-A finger tap's dot (#883), a touch cancelled against ended (the fold erase, #1105), a pick made with a finger in the
-picker (#1078 on a real tap), the name PencilKit gives a drawn stroke's undo ("Add Strokes", #965), and wiring the
-bundle into the ladder's map.
+A hosted unit bundle can't make a touch, so these are a UI test class, `PaperKitTouchContractUITests`, against a bare
+stage in the app behind a launch hook (`GRABBER_PAPER_STAGE=<draw|select>[,cancel]`, parsed by `PaperStageHook` in
+ContextCore, shown by `PaperTouchStage`): a `PaperMarkupViewController` with the board's feature set, a markup to draw
+on, the picker shown, and the board's own `PaperTouchWatcher` on the view around it, in a sheet that clips it (PaperKit
+draws, and takes touches, past its view's bounds otherwise). Its state is one accessibility label, `key=value;…`, and an
+Undo button calls PaperKit's undo manager. `cancel` takes the stage's view out of its window and back 0.3 s into a held
+touch, which UIKit answers with `touchesCancelled`.
+
+| Contract | Board code that rests on it |
+|---|---|
+| a finger stroke is one step named *Add Strokes*; its lift reaches the watcher ended | `BoardUndoButtons.unnamed` (#965); the fold erase's lift |
+| a touch called off mid-touch reaches the watcher cancelled, phase cancelled, never ended | the fold erase's `touch.phase == .cancelled` (#1105) |
+| with the finger set to select, a tap still leaves a dot PaperKit's undo takes back | `takesBackTapDot` (#883) |
+
+`just native-test-contracts` runs both bundles' tests, no retry. The ladder (`scripts/native/test-ladder.sh`) runs them as a
+step of their own on the iPad when a changed file drives PaperKit (imports it, or is the board's tool, ink kinds or files,
+or the contracts' own), checked by `scripts/native/test-ladder-map.sh` (story 1021).
+
+Not here: a pick made with a finger in the tool picker (#1078 on a real tap), another agent's under the same bead.
