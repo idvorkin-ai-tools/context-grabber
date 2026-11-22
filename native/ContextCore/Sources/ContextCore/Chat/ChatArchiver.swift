@@ -224,6 +224,8 @@ public struct ChatListSelection: Equatable, Sendable {
   public private(set) var selecting = false
   public private(set) var picked: Set<String> = []
   public private(set) var filter: Filter = .all
+  /// Opened by *Review*, not *Select*: only then does *Archive (N)* turn down what was left unticked (#1098, story 314).
+  public private(set) var reviewing = false
 
   public init() {}
 
@@ -252,6 +254,7 @@ public struct ChatListSelection: Equatable, Sendable {
   public mutating func toggle() -> Bool {
     picked = []
     filter = .all
+    reviewing = false
     selecting.toggle()
     return selecting
   }
@@ -262,6 +265,7 @@ public struct ChatListSelection: Equatable, Sendable {
     picked = Set(Self.looksDone(threads).map(\.key))
     selecting = true
     filter = .recommendations
+    reviewing = true
     return picked.count
   }
 
@@ -305,12 +309,19 @@ public struct ChatListSelection: Equatable, Sendable {
 
   public func canArchive(_ threads: [ChatSummary]) -> Bool { !pickedLive(threads).isEmpty }
 
-  /// *Archive (N)*: what goes, and Select ends.
+  /// *Archive (N)*: what goes, and Select ends. Read `declined` first.
   public mutating func archivePicked(_ threads: [ChatSummary]) -> [String] {
     let keys = pickedLive(threads)
     picked = []
     selecting = false
     filter = .all
+    reviewing = false
     return keys
+  }
+
+  /// What *Archive (N)* turns down (#1098, story 314): in a Review, the proposals left unticked. Nothing after *Select*.
+  public func declined(_ threads: [ChatSummary]) -> [String] {
+    guard selecting, reviewing else { return [] }
+    return Self.looksDone(threads).map(\.key).filter { !picked.contains($0) }
   }
 }

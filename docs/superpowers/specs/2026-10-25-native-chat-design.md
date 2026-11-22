@@ -88,6 +88,18 @@ tap archives them, and unticking keeps any of them. A thread that finishes or is
 the count and is not archived. When some can't be archived those threads go back and one copyable problem names each of
 them and why; a single thread reads as it always did. A failed *Undo* of several says the same.
 
+**Turning a proposal down** (Igor, 2026-11-22, #1098: *"If not done they could disappear from the looks done or let me
+dismiss looks done"*). Larry's *Looks done* is a proposal, so Igor can say no to it, two ways. Swiping a row that says
+*Looks done* from its leading edge offers *Not done*, which takes the mark off that row and out of the *N chats look
+done* count at once; the thread stays live where it was, and the trailing swipe still archives. And a thread he
+unticks in a *Review* and keeps when he taps *Archive (N)* is turned down the same way, so the next *Review* does not
+offer it again; *Cancel* turns nothing down, and *Select* from the toolbar never does. A turned-down thread looks like
+any live thread: no mark, not counted, not under *Recommendations*. The mark comes back only once the Cockpit has
+cleared Larry's proposal (a new message from Igor clears it, as does archiving) and Larry proposes it again; while the
+Cockpit still carries the same proposal it stays turned down. Turning down is remembered on this device across
+launches, and is not shared with the iPad or the Cockpit's page, which keep showing the mark (the Cockpit has no way to
+take it off yet).
+
 **Which machine started a chat** (Igor, 2026-11-21: *"In chat mode, sometimes the chat gets started by one of the
 machines. Can we get a chip making that clear: the machine name?"*). A chat that one of Igor's computers started, an
 agent or a script there rather than Igor himself, shows a small chip with that machine's name: on its row in the list,

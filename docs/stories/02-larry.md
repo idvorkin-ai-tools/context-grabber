@@ -1186,8 +1186,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 314:
 
 - **Summary:** Approve what Larry proposed, keeping any I choose
-- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it); bead `context-grabber-t8i`: what Review ticks and the one-tap archive are `ChatArchiverTests` (host); the taps are `sim-smoke.sh`'s `GRABBER_CHAT_SELECT` check
-- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it); bead `context-grabber-t8i`: what Review ticks and the one-tap archive are `ChatArchiverTests` (host); the taps are `sim-smoke.sh`'s `GRABBER_CHAT_SELECT` check; #1098: the unticked proposals are turned down on *Archive (N)*, verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build, the phone not yet
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599), [#1098](https://github.com/idvorkin/context-grabber/issues/1098)
 - **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1199,7 +1199,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Approving
 - **Given:** I tapped *Review*
 - **When:** I untick any I want to keep and tap *Archive (N)*
-- **Then:** the ticked ones fold under *Done* with *Undo*, and the rest stay live
+- **Then:** the ticked ones fold under *Done* with *Undo*, and the rest stay live without *Looks done*, so the next *Review* doesn't offer them again (#1098); *Cancel* turns nothing down
 
 ---
 
@@ -1240,6 +1240,46 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I tapped *Review*, or *Select*, which opens on *All*
 - **When:** I switch to *All*, tick another chat, and switch back to *Recommendations*
 - **Then:** every tick I made is still there, *Archive (N)* counts the chat ticked under *All* though it isn't shown, and archiving takes all of them
+
+---
+
+### User Story 1100:
+
+- **Summary:** Turn down a chat Larry thinks looks done
+- **Status:** native app only: implemented for [#1098](https://github.com/idvorkin/context-grabber/issues/1098); verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build; the simulator and the phone not yet
+- **Issues:** [#1098](https://github.com/idvorkin/context-grabber/issues/1098)
+- **Spec:** [Native chat — Turning a proposal down](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who disagrees with Larry that a chat is finished
+- **I want to** take his *Looks done* off it with a swipe
+- **so that** the proposals I've already said no to stop asking for my attention
+
+#### Acceptance Criteria:
+- **Scenario:** Saying not done
+- **Given:** a live chat says *Looks done* and the line at the top says *1 chat looks done*
+- **When:** I swipe its row from the leading edge and tap *Not done*
+- **Then:** the row loses *Looks done*, the line at the top goes, the chat stays live where it was, and the next *Review* doesn't offer it
+
+---
+
+### User Story 1101:
+
+- **Summary:** A turned-down chat looks done again only when Larry proposes it again
+- **Status:** native app only: implemented for [#1098](https://github.com/idvorkin/context-grabber/issues/1098); verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build; the simulator and the phone not yet
+- **Issues:** [#1098](https://github.com/idvorkin/context-grabber/issues/1098)
+- **Spec:** [Native chat — Turning a proposal down](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who turned down one of Larry's proposals
+- **I want to** see it again only if Larry proposes it again later
+- **so that** my no sticks, and his next judgement still reaches me
+
+#### Acceptance Criteria:
+- **Scenario:** A new proposal after the old one was cleared
+- **Given:** I turned down a chat's *Looks done*, and it stays turned down across launches while the Cockpit still carries that proposal
+- **When:** I write in it, which clears Larry's proposal, and Larry later marks it as looking done again
+- **Then:** the row says *Looks done* again and the line at the top counts it
 
 ---
 
