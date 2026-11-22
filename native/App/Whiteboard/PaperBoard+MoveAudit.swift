@@ -7,8 +7,9 @@ import PaperKit
 import UIKit
 
 extension PaperHost {
-  /// PaperKit's handwriting tools showing over the paper, by class: its reflow view, and a popover it points at the paper
-  /// (`popover`). Empty when none shows.
+  /// PaperKit's handwriting tools over the paper: each view whose class names handwriting or reflow, with its size in
+  /// points and `first` when it holds the keyboard focus (the reflow view is there, empty, on every board; on the iPad it
+  /// held the focus while its popover showed), and `popover` for a popover pointed at the paper. Empty when none.
   func handwritingTools() -> [String] {
     var found: Set<String> = []
     var looks: [UIView] = [paper.view]
@@ -17,7 +18,10 @@ extension PaperHost {
       seen += 1
       guard !here.isHidden, here.alpha > 0 else { continue }
       let kind = String(describing: type(of: here))
-      if kind.contains("Handwriting") || kind.contains("Reflow") { found.insert(kind) }
+      if kind.contains("Handwriting") || kind.contains("Reflow") {
+        let size = "\(Int(here.bounds.width.rounded()))x\(Int(here.bounds.height.rounded()))"
+        found.insert([kind, size, here.isFirstResponder ? "first" : ""].filter { !$0.isEmpty }.joined(separator: " "))
+      }
       looks += here.subviews
     }
     var shown = view.window?.rootViewController?.presentedViewController
