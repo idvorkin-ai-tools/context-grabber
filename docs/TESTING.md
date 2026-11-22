@@ -446,6 +446,28 @@ are `__tests__/fixtures/locations.json` (36K real points), `context-grabber.db` 
 `sqlite3` opens it on the Mac) and `heart-rate-2d.json`; a geometry threshold is checked against them before it ships
 (the place-merge gate moved 50 m → 500 m because the tight gate caught 0/10 unmatched stays).
 
+## Igor's pen touches replayed on the Mac: `just touch-fixture`
+
+A gesture bug on the iPad (a scratch-out that stayed ink, a shape that didn't snap, a margin hold that drew) is settled on
+the host against Igor's real stroke (stories 1104, 1105). The iPad's session log keeps each drawing touch's path
+(`board_touch` path) and the stroke each gesture judged (the `path` on `scratch`, `shape_snap`, `shape_snap_none` and
+`hold_stroke`; docs/DEBUGGING.md). After `just pull-logs`:
+
+```bash
+just touch-fixture ~/tmp/agent/grabber-logs/ipad/<log>.jsonl [--board <id>] [--all]
+just touch-fixture <log>.jsonl --out native/ContextCore/Tests/ContextCoreTests/Fixtures/touches/<name>.json
+```
+
+- **Each case** prints what the iPad decided and what the Mac decides for the same points, the board's own rules
+  (`BoardTouchReplay`); DIFFERS marks a case where they part, which for a gesture's own stroke means the rule changed
+  since that build.
+- **The fixture**: `--out` writes the cases with `expect` as the Mac says now. Edit a case's `expect` to what Igor
+  meant and `BoardTouchReplayTests` fails until the rule does; that is the fix's test. Name the case for what Igor drew.
+- **Gestures only, by default**: scratch-outs, snaps, margin holds and touches held still at the lift. `--all` takes
+  every pen touch, writing too: a committed fixture is in a public repo, so keep writing out unless it is the bug.
+- A scratch-out's verdict here is its shape and speed; whether ink was under it needs the board's strokes, as in
+  `Fixtures/scratch-out/`.
+
 ## Larry's board changes on a copy of a board: `just board-ops`
 
 Larry checks what a batch of his changes will do to Igor's board before he sends it, and an agent reproduces a

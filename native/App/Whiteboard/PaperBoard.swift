@@ -427,6 +427,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let toText = BoardToTextState()
   /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
   let snaps = BoardSnapWatch()
+  /// Story 1104: each drawing touch's path, for the log.
+  let paths = BoardTouchPaths()
   /// Stories 1044, 1038, 1039, 1042 (#1000): the band the room handle shows while held (PaperBoard+RoomBand.swift).
   let roomBand = BoardRoomBandState()
   /// Story 1051 (#1000): *Nothing under the scribble to erase*, while it shows (PaperBoard+ScratchFeedback.swift).
@@ -1101,7 +1103,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let outcome = scratch.outcome
     var event: [String: Any] = [
       "action": "scratch", "board": model.board.id, "fired": outcome.ok, "reversals": outcome.reversals,
-      "strokes": outcome.gone.count,
+      "strokes": outcome.gone.count, "path": BoardTouchPath.encode(scratch.samples),
     ]
     if let speed = outcome.speed { event["speed"] = speed }
     if let why = outcome.why { event["why"] = why }
@@ -1513,7 +1515,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     var event: [String: Any] = [
       "action": "hold_stroke", "board": model.board.id, "tool": "pencil", "verdict": verdict.reason,
       "y": Double(start.y), "ms": Int(((path.last?.time ?? 0) - (path.first?.time ?? 0)) * 1000),
-      "points": path.count,
+      "points": path.count, "path": BoardTouchPath.encode(path.map { .init($0.point, ms: $0.time * 1000) }),
     ]
     switch verdict {
     case .moved(let after, let by):
@@ -2286,6 +2288,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     lastDown = pencilDown ? .pencil : touch.type
     toolInHand(touchTool)
     snapTouch(touch, .down, draws: touch.type == .pencil || fingersDraw)
+    pathTouch(touch, .down, draws: touch.type == .pencil || fingersDraw)
     foldEraserDown(touch)
     // Story 858: any touch but the hold's own puts the menu away.
     if holdMenu != nil, grip == nil { holdMenu = nil }
@@ -2329,6 +2332,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// finger only while fingers draw. A finger that pans the board takes nothing.
   override func touchMoved(_ touch: UITouch) {
     snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
+    pathTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
     foldEraserMoved(touch)
     roomBandPencilMoved(touch, at: lines.columnPoint(of: touch.location(in: lines)))
     guard touchTool.erases, touch.type == .pencil || fingersDraw,
@@ -2367,6 +2371,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// PaperKit says when drawing begins and not when it ends: this is the touch going. A palm left down doesn't hold it.
   override func touchLifted(_ touch: UITouch, down: Int) {
     snapTouch(touch, .lifted, draws: touch.type == .pencil || fingersDraw)
+    pathTouch(touch, .lifted, draws: touch.type == .pencil || fingersDraw)
     foldEraserLifted(touch)
     guard toolDown, touch.type == .pencil || down == 0 else { return }
     toolDown = false

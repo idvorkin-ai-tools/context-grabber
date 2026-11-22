@@ -521,6 +521,29 @@ down, never from the tool the board says it holds (the log above shows those two
   says so, with both tools on the touch.
 - The log goes on naming both tools on every touch and every pick, so the iPad shows whether they agree.
 
+### A pen touch's path is in the log, and a pulled log replays on the Mac (stories 1104, 1105; bead context-grabber-y544)
+
+A gesture bug on the iPad (a scratch-out that stayed ink, a shape that didn't snap, a margin hold that drew) has so far
+been argued from tallies: how far a touch went and how many turns a zigzag made, never the stroke itself. So each
+tuning round was a guess, checked only by Igor drawing again. The log now keeps what each decision read, so the same
+stroke can be judged again on the Mac.
+
+- **Every pen touch's path is in the session log**: each Pencil touch, and each finger touch while fingers draw, gives
+  one line when it lifts with its points in board points, each point's time since it went down, whether it ended or the
+  system called it off, and the tool the picker showed when it went down. A long touch is thinned to a few hundred
+  points, its first and last kept.
+- **Each gesture's verdict carries the stroke it judged**: a scratch-out's line (a zigzag with three or more turns), a
+  margin hold's line and a shape snap's line each carry the stroke's own points and times beside the verdict.
+- **Every touch's path stays with the session log**: on the device and on the Mac it is pulled to, never in a report's
+  GitHub issue, and not in the board's log that goes to the Cockpit with each picture, which would grow with every
+  stroke (the Cockpit has the board's strokes already). A gesture's line, a few a day, goes there with its stroke as
+  before. A pen path is Igor's handwriting, so a fixture takes only gestures unless asked.
+- **A pulled log becomes a fixture**: one command reads a pulled log and writes a fixture of its gesture touches
+  (scratch-outs, held lifts, margin tries), each with what the iPad decided and what the Mac decides for the same
+  points, and says where the two differ. Every touch, writing included, only when asked for. A fixture in the host
+  tests holds each case to its expected verdict, so a gesture bug is fixed against Igor's real stroke on the Mac.
+- Nothing Igor sees changes.
+
 ## Trial on paper (removed 2026-11-07)
 
 The trial (#635, #636) settled what it was for: Igor made paper the default on 2026-11-03 and the only canvas on 2026-11-07.

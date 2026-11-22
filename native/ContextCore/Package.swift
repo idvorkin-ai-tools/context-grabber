@@ -9,6 +9,8 @@ let package = Package(
     .library(name: "ContextCore", targets: ["ContextCore"]),
     // Larry's board changes replayed on a copy of a board and drawn to a PNG, on the Mac (#936; `just board-ops`).
     .executable(name: "board-ops-harness", targets: ["BoardOpsHarness"]),
+    // A pulled log's pen touches judged again on the Mac and written as a host fixture (story 1105; `just touch-fixture`).
+    .executable(name: "touch-replay", targets: ["TouchReplay"]),
   ],
   targets: [
     // Linux only (just test-linux, and the board-ops harness on Larry's box, #943): the system's SQLite, found through
@@ -19,6 +21,7 @@ let package = Package(
       providers: [.apt(["libsqlite3-dev"]), .brew(["sqlite"]), .yum(["sqlite-devel"])]),
     .target(name: "ContextCore", dependencies: [.target(name: "CSQLite", condition: .when(platforms: [.linux]))]),
     .executableTarget(name: "BoardOpsHarness", dependencies: ["ContextCore"]),
+    .executableTarget(name: "TouchReplay", dependencies: ["ContextCore"]),
     .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"]),
   ],
   swiftLanguageModes: [.v5]
