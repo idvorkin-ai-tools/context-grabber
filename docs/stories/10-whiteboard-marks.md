@@ -109,7 +109,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1152:
 
 - **Summary:** A tap off Larry's marks lets my finger write again
-- **Status:** implemented in 109b21ad, dd0b1862, eae5ad2b and 62794265 (branch `native/finger-draws-2eml`; 62794265 and the review fix after it, which ends a tap off once no mark is left even with his controls showing, verified on the host and the Mac build only); verified at eae5ad2b on the host (`WhiteboardFingerTests`), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testATapOffLetsAFingerDrawWithTheMarksShowingAndATapOnOneStillChoosesIt`, the board's verdict read through `GRABBER_WHITEBOARD_FINGER_LABEL`, as XCUITest's finger draws on the simulator whatever PaperKit's touch is); a real finger on the iPad not yet tried
+- **Status:** implemented in 109b21ad, dd0b1862, eae5ad2b and 62794265 (branch `native/finger-draws-2eml`; 62794265 and the review fixes after it, 570dd335 (a tap off ends once no mark is left, even with his controls showing) and 661f510d (with only his controls showing a tap leaves the finger tapping), verified on the host and the Mac build only); verified at eae5ad2b on the host (`WhiteboardFingerTests`), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testATapOffLetsAFingerDrawWithTheMarksShowingAndATapOnOneStillChoosesIt`, the board's verdict read through `GRABBER_WHITEBOARD_FINGER_LABEL`, as XCUITest's finger draws on the simulator whatever PaperKit's touch is); a real finger on the iPad not yet tried
 - **Issues:** context-grabber-2eml (the iPad "looks like it's stuck": with Larry's marks showing, five finger drags panned and drew nothing, and the tap off that followed left the finger panning)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -132,7 +132,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1153:
 
 - **Summary:** With the Pencil in use, a finger never draws
-- **Status:** implemented in 109b21ad, dd0b1862, eae5ad2b and 62794265 (branch `native/finger-draws-2eml`; 62794265 and the review fix after it, which ends a tap off once no mark is left even with his controls showing, verified on the host and the Mac build only); verified at eae5ad2b on the host (`WhiteboardFingerTests`), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testOnceThePencilHasTouchedAFingerNeverDraws`, `GRABBER_WHITEBOARD_PENCIL=seen` standing in for the Pencil); the real Pencil and finger on the iPad not yet tried
+- **Status:** implemented in 109b21ad, dd0b1862, eae5ad2b and 62794265 (branch `native/finger-draws-2eml`; 62794265 and the review fixes after it, 570dd335 (a tap off ends once no mark is left, even with his controls showing) and 661f510d (with only his controls showing a tap leaves the finger tapping), verified on the host and the Mac build only); verified at eae5ad2b on the host (`WhiteboardFingerTests`), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testOnceThePencilHasTouchedAFingerNeverDraws`, `GRABBER_WHITEBOARD_PENCIL=seen` standing in for the Pencil); the real Pencil and finger on the iPad not yet tried
 - **Issues:** context-grabber-2eml (Igor, 2026-11-22: "I should never have finger drawn if I'm using the pencil"; the iPad log has Pencil and finger strokes on one board)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
