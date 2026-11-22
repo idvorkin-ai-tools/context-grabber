@@ -1,4 +1,4 @@
-//  Story 946 (context-grabber-5chm): the board's name in its top bar, as it is now, and on a board that draws here a tap
+//  Story 1160 (context-grabber-5chm): the board's name in its top bar, as it is now, and on a board that draws here a tap
 //  on it opens the list's rename box (spec 2026-11-01-whiteboard-design.md, *Rename from the board's own bar*). A plain
 //  button, never a title menu: on the iPad a menu on the name kept the Board menu up as a full-height list after a pick
 //  (d33c7d0d, 2026-11-16). A look-only board's name is plain text.

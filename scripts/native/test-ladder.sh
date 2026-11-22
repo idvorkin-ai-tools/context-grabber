@@ -146,7 +146,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
       native/ContextCore/Sources/ContextCore/Whiteboard/BoardKeeping.swift | native/App/Whiteboard/WhiteboardListView.swift | \
       native/App/Whiteboard/WhiteboardStore.swift)
       add_classes WhiteboardRowDeleteUITests WhiteboardOnPaperUITests ;;
-    # Story 946: the board's name in its bar renames it.
+    # Story 1160: the board's name in its bar renames it.
     native/App/Whiteboard/BoardTitleRename.swift) add_classes WhiteboardTitleRenameUITests WhiteboardPaperLinesUITests ;;
     native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardGhostTurns.swift | \
       native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardPacer.swift | \

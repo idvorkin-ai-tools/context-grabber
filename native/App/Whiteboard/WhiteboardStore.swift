@@ -320,7 +320,7 @@ final class WhiteboardStore: ObservableObject {
     Task { await sync(reason: "board_closed") }
   }
 
-  /// `from`: where the rename was asked, the list's row (`list`) or the board's own title (`title`, story 946).
+  /// `from`: where the rename was asked, the list's row (`list`) or the board's own title (`title`, story 1160).
   func rename(_ id: String, to title: String, from: String) {
     index.rename(id, to: title, at: Int64(Date().timeIntervalSince1970 * 1000))
     saveIndex()

@@ -135,7 +135,7 @@ struct WhiteboardView: View {
     .modifier(
       WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, voice: chatVoice, logger: logger)
     )
-    // Story 946: its name as it is now, and a tap on it renames a board that draws here.
+    // Story 1160: its name as it is now, and a tap on it renames a board that draws here.
     .modifier(BoardTitleRename(board: model.board, store: model.store, editable: model.editable))
     .navigationBarTitleDisplayMode(.inline)
     // Stories 954, 956–958: playback over the whole board, its bars hidden.

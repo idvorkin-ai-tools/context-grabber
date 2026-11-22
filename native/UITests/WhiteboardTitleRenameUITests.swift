@@ -1,4 +1,4 @@
-//  Story 946 (context-grabber-5chm) on the iPad simulator: a tap on the board's name in its own bar renames it, as the
+//  Story 1160 (context-grabber-5chm) on the iPad simulator: a tap on the board's name in its own bar renames it, as the
 //  row's Rename does; the stroke after it draws, the Board menu still opens and closes (a title menu once kept it up,
 //  d33c7d0d), and the list has the new name. Another device's board has a plain name. Crossing iCloud is the iPad's.
 
