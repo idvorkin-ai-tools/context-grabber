@@ -429,8 +429,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private(set) var board = BoardPages()
   private(set) var pages = 1
   private var laidWidth: CGFloat = 0
-  /// What the column's own changes shouldn't report as a person's.
-  private var quiet = false
+  /// What the column's own changes shouldn't report as a person's. Set only by the edit lane (PaperBoard+EditLane.swift).
+  var quiet = false
   private(set) var inkFrames: [String: CGRect] = [:]
   private var saidNotInk = false
   private var remembering: Task<Void, Never>?
@@ -595,9 +595,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     pages = board.pagesNeeded(inkMaxY: drawing.strokes.isEmpty ? nil : drawing.bounds.maxY)
     var markup = PaperMarkup(bounds: board.bounds(pages: pages))
     markup.append(contentsOf: drawing)
-    quiet = true
-    paper.markup = markup
-    quiet = false
+    setMarkup(markup)
     inkFrames = paper.markup?.strokeFrames ?? [:]
     model.inkReset(paper.markup.map(Self.allHashes) ?? [:])
     showMarks()
@@ -830,9 +828,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     // Not from inside PaperKit's own callback: its step for the drag is taken back, and one step for both goes on.
     Task { @MainActor [weak self] in
       guard let self else { return }
-      self.quiet = true
-      event["took_back"] = self.takeBackPaperKitsStep(why: "drop")
-      self.quiet = false
+      event["took_back"] = self.quietly { self.takeBackPaperKitsStep(why: "drop") }
       event["undid_drag"] = self.paper.markup.map { Self.close($0.strokeFrames, before.strokeFrames) } ?? false
       let framesBefore = self.inkFrames
       self.registerStepBack(to: before, named: "Move")
@@ -859,9 +855,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private func grow(to wanted: Int) {
     guard wanted > pages, var markup = paper.markup else { return }
     markup.bounds = board.bounds(pages: wanted)
-    quiet = true
-    paper.markup = markup
-    quiet = false
+    setMarkup(markup)
     pages = wanted
     run?.pageAdded = true
     showLines()
@@ -1121,10 +1115,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       let gone = Set(scratch.outcome.gone + [key])
       let before = taken.base
       let after = before.without(gone)
-      self.registerStepBack(to: before)
-      self.quiet = true
-      self.paper.markup = after
-      self.quiet = false
+      self.setMarkup(after, stepBack: before)
       let framesBefore = self.inkFrames
       self.inkFrames = after.strokeFrames
       self.model.stepped(after.inkDrawing)
@@ -1519,9 +1510,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     // ponytail: PaperKit's own undo step for the stroke stays beneath, with nothing to take back, as the pick-up's does.
     var without = markup
     _ = without.subelements.removeElement(for: element.elementID)
-    quiet = true
-    paper.markup = without
-    quiet = false
+    setMarkup(without)
     inkFrames = without.strokeFrames
     if verdict.opensRoom, model.outline(of: opStrokes(without).strokes).header(at: start.y) == nil {
       room(at: start.y, dy: dy, why: "pencil_margin_drag")
@@ -1551,9 +1540,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let framesBefore = before
     if still {
       // Held and lifted: the word is left selected; the Pencil's dot goes.
-      quiet = true
-      paper.markup = without
-      quiet = false
+      setMarkup(without)
       inkFrames = without.strokeFrames
       let chosen = strokes.indices.filter { strokes[$0].ids.contains(where: names.contains) }
       paper.selection = Set(chosen.compactMap { elements.indices.contains($0) ? elements[$0].elementID : nil })
@@ -1605,12 +1592,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let gone = markup.subelements.strokes.map(\.elementID).filter { pasted.contains(Self.key($0)) }
     for id in gone { _ = markup.subelements.removeElement(for: id) }
     forgetPaste()
-    registerStepBack(to: before, named: "Delete")
-    quiet = true
-    paper.markup = markup
-    quiet = false
+    let landed = setMarkup(markup, stepBack: before, named: "Delete")
     let framesBefore = inkFrames
-    let held = paper.markup ?? markup
+    let held = landed.held
     inkFrames = held.strokeFrames
     model.changed(held.inkDrawing)
     noteInk(held, since: framesBefore, report: true)
@@ -1631,12 +1615,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     if !strokes.isEmpty { markup.append(contentsOf: PKDrawing(strokes: strokes)) }
     forgetPaste()
-    registerStepBack(to: before, named: name)
-    quiet = true
-    paper.markup = markup
-    quiet = false
+    let landed = setMarkup(markup, stepBack: before, named: name)
     let framesBefore = inkFrames
-    let held = paper.markup ?? markup
+    let held = landed.held
     inkFrames = held.strokeFrames
     model.stepped(held.inkDrawing)
     noteInk(held, since: framesBefore, report: true, reworded: reworded)
@@ -1749,12 +1730,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let toolBefore = toolText(tool)
     let wanted = board.pages(after: pages, inkMaxY: model.drawing.bounds.maxY, redoWaiting: false)
     let made = PKDrawing(strokes: strokes)
-    registerStepBack(to: markup, named: name)
+    let before = markup
     if wanted > pages { markup.bounds = board.bounds(pages: wanted) }
     markup.append(contentsOf: made)
-    quiet = true
-    paper.markup = markup
-    quiet = false
+    let landed = setMarkup(markup, stepBack: before, named: name)
     let toolAfter = toolText(paper.drawingTool)
     if toolAfter != toolBefore { paper.drawingTool = tool }
     let pagesBefore = pages
@@ -1763,7 +1742,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showLines()
     showPageNumber()
     redrawSoon()
-    let held = paper.markup ?? markup
+    let held = landed.held
     let framesBefore = inkFrames
     inkFrames = held.strokeFrames
     let whole = held.inkDrawing
@@ -1892,14 +1871,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     model.rememberTheirs(theirs)
     if !extra.isEmpty { markup.append(contentsOf: PKDrawing(strokes: extra)) }
-    if stepBack { registerStepBack(to: undoTo ?? before, named: name) }
     if plan.pagesAfter != pages { markup.bounds = board.bounds(pages: plan.pagesAfter) }
-    quiet = true
-    paper.markup = markup
-    quiet = false
+    let landed = setMarkup(markup, stepBack: stepBack ? undoTo ?? before : nil, named: name)
     putKeys = Set(markup.strokeFrames.keys)
     pages = plan.pagesAfter
-    let held = paper.markup ?? markup
+    let held = landed.held
     inkFrames = held.strokeFrames
     showLines()
     showPageNumber()
@@ -1954,7 +1930,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private func move(_ moves: [Int: CGFloat]) {
     guard var markup = paper.markup else { return }
     let strokes = markup.subelements.strokes
-    registerStepBack(to: markup, named: WhiteboardModel.tidyUndoName)
+    let before = markup
     for (i, dy) in moves where strokes.indices.contains(i) {
       var stroke = strokes[i]
       stroke.transform = stroke.transform.concatenating(CGAffineTransform(translationX: 0, y: dy))
@@ -1962,9 +1938,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let wanted = board.pages(after: pages, inkMaxY: markup.inkDrawing.bounds.maxY, redoWaiting: false)
     if wanted > pages { markup.bounds = board.bounds(pages: wanted) }
-    quiet = true
-    paper.markup = markup
-    quiet = false
+    setMarkup(markup, stepBack: before, named: WhiteboardModel.tidyUndoName)
     pages = wanted
     let framesBefore = inkFrames
     inkFrames = markup.strokeFrames
@@ -2090,7 +2064,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// Undo or redo of a kept mark or a batch of Larry's changes: back to the markup as it was, and the way forward again
   /// the same way. `named`: what Undo and Redo say (a batch's label).
-  private func registerStepBack(to markup: PaperMarkup, named name: String? = nil) {
+  func registerStepBack(to markup: PaperMarkup, named name: String? = nil) {
     guard let undo = paper.undoManager else { return }
     stepsOn = undo
     undo.registerUndo(withTarget: self) { controller in
@@ -2209,20 +2183,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private func step(to markup: PaperMarkup, named name: String? = nil) {
     if probe.reached(name ?? "") {
       // #966: the board's take-back of PaperKit's step reached this one instead; Redo puts it straight back, unsaid.
-      if let now = paper.markup { registerStepBack(to: now, named: name) }
-      quiet = true
-      paper.markup = markup
-      quiet = false
+      setMarkup(markup, stepBack: paper.markup, named: name)
       inkFrames = markup.strokeFrames
       pages = board.pages(in: markup.bounds)
       return
     }
     // Story 851: an undo of one of Larry's batches, by its label.
     if let name, !name.isEmpty, paper.undoManager?.isUndoing == true { model.undid(name) }
-    if let now = paper.markup { registerStepBack(to: now, named: name) }
-    quiet = true
-    paper.markup = markup
-    quiet = false
+    setMarkup(markup, stepBack: paper.markup, named: name)
     pages = board.pages(in: markup.bounds)
     let framesBefore = inkFrames
     inkFrames = markup.strokeFrames
