@@ -111,8 +111,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var lightWindow: (window: UIWindow, style: UIUserInterfaceStyle)?
   /// A Pencil or a drawing finger is down, as the pacer was told.
   var toolDown = false
-  /// What a finger does when no ghost shows; set while they do, as it taps and doesn't draw.
+  /// What a finger does when no ghost shows; set while the board has it tapping instead (PaperBoard+FingerDraws.swift).
   var fingerUsually: (mode: PaperMarkupViewController.TouchMode, autoDraws: Bool)?
+  /// Stories 354, 1152, 1153: whether a finger draws, by the marks showing, a tap off them and the Pencil.
+  var finger = WhiteboardFinger(pencil: PaperBoardController.pencilThisLaunch)
   /// A tap's selection comes after the lift: until this time one is put straight back.
   private var noSelectionUntil: Double = 0
   /// The last finger tap while marks showed, in board points, and when: the dot PaperKit draws there is taken back.
@@ -161,6 +163,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
     watchUndo()
     watchCovers()
+    settleFinger()
   }
 
   /// Stories 892, 893: the Pencil hovering over the paper, in board points. A pointer's hover has no height above the
@@ -218,6 +221,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     super.viewDidAppear(animated)
     paper.becomeFirstResponder()
     showUndoSoon()
+    // Story 1153: PaperKit may set its own touch as it first appears; the board's rule goes back over it.
+    settleFinger()
   }
 
   /// The whole window in light mode while a board on paper is up, whatever the device's. In dark mode PaperKit draws new
@@ -636,9 +641,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let selected = paper.selection.count
     // Story 967 (#1170): a tap on his selection that reaches no mark is his, so PaperKit's menu (Delete) shows.
     let box = paper.selection.map(Self.key).compactMap { inkFrames[$0] }.reduce(CGRect.null) { $0.union($1) }
+    let onMark = model.reachesMark(at: at, zoom: screenScale)
     let onSelection = WhiteboardMarkChoice.onSelection(
-      box, at: at, reach: WhiteboardTurn.tapReach / max(screenScale, 0.01),
-      onMark: model.reachesMark(at: at, zoom: screenScale))
+      box, at: at, reach: WhiteboardTurn.tapReach / max(screenScale, 0.01), onMark: onMark)
     if !onSelection {
       noSelectionUntil = CACurrentMediaTime() + 0.8
       if selected > 0 { paper.selection = [] }
@@ -654,6 +659,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "touch_mode": name(paper.directTouchMode), "auto_draws": paper.directTouchAutomaticallyDraws,
         "screen_scale": Double(screenScale),
       ])
+    // Story 1152: a tap off the marks and his selection gives a finger with no Pencil in use its pen back.
+    fingerTappedWithMarks(onMark: onMark, onSelection: onSelection)
   }
 
   override func touchWentDown(_ touch: UITouch) {
@@ -661,7 +668,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     groupTap = nil
     // Story 1143: the turns logged as the touch began, so its line says how many came while it was down.
     if touchesDown == 0 { run?.turnsAtStart = model.turnsLogged }
-    if touch.type == .pencil { toolWentDown() }
+    if touch.type == .pencil {
+      toolWentDown()
+      pencilTouched()
+    }
     lastDown = pencilDown ? .pencil : touch.type
     toolInHand(touchTool)
     snapTouch(touch, .down, draws: touch.type == .pencil || fingersDraw)
@@ -808,7 +818,7 @@ extension PaperBoardController: BoardCanvas {
   func showOverlays(_ list: [BoardOverlay]) {
     lines.showOverlays(list)
     // Story 846: with his controls showing, a finger taps them, as it taps ghosts, rather than drawing.
-    fingerTaps(!model.ghosts.isEmpty || !list.isEmpty)
+    fingerTaps(marks: !model.ghosts.isEmpty, controls: !list.isEmpty)
   }
 
   func menuChose() { takeTheResponderBack() }

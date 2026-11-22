@@ -102,7 +102,51 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A finger tap while ghosts show
 - **Given:** a finger draws on this device and ghosts are showing
 - **When:** I tap a ghost
-- **Then:** Keep and Dismiss show beside it and no dot is drawn (story 825); once no ghost is left, kept, dismissed or faded, my finger draws again
+- **Then:** Keep and Dismiss show beside it and no dot is drawn (story 825); once no ghost is left, kept, dismissed or faded, my finger draws again; a tap off them gives it back sooner, unless the Pencil has been used (stories 1152, 1153)
+
+---
+
+### User Story 1152:
+
+- **Summary:** A tap off Larry's marks lets my finger write again
+- **Status:** implemented in 109b21ad, dd0b1862, eae5ad2b and 62794265 (branch `native/finger-draws-2eml`; 62794265 and the review fixes after it, 570dd335 (a tap off ends once no mark is left, even with his controls showing) and 661f510d (with only his controls showing a tap leaves the finger tapping), verified on the host and the Mac build only); verified at eae5ad2b on the host (`WhiteboardFingerTests`), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testATapOffLetsAFingerDrawWithTheMarksShowingAndATapOnOneStillChoosesIt`, the board's verdict read through `GRABBER_WHITEBOARD_FINGER_LABEL`, as XCUITest's finger draws on the simulator whatever PaperKit's touch is); a real finger on the iPad not yet tried
+- **Issues:** context-grabber-2eml (the iPad "looks like it's stuck": with Larry's marks showing, five finger drags panned and drew nothing, and the tap off that followed left the finger panning)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** writing with a finger and no Pencil
+- **I want to** get my pen back with one tap on empty paper while Larry's marks still show
+- **so that** the board never feels stuck, and I can keep or dismiss his marks later
+
+#### Acceptance Criteria:
+- **Scenario:** A tap off the marks, then writing
+- **Given:** no Pencil has touched a board, and Larry's or Claude's marks are showing, so a finger drag pans
+- **When:** I tap empty paper, on no mark and outside my selection
+- **Then:** Keep and Dismiss go away, nothing is dismissed and no dot is left, and my next finger drag draws ink with the marks still showing
+- **And:** a tap on a mark still brings its Keep and Dismiss, with no dot left where I tapped
+- **And:** once no mark is left, the next marks set my finger to tapping and panning again, and so do his controls if they still show (story 846)
+- **And:** the session log says `finger_draws` with `why: tap_off`
+
+---
+
+### User Story 1153:
+
+- **Summary:** With the Pencil in use, a finger never draws
+- **Status:** implemented in 109b21ad, dd0b1862, eae5ad2b and 62794265 (branch `native/finger-draws-2eml`; 62794265 and the review fixes after it, 570dd335 (a tap off ends once no mark is left, even with his controls showing) and 661f510d (with only his controls showing a tap leaves the finger tapping), verified on the host and the Mac build only); verified at eae5ad2b on the host (`WhiteboardFingerTests`), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testOnceThePencilHasTouchedAFingerNeverDraws`, `GRABBER_WHITEBOARD_PENCIL=seen` standing in for the Pencil); the real Pencil and finger on the iPad not yet tried
+- **Issues:** context-grabber-2eml (Igor, 2026-11-22: "I should never have finger drawn if I'm using the pencil"; the iPad log has Pencil and finger strokes on one board)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** writing with the Pencil
+- **I want to** my finger only to pan, select and tap
+- **so that** a resting or moving finger never leaves stray ink
+
+#### Acceptance Criteria:
+- **Scenario:** The Pencil has touched a board
+- **Given:** the Pencil has touched any board since the app launched (or the system's "Only Draw with Apple Pencil" is on)
+- **When:** I drag a finger on a board, with marks showing or none, before or after a tap off the marks
+- **Then:** it pans or selects, and draws nothing
+- **And:** the session log says `finger_draws` with `why: pencil` when the Pencil takes the finger's pen
 
 ---
 

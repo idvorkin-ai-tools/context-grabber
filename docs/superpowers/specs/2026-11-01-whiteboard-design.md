@@ -159,7 +159,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - With a Pencil paired, only the Pencil draws, and a finger moves the board. A palm resting on the glass never
     leaves a mark.
   - Without a Pencil (an iPad with none paired), a finger draws and two fingers move the board.
-  - This follows the system's "Only Draw with Apple Pencil" setting.
+  - This follows the system's "Only Draw with Apple Pencil" setting, and on paper also the Pencil itself: once it has
+    touched a board, a finger only pans, selects and taps until the app is next launched (context-grabber-2eml; the
+    rules for a finger while marks show are in [Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md)).
 - **The board is a column of pages** (#636; Igor, 2026-11-03: "the board is way too big maybe do the set up like
   Notability"; he chose page-width over sideways growth).
   - A page is 820 points wide and about 1,060 tall, paper's shape. On an iPad held upright, writing stays the size it is
@@ -272,9 +274,10 @@ stay an editable object once saved. That fits the non-goals above.
 pictures reads as written above. The trial's small cross on each page and its ring are there only to test with, and never
 appear on a real board.
 
-**What a finger does on paper isn't settled.** *Who draws* above describes the old canvas. PaperKit has no mode where a finger
-only pans, and four finger drags aren't enough to go on, so the next try on the iPad has to settle it before a story can
-claim anything about fingers.
+**What a finger does on paper.** PaperKit has no mode where a finger only pans; set to select rather than draw, a finger
+drag pans the board and a tap selects, while the Pencil still draws (the iPad's log, 2026-11-22). So where a finger would
+draw, it is set to select while marks show, until a tap off them; and once the Pencil has touched a board, always
+(context-grabber-2eml; the rules are in [Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md)).
 
 ### A new board on paper, by default
 
@@ -316,8 +319,8 @@ so." New boards are on paper from now on, on every device, though the rest of th
 - **Undo and a new page.** Adding a page can count as a step of undo: one press may take back the page and not a stroke.
   The next stroke brings the page back. Whether this matters on the iPad is still to be seen.
 
-The log says which touches were the Pencil's and which a finger's, and what each did, so the next try on the iPad can settle
-what a finger does.
+The log says which touches were the Pencil's and which a finger's, what each did, and each time a finger starts or stops
+drawing and why.
 
 ### Ghosts and Larry on paper
 
@@ -337,8 +340,9 @@ paper. That description is the requirement, and this lists only where paper need
   Leaving the board with a ghost showing saves nothing of it.
 - **A finger tap keeps or dismisses,** as on the old canvas: on a ghost it keeps that one, off them it dismisses Claude's;
   Larry's go only to a tap off them once Claude's are gone (#823).
-  While ghosts show, a finger doesn't draw, wherever a finger would, so a tap leaves no dot and selects nothing. With none left it
-  goes back to what it did. What a finger drag does in those seconds is part of what the iPad has yet to settle.
+  While ghosts show, a finger doesn't draw, wherever a finger would, so a tap leaves no dot and selects nothing; its drag
+  pans. A tap off them gives a finger with no Pencil in use its pen back, and with none left it goes back to what it
+  did (context-grabber-2eml).
 - **A kept ghost is ink like his own.** It's in its author's colour, the eraser and lasso treat it like his, and it saves a moment
   later.
 - **Ink the app adds is on the screen.** A kept ghost, a paste, an undo or a redo of one shows within half a second, where it

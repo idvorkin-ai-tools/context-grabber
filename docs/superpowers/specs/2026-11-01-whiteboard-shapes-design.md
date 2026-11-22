@@ -157,6 +157,19 @@ suggest changes the board until Igor keeps it.
   inside the selection and whether the selection was kept.
 - **Where a finger draws** (an iPhone, an iPad with no Pencil, or with the system's Pencil-only setting off), it stops
   drawing while ghosts show: it taps and pans, so a tap on a mark leaves no dot. With no ghost left (kept, dismissed or faded) it draws again.
+  - **A tap off the marks gives the finger its pen back** (context-grabber-2eml; Igor, 2026-11-22: "the iPad looks like
+    it's stuck", then, via Larry, that a tap off should exit selection). A finger tap on empty board, reaching no mark and
+    not inside his own selection, puts Keep and Dismiss away as before and also lets the finger draw again, with the
+    marks still showing. A finger writer is never stuck panning: one tap and he writes. A tap on a mark still chooses
+    it, with no dot left where he tapped, and its Keep and Dismiss work as before. The finger stays drawing until no
+    mark is left; the next marks to arrive after that put it back to tapping and panning.
+  - **Once the Pencil has touched a board, a finger never draws** (Igor, 2026-11-22: "I should never have finger drawn
+    if I'm using the pencil"). From the Pencil's first touch on any board until the app is next launched, and always
+    where the system's "Only Draw with Apple Pencil" setting is on, a finger pans, selects and taps, marks showing or
+    not, and a tap off the marks never turns finger drawing on. The tap-off rule above is only for someone writing
+    with a finger and no Pencil.
+  - The session log says each time the finger starts or stops drawing, and which rule decided it: marks arriving, a tap
+    off, no marks left, or the Pencil.
 - A ghost turn gives up **10 s** after it was asked, however much has arrived by then (the Cockpit's model takes about
   3 s, and an answer to an older drawing still lands where that drawing was). If no mark has arrived, none is shown and
   the bar says *Ghosts: the Cockpit isn't answering*. **An answer cut off after a mark has arrived is no failure**: the
@@ -536,7 +549,10 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Draw again before the ghosts come, or while they show: they stay, and the next pause brings a new set that replaces
   Claude's. Leave them alone: they fade after 30 s. Larry's purple marks stay through all of it.
 - On a device where a finger draws: a tap on a ghost offers Keep and Dismiss with no dot drawn, a tap off the ghosts
-  changes nothing, and once none is left the finger draws again.
+  dismisses nothing, and once none is left the finger draws again.
+- With no Pencil used: marks showing, a finger drag pans; tap empty paper, and the next finger drag draws ink while the
+  marks still show; a tap on a mark still brings its Keep and Dismiss and leaves no dot.
+- With the Pencil used once: a finger drag never draws, with marks or without, and a tap off the marks doesn't change that.
 - Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's purple ghosts stay showing.
 - Tap Larry's turn: the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) straight away and the Pencil keeps drawing. Chat has a thread
   named after the board holding the picture. Minutes later, with no tap, purple ghosts and his line appear on what he saw,

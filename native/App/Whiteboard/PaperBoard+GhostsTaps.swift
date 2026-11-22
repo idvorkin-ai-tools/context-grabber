@@ -19,7 +19,7 @@ extension PaperBoardController {
   func show(_ ghosts: [Ghost]) {
     Task { @MainActor [weak self] in self?.showChoice() }
     guard lines.ghostLayers.show(ghosts) else { return }
-    fingerTaps(!ghosts.isEmpty || !model.overlays.list.isEmpty)
+    fingerTaps(marks: !ghosts.isEmpty, controls: !model.overlays.list.isEmpty)
     let drawn = ghosts.flatMap(\.lines)
     log.event(
       "whiteboard",
@@ -54,20 +54,6 @@ extension PaperBoardController {
         "action": "mark_buttons", "board": model.board.id, "chosen": model.chosen != nil,
         "frame": frame.map { rect($0) } ?? [], "view": rect(view.bounds),
       ])
-  }
-
-  /// As the old canvas's `.pencilOnly`, which PaperKit doesn't have: a finger selects rather than draws, and a tap's
-  /// selection is put straight back, so a tap leaves nothing.
-  func fingerTaps(_ taps: Bool) {
-    if taps, fingerUsually == nil {
-      fingerUsually = (paper.directTouchMode, paper.directTouchAutomaticallyDraws)
-      paper.directTouchAutomaticallyDraws = false
-      paper.directTouchMode = .selection
-    } else if !taps, let usual = fingerUsually {
-      fingerUsually = nil
-      paper.directTouchMode = usual.mode
-      paper.directTouchAutomaticallyDraws = usual.autoDraws
-    }
   }
 
   /// Where the sheet has a ghost against where the visible frame says it should be, in screen points.
