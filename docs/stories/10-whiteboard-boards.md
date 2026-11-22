@@ -83,6 +83,12 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I open the Whiteboard on the phone and tap that board's row
 - **Then:** I see the drawing, which I can pan and pinch but not draw on, with a note that it is drawn on the iPad
 
+- **Scenario:** iCloud turns an upload down
+- **Given:** I closed the app on the iPad with ink not yet sent, and on the next launch iCloud refuses the board's upload
+- **When:** I wait on the list without touching anything
+- **Then:** the list says boards aren't syncing, the board is as I drew it, and within a minute or so it goes up by
+  itself and the note goes; on the phone the board then shows that ink
+
 ---
 
 ### User Story 348:
