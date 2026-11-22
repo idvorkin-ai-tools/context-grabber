@@ -64,7 +64,7 @@ struct ChatDecisionCard: View {
 
   init(
     decisions: ChatDecisionsModel, ask: ChatAsk, place: String, voice: ChatVoiceModel?, logger: @escaping BugLogger,
-    draft: Binding<Draft>, fold: @escaping () -> Void,
+    ownAnswer: (() -> Void)? = nil, draft: Binding<Draft>, fold: @escaping () -> Void,
     done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
   ) {
     self.decisions = decisions
@@ -72,6 +72,7 @@ struct ChatDecisionCard: View {
     self.place = place
     self.voice = voice
     self.logger = logger
+    self.ownAnswer = ownAnswer
     self._draft = draft
     self.fold = fold
     self.done = done
@@ -194,6 +195,11 @@ struct ChatDecisionCard: View {
   /// *Other…*, or Larry's own *Other*: the field opens (on the board, the popup's own field takes the cursor); nothing
   /// is answered until *Send*.
   private func openOther() {
+    guard voice != nil else {
+      decisions.otherOpened(ask, from: place)
+      ownAnswer?()
+      return
+    }
     guard !draft.otherOpen else { return }
     draft.otherOpen = true
     decisions.otherOpened(ask, from: place)

@@ -226,7 +226,7 @@ def open_asks(on, other=False, board=None):
     )
     ASKS["igor2-88g.879"] = ask("igor2-88g.879", "Renew the gym for a year?",
                                 [("yes", "Renew", ""), ("no", "Let it lapse", "")]
-                                + ([("other", "Other…", "")] if other else []))
+                                + ([("other", "Something else", "Type your own answer")] if other else []))
     if board:
         ASKS["igor2-88g.879"]["context"] = f"Larry asks about board {board}."
     ASKS["igor2-88g.880"] = ask("igor2-88g.880", "Move the review to Monday?",

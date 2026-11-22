@@ -3167,16 +3167,16 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** The board's question card
-- **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882)
-- **When:** it opens
-- **Then:** the card in it shows neither *Other…* nor Larry's own *Other* option
+- **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882), for an ask whose options include Larry's own-answer option (keyed *other*, or labelled as in story 1129)
+- **When:** I tap Larry's option
+- **Then:** nothing is sent; the cursor is in *Your own answer* with the keyboard up, *Send* stays off until there are words, and *Send* answers with my words; the card in the popup has no *Other…* of its own
 
 ---
 
 ### User Story 1131:
 
 - **Summary:** Fold a decision card to one line, and open it again
-- **Status:** native app: implemented in 'e714b372', fixed after review in 'f417516e' (rebased from 'a4613ba7') and '22ad3561', on branch `native/decision-fold-fjh0`; verified on the host (`just native-test`: `ChatDecisionFoldsTests`, the fold per ask, its saved list, the cap), the Mac build (`just native-build-mac`), and on the iPhone 17 simulator (`just test-ladder`: `ChatDecisionUITests.testACardFoldsToItsLineStaysFoldedAndOpensAgain` folds a card on *Decisions*, finds it folded in its thread with the row's mark and the count unchanged, still folded after a relaunch, and opens it again; nothing posted to the Cockpit); after review round 1 ('a4613ba7') the simulator was re-run: `ChatDecisionUITests` 4/4 on the iPhone 17 simulator, and the smoke's *chat: the decision card folded and reopened from its line* passed; not yet on the phone or the iPad
+- **Status:** native app: implemented in '22a78654', fixed after review in '2a4b6fca' (rebased from 'a4613ba7'), 'a022023c' and '08db3051', on branch `native/decision-fold-fjh0`; verified on the host (`just native-test`: `ChatDecisionFoldsTests`, the fold per ask, its saved list, the cap), the Mac build (`just native-build-mac`), and on the iPhone 17 simulator (`just test-ladder`: `ChatDecisionUITests.testACardFoldsToItsLineStaysFoldedAndOpensAgain` folds a card on *Decisions*, finds it folded in its thread with the row's mark and the count unchanged, still folded after a relaunch, and opens it again; nothing posted to the Cockpit); after review round 1 ('a4613ba7') the simulator was re-run: `ChatDecisionUITests` 4/4 on the iPhone 17 simulator, and the smoke's *chat: the decision card folded and reopened from its line* passed; not yet on the phone or the iPad
 - **Issues:** bead context-grabber-fjh0
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Folding a card*
 

@@ -125,6 +125,8 @@ private struct WhiteboardQuestionPopup: View {
   let cardID: String
   @State private var words = ""
   @State private var draft = ChatDecisionCard.Draft()
+  /// Story 1130: Larry's own-answer option puts the cursor here.
+  @FocusState private var wordsFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
@@ -157,7 +159,8 @@ private struct WhiteboardQuestionPopup: View {
     } else if let ask = questions.asks[card.ask] {
       let fold = { questions.fold(card) }
       ChatDecisionCard(
-        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, draft: $draft,
+        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, ownAnswer: { wordsFocused = true },
+        draft: $draft,
         fold: fold,
         done: { verb, outcome in questions.decided(card, ask: ask, verb: verb, outcome: outcome) }
       )

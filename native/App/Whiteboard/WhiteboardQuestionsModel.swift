@@ -172,7 +172,7 @@ final class WhiteboardQuestionsModel: ObservableObject {
     log.event("whiteboard_questions", ["action": "collapse", "board": boardID, "ask": card.ask])
   }
 
-  /// Story 1116: the fold control on an opened card not yet answered: back to its one line on the paper, nothing
+  /// Story 1118: the fold control on an opened card not yet answered: back to its one line on the paper, nothing
   /// answered.
   func fold(_ card: WhiteboardQuestion) {
     guard opened?.id == card.id else { return }
