@@ -1383,5 +1383,5 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** Breathing started by hand on a live call
 - **Given:** a call with Larry is live and he can hear me
-- **When:** I open Box breathing with Voice and Begin, or START a round on the Gym Timer
+- **When:** I open Box breathing with Voice and Begin
 - **Then:** the session runs on screen in silence with *Sounds are off during the call*, the devices line does not change, and Larry still hears me and I still hear him

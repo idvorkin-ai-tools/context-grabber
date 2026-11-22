@@ -626,7 +626,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **so that** the timer never takes the call's microphone or plays into the call
 
 #### Acceptance Criteria:
-- **Scenario:** START during a live call, then hang up
-- **Given:** a call with Larry is live
-- **When:** I START a round on the Gym Timer, and later hang up mid-round
-- **Then:** the face counts with no count, cue or dip and reads *Sounds are off during the call* while the call lasts; within a couple of seconds of hanging up the note goes and the next cue sounds
+- **Scenario:** Hanging up mid-round
+- **Given:** a call with Larry is live and a round I STARTed during it is counting on the face with no count, cue or dip, reading *Sounds are off during the call*
+- **When:** I hang up mid-round
+- **Then:** within a couple of seconds the note goes and the next cue sounds

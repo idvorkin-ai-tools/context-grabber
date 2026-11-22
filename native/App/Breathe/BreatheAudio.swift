@@ -75,7 +75,7 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
 
   func say(_ phrase: BreathPhrase) {
     queue.async { [self] in
-      if let holder = gate.refusal(.breatheStarts) {
+      if let holder = refuser() {
         standDown()
         log.event("breath_cue", ["kind": "voice", "name": phrase.rawValue, "ok": false, "held_by": holder.rawValue])
         return
@@ -99,7 +99,7 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
 
   func play(_ tone: BreathTone) {
     queue.async { [self] in
-      if let holder = gate.refusal(.breatheStarts) {
+      if let holder = refuser() {
         standDown()
         log.event("breath_cue", ["kind": "tone", "name": tone.rawValue, "ok": false, "held_by": holder.rawValue])
         return
@@ -159,10 +159,15 @@ final class BreatheAudio: BreathAudio, @unchecked Sendable {
   /// Whether a call holds the session (story 1071): then breathing stands down without touching it, and logs what
   /// it held back.
   private func held(_ what: String) -> Bool {
-    guard let holder = gate.refusal(.breatheStarts) else { return false }
+    guard let holder = refuser() else { return false }
     standDown()
     log.event("breath_session", ["action": "held", "what": what, "held_by": holder.rawValue])
     return true
+  }
+
+  /// Who refuses the breathing now: the floor, or the call it stood down for until the take-back.
+  private func refuser() -> AudioUser? {
+    gate.refusal(.breatheStarts) ?? (heldByCall ? .call : nil)
   }
 
   /// The call has the session: stop what breathing plays and forget it was active, so the session is taken again

@@ -156,7 +156,7 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
 
   func play(_ cue: TimerCue) {
     queue.async { [self] in
-      if let holder = gate.refusal(.timerStarts) {
+      if let holder = refuser() {
         standDown()
         log.event("timer_cue", ["cue": cue.rawValue, "voice": voice.rawValue, "ok": false, "held_by": holder.rawValue])
         return
@@ -194,10 +194,15 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
   /// Whether a call holds the session (story 1071): then the timer stands down without touching it, and logs what it
   /// held back.
   private func held(_ what: String) -> Bool {
-    guard let holder = gate.refusal(.timerStarts) else { return false }
+    guard let holder = refuser() else { return false }
     standDown()
     log.event("timer_session", ["action": "held", "what": what, "held_by": holder.rawValue])
     return true
+  }
+
+  /// Who refuses the timer now: the floor, or the call it stood down for until the take-back.
+  private func refuser() -> AudioUser? {
+    gate.refusal(.timerStarts) ?? (heldByCall ? .call : nil)
   }
 
   /// The call has the session: stop what the timer plays and forget it was active, so the session is taken again
