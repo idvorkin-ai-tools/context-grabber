@@ -1,0 +1,129 @@
+import Foundation
+import XCTest
+
+@testable import ContextCore
+
+/// Story 147: the home screen's order and hidden rows, remembered across builds.
+final class HomeLayoutTests: XCTestCase {
+  let known = ["call", "today", "gym_timer", "breathe", "places", "think_a_card", "cockpit"]
+
+  func testNothingRememberedIsTheDefaultOrderAllShown() {
+    let layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
+    XCTAssertEqual(layout.order, known)
+    XCTAssertEqual(layout.visible, known)
+    XCTAssertEqual(HomeLayout(known: known, storedOrder: "", storedHidden: "").visible, known)
+  }
+
+  func testTheRememberedOrderAndHiddenRowsHold() {
+    let layout = HomeLayout(
+      known: known, storedOrder: "gym_timer,call,today,breathe,places,think_a_card,cockpit",
+      storedHidden: "cockpit,places")
+    XCTAssertEqual(layout.visible, ["gym_timer", "call", "today", "breathe", "think_a_card"])
+    XCTAssertEqual(layout.encodedHidden, "places,cockpit")
+  }
+
+  func testARowTheOrderDoesNotKnowShowsAtTheEnd() {
+    // Remembered by a build without Exercise Analyzer, read by one with it.
+    let layout = HomeLayout(
+      known: known + ["exercise_analyzer"], storedOrder: "cockpit,call,today,gym_timer,breathe,places,think_a_card",
+      storedHidden: "today")
+    XCTAssertEqual(layout.order.last, "exercise_analyzer")
+    XCTAssertTrue(layout.isShown("exercise_analyzer"))
+    XCTAssertEqual(layout.visible.first, "cockpit")
+  }
+
+  func testRowsTheBuildNoLongerHasAreDroppedAndDuplicatesIgnored() {
+    let layout = HomeLayout(known: ["call", "today"], storedOrder: "card, today ,today,call", storedHidden: "card")
+    XCTAssertEqual(layout.order, ["today", "call"])
+    XCTAssertEqual(layout.hidden, [])
+    XCTAssertEqual(layout.encodedOrder, "today,call")
+  }
+
+  func testHidingAndShowingKeepsTheRowInPlace() {
+    var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
+    layout.setShown("today", false)
+    XCTAssertEqual(layout.visible, ["call", "gym_timer", "breathe", "places", "think_a_card", "cockpit"])
+    layout.setShown("today", true)
+    XCTAssertEqual(layout.visible, known)
+    layout.setShown("nonsense", false)
+    XCTAssertEqual(layout.hidden, [])
+  }
+
+  func testMovesFollowTheListConvention() {
+    var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
+    layout.move(fromOffsets: [2], toOffset: 0)  // Gym Timer dragged to the top
+    XCTAssertEqual(layout.order, ["gym_timer", "call", "today", "breathe", "places", "think_a_card", "cockpit"])
+    layout.move(fromOffsets: [0], toOffset: 7)  // and back down to the end
+    XCTAssertEqual(layout.order, ["call", "today", "breathe", "places", "think_a_card", "cockpit", "gym_timer"])
+    layout.move(fromOffsets: [1], toOffset: 3)  // Today below Box breathing
+    XCTAssertEqual(layout.order, ["call", "breathe", "today", "places", "think_a_card", "cockpit", "gym_timer"])
+  }
+
+  /// #714: the Mac's arrows move one place, up as (i, i - 1) and down as (i, i + 2).
+  func testTheMacArrowsMoveOnePlace() {
+    var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
+    layout.move(fromOffsets: [2], toOffset: 1)  // Gym Timer up
+    XCTAssertEqual(layout.order, ["call", "gym_timer", "today", "breathe", "places", "think_a_card", "cockpit"])
+    layout.move(fromOffsets: [1], toOffset: 3)  // and down again
+    XCTAssertEqual(layout.order, ["call", "today", "gym_timer", "breathe", "places", "think_a_card", "cockpit"])
+    layout.move(fromOffsets: [5], toOffset: 7)  // the next-to-last row down to the end
+    XCTAssertEqual(layout.order, ["call", "today", "gym_timer", "breathe", "places", "cockpit", "think_a_card"])
+  }
+
+  /// #742: on the Mac a row dragged onto another takes its place, up or down; onto itself or an unknown id, nothing.
+  func testAMacDropTakesTheTargetsPlace() {
+    var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
+    XCTAssertTrue(layout.drop("gym_timer", onto: "call"))  // up to the top
+    XCTAssertEqual(layout.order, ["gym_timer", "call", "today", "breathe", "places", "think_a_card", "cockpit"])
+    XCTAssertTrue(layout.drop("call", onto: "cockpit"))  // down to the end
+    XCTAssertEqual(layout.order, ["gym_timer", "today", "breathe", "places", "think_a_card", "cockpit", "call"])
+    XCTAssertTrue(layout.drop("today", onto: "places"))  // down two places
+    XCTAssertEqual(layout.order, ["gym_timer", "breathe", "places", "today", "think_a_card", "cockpit", "call"])
+    let before = layout.order
+    XCTAssertFalse(layout.drop("today", onto: "today"))
+    XCTAssertFalse(layout.drop("nope", onto: "today"))
+    XCTAssertEqual(layout.order, before)
+  }
+
+  func testWhatIsStoredReadsBackTheSame() {
+    var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
+    layout.move(fromOffsets: [6], toOffset: 1)
+    layout.setShown("places", false)
+    let again = HomeLayout(known: known, storedOrder: layout.encodedOrder, storedHidden: layout.encodedHidden)
+    XCTAssertEqual(again, layout)
+  }
+
+  /// Story 151: Today is the card; every other launcher is a tile, in Igor's order (#284: three to a line).
+  func testTodayIsTheCardAndEveryOtherLauncherATile() {
+    let a = HomeLayout(known: known, storedOrder: nil, storedHidden: nil).arrangement
+    XCTAssertTrue(a.todayCard)
+    XCTAssertEqual(a.tiles, ["call", "gym_timer", "breathe", "places", "think_a_card", "cockpit"])
+  }
+
+  func testHidingTodayDropsTheCardAndTheOrderHolds() {
+    let layout = HomeLayout(
+      known: known, storedOrder: (["cockpit"] + known.filter { $0 != "cockpit" }).joined(separator: ","),
+      storedHidden: "today")
+    XCTAssertFalse(layout.arrangement.todayCard)
+    XCTAssertEqual(layout.arrangement.tiles, ["cockpit", "call", "gym_timer", "breathe", "places", "think_a_card"])
+  }
+
+  /// #284: three to a line; the last line holds what is left.
+  func testTilesGoThreeToALine() {
+    XCTAssertEqual(
+      HomeLayout.lines(["call", "gym_timer", "breathe", "places", "recent", "random", "settings"]),
+      [["call", "gym_timer", "breathe"], ["places", "recent", "random"], ["settings"]])
+    XCTAssertEqual(HomeLayout.lines([]), [])
+  }
+
+  // #236: the daily strip sits under the Today card; it is never a tile, and hides like one.
+  func testTheDailyStripIsNeverATile() {
+    var layout = HomeLayout(
+      known: ["today", "daily_strip", "call", "gym_timer", "cockpit"],
+      storedOrder: nil, storedHidden: nil)
+    XCTAssertTrue(layout.arrangement.dailyStrip)
+    XCTAssertEqual(layout.arrangement.tiles, ["call", "gym_timer", "cockpit"])
+    layout.setShown("daily_strip", false)
+    XCTAssertFalse(layout.arrangement.dailyStrip)
+  }
+}

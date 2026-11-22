@@ -1,0 +1,405 @@
+//  Box breathing (stories 160–165): inhale, hold, exhale, hold, each one breath length long, for whole cycles.
+//
+//  Everything derives from one clock reading — the elapsed seconds of the session — so pause and resume never
+//  drift and the picture, the sound and the time left always agree. Pure: the app owns the clock and the cues.
+
+import Foundation
+
+public enum BreathPhase: Int, CaseIterable, Equatable, Sendable {
+  case inhale, holdFull, exhale, holdEmpty
+
+  /// The word in the circle.
+  public var word: String {
+    switch self {
+    case .inhale: return "Inhale"
+    case .exhale: return "Exhale"
+    case .holdFull, .holdEmpty: return "Hold"
+    }
+  }
+
+  public var isHold: Bool { self == .holdFull || self == .holdEmpty }
+}
+
+public enum BreathCue: String, CaseIterable, Equatable, Sendable {
+  case voice, tone, off
+
+  public var label: String { rawValue.prefix(1).uppercased() + rawValue.dropFirst() }
+}
+
+/// #289: a breath of four sides with their own lengths, chosen with one tap beside the presets.
+public struct BreathPattern: Equatable, Hashable, Sendable {
+  public let inSeconds: Int
+  public let holdInSeconds: Int
+  public let outSeconds: Int
+  public let holdOutSeconds: Int
+  /// Seconds a count (story 249): 1, or 2 for the same shape at half the pace, named "×2".
+  public let pace: Int
+
+  public init(inSeconds: Int, holdInSeconds: Int, outSeconds: Int, holdOutSeconds: Int, pace: Int = 1) {
+    self.inSeconds = inSeconds
+    self.holdInSeconds = holdInSeconds
+    self.outSeconds = outSeconds
+    self.holdOutSeconds = holdOutSeconds
+    self.pace = pace
+  }
+
+  /// In 4, hold 4, out 6, hold 2 (Igor, 2026-10-11).
+  public static let fourFourSixTwo = BreathPattern(inSeconds: 4, holdInSeconds: 4, outSeconds: 6, holdOutSeconds: 2)
+  /// Story 249: the same at two seconds a count: in 8, hold 8, out 12, hold 4 (Igor, 2026-10-17).
+  public static let fourFourSixTwoX2 = BreathPattern(
+    inSeconds: 8, holdInSeconds: 8, outSeconds: 12, holdOutSeconds: 4, pace: 2)
+  /// Story 280 (#394): at three seconds a count: in 12, hold 12, out 18, hold 6 (Igor, 2026-10-18).
+  public static let fourFourSixTwoX3 = BreathPattern(
+    inSeconds: 12, holdInSeconds: 12, outSeconds: 18, holdOutSeconds: 6, pace: 3)
+  public static let all = [fourFourSixTwo, fourFourSixTwoX2, fourFourSixTwoX3]
+
+  /// The counts, before the pace: 4, 4, 6, 2 for each.
+  private var counts: [Int] { [inSeconds, holdInSeconds, outSeconds, holdOutSeconds].map { $0 / pace } }
+  /// "4·4·6·2", "4·4·6·2 ×2", on its button.
+  public var label: String {
+    counts.map(String.init).joined(separator: "\u{00B7}") + (pace > 1 ? " \u{00D7}\(pace)" : "")
+  }
+  /// "4-4-6-2", "4-4-6-2-x2", in the settings and the log.
+  public var key: String { counts.map(String.init).joined(separator: "-") + (pace > 1 ? "-x\(pace)" : "") }
+  /// "In 4, hold 4, out 6, hold 2."
+  public var sentence: String { "In \(inSeconds), hold \(holdInSeconds), out \(outSeconds), hold \(holdOutSeconds)." }
+
+  public static func named(_ key: String?) -> BreathPattern? { all.first { $0.key == key } }
+
+  /// The four lengths in seconds, whatever the pace.
+  var sides: [Int] { [inSeconds, holdInSeconds, outSeconds, holdOutSeconds] }
+}
+
+/// One step's arc on an uneven breath's track (#289), in fractions of a turn from the top.
+public struct BreathArc: Equatable, Sendable {
+  public let start: Double
+  public let end: Double
+}
+
+public struct BreathPlan: Equatable, Sendable {
+  public static let breathRange = 5...15
+  public static let sessionRange = 2...15
+  public static let defaultBreath = 8
+  public static let defaultSession = 5
+  /// One tap each (story 241): four even sides of that many seconds.
+  public static let presets = [8, 10, 12, 15]
+  /// Custom's In and Out sliders.
+  public static let customRange = 3...15
+
+  /// The inhale; the hold after it is `holdInSeconds`, the same unless a pattern says otherwise.
+  public let inSeconds: Int
+  /// The exhale; the hold after it is `holdOutSeconds`.
+  public let outSeconds: Int
+  public let holdInSeconds: Int
+  public let holdOutSeconds: Int
+  public let cycles: Int
+
+  /// The whole cycles closest to the session length chosen, never fewer than one (story 161).
+  public init(breathSeconds: Int, sessionMinutes: Int) {
+    let breath = min(Self.breathRange.upperBound, max(Self.breathRange.lowerBound, breathSeconds))
+    self.init(evenOrUneven: breath, breath, sessionMinutes: sessionMinutes)
+  }
+
+  /// Custom (story 241): in and its hold, then out and its hold, each from `customRange`.
+  public init(inSeconds: Int, outSeconds: Int, sessionMinutes: Int) {
+    func clamp(_ s: Int) -> Int { min(Self.customRange.upperBound, max(Self.customRange.lowerBound, s)) }
+    self.init(evenOrUneven: clamp(inSeconds), clamp(outSeconds), sessionMinutes: sessionMinutes)
+  }
+
+  private init(evenOrUneven inSide: Int, _ outSide: Int, sessionMinutes: Int) {
+    self.init(sides: (inSide, inSide, outSide, outSide), sessionMinutes: sessionMinutes)
+  }
+
+  /// A pattern's four sides (#289), as many whole cycles as fit the session best.
+  public init(pattern: BreathPattern, sessionMinutes: Int) {
+    self.init(
+      sides: (pattern.inSeconds, pattern.holdInSeconds, pattern.outSeconds, pattern.holdOutSeconds),
+      sessionMinutes: sessionMinutes)
+  }
+
+  private init(sides: (Int, Int, Int, Int), sessionMinutes: Int) {
+    let session = min(Self.sessionRange.upperBound, max(Self.sessionRange.lowerBound, sessionMinutes))
+    (inSeconds, holdInSeconds, outSeconds, holdOutSeconds) = sides
+    let cycle = sides.0 + sides.1 + sides.2 + sides.3
+    cycles = max(1, Int((Double(session * 60) / Double(cycle)).rounded()))
+  }
+
+  /// An exact number of cycles, for a launch hook that wants a session shorter than the sliders allow.
+  public init(breathSeconds: Int, cycles: Int) {
+    inSeconds = max(1, breathSeconds)
+    outSeconds = inSeconds
+    holdInSeconds = inSeconds
+    holdOutSeconds = inSeconds
+    self.cycles = max(1, cycles)
+  }
+
+  /// Four even sides, as every plan was before Custom.
+  public var isEven: Bool { Set([inSeconds, holdInSeconds, outSeconds, holdOutSeconds]).count == 1 }
+  /// Each hold as long as the breath before it: a preset or Custom, not a pattern.
+  public var isBox: Bool { holdInSeconds == inSeconds && holdOutSeconds == outSeconds }
+  /// The pattern this plan is, if any.
+  public var pattern: BreathPattern? {
+    guard !isBox else { return nil }
+    let sides = BreathPattern(
+      inSeconds: inSeconds, holdInSeconds: holdInSeconds, outSeconds: outSeconds, holdOutSeconds: holdOutSeconds)
+    // A named pattern keeps its pace (story 249), so 8·8·12·4 reads as 4·4·6·2 ×2.
+    return BreathPattern.all.first { $0.sides == sides.sides } ?? sides
+  }
+  /// #289: the gap between two arcs of the pattern's track, as a share of the circle.
+  public static let arcGap = 0.012
+  /// #289: an uneven breath's shape, four arcs around the circle from the top, clockwise, each its step's share of
+  /// the cycle less a gap (fractions of a turn). Empty for an even box, whose arcs would all be equal.
+  public var arcs: [BreathArc] {
+    guard !isEven else { return [] }
+    let cycle = Double(cycleSeconds)
+    var at = 0.0
+    return (0..<4).map { i in
+      let share = Double(side(i)) / cycle
+      defer { at += share }
+      return BreathArc(start: at + Self.arcGap / 2, end: at + share - Self.arcGap / 2)
+    }
+  }
+
+  /// The side of an even box; for an uneven one, its in side.
+  public var breathSeconds: Int { inSeconds }
+  /// How long step `phaseIndex` (counted from the session's start) lasts.
+  public func side(_ phaseIndex: Int) -> Int {
+    switch phaseIndex % 4 {
+    case 0: inSeconds
+    case 1: holdInSeconds
+    case 2: outSeconds
+    default: holdOutSeconds
+    }
+  }
+  /// Seconds from the session's start to the end of step `phaseIndex`.
+  public func stepEnd(_ phaseIndex: Int) -> Int {
+    let cycle = phaseIndex / 4
+    let within = phaseIndex % 4
+    return cycle * cycleSeconds + (0...within).reduce(0) { $0 + side($1) }
+  }
+
+  public var cycleSeconds: Int { inSeconds + holdInSeconds + outSeconds + holdOutSeconds }
+  public var totalSeconds: Int { cycles * cycleSeconds }
+
+  /// "4 min 48 s"
+  public var lengthText: String { "\(totalSeconds / 60) min \(totalSeconds % 60) s" }
+  /// Under the sliders: "9 cycles · ends at 4 min 48 s"
+  public var summary: String { "\(cyclesText) · ends at \(lengthText)" }
+  /// On Done: "4 min 48 s · 9 cycles"
+  public var doneText: String { "\(lengthText) · \(cyclesText)" }
+  private var cyclesText: String { cycles == 1 ? "1 cycle" : "\(cycles) cycles" }
+
+  /// Where the session is `elapsed` seconds in.
+  public func moment(at elapsed: Double) -> BreathMoment {
+    let total = Double(totalSeconds)
+    guard elapsed < total else {
+      return BreathMoment(
+        phase: .holdEmpty, phaseIndex: cycles * 4, cycle: cycles, phaseProgress: 1, ring: 0, scale: 0.9,
+        secondsLeft: 0, cyclesLeft: 0, done: true)
+    }
+    let t = max(0, elapsed)
+    let cycleIndex = Int(t / Double(cycleSeconds))
+    var within = t - Double(cycleIndex * cycleSeconds)
+    var step = 0
+    while step < 3, within >= Double(side(step)) {
+      within -= Double(side(step))
+      step += 1
+    }
+    let index = cycleIndex * 4 + step
+    let phase = BreathPhase(rawValue: step) ?? .inhale
+    let progress = min(1, within / Double(side(step)))
+    let ring: Double
+    switch phase {
+    case .inhale: ring = progress
+    case .holdFull: ring = 1
+    case .exhale: ring = 1 - progress
+    case .holdEmpty: ring = 0
+    }
+    // Ease in and out on size so a breath feels natural; the ring stays linear so progress reads as time.
+    let eased = progress * progress * (3 - 2 * progress)
+    let fill: Double
+    switch phase {
+    case .inhale: fill = eased
+    case .holdFull: fill = 1
+    case .exhale: fill = 1 - eased
+    case .holdEmpty: fill = 0
+    }
+    return BreathMoment(
+      phase: phase, phaseIndex: index, cycle: index / 4 + 1, phaseProgress: progress, ring: ring,
+      scale: 0.9 + 0.1 * fill, secondsLeft: totalSeconds - Int(t), cyclesLeft: cycles - index / 4, done: false)
+  }
+}
+
+public struct BreathMoment: Equatable, Sendable {
+  public let phase: BreathPhase
+  /// Phases since the start: 0 is the first inhale. Changes exactly when a cue is due.
+  public let phaseIndex: Int
+  /// 1-based.
+  public let cycle: Int
+  /// 0…1 through the current phase; the hold bar's fill.
+  public let phaseProgress: Double
+  /// 0…1 of the ring drawn: up both sides on the inhale, full on the hold, back down on the exhale.
+  public let ring: Double
+  /// The circle's size, 0.9…1.
+  public let scale: Double
+  public let secondsLeft: Int
+  /// The cycles still to breathe, the one under way included; 0 once done.
+  public let cyclesLeft: Int
+  public let done: Bool
+
+  /// "4:31 left"
+  public var timeLeftText: String { String(format: "%d:%02d left", secondsLeft / 60, secondsLeft % 60) }
+  /// #281, under the circle: "4:31 left · 7 cycles", "0:08 left · 1 cycle".
+  public var leftText: String { "\(timeLeftText) · \(cyclesLeft) \(cyclesLeft == 1 ? "cycle" : "cycles")" }
+}
+
+public enum BreathEffect: Equatable, Sendable {
+  /// A phase began: play its cue. `lateMs` is how long after its true time the app noticed.
+  case phase(BreathPhase, cycle: Int, lateMs: Int)
+  /// The last hold ended.
+  case finished(lateMs: Int)
+}
+
+/// One session against the caller's clock: start, pause, resume, and what is due at each look.
+public struct BreathRun: Equatable, Sendable {
+  public let plan: BreathPlan
+  /// Seconds of quiet before the first inhale (the voice says "Let's begin" in it).
+  public let leadIn: Double
+  private var anchor: Double?
+  private var banked: Double = 0
+  private var lastPhaseIndex = -1
+  public private(set) var isFinished = false
+
+  public init(plan: BreathPlan, leadIn: Double = 0) {
+    self.plan = plan
+    self.leadIn = leadIn
+  }
+
+  public var isRunning: Bool { anchor != nil }
+  public var isPaused: Bool { anchor == nil && !isFinished && (banked > 0 || lastPhaseIndex >= 0) }
+
+  /// Seconds into the breathing itself; negative during the lead-in.
+  public func elapsed(now: Double) -> Double { (anchor.map { now - $0 } ?? 0) + banked - leadIn }
+
+  public func moment(now: Double) -> BreathMoment { plan.moment(at: elapsed(now: now)) }
+
+  /// Story 242: shorter than this, a session left early is not saved to Health.
+  public static let mindfulMinimumSeconds = 60.0
+
+  /// Story 242: what Health gets for a session ending `now` (seconds since 1970), as JavaScript milliseconds like
+  /// every TimeSpan: the breathing done, lead-in and pauses left out, ending now; nil when that is under a minute.
+  public func mindfulSpan(now: Double) -> TimeSpan? {
+    let breathed = min(max(0, elapsed(now: now)), Double(plan.totalSeconds))
+    guard breathed >= Self.mindfulMinimumSeconds else { return nil }
+    return TimeSpan(start: (now - breathed) * 1000, end: now * 1000)
+  }
+
+  public mutating func start(now: Double) {
+    guard anchor == nil, !isFinished else { return }
+    anchor = now
+  }
+
+  public mutating func pause(now: Double) {
+    guard let anchor else { return }
+    banked += now - anchor
+    self.anchor = nil
+  }
+
+  /// What became due since the last look. A look after a long gap reports only where the session is now.
+  public mutating func tick(now: Double) -> [BreathEffect] {
+    guard isRunning, !isFinished else { return [] }
+    let t = elapsed(now: now)
+    guard t >= 0 else { return [] }
+    let m = plan.moment(at: t)
+    if m.done {
+      isFinished = true
+      banked = Double(plan.totalSeconds) + leadIn
+      anchor = nil
+      return [.finished(lateMs: Int((t - Double(plan.totalSeconds)) * 1000))]
+    }
+    guard m.phaseIndex != lastPhaseIndex else { return [] }
+    lastPhaseIndex = m.phaseIndex
+    // The step's true start: its end less its own side, so an uneven box's steps are timed as they are (#204).
+    let due = Double(plan.stepEnd(m.phaseIndex) - plan.side(m.phaseIndex))
+    return [.phase(m.phase, cycle: m.cycle, lateMs: Int((t - due) * 1000))]
+  }
+}
+
+/// The tone cues, synthesised once into WAV data: a rising tone to breathe in, a falling one to breathe out, a
+/// soft tick for a hold, and a closing tone.
+public enum BreathTone: String, CaseIterable, Sendable {
+  case rising, falling, tick, closing
+
+  public static func tone(for phase: BreathPhase) -> BreathTone {
+    switch phase {
+    case .inhale: return .rising
+    case .exhale: return .falling
+    case .holdFull, .holdEmpty: return .tick
+    }
+  }
+
+  public static let sampleRate = 44100.0
+
+  public var seconds: Double {
+    switch self {
+    case .rising, .falling: return 0.9
+    case .tick: return 0.14
+    case .closing: return 1.6
+    }
+  }
+
+  /// Mono samples in -1…1, faded in and out so nothing clicks.
+  public func samples() -> [Float] {
+    let count = Int(seconds * Self.sampleRate)
+    var out = [Float](repeating: 0, count: count)
+    var phase = 0.0
+    for i in 0..<count {
+      let x = Double(i) / Double(count)
+      let hz: Double
+      let envelope: Double
+      switch self {
+      case .rising:
+        hz = 330 + (494 - 330) * x
+        envelope = sin(Double.pi * x)
+      case .falling:
+        hz = 494 - (494 - 330) * x
+        envelope = sin(Double.pi * x)
+      case .tick:
+        hz = 660
+        envelope = sin(Double.pi * x)
+      case .closing:
+        hz = 440
+        envelope = min(1, x * 40) * exp(-3 * x)
+      }
+      phase += 2 * Double.pi * hz / Self.sampleRate
+      var value = sin(phase)
+      if self == .closing { value = 0.6 * value + 0.4 * sin(phase * 1.5) }  // a fifth above, for a settled chord
+      out[i] = Float(0.35 * envelope * value)
+    }
+    return out
+  }
+
+  /// A 16-bit mono WAV file in memory.
+  public func wav() -> Data {
+    let pcm = PCM.floatToPcm16(samples())
+    let dataBytes = UInt32(pcm.count * 2)
+    var data = Data()
+    func append<T: FixedWidthInteger>(_ value: T) {
+      withUnsafeBytes(of: value.littleEndian) { data.append(contentsOf: $0) }
+    }
+    data.append(contentsOf: Array("RIFF".utf8))
+    append(36 + dataBytes)
+    data.append(contentsOf: Array("WAVEfmt ".utf8))
+    append(UInt32(16))
+    append(UInt16(1))  // PCM
+    append(UInt16(1))  // mono
+    append(UInt32(Self.sampleRate))
+    append(UInt32(Self.sampleRate) * 2)
+    append(UInt16(2))
+    append(UInt16(16))
+    data.append(contentsOf: Array("data".utf8))
+    append(dataBytes)
+    for sample in pcm { append(sample) }
+    return data
+  }
+}

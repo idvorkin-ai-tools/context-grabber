@@ -1,0 +1,57 @@
+{
+ "board": "13f700bf-ddcb-4a89-a6b7-64c0047f24e3",
+ "base_rev": 92,
+ "label": "move EOY list below",
+ "list": [
+  {
+   "op": "add_text",
+   "id": "larry-m1a-2",
+   "x": 40,
+   "y": 580,
+   "text": "I see you. EOY, from this morning's call:",
+   "font": "hand",
+   "size": 22,
+   "color": "#BA39E6"
+  },
+  {
+   "op": "add_text",
+   "id": "larry-m1b-2",
+   "x": 60,
+   "y": 612,
+   "text": "1. Gated cases (the one you've dodged)",
+   "font": "hand",
+   "size": 22,
+   "color": "#BA39E6"
+  },
+  {
+   "op": "add_text",
+   "id": "larry-m1c-2",
+   "x": 60,
+   "y": 644,
+   "text": "2. Judge metrics + case quality",
+   "font": "hand",
+   "size": 22,
+   "color": "#BA39E6"
+  },
+  {
+   "op": "add_text",
+   "id": "larry-m1d-2",
+   "x": 60,
+   "y": 676,
+   "text": "3. Ask Sridhar & Daphne for guidance",
+   "font": "hand",
+   "size": 22,
+   "color": "#BA39E6"
+  },
+  {
+   "op": "add_text",
+   "id": "larry-m1e-2",
+   "x": 60,
+   "y": 708,
+   "text": "4. Weekly + EOY priorities docs",
+   "font": "hand",
+   "size": 22,
+   "color": "#BA39E6"
+  }
+ ]
+}

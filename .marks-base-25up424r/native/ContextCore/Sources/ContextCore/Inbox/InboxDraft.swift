@@ -1,0 +1,67 @@
+//  #405, stories 262–264: one compose draft becomes a text item, or an image or file with a note. Only a successful
+//  save clears it, so Add another starts fresh and a failed write keeps the thought.
+
+import Foundation
+
+#if canImport(ImageIO)
+  import ImageIO
+  import UniformTypeIdentifiers
+#endif
+
+public struct InboxDraft: Equatable, Sendable {
+  public var text = ""
+  /// A pasted image, its bytes as copied; the file extension follows what they are.
+  public var image: Data?
+  /// Set when the image is a whiteboard's picture.
+  public var whiteboard: WhiteboardPicture?
+  /// With `whiteboard`: the board's strokes as `WhiteboardStrokes.wire` JSON, sent before the picture (story 424).
+  public var strokes: Data?
+
+  /// A picked document (#633). The bar keeps one attachment: this or `image`.
+  public var file: ChatFile?
+
+  public init() {}
+
+  private var trimmedText: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
+  public var canAdd: Bool { !trimmedText.isEmpty || image?.isEmpty == false || file != nil }
+  public var byteCount: Int { trimmedText.utf8.count + (image?.count ?? 0) + (file?.data.count ?? 0) }
+
+  public enum Problem: LocalizedError {
+    case empty
+    public var errorDescription: String? { "Add some text or paste an image first." }
+  }
+
+  @discardableResult
+  public mutating func save(
+    to store: InboxStore, at sharedAt: Int64, id: String = UUID().uuidString.lowercased(), thread: String? = nil
+  ) throws -> InboxItem {
+    guard canAdd else { throw Problem.empty }
+    if let file {
+      let item = InboxItem(
+        id: id, kind: .file, sharedAt: sharedAt, note: trimmedText, thread: thread, fileName: file.name)
+      let saved = try store.add(item, file: file.data)
+      self = InboxDraft()
+      return saved
+    }
+    let picture = image?.isEmpty == false ? image : nil
+    let item = InboxItem(
+      id: id, kind: picture != nil ? .image : .text, sharedAt: sharedAt,
+      text: picture != nil ? nil : trimmedText, note: picture != nil ? trimmedText : nil, thread: thread,
+      whiteboard: whiteboard)
+    let saved = try store.add(
+      item, image: picture, imageExtension: picture.map(Self.fileExtension(of:)) ?? "jpg",
+      strokes: whiteboard != nil ? strokes : nil)
+    self = InboxDraft()
+    return saved
+  }
+
+  static func fileExtension(of image: Data) -> String {
+    #if canImport(ImageIO)
+      CGImageSourceCreateWithData(image as CFData, nil).flatMap(CGImageSourceGetType)
+        .flatMap { UTType($0 as String)?.preferredFilenameExtension } ?? "jpg"
+    #else
+      // Linux (just test-linux): no ImageIO to say what the bytes are, so the default. Tested on the Mac only.
+      "jpg"
+    #endif
+  }
+}
