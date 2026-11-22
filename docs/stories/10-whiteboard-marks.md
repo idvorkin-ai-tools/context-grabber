@@ -431,17 +431,17 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Opening a board
-- **Given:** the board's thread has several rows of his marks
+- **Given:** several replies still had marks showing when I closed the board
 - **When:** I open the board
-- **Then:** his newest row shows, with its line, and so does any earlier row of his that was still showing here when I
-  closed the board; rows this device never showed stay in Chat
+- **Then:** his newest available row shows with its line, alongside up to 20 rows remembered on this device, including
+  marks from a thread the Cockpit lost. Marks I kept or dismissed stay gone
 
 ---
 
 ### User Story 1155:
 
 - **Summary:** His earlier marks stay when he replies again
-- **Status:** implemented in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4); verified by host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`, `BoardMarksReplayTests`) the Mac build, and the simulator (`WhiteboardTurnUITests.testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem`: his second reply's three marks join the first's two, *5 to keep*, and a stray tap leaves all five); the reopen and the iPad's own look are owed
+- **Status:** implemented in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4). Host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`, `BoardMarksReplayTests`), the Mac build, and the simulator (`WhiteboardTurnUITests.testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem`) verified that his second reply's three marks join the first's two and a stray tap leaves all five. The iPad check is pending
 - **Issues:** bead `context-grabber-n8ab`: Igor, 2026-11-22 12:35 on board 8f986938 (iPad log): Larry's 12-mark sequence diagram (row 99edfb64758e) was showing; his next reply, a label with a question card (row 4d4bc5dd9efd), took the board from 12 marks to 1, and the reply after it replaced that one too
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A new reply adds his marks, never clears them*
 
@@ -456,22 +456,12 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** his next reply brings a label, and the one after a question card
 - **Then:** the diagram's twelve marks stay, the label shows beside them, and the count to keep is thirteen
 
-- **Scenario:** Closed and opened again
-- **Given:** marks from two of his replies are showing
-- **When:** I close the board and open it again
-- **Then:** both replies' marks are there, less any I kept or dismissed
-
-- **Scenario:** The log says what stayed
-- **Given:** marks of his are showing
-- **When:** another reply's marks show
-- **Then:** the session log's line for them says how many of his earlier marks stayed, and from how many replies
-
 ---
 
 ### User Story 388:
 
 - **Summary:** A set I've dealt with stays gone
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: dismissed, not back on the next look or the next open); keeping one from a row then reopening is host-tested only; on branch `native/batch-decided-1114` (#883, story 808) only the marks kept or dismissed stay gone, and the rest of the row shows again on opening, verified by host tests (`WhiteboardMarksTests`) and the Mac build
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b). Host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`) verified that a dismissed mark stays gone on the next look and on reopening. Story 808 covers settling individual marks. Extended to earlier replies in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4), verified by the host `WhiteboardMarksTests`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -483,7 +473,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Already settled
 - **Given:** I kept or dismissed marks from a row of his
 - **When:** a look at the thread comes round, or I open the board again
-- **Then:** those marks don't come back, until he posts a new row
+- **Then:** those marks stay gone, including when I settled his newest row before dealing with the earlier ones
 
 ---
 
@@ -860,7 +850,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A connector mark
 - **Given:** a reply of mine with a connector mark between two things on Igor's board
 - **When:** it lands on the board
-- **Then:** a ghost arrow runs from one thing's facing side to the other's, around anything in its way, beside my other marks
+- **Then:** a ghost arrow runs from one thing's facing side to the other's, around anything in its way, beside my other
+  marks, including when a ready change from an earlier reply added an endpoint during the same look
 
 ---
 

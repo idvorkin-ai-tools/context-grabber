@@ -363,8 +363,9 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
 - **What shows when a board opens:** his newest row of marks, and its line, and every earlier row of his that was still
   showing on this device when the board closed; each without the marks Igor already kept or dismissed from it on this
   device. A row whose every mark he kept or dismissed shows nothing. Rows this device never showed don't come back:
-  they are in Chat. The device remembers the last 20 rows it showed on a board; one older than that stays in Chat. After
-  that, every new row shows.
+  they are in Chat. The device remembers up to 20 rows with marks still showing per board. It can reopen those marks
+  even if the Cockpit loses their thread and the board starts a new one. A reply with no visible marks takes no place in
+  that limit. Once the board is open, every new drawable row shows.
 - **A new reply adds his marks, never clears them** (Igor, 2026-11-22, bead `context-grabber-n8ab`: a 12-mark
   sequence diagram of Larry's vanished when his next reply, a label and then a question card, came in). Each new row's
   marks join the unkept ones from his earlier replies; those stay until Igor keeps or dismisses them (Keep, Keep
@@ -375,6 +376,8 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   marks stay until kept or dismissed: no timer, and the Ghosts switch doesn't touch them.
 - **A kept or dismissed mark doesn't come back**, on the next look or the next time the board opens. Only that mark:
   the ones of his row Igor left alone show again when the board opens, until each is kept or dismissed (#883).
+  Once his newest drawable row is settled, dealing with older rows still showing leaves it settled.
+- When a reply's marks show, the session log records how many earlier marks stayed and how many replies they came from.
 - The looking stops when the board closes or the app goes to the background, and starts again when it comes back.
   While it can't reach the Cockpit the bar says so quietly after 10 to 15 s (*Larry's marks: the Cockpit isn't
   answering*; while a turn of his is out, his clock says it instead, *Cockpit not answering*, story 760), the log

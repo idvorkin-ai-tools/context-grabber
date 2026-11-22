@@ -19,7 +19,7 @@ final class WhiteboardKeepGroupTests: XCTestCase {
     var turns = WhiteboardGhostTurns<G>(on: true, ghostLife: .seconds(30))
     turns.land([G(id: "c0", who: .claude)], who: .claude, first: true, now: .now)
     turns.larrysMarks([G(id: "r1#0", who: .larry), G(id: "r1#1", who: .larry), G(id: "r1#3", who: .larry)])
-    turns.larrysText([G(id: "op-text:t", who: .larry)])
+    turns.larrysMarks([G(id: "op-text:t", who: .larry)])
     return turns
   }
 

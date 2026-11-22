@@ -16,8 +16,8 @@ public struct BoardReplay {
     case batch(key: String, json: [String: Any])
     /// Igor keeps these ghosts of Larry's text, as a tap on Keep does.
     case keep([String])
-    /// A reply of Larry's with marks (#941): they show as his ghosts, replacing his unkept ones, where the iPad places
-    /// them, and each is tried with a tap on it.
+    /// A reply of Larry's with marks (#941): they show as his ghosts where the iPad places them, and each is tried with
+    /// a tap on it.
     case marks(WhiteboardMarks.Row)
     /// A finger tap at a board point: which of his marks it chooses (#941).
     case tap(CGPoint)

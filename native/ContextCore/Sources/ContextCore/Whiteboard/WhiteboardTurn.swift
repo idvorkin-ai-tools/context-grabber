@@ -25,8 +25,8 @@ public enum WhiteboardTurn {
   /// matches to the eye.
   public static let larryColor: UInt32 = 0xBA39E6
 
-  public struct Shape: Equatable, Sendable {
-    public enum Kind: String, Sendable { case line, arrow, rect, ellipse, path, text, connector }
+  public struct Shape: Codable, Equatable, Sendable {
+    public enum Kind: String, Codable, Sendable { case line, arrow, rect, ellipse, path, text, connector }
     public var kind: Kind
     /// In the picture's pixels, origin top-left.
     public var points: [CGPoint]
@@ -63,7 +63,7 @@ public enum WhiteboardTurn {
   }
 
   /// A label's lettering: print, or a handwriting face the system has (not Igor's hand).
-  public enum Face: String, Sendable {
+  public enum Face: String, Codable, Sendable {
     case print, hand
     var fontName: String { self == .print ? "Helvetica" : "Noteworthy-Light" }
   }

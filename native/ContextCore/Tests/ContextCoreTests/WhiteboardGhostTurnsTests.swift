@@ -41,9 +41,9 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     var turns = turns()
     turns.land(ghosts(.claude, 1), who: .claude, first: true, now: t0)
     turns.larrysMarks(ghosts(.larry, 2))
-    turns.larrysText([G(id: "op-text:t1", who: .larry)])
+    turns.larrysMarks([G(id: "op-text:t1", who: .larry)])
     XCTAssertEqual(turns.ghosts.count, 4)
-    turns.larrysText([G(id: "op-text:t1", who: .larry), G(id: "op-text:t2", who: .larry)])
+    turns.larrysMarks([G(id: "op-text:t1", who: .larry), G(id: "op-text:t2", who: .larry)])
     XCTAssertEqual(turns.ghosts.count, 5)
     XCTAssertEqual(turns.ghosts.suffix(2).map(\.id), ["op-text:t1", "op-text:t2"])
   }
@@ -52,7 +52,7 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
   func testLarrysTextGoneTakesOnlyThoseGhosts() {
     var turns = turns()
     turns.land(ghosts(.claude, 1), who: .claude, first: true, now: t0)
-    turns.larrysText([G(id: "op-text:t1", who: .larry), G(id: "op-text:t2", who: .larry)])
+    turns.larrysMarks([G(id: "op-text:t1", who: .larry), G(id: "op-text:t2", who: .larry)])
     _ = turns.tap { $0.id == "op-text:t1" }
     turns.larrysTextGone(["op-text:t1"])
     XCTAssertEqual(turns.ghosts.map(\.id).suffix(1), ["op-text:t2"])

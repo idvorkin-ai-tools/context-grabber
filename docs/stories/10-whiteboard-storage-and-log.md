@@ -11,6 +11,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1156:
+
+- **Summary:** The session log records which earlier replies stayed on the board
+- **Status:** implemented in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4). The simulator verified that the earlier marks stayed (`WhiteboardTurnUITests`). The log fields were checked in source
+- **Issues:** bead `context-grabber-n8ab`
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** investigating why Larry's marks disappeared
+- **I want to** see how many earlier marks and replies stayed when his next marks arrived
+- **so that** I can tell what happened from the session log
+
+#### Acceptance Criteria:
+- **Scenario:** The log counts what stayed
+- **Given:** marks of his are showing
+- **When:** another reply's marks show
+- **Then:** its `whiteboard_marks` line reports the earlier marks that stayed in `earlier_stayed` and their reply count in `earlier_replies`
+
+---
+
 ### User Story 1060:
 
 - **Summary:** A board whose drawing can't be read or moved aside is left as it was, and nothing saves over it

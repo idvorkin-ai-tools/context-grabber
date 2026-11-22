@@ -219,9 +219,13 @@ extension WhiteboardModel {
 
   /// Whatever a source hears goes to every source; each batch they make goes to the one applier.
   func takeOps(_ input: BoardOpInput) {
-    for i in opSources.indices {
-      let name = opSources[i].name
-      for batch in opSources[i].batches(from: input) { receive(batch, from: name) }
+    for (batch, source) in opBatches(from: input) { receive(batch, from: source) }
+  }
+
+  func opBatches(from input: BoardOpInput) -> [(batch: BoardOps.Batch, source: String)] {
+    opSources.indices.flatMap { i in
+      let source = opSources[i].name
+      return opSources[i].batches(from: input).map { ($0, source) }
     }
   }
 
@@ -229,7 +233,7 @@ extension WhiteboardModel {
     BoardOps.readiness(penDown: penDown, liftedAt: liftedAt, now: .now)
   }
 
-  private func receive(_ batch: BoardOps.Batch, from source: String) {
+  func receive(_ batch: BoardOps.Batch, from source: String) {
     var event = BoardOps.logFields(batch)
     event["board"] = board.id
     event["source"] = source
@@ -315,7 +319,7 @@ extension WhiteboardModel {
     // #939: his change reached ghosts of his text by name: the ones it took away go, the ones it moved show anew.
     if !plan.dismissed.isEmpty { turns.larrysTextGone(Set(plan.dismissed.map { "op-text:\($0)" })) }
     if !plan.texts.isEmpty {
-      turns.larrysText(
+      turns.larrysMarks(
         plan.texts.map {
           Ghost(
             $0.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\($0.id)", text: $0, hand: penInHand,

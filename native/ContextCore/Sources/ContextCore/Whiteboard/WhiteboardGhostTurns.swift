@@ -239,12 +239,6 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     ghosts = ghosts.filter { !ids.contains($0.id) } + new
   }
 
-  /// Larry's text from a batch of his changes (story 817): it joins his marks, replacing only a ghost with the same id.
-  public mutating func larrysText(_ new: [Ghost]) {
-    let ids = Set(new.map(\.id))
-    ghosts = ghosts.filter { !ids.contains($0.id) } + new
-  }
-
   /// Larry's change took these ghosts of his text away (#939, story 993): they go, and Keep and Dismiss with one of
   /// them chosen.
   public mutating func larrysTextGone(_ ids: Set<String>) {
