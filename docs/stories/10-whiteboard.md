@@ -7040,7 +7040,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 902:
 
 - **Summary:** The eraser across a fold's marker erases the whole section
-- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheEraserAcrossTheMarkerErasesTheWholeFoldAndClosesUp`, `testErasingAFoldTakesTheFoldsFoldedInsideIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke (context-grabber-0m2d: it erased the fold anyway) fixed in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4); verified by the host test `BoardFoldEraseTests.testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent`, `just native-test` and `just native-build-mac`; the cancel itself not yet seen on the iPad (its `erase_fold_cancelled` line will say)
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheEraserAcrossTheMarkerErasesTheWholeFoldAndClosesUp`, `testErasingAFoldTakesTheFoldsFoldedInsideIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4)
 - **Issues:** context-grabber-0m2d
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
@@ -7054,11 +7054,6 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a folded header with a line of ink below the fold
 - **When:** I draw the eraser across "▸ N lines folded"
 - **Then:** the header, its folded lines and any folds folded inside it are erased, and the ink below closes up to where the header was, in whole lines
-
-- **Scenario:** An eraser stroke called off takes no fold
-- **Given:** a folded header with a line of ink below the fold
-- **When:** I draw the eraser across "▸ N lines folded" and the iPad calls the touch off before it lifts (a palm landing, a system gesture taking it)
-- **Then:** the header stays folded with its "▸ N lines folded", and the ink below stays where it was
 
 ---
 
@@ -7084,7 +7079,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 903:
 
 - **Summary:** The eraser across a folded header erases the whole section
-- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke (context-grabber-0m2d: it erased the fold anyway) fixed in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4); verified by the host test `BoardFoldEraseTests.testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent`, `just native-test` and `just native-build-mac`; the cancel itself not yet seen on the iPad (its `erase_fold_cancelled` line will say)
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4)
 - **Issues:** context-grabber-0m2d
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
@@ -7098,11 +7093,6 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a folded header
 - **When:** I draw the eraser across the header's own ink
 - **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's)
-
-- **Scenario:** An eraser stroke across the header called off
-- **Given:** a folded header
-- **When:** I draw the eraser across the header's own ink and the iPad calls the touch off before it lifts
-- **Then:** if the header's ink stayed, the section stays folded as it was; if the eraser took it anyway, the whole section goes with it, so no folded lines are left hidden under no header
 
 ---
 
@@ -7123,6 +7113,46 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a folded header with a line of ink below the fold
 - **When:** I scratch out its "▸ N lines folded" or its header line with a fast zigzag
 - **Then:** the header, everything folded under it and the zigzag go, on the sheet and in what Larry gets, and stay gone when I write on; the ink below closes up to where the header was, and one Undo brings the section back still folded with the ink below where it was
+
+---
+
+### User Story 906:
+
+- **Summary:** An eraser stroke the iPad calls off takes no fold by its marker
+- **Status:** implemented in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4); verified by the host test `BoardFoldEraseTests.testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent`, `just native-test` and `just native-build-mac`; the called-off touch not yet seen on the iPad (its `erase_fold_cancelled` line will say)
+- **Issues:** context-grabber-0m2d
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** whose palm lands while I'm erasing near a folded section
+- **I want to** have an eraser stroke the iPad calls off leave the fold alone
+- **so that** a whole section is erased only by a stroke I finished
+
+#### Acceptance Criteria:
+- **Scenario:** A called-off eraser stroke across the marker
+- **Given:** a folded header with a line of ink below the fold
+- **When:** I draw the eraser across "▸ N lines folded" and the iPad calls the touch off before it lifts (a palm landing, a system gesture taking it)
+- **Then:** the header stays folded with its "▸ N lines folded", and the ink below stays where it was
+
+---
+
+### User Story 907:
+
+- **Summary:** A called-off eraser stroke that took a folded header's ink takes its section too
+- **Status:** implemented in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4); verified by the host test `BoardFoldEraseTests.testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent`, `just native-test` and `just native-build-mac`; whether the iPad keeps the eraser's own erase when it calls the touch off is not yet seen (the `erase_fold_cancelled` line will say)
+- **Issues:** context-grabber-0m2d
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** whose eraser stroke across a folded header was called off
+- **I want to** have the section go only if the header's ink went
+- **so that** no folded lines are left hidden under no header, and none are lost under a header that stayed
+
+#### Acceptance Criteria:
+- **Scenario:** A called-off eraser stroke across the header's ink
+- **Given:** a folded header
+- **When:** I draw the eraser across the header's own ink, the iPad calls the touch off before it lifts, and the eraser took all of the header's ink anyway
+- **Then:** the header and everything folded under it are erased and the ink below closes up, as for a finished stroke; had any of the header's ink stayed, the section would stay folded as it was
 
 ---
 
