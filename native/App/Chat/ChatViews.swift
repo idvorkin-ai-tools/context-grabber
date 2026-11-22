@@ -720,7 +720,7 @@ struct ChatThreadView: View {
       VStack(spacing: 0) {
         if let key {
           // #878: the ask whose bead this thread is, pinned above the links.
-          ChatDecisionSlot(decisions: chat.decisions, key: key, logger: logger)
+          ChatDecisionSlot(decisions: chat.decisions, key: key, voice: voice, logger: logger)
           ThreadLinksStrip(chat: chat, thread: key, links: chat.withStates(chat.rowLinks[key] ?? []))
         }
         if let problem = chat.archiveProblem {

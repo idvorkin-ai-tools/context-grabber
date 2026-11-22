@@ -3110,3 +3110,33 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a decision card, in its chat or under *Decisions*
 - **When:** I pick *Snooze* (*Later today*, *Tomorrow morning*, *Next week*), *Close…* with a one-line reason, or *Abandon* with one of the Cockpit's reasons or none
 - **Then:** the Cockpit does what its own card does, leaving *Decisions* and its row's mark; in the ask's chat a close or an abandon becomes my message, *Closed: \<reason>* or *Abandoned[: \<reason>]*, and the card gives way to it; a snooze, a card on *Decisions*, or a message the Cockpit couldn't write gives way to *Snoozed until \<when>*, *Closed* or *Abandoned*; *Close* can't be sent without a reason; a refusal leaves the card with a copyable problem, and an ask already finished elsewhere says *Already answered elsewhere*
+
+---
+
+### User Story 1128:
+
+- **Summary:** Answer a decision in my own words with *Other*
+- **Status:** native app: in progress (bead context-grabber-sm4l)
+- **Issues:** bead context-grabber-sm4l (Igor, 2026-11-22, Cockpit thread igor2-88g.1620: *"When we have a decision card it always needs to have an other so I can add another option. In this case I didn't understand what finger draw was about."*); bead context-grabber-1zyc (the same request, closed as its duplicate)
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Other*, *Answering in his own words*
+
+#### Use Case:
+- **As** Igor, looking at a decision card whose options don't fit, or that I don't understand
+- **I want to** pick *Other* and type or dictate my own answer
+- **so that** Larry gets what I actually think, not the nearest option, without leaving the card for the chat
+
+#### Acceptance Criteria:
+- **Scenario:** Answering with my own words
+- **Given:** a decision card, in its chat or under *Decisions*, whose options include none labelled *Other*
+- **When:** I tap *Other…* under the options, type or dictate my words in the field it opens, and tap *Send*
+- **Then:** the Cockpit takes *DECISION: \<my words\>* as the Inbox's free-text answer, and the card gives way to *Decided: \<my words\>* as my message in the ask's chat (or *You decided: \<my words\>* where no message could be written); *Send* is off until there are words; a refusal leaves the card, my words still in the field, with a copyable problem
+
+- **Scenario:** Larry already offered *Other*
+- **Given:** a card whose own options include one labelled *Other* (any case, with or without a trailing ellipsis or colon)
+- **When:** I look at it and tap Larry's *Other*
+- **Then:** there is no second *Other…*; Larry's *Other* opens the same field instead of answering, and the Cockpit never receives the bare *DECISION: Other*, only my words
+
+- **Scenario:** The board's question card
+- **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882)
+- **When:** it opens
+- **Then:** the card in it shows neither *Other…* nor Larry's own *Other* option

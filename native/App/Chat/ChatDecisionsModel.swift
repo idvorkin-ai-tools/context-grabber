@@ -94,13 +94,19 @@ final class ChatDecisionsModel: ObservableObject {
   }
 
   /// A card came on screen: in its thread or on Decisions.
-  func shown(_ ask: ChatAsk, from place: String) {
+  /// `other`: the card's own *Other…*, the ask's, or none (story 1128).
+  func shown(_ ask: ChatAsk, from place: String, other: String) {
     log.event(
       "chat",
       [
         "action": "decision_shown", "ask": ask.id, "from": place, "options": ask.options.count,
-        "expired": ask.expired,
+        "expired": ask.expired, "other": other,
       ])
+  }
+
+  /// Story 1128: *Other…* (or the ask's own *Other*) opened the own-words field; the answer is logged once it is sent.
+  func otherOpened(_ ask: ChatAsk, from place: String) {
+    log.event("chat", ["action": "decision_other", "ask": ask.id, "from": place])
   }
 
   /// #1072: *Close…* opened its prompt; the close itself is logged only once it is sent.

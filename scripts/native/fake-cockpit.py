@@ -37,7 +37,8 @@ Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-60
 Decision cards (#878): POST /fake/asks {"open": true} adds (and resets, with what was answered) three open asks for GET /asks, the shape of the
 Cockpit's normalize_ask with its `thread` (cockpit-7fr): igor2-88g.881 filed from chat igor2-88g.878 (thread names its
 parent's chat), igor2-88g.879 on no chat (thread null), and igor2-88g.880 on a chat of its own bead, whose answer is always
-refused (502, as bd failing); {"open": false} removes them and their chats, so no other test sees an extra row. POST /act
+refused (502, as bd failing); with "other": true too, igor2-88g.879 also has Larry's own option "Other…" (story 1128);
+{"open": false} removes them and their chats, so no other test sees an extra row. POST /act
 answers one (409 already closed, or changed with the fresh ask when base_updated_at is stale), POST /close closes or
 abandons, POST /snooze snoozes; GET /fake/answers lists every one of those posted. With "post_to_chat": true, a decided
 /act or /close appends Igor's row to the ask's thread ("Decided: <label>", "Closed: <reason>", "Abandoned[: <reason>]",
@@ -207,7 +208,7 @@ def ask(aid, title, options, default="", expires_in=None, thread=None):
             "seconds_left": expires_in, "expired": bool(expires_in is not None and expires_in < 0), "thread": thread}
 
 
-def open_asks(on):
+def open_asks(on, other=False):
     ASKS.clear()
     del ANSWERS[:]
     DECIDED.clear()
@@ -219,7 +220,8 @@ def open_asks(on):
                                 [("tacos", "Tacos", "the place by the office"), ("ramen", "Ramen", "a short walk")],
                                 default="tacos", expires_in=5 * 3600, thread="igor2-88g.878")
     ASKS["igor2-88g.879"] = ask("igor2-88g.879", "Renew the gym for a year?",
-                                [("yes", "Renew", ""), ("no", "Let it lapse", "")])
+                                [("yes", "Renew", ""), ("no", "Let it lapse", "")]
+                                + ([("other", "Other…", "")] if other else []))
     ASKS["igor2-88g.880"] = ask("igor2-88g.880", "Move the review to Monday?",
                                 [("move", "Move it", ""), ("keep", "Keep Friday", "")], expires_in=-3600,
                                 thread="igor2-88g.880")
@@ -525,7 +527,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, responder_answer(data["board"]))
         if path == "/fake/asks":
             with LOCK:
-                open_asks(bool(data.get("open")))
+                open_asks(bool(data.get("open")), other=bool(data.get("other")))
             return self._json(200, {"ok": True, "asks": len(ASKS)})
         if path in ("/act", "/close", "/snooze"):
             self._report({"body": data, "origin": self.headers.get("Origin")})

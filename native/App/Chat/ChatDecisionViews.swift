@@ -9,11 +9,12 @@ import SwiftUI
 struct ChatDecisionSlot: View {
   @ObservedObject var decisions: ChatDecisionsModel
   let key: String
+  let voice: ChatVoiceModel
   let logger: BugLogger
 
   var body: some View {
     if let ask = decisions.ask(on: key) {
-      ChatDecisionCard(decisions: decisions, ask: ask, place: "thread", logger: logger)
+      ChatDecisionCard(decisions: decisions, ask: ask, place: "thread", voice: voice, logger: logger)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color(.systemGroupedBackground))
@@ -44,22 +45,28 @@ struct ChatDecisionCard: View {
   let ask: ChatAsk
   /// thread or list, for the log and the problem's context.
   let place: String
+  /// Chat's mic for *Other…* (story 1128); nil where the card has no *Other* of its own: the board's popup, whose own
+  /// answer sits under the card (story 882), and which draws no option of Larry's labelled *Other* either.
+  let voice: ChatVoiceModel?
   let logger: BugLogger
   /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
   let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
   @State private var contextOpen = false
   @State private var closing = false
   @State private var closeReason = ""
+  @State private var otherOpen = false
+  @State private var otherWords = ""
 
   private var state: ChatDecisionsModel.Card { decisions.card(ask.id) }
 
   init(
-    decisions: ChatDecisionsModel, ask: ChatAsk, place: String, logger: @escaping BugLogger,
+    decisions: ChatDecisionsModel, ask: ChatAsk, place: String, voice: ChatVoiceModel?, logger: @escaping BugLogger,
     done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
   ) {
     self.decisions = decisions
     self.ask = ask
     self.place = place
+    self.voice = voice
     self.logger = logger
     self.done = done
   }
@@ -80,9 +87,12 @@ struct ChatDecisionCard: View {
           .onTapGesture { contextOpen.toggle() }
           .accessibilityIdentifier("decision-context")
       }
-      ForEach(ask.options) { option in
+      ForEach(voice == nil ? ask.options.filter { !ChatDecisions.isOther($0) } : ask.options) { option in
         Button {
-          go(.answer(option))
+          switch ChatDecisions.tap(option) {
+          case .answer(let verb): go(verb)
+          case .openOther: openOther()
+          }
         } label: {
           HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 2) {
@@ -103,6 +113,14 @@ struct ChatDecisionCard: View {
         .buttonStyle(.bordered)
         .accessibilityIdentifier("decision-option-\(option.key)")
       }
+      if let voice {
+        if ChatDecisions.addsOther(ask) { ChatDecisionOtherButton(action: openOther) }
+        if otherOpen {
+          ChatDecisionOtherField(
+            voice: voice, ask: ask, words: $otherWords, sending: state.sending, logger: logger
+          ) { go(.ownWords(otherWords)) }
+        }
+      }
       if let expiry = ChatDecisions.expiry(ask.expiresAt, now: Date()) {
         Text(expiry.text).font(.caption).foregroundStyle(expiry.expired ? Color.orange : .secondary)
           .accessibilityIdentifier("decision-expiry")
@@ -120,7 +138,9 @@ struct ChatDecisionCard: View {
     .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier("decision-card-\(ask.id)")
-    .task(id: ask.id) { decisions.shown(ask, from: place) }
+    .task(id: ask.id) {
+      decisions.shown(ask, from: place, other: ChatDecisions.otherLogName(ask, offered: voice != nil))
+    }
     .alert("Close this decision", isPresented: $closing) {
       TextField("What finished it", text: $closeReason)
       Button("Close") { go(.close(reason: closeReason)) }
@@ -153,6 +173,13 @@ struct ChatDecisionCard: View {
       Label("More", systemImage: "ellipsis.circle").labelStyle(.iconOnly)
     }
     .accessibilityIdentifier("decision-menu")
+  }
+
+  /// *Other…*, or Larry's own *Other*: the field opens; nothing is answered until *Send*.
+  private func openOther() {
+    guard !otherOpen else { return }
+    otherOpen = true
+    decisions.otherOpened(ask, from: place)
   }
 
   private func go(_ verb: ChatDecisions.Verb) {
@@ -198,7 +225,7 @@ struct ChatDecisionsView: View {
         }
         ForEach(decisions.shown) { ask in
           VStack(alignment: .leading, spacing: 4) {
-            ChatDecisionCard(decisions: decisions, ask: ask, place: "list", logger: logger)
+            ChatDecisionCard(decisions: decisions, ask: ask, place: "list", voice: voice, logger: logger)
             NavigationLink {
               ChatThreadView(chat: chat, voice: voice, key: ask.chatToOpen, title: ask.title, logger: logger)
                 .onAppear { decisions.openedChat(ask) }

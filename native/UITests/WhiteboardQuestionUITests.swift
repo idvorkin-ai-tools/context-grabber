@@ -75,6 +75,8 @@ final class WhiteboardQuestionUITests: XCTestCase {
     card.tap()
     let option = app.buttons["decision-option-yes"]
     XCTAssertTrue(option.appears(within: 10), app.debugDescription)
+    // Story 1128: the board's card has no Other of its own; its own answer is the field under it.
+    XCTAssertFalse(app.buttons["decision-other"].exists, app.debugDescription)
     // Story 889 (#625): the own answer's mic sits immediately beside Send, after the field, both a finger's size.
     let field =
       app.textViews["whiteboard-question-words"].exists

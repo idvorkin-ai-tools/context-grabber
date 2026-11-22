@@ -41,7 +41,9 @@ zooms with the board.
 **Answering.** A tap on an open card opens it over the board: the ask's question, Larry's context, and its options as
 Chat's decision card shows them (the default marked, the expiry, the ⋯ menu with Snooze, Close… and Abandon). A tap on
 an option answers at once. Under the card, *Your own answer* and *Send* answer in Igor's words instead (needed for an ask
-with no options). The answer can be spoken: a mic sits immediately beside *Send*, after the field, both at least a
+with no options). The card in the popup has no *Other…* of its own, as it has in Chat: this field is the
+board's way to answer in Igor's words, already open, and an option of Larry's labelled *Other* is not drawn there
+either (it would only answer with the bare word). The answer can be spoken: a mic sits immediately beside *Send*, after the field, both at least a
 finger tall and wide (Igor, 2026-11-03, #625: the record button goes by Send on every input). It is Chat's mic: a tap
 records, it turns red with the seconds, the words fill the field after what was typed, and a tap stops it; nothing is
 sent until *Send*. *Send* or closing the popup stops a recording. A call, or another recording, holding the microphone
