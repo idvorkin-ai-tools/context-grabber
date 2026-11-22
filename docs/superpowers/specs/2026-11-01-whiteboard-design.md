@@ -499,7 +499,10 @@ are now one tap on the board, as on */ink*, at the board's top right instead: on
 docks along the bottom and takes every tap there.
 
 - **Two small buttons float at the board's top right corner**, just under the page number, over the paper and clear of
-  the left margin and of the tool palette: **?** and **Feedback**. An open conversation lies over them, as over the paper. They stay put while the board scrolls, are in no picture, and never move the
+  the left margin and of the tool palette: **?** and **Feedback**, each a single small icon (a question mark, a
+  ladybug) with no word beside it, so they cover as little of the page as they can; VoiceOver still names them *How
+  this board works* and *Feedback* (Igor, 2026-11-22, #1162: "Just a bug buttons enough I don't need to say
+  feedback"). An open conversation lies over them, as over the paper. They stay put while the board scrolls, are in no picture, and never move the
   paper. They are not in the top bar, which keeps its buttons (the Board menu included) where they are on every width.
 - **?** opens *How this board works*, a short list of the board's gestures as they are now:
   - *In the left margin:* a tap beside a line makes it a header (▾); a tap on the ▾ folds its section (▸ and the number
@@ -514,10 +517,10 @@ docks along the bottom and takes every tap there.
     or an ellipse.
   - *Larry's marks:* *Keep all* beside the count of marks keeps every one as ink, in order; *Tidy overlaps* in the Board
     menu moves kept labels off writing.
-  - *Feedback:* a note, a picture of the screen and the recent log; shaking the iPad does the same.
+  - *Feedback (the ladybug):* a note, a picture of the screen and the recent log; shaking the iPad does the same.
   It closes with *Done*, or a tap outside it on the iPad. A look-only board (an iPhone, or another device drawing it)
   shows no **?**: its gestures don't apply there.
-- **Feedback** opens the app's own *Report a problem* sheet at once, with the board as it was as its picture and the
+- **Feedback** (the ladybug) opens the app's own *Report a problem* sheet at once, with the board as it was as its picture and the
   session log, exactly as a shake does. Nothing about the sheet changes; it is the same report the Mac's listener files.
 - **When the report is saved, the board says so**: *Feedback logged ✓* beside the buttons for a few seconds. *Logged*,
   not *Sent*: the report is saved on the device and queued for iCloud, and the app is not told when it arrives. If the

@@ -1039,6 +1039,27 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 955:
+
+- **Summary:** The Feedback button is a ladybug with no word beside it
+- **Status:** implemented in [7c937884](https://github.com/idvorkin/context-grabber/commit/7c937884); `just native-test` and `just native-build-mac` green, and on the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-22) the ladybug was no wider than the **?** and still read *Feedback*; not yet seen on the phone
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
+- **Issues:** [#1162](https://github.com/idvorkin/context-grabber/issues/1162) (Igor on the iPhone, 2026-11-22: "Just a bug buttons enough I don't need to say feedback"; the word covered the board's ink)
+
+#### Use Case:
+- **As someone** drawing on a board, on the iPad or the iPhone
+- **I want to** have Feedback be the ladybug alone, the size of the **?** beside it
+- **so that** the button doesn't cover the board's ink
+
+#### Acceptance Criteria:
+- **Scenario:** The button is only a ladybug
+- **Given:** a board open, on the iPad or the iPhone
+- **When:** I look at the board's top right
+- **Then:** Feedback is a ladybug with no word beside it, no wider than the **?** next to it, and VoiceOver reads it
+  as *Feedback*
+
+---
+
 ### User Story 953:
 
 - **Summary:** The board says the feedback was logged
