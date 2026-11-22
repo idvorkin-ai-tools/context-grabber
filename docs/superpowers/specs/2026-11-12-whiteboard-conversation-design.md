@@ -201,7 +201,8 @@ of the screen is just under the panel.
   needs to be clickable"*). A link in the conversation stands as a chip where it was written, with the same words as
   in Chat's bubbles (*PR*, *Preview*, *Inbox*, *Larry: Lavish*, a site and its page), never the long tailnet address.
   A finger tap on it opens the link as Chat does, an *Inbox* chip on its thread in the app; the Pencil still does
-  nothing on the panel. Copying text that holds a chip copies the link's full address in its place.
+  nothing on the panel. Copying text that holds a chip copies the link's full address in its place. The closed line, too short for chips,
+  reads a link in Larry's newest words as the chip's words (*Larry: … the map: Larry: Lavish.*).
 - **The Pencil never acts on the panel**: it neither draws through it nor scrolls it. A stroke that starts on the
   board below draws as usual and the panel stays open. Fingers scroll and tap it.
 - **It closes on a tap on the line.** It doesn't close when Larry answers or when Igor draws. Open or closed is

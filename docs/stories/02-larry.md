@@ -2948,7 +2948,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Larry's reply with a Lavish page and a PR, on the board
 - **Given:** an open board conversation whose newest reply is "All three trees are there, plus AI multiplier: https://c-5004.squeaker-teeth.ts.net:8444/session/7d7f837c3898ed37 and https://github.com/idvorkin/context-grabber/pull/734."
 - **When:** I read it and tap a chip with a finger
-- **Then:** the reply reads "… plus AI multiplier: [Larry: Lavish] and [PR]." with no address showing; the tapped chip opens its page; a Pencil touch on a chip does nothing; copying the reply copies both full addresses; and in Chat the same message shows the same two chips, the Lavish one reading *Larry: Lavish* (not *Preview*) on the strip too, while a blog preview on port 8445 still reads *Preview*
+- **Then:** the reply reads "… plus AI multiplier: [Larry: Lavish] and [PR]." with no address showing, and the closed line above reads "Larry: … plus AI multiplier: Larry: Lavish and PR."; the tapped chip opens its page; a Pencil touch on a chip does nothing; copying the reply copies both full addresses; and in Chat the same message shows the same two chips, the Lavish one reading *Larry: Lavish* (not *Preview*) on the strip too, while a blog preview on port 8445 still reads *Preview*
 
 ---
 

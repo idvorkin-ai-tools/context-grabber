@@ -94,6 +94,15 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(line(said: said, micOn: false)?.middle, "Larry: earlier", "the mic closed with nothing heard")
   }
 
+  /// Story 1127 (#1138): the closed line reads a link as its chip's words, never the tailnet address.
+  func testALinkInLarrysLineReadsAsItsChipsWords() {
+    var said = WhiteboardSaid()
+    said.larrySaid(
+      "the map: https://c-5004.squeaker-teeth.ts.net:8444/session/7d7f837c3898ed37 and "
+        + "https://github.com/idvorkin/context-grabber/pull/734.", marks: false)
+    XCTAssertEqual(line(said: said)?.middle, "Larry: the map: Larry: Lavish and PR.")
+  }
+
   func testANoticeTakesTheMiddleForAFewSecondsAndGivesItBack() {
     var said = WhiteboardSaid()
     said.larrySaid("this is where it goes", marks: true)
