@@ -3131,11 +3131,41 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I tap *Other…* under the options, type or dictate my words in the field it opens, and tap *Send*
 - **Then:** the Cockpit takes *DECISION: \<my words\>* as the Inbox's free-text answer, and the card gives way to *Decided: \<my words\>* as my message in the ask's chat (or *You decided: \<my words\>* where no message could be written); *Send* is off until there are words; a refusal leaves the card, my words still in the field, with a copyable problem
 
+---
+
+### User Story 1129:
+
+- **Summary:** Larry's own *Other* opens the field instead of answering
+- **Status:** native app: implemented in [f779b0fb](https://github.com/idvorkin/context-grabber/commit/f779b0fb); verified on the host (`just native-test`: `ChatDecisionsTests`, which labels are Larry's *Other*, when the card adds its own, a tap on his opening the field and never answering, the words sent as *DECISION: \<words\>*), the Mac build (`just native-build-mac`) and the simulator (`just test-ladder --rung 2`, 2026-11-22): `ChatDecisionUITests.testOtherAnswersInIgorsOwnWords` and `testLarrysOwnOtherOpensTheFieldAndNeverSendsTheBareWord` on the iPhone 17 simulator against the fake Cockpit, the class green, and `WhiteboardQuestionUITests` on the iPad simulator (no *Other* in the popup); dictating into the field and the real Cockpit are the phone's to show
+- **Issues:** bead context-grabber-sm4l (Igor, 2026-11-22, Cockpit thread igor2-88g.1620: *"When we have a decision card it always needs to have an other so I can add another option. In this case I didn't understand what finger draw was about."*); bead context-grabber-1zyc (the same request, closed as its duplicate)
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Other*, *Answering in his own words*
+
+#### Use Case:
+- **As** Igor, on a card where Larry already offered *Other*
+- **I want to** have his *Other* open the field for my own words
+- **so that** there is one *Other*, and Larry never gets the bare word *Other* as my answer
+
+#### Acceptance Criteria:
 - **Scenario:** Larry already offered *Other*
 - **Given:** a card whose own options include one labelled *Other* (any case, with or without a trailing ellipsis or colon)
 - **When:** I look at it and tap Larry's *Other*
 - **Then:** there is no second *Other…*; Larry's *Other* opens the same field instead of answering, and the Cockpit never receives the bare *DECISION: Other*, only my words
 
+---
+
+### User Story 1130:
+
+- **Summary:** The board's question card draws no *Other*
+- **Status:** native app: implemented in [f779b0fb](https://github.com/idvorkin/context-grabber/commit/f779b0fb); verified on the host (`just native-test`: `ChatDecisionsTests`, which labels are Larry's *Other*, when the card adds its own, a tap on his opening the field and never answering, the words sent as *DECISION: \<words\>*), the Mac build (`just native-build-mac`) and the simulator (`just test-ladder --rung 2`, 2026-11-22): `ChatDecisionUITests.testOtherAnswersInIgorsOwnWords` and `testLarrysOwnOtherOpensTheFieldAndNeverSendsTheBareWord` on the iPhone 17 simulator against the fake Cockpit, the class green, and `WhiteboardQuestionUITests` on the iPad simulator (no *Other* in the popup); dictating into the field and the real Cockpit are the phone's to show
+- **Issues:** bead context-grabber-sm4l (Igor, 2026-11-22, Cockpit thread igor2-88g.1620: *"When we have a decision card it always needs to have an other so I can add another option. In this case I didn't understand what finger draw was about."*); bead context-grabber-1zyc (the same request, closed as its duplicate)
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Other*, *Answering in his own words*, [Question cards on the board](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md)
+
+#### Use Case:
+- **As** Igor, answering a question card on a board
+- **I want to** keep the popup's own *Your own answer* field as the only way to answer in my words
+- **so that** the popup never offers two fields for the same thing
+
+#### Acceptance Criteria:
 - **Scenario:** The board's question card
 - **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882)
 - **When:** it opens
