@@ -30,6 +30,8 @@ public struct WhiteboardFinger: Equatable, Sendable {
   }
 
   public private(set) var marksShowing = false
+  /// His marks, not his controls: only a tap with marks showing can give the finger its pen back.
+  private var ghostsShowing = false
   public private(set) var tappedOff = false
   public private(set) var pencil: Bool
 
@@ -45,12 +47,14 @@ public struct WhiteboardFinger: Equatable, Sendable {
   /// put the finger back to tapping.
   public mutating func marks(_ showing: Bool, controls: Bool = false) {
     marksShowing = showing || controls
+    ghostsShowing = showing
     if !showing { tappedOff = false }
   }
 
-  /// A finger tap while marks show: one reaching no mark and outside his selection gives the finger its pen back.
+  /// A finger tap while marks show: one reaching no mark and outside his selection gives the finger its pen back. With
+  /// only his controls showing a finger keeps tapping (story 846).
   public mutating func tapped(onMark: Bool, onSelection: Bool) {
-    guard marksShowing, !onMark, !onSelection else { return }
+    guard ghostsShowing, !onMark, !onSelection else { return }
     tappedOff = true
   }
 
