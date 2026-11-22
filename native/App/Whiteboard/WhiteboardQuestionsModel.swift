@@ -164,6 +164,7 @@ final class WhiteboardQuestionsModel: ObservableObject {
 
   /// *Collapse* in an answered card's popup.
   func collapse(_ card: WhiteboardQuestion) {
+    guard opened?.id == card.id else { return }
     opened = nil
     var next = board
     guard next.collapse(card.id, true) else { return }
@@ -171,19 +172,24 @@ final class WhiteboardQuestionsModel: ObservableObject {
     log.event("whiteboard_questions", ["action": "collapse", "board": boardID, "ask": card.ask])
   }
 
+  /// Story 1119: the fold control on an opened card not yet answered: back to its one line on the paper, nothing
+  /// answered.
+  func fold(_ card: WhiteboardQuestion) {
+    guard opened?.id == card.id else { return }
+    opened = nil
+    log.event("whiteboard_questions", ["action": "collapse", "board": boardID, "ask": card.ask, "answered": false])
+  }
+
   /// What the popup's decision card came to. Chat's model has logged the verb and holds a refused one's problem.
   func decided(_ card: WhiteboardQuestion, ask: ChatAsk, verb: ChatDecisions.Verb, outcome: ChatDecisions.Outcome) {
     switch outcome {
     case .done:
-      guard let answer = WhiteboardQuestions.answer(for: verb, title: ask.title) else {
-        opened = nil
-        return
-      }
+      if opened?.id == card.id { opened = nil }
+      guard let answer = WhiteboardQuestions.answer(for: verb, title: ask.title) else { return }
       var next = board
       next.answer(card.id, answer)
       change(next)
       asks[ask.id] = nil
-      opened = nil
       log.event("whiteboard_questions", ["action": "answered", "board": boardID, "ask": ask.id, "verb": verb.word])
     case .alreadyAnswered:
       asks[ask.id] = nil

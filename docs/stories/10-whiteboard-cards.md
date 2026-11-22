@@ -149,6 +149,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1119:
+
+- **Summary:** An opened question folds back to its one line without answering
+- **Status:** implemented in '22a78654', fixed after review in '2a4b6fca' (rebased from 'a4613ba7'), 'a022023c' and '08db3051', on branch `native/decision-fold-fjh0`; verified on the Mac build and on the iPad simulator (`just test-ladder`: `WhiteboardQuestionUITests.testLarrysQuestionLandsAnswersAndFolds` folds the opened question, sees the card's one open line, and opens it again before answering); after review round 1 ('a4613ba7') the simulator was re-run: `WhiteboardQuestionUITests` on the iPad simulator, and the smoke's *whiteboard: the question opened and folded back to its unanswered line* passed; not yet on the iPad
+- **Issues:** bead context-grabber-fjh0
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Folding an open card*
+
+#### Use Case:
+- **As someone** who opened one of Larry's questions on a board and isn't ready to answer
+- **I want to** fold it back to its line on the board from the card itself
+- **so that** the drawing is back in view and the question still waits there
+
+#### Acceptance Criteria:
+- **Scenario:** I fold an opened question
+- **Given:** an open question card's popup over the board
+- **When:** I tap the chevron beside the decision card's **⋯**, even while a request is on its way
+- **Then:** the popup closes, the card is its one open line *? \<question\> ···* again, and a tap opens it whole. Folding sends nothing and the log records an unanswered collapse. A request already on its way can update the original card when it finishes, and another question's popup stays open.
+
+---
+
 ### User Story 889:
 
 - **Summary:** I speak my own answer to a question card, with the mic beside Send

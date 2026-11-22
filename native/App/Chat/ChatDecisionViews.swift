@@ -14,7 +14,8 @@ struct ChatDecisionSlot: View {
 
   var body: some View {
     if let ask = decisions.ask(on: key) {
-      ChatDecisionCard(decisions: decisions, ask: ask, place: "thread", voice: voice, logger: logger)
+      ChatDecisionFoldable(decisions: decisions, ask: ask, place: "thread", voice: voice, logger: logger)
+        .id(ask.id)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color(.systemGroupedBackground))
@@ -54,17 +55,17 @@ struct ChatDecisionCard: View {
   let ownAnswer: (() -> Void)?
   /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
   let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
-  @State private var contextOpen = false
+  let fold: () -> Void
+  @Binding private var draft: Draft
   @State private var closing = false
   @State private var closeReason = ""
-  @State private var otherOpen = false
-  @State private var otherWords = ""
 
   private var state: ChatDecisionsModel.Card { decisions.card(ask.id) }
 
   init(
     decisions: ChatDecisionsModel, ask: ChatAsk, place: String, voice: ChatVoiceModel?, logger: @escaping BugLogger,
-    ownAnswer: (() -> Void)? = nil, done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
+    ownAnswer: (() -> Void)? = nil, draft: Binding<Draft>, fold: @escaping () -> Void,
+    done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
   ) {
     self.decisions = decisions
     self.ask = ask
@@ -72,7 +73,16 @@ struct ChatDecisionCard: View {
     self.voice = voice
     self.logger = logger
     self.ownAnswer = ownAnswer
+    self._draft = draft
+    self.fold = fold
     self.done = done
+  }
+
+  /// What Igor opened and typed on the card, kept by its holder so a fold and a tap on the line bring it back.
+  struct Draft {
+    var contextOpen = false
+    var otherOpen = false
+    var otherWords = ""
   }
 
   var body: some View {
@@ -81,14 +91,16 @@ struct ChatDecisionCard: View {
         Image(systemName: "questionmark.bubble").foregroundStyle(.orange)
         Text(ask.title).font(.headline).fixedSize(horizontal: false, vertical: true)
         Spacer(minLength: 8)
+        ChatDecisionFoldButton(fold: fold)
         menu
+          .disabled(state.sending)
       }
       if !ask.context.isEmpty {
         Text(ask.context)
           .font(.subheadline)
           .foregroundStyle(.secondary)
-          .lineLimit(contextOpen ? nil : 3)
-          .onTapGesture { contextOpen.toggle() }
+          .lineLimit(draft.contextOpen ? nil : 3)
+          .onTapGesture { draft.contextOpen.toggle() }
           .accessibilityIdentifier("decision-context")
       }
       ForEach(ask.options) { option in
@@ -115,14 +127,17 @@ struct ChatDecisionCard: View {
           .multilineTextAlignment(.leading)
         }
         .buttonStyle(.bordered)
+        .disabled(state.sending)
         .accessibilityIdentifier("decision-option-\(option.key)")
       }
       if let voice {
-        if ChatDecisions.addsOther(ask) { ChatDecisionOtherButton(action: openOther) }
-        if otherOpen {
+        if ChatDecisions.addsOther(ask) {
+          ChatDecisionOtherButton(action: openOther).disabled(state.sending)
+        }
+        if draft.otherOpen {
           ChatDecisionOtherField(
-            voice: voice, ask: ask, words: $otherWords, sending: state.sending, logger: logger
-          ) { go(.ownWords(otherWords)) }
+            voice: voice, ask: ask, words: $draft.otherWords, sending: state.sending, logger: logger
+          ) { go(.ownWords(draft.otherWords)) }
         }
       }
       if let expiry = ChatDecisions.expiry(ask.expiresAt, now: Date()) {
@@ -136,8 +151,6 @@ struct ChatDecisionCard: View {
         BugProblemView(problem: problem, logger: logger)
       }
     }
-    .disabled(state.sending)
-    .opacity(state.sending ? 0.6 : 1)
     .padding(12)
     .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .contain)
@@ -148,7 +161,7 @@ struct ChatDecisionCard: View {
     .alert("Close this decision", isPresented: $closing) {
       TextField("What finished it", text: $closeReason)
       Button("Close") { go(.close(reason: closeReason)) }
-        .disabled(!ChatDecisions.canClose(reason: closeReason))
+        .disabled(state.sending || !ChatDecisions.canClose(reason: closeReason))
       Button("Cancel", role: .cancel) {}
     } message: {
       Text("One line, and it goes to Larry.")
@@ -187,8 +200,8 @@ struct ChatDecisionCard: View {
       ownAnswer?()
       return
     }
-    guard !otherOpen else { return }
-    otherOpen = true
+    guard !draft.otherOpen else { return }
+    draft.otherOpen = true
     decisions.otherOpened(ask, from: place)
   }
 
@@ -235,7 +248,7 @@ struct ChatDecisionsView: View {
         }
         ForEach(decisions.shown) { ask in
           VStack(alignment: .leading, spacing: 4) {
-            ChatDecisionCard(decisions: decisions, ask: ask, place: "list", voice: voice, logger: logger)
+            ChatDecisionFoldable(decisions: decisions, ask: ask, place: "list", voice: voice, logger: logger)
             NavigationLink {
               ChatThreadView(chat: chat, voice: voice, key: ask.chatToOpen, title: ask.title, logger: logger)
                 .onAppear { decisions.openedChat(ask) }

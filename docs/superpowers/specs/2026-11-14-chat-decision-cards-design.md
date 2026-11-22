@@ -78,6 +78,19 @@ goes, the answer becomes Igor's message *Decided: \<the words\>* in the ask's ch
 
 A snooze writes nothing in the chat: the ask will be back.
 
+**Folding a card** (Igor, 2026-11-22, bead context-grabber-fjh0: *"anytime in chat I see a decision card, I should be
+able to collapse it"*). Every decision card in Chat, at the top of its thread and on *Decisions*, has a fold control
+(a chevron) beside its **⋯**, including while an answer or menu action is on its way. A tap folds the card to one line:
+the question-mark icon, the question cut with *…* to the width, and a chevron pointing down. Folding answers nothing,
+closes nothing and tells the Cockpit nothing: the row's
+*Decision waiting* and the count on *Decisions (N)* stay as they were. A tap anywhere on the folded line opens the card
+again, with its context still expanded if Igor had opened it on this screen, and with any own answer he had begun
+under *Other…* still in its field, unsent (a recording under way stops when the card folds; its words stay). The fold is remembered for that ask on
+this device: the card stays folded when Igor leaves the thread and comes back, when he opens it from the other place
+(folded in its thread, it is folded on *Decisions* too), and
+after the app restarts, until he opens it again. Another device's cards are not folded by it. Once the ask is finished
+the fold no longer matters; the app forgets the oldest folds once it holds a few hundred.
+
 **When it fails.** A refused or failed answer, snooze, close or abandon leaves the card as it was, buttons live again,
 with a copyable problem under it saying what was tried and what the Cockpit said (or that it couldn't be reached, or that
 the phone is offline). Nothing is retried by itself.
@@ -117,7 +130,8 @@ the list or in a thread (only *Decisions* says so), and is logged once until a r
 
 The session log says when a card was shown (which ask, where: thread or list), each answer and its outcome (answered,
 changed, already answered, refused, with the status and the Cockpit's reason), each menu action and its outcome,
-whether the answer went into the chat (and why not, when it didn't), and a failed read of the asks. A shown card says
+whether the answer went into the chat (and why not, when it didn't), each fold and opening of a card (which ask,
+where), and a failed read of the asks. A card opened again from its fold is a card shown again, and says so. A shown card says
 whether it offered *Other…*, and a tap on *Other…* is logged; an answer in Igor's words is logged as an answer with its
 length. Never the option's words, Igor's own words or the reason typed for a close beyond their length. Every problem is
 copyable, naming the screen, the operation and the ask.
@@ -141,6 +155,9 @@ copyable, naming the screen, the operation and the ask.
   receives its bare label (*DECISION: Something else*) or an empty answer from it, only Igor's words.
 - *Snooze*, *Close…* and *Abandon* from the card's menu do what they do on the Cockpit, and the card leaves; a close or
   an abandon is also Igor's message in the ask's chat.
+- Every card, in its thread and on *Decisions*, folds to one line from a visible control without answering; a tap on
+  the line opens it again; the fold is still there after leaving the thread or restarting the app, and in the ask's
+  other place; the row's mark and the count are unchanged by it.
 - A refused answer leaves the card with a copyable problem, and the buttons work again.
 - An ask answered elsewhere says *Already answered elsewhere* and leaves; one changed says so and shows the new version.
 - Offline or with no address: no cards, no marks, no row, and nothing else in Chat changes.

@@ -3170,3 +3170,24 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882), for an ask whose options include Larry's own-answer option (keyed *other*, or labelled as in story 1129)
 - **When:** I tap Larry's option
 - **Then:** nothing is sent; the cursor is in *Your own answer* with the keyboard up, *Send* stays off until there are words, and *Send* answers with my words; the card in the popup has no *Other…* of its own
+
+---
+
+### User Story 1131:
+
+- **Summary:** Fold a decision card to one line, and open it again
+- **Status:** native app: implemented in '22a78654', fixed after review in '2a4b6fca' (rebased from 'a4613ba7'), 'a022023c' and '08db3051', on branch `native/decision-fold-fjh0`; verified on the host (`just native-test`: `ChatDecisionFoldsTests`, the fold per ask, its saved list, the cap), the Mac build (`just native-build-mac`), and on the iPhone 17 simulator (`just test-ladder`: `ChatDecisionUITests.testACardFoldsToItsLineStaysFoldedAndOpensAgain` folds a card on *Decisions*, finds it folded in its thread with the row's mark and the count unchanged, still folded after a relaunch, and opens it again; nothing posted to the Cockpit); after review round 1 ('a4613ba7') the simulator was re-run: `ChatDecisionUITests` 4/4 on the iPhone 17 simulator, and the smoke's *chat: the decision card folded and reopened from its line* passed; not yet on the phone or the iPad
+- **Issues:** bead context-grabber-fjh0
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Folding a card*
+
+#### Use Case:
+- **As** Igor, with a decision I'm not ready to make sitting at the top of a thread or on *Decisions*
+- **I want to** fold its card to one line and open it again when I'm ready
+- **so that** it stops filling the screen without my answering, closing or snoozing it
+
+#### Acceptance Criteria:
+- **Scenario:** I put a decision card aside and return to it
+- **Given:** a decision card, in its chat or under *Decisions*
+- **When:** I tap the chevron beside its **⋯**, even while a request is on its way
+- **Then:** it becomes one line with the question and a downward chevron. Folding sends nothing, and the row's *Decision waiting* and *Decisions (N)* stay the same. The fold survives leaving the screen, opening the ask in its other place, and restarting the app on this device. Tapping the line brings back the whole card, including any context I expanded and any own answer I had begun under *Other…* on that screen, and keeps it open next time.
+

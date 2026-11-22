@@ -53,6 +53,13 @@ says so under the field, as in Chat. The Cockpit takes the answer exactly as the
 the popup closes and the card is answered. A snooze leaves the card open. A close or an abandon answers the card with
 *Closed* or *Abandoned* and the reason under it.
 
+**Folding an open card** (Igor, 2026-11-22, bead context-grabber-fjh0: *"I should also be able to re-collapse decision
+cards"*). The opened question's decision card carries Chat's fold control beside its **⋯**. On the board a tap on it
+folds the card back to its one line on the paper: the popup closes, nothing is answered, and the card is open as
+before, a tap away. The control still works while an answer or menu action is on its way. If Igor opens another
+question before that request finishes, the other popup stays open. The popup always opens with the decision card
+whole, whatever its fold in Chat.
+
 **When it fails.** As Chat's card: a refused answer leaves the popup open with a copyable problem, and its buttons live
 again; one changed since it loaded says so and shows the ask as it now is. One already answered elsewhere, or no longer
 open, closes the popup's question: the card fetches its answer (below), and the popup says *This question is no longer
@@ -81,7 +88,7 @@ open card's popup says the Cockpit's asks didn't load.
 
 The session log says when cards landed (how many, from Larry's reply or from the open asks), when a card's answer came
 from the Cockpit, each card opened (open or answered), each answer and its outcome (Chat's own decision events, from
-the board), a fold and an opening-out, a card erased, and a failed read of the asks or the answers, once until one
+the board), a fold (an open card's or an answered one's) and an opening-out, a card erased, and a failed read of the asks or the answers, once until one
 works. Never the answer's words.
 
 ## Acceptance criteria
@@ -94,6 +101,7 @@ works. Never the answer's words.
   card; a tap on it sends nothing and puts the cursor in *Your own answer*; only Igor's words are ever sent from it.
 - A card whose ask was answered elsewhere shows that answer once the Cockpit gives it.
 - An answered card opens read-only, folds to a one-line chip, and a tap opens the chip out.
+- An opened card not yet answered folds back to its one line from the fold control, answering nothing.
 - The eraser takes an answered card and leaves an open one.
 - Offline or with no address nothing is read, and the board's cards stay as they were.
 

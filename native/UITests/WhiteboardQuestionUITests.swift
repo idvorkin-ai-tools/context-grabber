@@ -1,4 +1,4 @@
-//  Stories 880, 882, 883, 885, 889 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
+//  Stories 880, 882, 883, 885, 889, 1119 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
 //  it): Larry puts a question card on the board, a tap opens it, an option answers it through the fake's /act, the card
 //  keeps the question over the answer, opens read-only and folds to a chip that a tap opens out. Where cards land, the
 //  open asks naming a board, the answers fetched for asks closed elsewhere and the eraser are `WhiteboardQuestionsTests`,
@@ -84,6 +84,12 @@ final class WhiteboardQuestionUITests: XCTestCase {
     XCTAssertTrue(option.appears(within: 10), app.debugDescription)
     // Story 1130: the board's card has no Other of its own; its own answer is the field under it.
     XCTAssertFalse(app.buttons["decision-other"].exists, app.debugDescription)
+    // Story 1119: the fold control takes the opened card back to its one line, answering nothing; a tap opens it again.
+    app.buttons["decision-fold"].tap()
+    XCTAssertTrue(option.waitForNonExistence(timeout: 5), "the popup closed: \(app.debugDescription)")
+    XCTAssertEqual(card.label, "? Renew the gym for a year? ···", "still open, one line")
+    card.tap()
+    XCTAssertTrue(option.appears(within: 10), app.debugDescription)
     // Story 889 (#625): the own answer's mic sits immediately beside Send, after the field, both a finger's size.
     let field =
       app.textViews["whiteboard-question-words"].exists
