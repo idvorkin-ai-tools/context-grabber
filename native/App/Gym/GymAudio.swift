@@ -17,9 +17,12 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
   private let log: SessionLog
   private let queue = DispatchQueue(label: "grabber.gym.audio")
   private let session = AVAudioSession.sharedInstance()
+  private let gate: AudioFloorGate
 
   // Touched only on `queue`.
   private var wanted = false
+  /// context-grabber-2r55: a call held the session at the last ask, so the timer let go of nothing it did not own.
+  private var heldByCall = false
   private var active = false
   private var loop: AVAudioPlayer?
   private var cues: [TimerCue: AVAudioPlayer] = [:]
@@ -34,8 +37,21 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
     .mixWithOthers, .duckOthers, .interruptSpokenAudioAndMixWithOthers,
   ]
 
-  init(log: SessionLog) {
+  init(log: SessionLog, gate: AudioFloorGate) {
     self.log = log
+    self.gate = gate
+    // The call let go: a workout still running takes the session back, after the call's own letting go.
+    // A call starting under a running workout: the timer goes quiet at once, not at its next cue.
+    gate.onChange { [weak self] holding in
+      guard holding.contains(.call) else {
+        self?.queue.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.takeBack() }
+        return
+      }
+      self?.queue.async { [weak self] in
+        guard let self, self.wanted || self.active else { return }
+        _ = self.held("call_started")
+      }
+    }
     // A phone call takes the session; when it gives it back the keepalive has to be started again or the app
     // is suspended at the next lock.
     interruptionObserver = NotificationCenter.default.addObserver(
@@ -46,7 +62,7 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
       self?.queue.async {
         guard let self else { return }
         self.log.event("timer_interruption", ["kind": ended ? "ended" : "began", "wanted": self.wanted])
-        if ended, self.wanted {
+        if ended, self.wanted, !self.held("interruption_ended") {
           self.active = false
           self.activateAndLoop()
         } else if !ended {
@@ -86,6 +102,7 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
         log.event("timer_voice_sample", ["voice": sampleVoice.rawValue, "ok": false, "message": "no player"])
         return
       }
+      guard !held("sample") else { return }
       sampler?.stop()
       sampler = player
       let borrowed = !active
@@ -116,7 +133,7 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
   func start() {
     queue.async { [self] in
       wanted = true
-      guard !active else { return }
+      guard !held("start"), !active else { return }
       applyOptions(ducking: false)
       activateAndLoop()
     }
@@ -126,6 +143,7 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
   func stop() {
     queue.async { [self] in
       wanted = false
+      guard !held("stop") else { return }
       deactivate()
     }
   }
@@ -138,6 +156,11 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
 
   func play(_ cue: TimerCue) {
     queue.async { [self] in
+      if let holder = refuser() {
+        standDown()
+        log.event("timer_cue", ["cue": cue.rawValue, "voice": voice.rawValue, "ok": false, "held_by": holder.rawValue])
+        return
+      }
       guard let player = cues[cue] ?? player(voice.fileName(for: cue)) else {
         log.event("timer_cue", ["cue": cue.rawValue, "voice": voice.rawValue, "ok": false, "message": "no player"])
         return
@@ -152,17 +175,55 @@ final class GymAudio: TimerAudio, @unchecked Sendable {
   // MARK: - DuckSession
 
   func setDucking(_ on: Bool) {
-    queue.async { [self] in applyOptions(ducking: on) }
+    queue.async { [self] in
+      guard !held("options") else { return }
+      applyOptions(ducking: on)
+    }
   }
 
   func release() {
     queue.async { [self] in
+      guard !held("release") else { return }
       deactivate()
       if wanted { activateAndLoop() }
     }
   }
 
   // MARK: - on the queue
+
+  /// Whether a call holds the session (story 1071): then the timer stands down without touching it, and logs what it
+  /// held back.
+  private func held(_ what: String) -> Bool {
+    guard let holder = refuser() else { return false }
+    standDown()
+    log.event("timer_session", ["action": "held", "what": what, "held_by": holder.rawValue])
+    return true
+  }
+
+  /// Who refuses the timer now: the floor, or the call it stood down for until the take-back.
+  private func refuser() -> AudioUser? {
+    gate.refusal(.timerStarts) ?? (heldByCall ? .call : nil)
+  }
+
+  /// The call has the session: stop what the timer plays and forget it was active, so the session is taken again
+  /// (category and all) once the call lets go. No `setActive` or `setCategory` here: either would reach the call.
+  private func standDown() {
+    loop?.pause()
+    for player in cues.values where player.isPlaying { player.stop() }
+    sampler?.stop()
+    active = false
+    heldByCall = true
+  }
+
+  /// The call ended: a workout still running takes the session back with its keepalive.
+  private func takeBack() {
+    guard heldByCall, gate.refusal(.timerStarts) == nil else { return }
+    heldByCall = false
+    log.event("timer_session", ["action": "taken_back", "wanted": wanted])
+    guard wanted, !active else { return }
+    applyOptions(ducking: false)
+    activateAndLoop()
+  }
 
   private func player(_ name: String) -> AVAudioPlayer? {
     guard let url = Bundle.main.url(forResource: name, withExtension: "wav") else {

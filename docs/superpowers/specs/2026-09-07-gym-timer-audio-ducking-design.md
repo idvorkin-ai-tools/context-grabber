@@ -126,6 +126,10 @@ suspend the app in the background.
   still happen on time.
 - Larry's Call tab is untouched: its session (play-and-record, voice chat)
   is its own, and the timer's session options never apply to a call.
+- **During a call the timer is silent** (context-grabber-2r55): a workout started, or still running, while a call
+  is connecting or live counts on its face with no count, no cue, no dip and no keepalive, and the screen says
+  **Sounds are off during the call**. Leaving or RESET during the call does not touch the call's audio. When the
+  call ends, the cues come back within a couple of seconds, keepalive included.
 - Stopwatch and Sets make no sound, so nothing dips or pauses there.
 - **A log.** *Log*, top right of the timer, copies the timer's diagnostics
   to the clipboard behind a build header: every session option change,
@@ -156,7 +160,9 @@ suspend the app in the background.
    the window closing. The Live Activity keeps counting.
 7. **A call is a call.** Start a Larry call: the call's audio is exactly as
    before; end it: music resumes as before. The timer's options never reach
-   the call.
+   the call. START a round during the call: the face counts in silence, the
+   note *Sounds are off during the call* shows, and Larry still hears Igor;
+   RESET: the call carries on. Hang up mid-round: the next cue sounds.
 8. **Nothing else about the timer changed.** Cues, beeps, phases, presets,
    the Live Activity, the LED face.
 9. **The log.** After a round with music: *Log* → paste somewhere: a build

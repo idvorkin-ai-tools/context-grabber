@@ -54,11 +54,13 @@ final class AppModel: ObservableObject {
   var gymTimer: GymTimerLaunch? { screens.isUp(.timer) ? gymLaunch : nil }
   @Published private var gymLaunch = GymTimerLaunch()
   private var gymModel: GymTimerModel?
+  /// context-grabber-2r55: whether a call holds the audio session, for the timer's and breathing's audio queues.
+  let audioGate = AudioFloorGate()
   /// The Gym Timer's state, made on first open and kept for the app's life: a workout outlives its screen (story
   /// 188, #791).
   var gym: GymTimerModel {
     if let gymModel { return gymModel }
-    let made = GymTimerModel(log: log, database: database, liveActivity: liveActivity)
+    let made = GymTimerModel(log: log, database: database, liveActivity: liveActivity, audioGate: audioGate)
     gymModel = made
     return made
   }
@@ -228,6 +230,8 @@ final class AppModel: ObservableObject {
     callMicWatch = call.$snapshot.map(\.isActive).removeDuplicates().dropFirst().sink { [weak self] live in
       MainActor.assumeIsolated {
         if live { _ = self?.requestMic(.call) } else { self?.mic.release(.call) }
+        // Story 1071: the call keeps the mic; the timer and breathing go silent while it holds the session.
+        self?.audioGate.set(.call, holding: live)
       }
     }
     chatVoice.askMic = { [weak self] in self?.requestMic(.chatVoice) }

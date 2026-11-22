@@ -83,6 +83,10 @@ A near-black screen with one dark circle in the middle and a white ring that dra
   circle reads **Ready** while it does.
 - With **Tone**, each step starts with its tone and the session ends with a closing tone. With **Off**, silence.
 - Music or a podcast already playing keeps playing; the cues sound over it.
+- **During a call with Larry the session is silent** (context-grabber-2r55): the call keeps the microphone and the
+  phone's audio as it set them, so no voice or tone plays and the screen says **Sounds are off during the call**.
+  The circle, the ring and the time left run as usual. A session already running when a call starts goes quiet from
+  the call's start; when the call ends the cues come back within a couple of seconds.
 - The screen stays on for the whole session and goes back to the phone's own setting afterwards.
 - **Locking the phone or leaving the app does not pause.** The session keeps time and its cues keep sounding with
   the phone locked or another app in front, and the lock screen and the Dynamic Island show the step, the cycle

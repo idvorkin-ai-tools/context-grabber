@@ -29,10 +29,10 @@ public enum AudioAsk: String, CaseIterable, Sendable {
   case callScreenOpens
   /// A call is about to configure the session.
   case callStarts
-  /// START on the Gym Timer.
+  /// START on the Gym Timer, and every cue and change to the session after it (the audio's `AudioFloorGate`).
   case timerStarts
   case breatheOpens
-  /// A breathing session begins.
+  /// A breathing session begins, and every cue and change to the session after it.
   case breatheStarts
   /// The eulogy song's tile: its sheet comes up, and a play follows (`songPlays`).
   case songOpens
@@ -73,6 +73,10 @@ public enum AudioFloor {
     rule(.callScreenOpens, .timer, .holderYields(to: "call"), "AppModel.swift:767 openCall (story 191)"),
     rule(.callStarts, .song, .holderYields(to: "call"), "AppModel.swift:184 call.willStart (#197)"),
     // Chat's dictation stopping for the call is the microphone's: `MicFloor`, a call taking it from anyone.
+    // context-grabber-2r55 (Igor, 2026-11-21): the call keeps the mic. Asked before every cue and session change, so a
+    // workout or a breathing session started before the call goes quiet from its start too.
+    rule(.timerStarts, .call, .askerRefused, "GymAudio.swift held, AudioFloorGate (story 1071, 2r55)"),
+    rule(.breatheStarts, .call, .askerRefused, "BreatheAudio.swift held, AudioFloorGate (story 1071, 2r55)"),
     rule(.breatheOpens, .timer, .holderYields(to: "breathe"), "AppModel.swift:503 openBreathe (story 191)"),
     rule(
       .songOpens, .timer, .holderYields(to: "eulogy_song"), "AppModel.swift:644 playEulogySong (story 191, 34902620)"),
