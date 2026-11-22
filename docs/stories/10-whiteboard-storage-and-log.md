@@ -134,7 +134,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1102:
 
 - **Summary:** The log says what comes over an open board and how long it stays
-- **Status:** in progress
+- **Status:** implemented in [eb488471](https://github.com/idvorkin/context-grabber/commit/eb488471); verified by `just native-test` (lint, host tests, script checks), the Mac build, and the iPad simulator (rung 2, 2026-11-22: the 66 whiteboard UI tests and the PaperKit contract tests green; their session logs carry `board_cover` lines naming the board's own full-screen cover, a context menu coming over it and going, and the responder moving to the handwriting view). The iPad's line when the Paste-only state comes back is still owed
 - **Issues:** [#1140](https://github.com/idvorkin/context-grabber/issues/1140): "I can't click on menus, whatever I click on I get the pop-up menu Paste"; the iPad's report shows a full-screen popover drawn by another process over the board, a *Paste · Select All* menu under the bar, and no touch heard for the twenty seconds before the shake
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The log says what covers the board*
 
