@@ -1236,6 +1236,61 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 945:
+
+- **Summary:** The board never offers to convert handwriting to text
+- **Status:** implemented in [53d2d954](https://github.com/idvorkin/context-grabber/commit/53d2d954) and [67e94e07](https://github.com/idvorkin/context-grabber/commit/67e94e07); verified by host tests (`PaperProbeHandwritingOfferTests`: the iPad's remote `_UICampo…` popover at the paper is the offer, the board's own sheets and popovers elsewhere are not; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardGroupTapUITests.testTheHandwritingOfferIsPutAwayAndTheTappedGroupStillDrags`, rung 2, 2026-11-22: a stand-in for the offer, `GRABBER_WHITEBOARD_FAKE_OFFER`, is put away about 40 ms after it shows, `handwriting_offer` in the log); the real system popover being put away, and *To text* beside it, not yet seen on the iPad (rung 3 owed)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *The board never offers to convert handwriting to text*
+- **Issues:** bead context-grabber-4nnh: iPad, build 62508388, session log grabber-20261122-120300 (12:09 to 12:11): a finger tap on a kept group of Larry's selected all 93 strokes, the system's handwriting popover (`_UICampoPresentedViewController`, a remote popover from the paper, `HandwritingReflowView` holding the focus) came up over it about a second later, the selection went to 0 with no selection callback, and every finger drag after it moved nothing; Igor, 2026-11-22 14:49: "Also never prompt me to convert"
+
+#### Use Case:
+- **As someone** selecting and moving handwriting on a board on the iPad
+- **I want** the system never to pop up its offer to convert my selection to text
+- **so that** the board stays mine to draw on and move things, and *To text* is there when I want it
+
+#### Acceptance Criteria:
+- **Scenario:** The offer is put away
+- **Given:** a board on paper on the iPad
+- **When:** the system shows its handwriting popover over the paper, on a selection, a tap or anything else
+- **Then:** the board puts it away at once, the session log says what it was, what was selected and what was selected after
+
+- **Scenario:** To text still works
+- **Given:** a lasso round my handwriting
+- **When:** I tap the board's own *To text*
+- **Then:** it turns into text as before
+
+---
+
+### User Story 946:
+
+- **Summary:** A tapped group stays selected and draggable when the system takes its selection away
+- **Status:** implemented in [53d2d954](https://github.com/idvorkin/context-grabber/commit/53d2d954) and [67e94e07](https://github.com/idvorkin/context-grabber/commit/67e94e07); verified by host tests (`PaperProbeHandwritingOfferTests`: put back three times then left, a selection of Igor's or one with a touch since never put back; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator (`WhiteboardGroupTapUITests`, rung 2, 2026-11-22: the stand-in offer empties the selection with no callback, the board puts all three strokes back and a finger drag moves them as one; with the put-back switched off the same test fails, the drag moving nothing); the iPad's own offer not yet seen (rung 3 owed: `group_tap_lost`, `group_tap_lost_after` and `handwriting_offer` will say)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *The board never offers to convert handwriting to text* (a tapped group stays selected)
+- **Issues:** bead context-grabber-4nnh (as story 945): `group_tap_held` read held false, selected 0, touched_since false, with no `paper_selection` between, three times; the finger drags at t=404311, 408263 and 428048 ended `ink_moved` 0
+
+#### Use Case:
+- **As someone** who tapped a kept group of Larry's to move it
+- **I want** it to stay selected until I touch the board again
+- **so that** the finger drag that follows moves all of it
+
+#### Acceptance Criteria:
+- **Scenario:** Put back after the system empties it
+- **Given:** a kept group selected by a finger tap
+- **When:** within three seconds, with no touch of mine since, the selection goes with no word from the board (the system's popover came over it)
+- **Then:** the whole group is selected again, and a finger drag moves it as one
+
+- **Scenario:** My own choice stands
+- **Given:** a kept group selected by a finger tap
+- **When:** I touch the board, lasso something else or tap elsewhere
+- **Then:** what I chose is never put back to the group
+
+- **Scenario:** Not forever
+- **Given:** a tapped group whose selection keeps going
+- **When:** the board has put it back three times
+- **Then:** it leaves it, and the session log says it gave up
+
+---
+
 ### User Story 947:
 
 - **Summary:** A finger tap on any stroke of a group selects the whole group, ready to drag
