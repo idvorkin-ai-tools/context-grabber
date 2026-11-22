@@ -41,7 +41,9 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   rule is below. And every feature or behaviour change updates the user stories (`docs/stories/`) in the same PR: a
   new capability gets a story in its journey (Cohn + Gherkin, the `user-story` skill) with a `Status:` line naming
   its commit and where it was verified; a changed behaviour edits the story's acceptance criteria and adds its
-  commit to the `Status:` line. Status lives only on the stories. **No story, not done.**
+  commit to the `Status:` line. Status lives only on the stories. **No story, not done.** A new story's ID comes
+  from `scripts/native/story-ids.py reserve <journey> [n]` (story 791), never from "the next free ID" on your own
+  branch: parallel PRs that each picked one put duplicates on main four times on 2026-11-22.
 - **Instrument before theorizing.** For any phone-only symptom add the session-log event that would settle it (or a
   copyable error carrying the state), ship it, reproduce, pull the logs, read the evidence, then fix. Never ship a
   second guessed fix ([DEBUGGING.md](docs/DEBUGGING.md)).
@@ -90,7 +92,9 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   scope before an agent that writes to the repo. Reap background commands when done.
 - **Every change goes through the no-mistakes pipeline, and the agent merges it.** The gate is installed in
   this repo: `no-mistakes axi run --intent "…"` (or push to the `no-mistakes` remote). When the run reaches
-  `checks-passed`, merge the PR yourself and check that its commits reached `origin/main`. Don't wait for PR
+  `checks-passed`, run `just pre-merge` in the branch's checkout immediately before `gh pr merge` (story 793: the
+  story IDs on the branch as pushed, merged with main as it is now; if it fails, renumber with a fresh reservation,
+  push and rerun), then merge the PR yourself and check that its commits reached `origin/main`. Don't wait for PR
   feedback, because nobody gives it: the pipeline is the review.
 - **One pipeline run per train** (Igor, 2026-10-11). Finish the whole stack before the first push, and don't push
   while a run is in flight unless review or test asked for that fix. Never restart the no-mistakes daemon or reboot

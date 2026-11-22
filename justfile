@@ -13,6 +13,11 @@ test: native-test
 test-ladder *args:
     scripts/native/test-ladder.sh {{args}}
 
+# New story IDs come from `scripts/native/story-ids.py reserve <journey> [n]` (story 791). This, story 793, runs
+# right before `gh pr merge`: the story IDs on the branch as pushed, merged with origin/main as it is now.
+pre-merge *branch:
+    scripts/native/pre-merge.sh {{branch}}
+
 # --- The native app (native/, docs/superpowers/specs/2026-10-04-swift-native-app-design.md) ---
 
 native_sim := env("SIM", "iPhone 17")
@@ -87,6 +92,7 @@ native-test-host:
     # #943: URL loading on Linux needs FoundationNetworking; the Mac's build can't see a file that forgot it.
     scripts/native/test-linux-imports.sh
     # Story 789 (#993): every story ID is used once and sits in its journey's ranges in docs/stories/README.md.
+    # Stories 791-793: reserve hands out free IDs against main, open PRs and a locked ledger; pre-merge catches a collision.
     scripts/native/test-story-ids.sh
 
 # Rung 1L, on a Linux box (scripts/native/test-linux.sh says what it needs): ContextCore's portable tests run on Linux,

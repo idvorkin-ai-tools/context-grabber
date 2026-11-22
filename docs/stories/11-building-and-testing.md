@@ -715,6 +715,66 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 791:
+
+- **Summary:** A new story's ID is reserved, never picked from the branch alone
+- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations started at once get six different IDs; a journey named by a word from its row, a word that names two journeys, a journey with too few free IDs and unreadable open PRs each behave as below. This story's own ID, and 792 and 793, came from the command
+- **Issues:** bead context-grabber-jg3w (parallel PRs each took "the next free ID" from their own branch; each passed story 789's check alone, and main took duplicates four times on 2026-11-22: 955, 1101, 1155, 1113–1115)
+- **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
+
+#### Use Case:
+- **As Igor,** with several agents adding stories at once, on this Mac and others
+- **I want to** have each new story's ID handed out by one command that looks at main, every open PR and the other agents' reservations here
+- **so that** two branches stop taking the same "next free ID" and colliding once both merge
+
+#### Acceptance Criteria:
+- **Scenario:** Two agents reserve IDs in the same journey
+- **Given:** main, the branch's own stories, the story headings open PRs add, and IDs another agent on this Mac reserved in the last day
+- **When:** each runs `scripts/native/story-ids.py reserve <journey> [n]`, at the same moment
+- **Then:** each gets the lowest free IDs of that journey's ranges, one per line, none of them taken by any of those or by the other; it hands out nothing, and says why, when it can't fetch main or list the open PRs, the journey is ambiguous, or the journey has no free ID left (add the next block of twenty to its row)
+
+---
+
+### User Story 792:
+
+- **Summary:** A reservation lapses after a day, or once its story is on main
+- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: a reservation two days old is handed out again, one whose ID reached main is dropped from the ledger, a live one is kept
+- **Issues:** bead context-grabber-jg3w
+- **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
+
+#### Use Case:
+- **As Igor,** with agents that sometimes abandon a branch
+- **I want to** have an unused reservation give its ID back on its own
+- **so that** a journey's range doesn't fill with IDs no story will ever use
+
+#### Acceptance Criteria:
+- **Scenario:** An old reservation
+- **Given:** the ledger on this Mac holds one reservation made over 24 hours ago and another whose story has merged
+- **When:** the next reservation runs
+- **Then:** neither holds its ID any longer: the first ID can be handed out again, and the second is taken because main has it; both leave the ledger
+
+---
+
+### User Story 793:
+
+- **Summary:** Right before merging, the story IDs are checked on the branch merged with main as it is now
+- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, on a throwaway repository: a branch that passes alone but adds an ID main took since fails naming both places, a branch with a free ID passes, a branch that conflicts with main fails
+- **Issues:** bead context-grabber-jg3w
+- **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
+
+#### Use Case:
+- **As Igor,** with PRs merging while others wait at the end of the pipeline
+- **I want to** have the agent check the story IDs against main once more, right before it merges
+- **so that** a collision another merge made in the meantime is caught on the branch, not on main
+
+#### Acceptance Criteria:
+- **Scenario:** Main gained a story with the same ID since the branch was checked
+- **Given:** the branch's PR has passed the pipeline, and main has since merged another PR that added a story with one of its IDs
+- **When:** the agent runs `just pre-merge` immediately before `gh pr merge`
+- **Then:** it fails naming the ID and both places, from the branch as pushed (the pipeline's own commits included) merged with main without touching the checkout; a merge that conflicts fails too; with neither it passes and the agent merges; nothing is checked if the agent merges in the seconds between, which the host rung on main still catches
+
+---
+
 ### User Story 796:
 
 - **Summary:** A journey's stories can live in several files, and every ID is still checked once and in range
