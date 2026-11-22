@@ -155,6 +155,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     NotificationCenter.default.addObserver(
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
     watchUndo()
+    watchCovers()
   }
 
   /// Stories 892, 893: the Pencil hovering over the paper, in board points. A pointer's hover has no height above the

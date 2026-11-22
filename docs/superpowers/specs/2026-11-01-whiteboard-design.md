@@ -532,6 +532,19 @@ Where that ink came from isn't known yet; the log is what will say.
   board is opened again, when it is a pen stroke, and goes to Larry as *pen* from then on. Each save that holds an
   unknown ink logs its kinds, whether they read back, and how many strokes were saved as the pen.
 
+### The log says what covers the board (story 1102, #1140; Igor, 2026-11-22: "I can't click on menus, whatever I click on I get the pop-up menu Paste")
+
+On the iPad the board went deaf: every tap, on the paper or the bar's buttons, brought up *Paste · Select All* and
+nothing else. The report shows something of the system's own, drawn by another process and invisible in the screenshot,
+sitting over the whole screen, and the log heard no touch at all for the twenty seconds before the shake. What put it
+there, when, and what the menu belonged to, the log can't say. Before anything changes, it has to.
+
+- **Whatever comes over an open board is a line in the log**, as it comes and as it goes: what it is, how it was shown
+  (a popover, a sheet, a menu), where it sits on the screen and what it points at, whether another process draws it, any
+  *Paste · Select All* style menu showing and where, and what on the board would answer a Paste.
+- **Its going says how long it stayed**, so a cover that stayed up while Igor tapped shows as one long stay.
+- Nothing Igor sees changes: this is the evidence for the fix, not the fix.
+
 ### The log says which tool Igor picked (story 1064, #1078; Igor, 2026-11-21: "Switched to eraser still drew normally")
 
 Igor picked the eraser and the Pencil went on drawing. The log couldn't say why: every touch it has ever written names a
