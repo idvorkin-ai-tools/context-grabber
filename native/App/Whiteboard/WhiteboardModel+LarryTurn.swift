@@ -127,6 +127,11 @@ extension WhiteboardModel {
       "rev": picture.report?.rev ?? -1, "events": picture.report?.events.count ?? 0,
       "op_result": picture.report?.opResult?.label ?? "",
     ]
+    // Bead context-grabber-27sv: what a long stretch between turns let go, and of which kinds.
+    if let report = picture.report, report.eventsDropped > 0 {
+      event["events_dropped"] = report.eventsDropped
+      event["dropped_kinds"] = report.droppedKinds ?? [:]
+    }
     defer {
       event["ms"] = Int(Date().timeIntervalSince(started) * 1000)
       log.event("whiteboard_turn", event)

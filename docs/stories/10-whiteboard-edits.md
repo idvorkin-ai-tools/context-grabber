@@ -246,7 +246,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 818:
 
 - **Summary:** Larry hears the Pencil and my taps
-- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testPenAndTapEventsAccumulateUntilTaken`, `testEventsKeepTheirNewestUnderTheCap`, `testEventsOnTheWire`, `testTheTurnMessageCarriesRevResultAndEventsButTheStrokesDont`; `just test`) and the Mac build (`just native-build-mac`); simulator UI tests against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysTextArrivesAsAGhostAndKeepsAsOneText` (the op_result) and `testAStalePushMovesNothingAndLarryIsTold`, pass on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testPenAndTapEventsAccumulateUntilTaken`, `testEventsKeepTheirNewestUnderTheCap`, `testEventsOnTheWire`, `testTheTurnMessageCarriesRevResultAndEventsButTheStrokesDont`; `just test`) and the Mac build (`just native-build-mac`); simulator UI tests against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysTextArrivesAsAGhostAndKeepsAsOneText` (the op_result) and `testAStalePushMovesNothingAndLarryIsTold`, pass on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry; a turn with too many events keeping what Larry needs (bead context-grabber-27sv) in [71827734](https://github.com/idvorkin/context-grabber/commit/71827734), verified by host tests (`BoardEventsCapTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad
+- **Issues:** bead context-grabber-27sv (the debug page showed *5 events dropped* on a turn after two minutes of drawing and a kept reply)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the pen and taps*
 
 #### Use Case:
@@ -259,6 +260,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** I drew two strokes and tapped one of his marks since his last turn
 - **When:** the next picture goes to Larry
 - **Then:** it carries the board's revision, what came of his last change, and the Pencil's downs and ups and my tap (where it was, and which of his marks it hit, if any), each with its time; a later turn carries only what happened after
+
+- **Scenario:** A long stretch of drawing between turns
+- **Given:** since his last turn I kept his reply, selected it, and drew for a couple of minutes, more events than a turn holds
+- **When:** the next picture goes to Larry
+- **Then:** it carries as many events as the Cockpit takes, with room for the picture's own sending event; a view I scrolled past and the Pencil's oldest downs and ups go first, so my tap on his reply, my ink changes and my selection all reach him; the count of those let go is on the turn, and the session log says how many of each kind
 
 ---
 

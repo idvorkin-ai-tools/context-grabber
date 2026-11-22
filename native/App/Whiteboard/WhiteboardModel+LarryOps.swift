@@ -123,8 +123,7 @@ extension WhiteboardModel {
     // Story 1112: spoken words waiting go with these events.
     micTimingsGo()
     let taken = events.take()
-    let report = BoardTurnReport(
-      rev: ops.rev, opResult: ops.lastResult, events: taken.events, eventsDropped: taken.dropped)
+    let report = BoardTurnReport(rev: ops.rev, opResult: ops.lastResult, taken: taken)
     let request: URLRequest
     do {
       request = try BoardEventsSend.request(board: board.id, report: report, cockpit: cockpit, build: Self.buildLine)
@@ -147,6 +146,10 @@ extension WhiteboardModel {
         "board": self.board.id, "why": why, "events": taken.events.count,
         "ms": Int(Date().timeIntervalSince(started) * 1000),
       ]
+      if taken.dropped > 0 {
+        event["events_dropped"] = taken.dropped
+        event["dropped_kinds"] = taken.droppedKinds
+      }
       switch answer {
       case .taken:
         event["action"] = "sent"
@@ -216,7 +219,7 @@ extension WhiteboardModel {
   /// The board's half of Larry's next turn: the events since the last are taken.
   func turnReport() -> BoardTurnReport {
     let taken = events.take()
-    return BoardTurnReport(rev: ops.rev, opResult: ops.lastResult, events: taken.events, eventsDropped: taken.dropped)
+    return BoardTurnReport(rev: ops.rev, opResult: ops.lastResult, taken: taken)
   }
 
   /// Whatever a source hears goes to every source; each batch they make goes to the one applier.

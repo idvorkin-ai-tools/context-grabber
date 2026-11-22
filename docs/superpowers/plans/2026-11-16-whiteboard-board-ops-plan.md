@@ -62,7 +62,7 @@ batch the same way, whoever sent it.
 
 - `BoardEvent`: `.pen(down:idleMs:t:)`, `.tap(x:y:target:t:)`; Codable for the Inbox; `wire`.
   `idle_ms` on a down is how long the Pencil was up before it; on an up, how long it was down.
-- `BoardEvents`: accumulates, at most 100 (the oldest dropped, counted), `take()` drains.
+- `BoardEvents`: accumulates, at most `BoardTurnReport.maxEvents - 1` (room for the post event); past that `BoardEvent.firstToGo` drops a replaced viewport, then the oldest pen event, then the oldest of anything, each counted (bead context-grabber-27sv), `take()` drains.
 - `BoardTurnReport`: `rev, op_result, events` → `wire`, merged into the turn's chat message by
   `ChatSend.messageRequest` (never into `POST /whiteboard/strokes`). Rides on `WhiteboardPicture.report`, optional, so
   outbox items written before it still decode.
