@@ -70,7 +70,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** See the iPad's boards on the phone
 - **Issues:** [#1002](https://github.com/idvorkin/context-grabber/issues/1002) (an upload sometimes fails *Batch Request Failed / Atomic failure*, the first sync of a launch)
-- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and the review fixes in [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5); verified by host tests (`BoardIndexTests`: read-only off the drawing device, the merge, a failed fetch retried) and the simulator (the boards open, iCloud skipped with no account); an iPad board on the phone not yet seen; a failed sync's log line names its step and each record's own CloudKit error (#1002, instrumentation only) in [6ccd13a](https://github.com/idvorkin/context-grabber/commit/6ccd13a), its fields verified by host tests (`BoardSyncFailureTests`), the real error awaits the iPad's next log
+- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and the review fixes in [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5); verified by host tests (`BoardIndexTests`: read-only off the drawing device, the merge, a failed fetch retried) and the simulator (the boards open, iCloud skipped with no account); an iPad board on the phone not yet seen; a failed sync's log line names its step and each record's own CloudKit error (#1002, instrumentation only) in [6ccd13a](https://github.com/idvorkin/context-grabber/commit/6ccd13a), its fields verified by host tests (`BoardSyncFailureTests`); the iPad's log then named the tombstone delete sent in the board's batch (CKError 22/2024 *Atomic failure*, no error on the save), fixed by story 1093
 
 #### Use Case:
 - **As someone** away from the iPad
@@ -82,6 +82,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** I drew a board on the iPad and closed it, and both devices are signed into my iCloud
 - **When:** I open the Whiteboard on the phone and tap that board's row
 - **Then:** I see the drawing, which I can pan and pinch but not draw on, with a note that it is drawn on the iPad
+
+---
+
+### User Story 1093:
+
+- **Summary:** An upload iCloud turns down goes up by itself
+- **Issues:** [#1002](https://github.com/idvorkin/context-grabber/issues/1002) (an upload sometimes fails *Batch Request Failed / Atomic failure*, the first sync of a launch)
+- **Status:** implemented in [17a8f56](https://github.com/idvorkin/context-grabber/commit/17a8f56a): the save and the delete go in two calls, and a failed sync tries again by itself after 15 s, doubling to five minutes, eight tries at most before it waits for the next time the list opens or the app comes forward; verified by host tests (`BoardSyncRetryTests`), the Mac build and the simulator (the whiteboard UI tests and the smoke's whiteboard section, iCloud skipped there); a retried upload on the iPad not yet seen
+
+#### Use Case:
+- **As someone** who closes the app on the iPad with ink not yet sent
+- **I want** the board to reach iCloud without my doing anything when iCloud turns its upload down once
+- **so that** the phone shows what I drew
+
+#### Acceptance Criteria:
+- **Scenario:** iCloud turns an upload down
+- **Given:** I closed the app on the iPad with ink not yet sent, and on the next launch iCloud refuses the board's upload
+- **When:** I wait on the list without touching anything
+- **Then:** the list says boards aren't syncing, the board is as I drew it, and within a minute or so it goes up by
+  itself and the note goes; on the phone the board then shows that ink
 
 ---
 

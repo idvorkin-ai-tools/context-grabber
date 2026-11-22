@@ -32,6 +32,9 @@ final class WhiteboardStore: ObservableObject {
   private var syncedThisLaunch = false
   /// #1137: whether a jump waits on iCloud, and the board just found for one.
   private var finding = BoardFind()
+  /// A failed sync tries again by itself, later each time (#1002); the try waiting, if one is.
+  private var retry = BoardSyncRetry()
+  private var retryTask: Task<Void, Never>?
 
   init(log: SessionLog, device: String) {
     self.log = log
@@ -433,6 +436,10 @@ final class WhiteboardStore: ObservableObject {
         "dropped": merged.dropped.count, "tombstones": listed.tombstones.count, "resend": merged.resend,
       ]
       if let zoneError { fields["zone_error"] = CloudErrorFields.item(zoneError) }
+      if retry.failures > 0 { fields["after_failures"] = retry.failures }
+      retry.succeeded()
+      retryTask?.cancel()
+      retryTask = nil
       log.event("whiteboard_sync", fields)
     } catch let unavailable as BoardCloud.Unavailable {
       saveIndex()
@@ -449,7 +456,19 @@ final class WhiteboardStore: ObservableObject {
         pending: pending, firstOfLaunch: firstOfLaunch, error: write?.error ?? error, saveError: write?.save,
         deleteError: write?.delete, zoneError: zoneError,
         recordName: { ($0.base as? CKRecord.ID)?.recordName ?? "\($0.base)" })
-      log.event("whiteboard_sync", failure.fields)
+      let wait = retry.failed(retryAfter: failure.retryAfter)
+      var fields = failure.fields
+      if let wait { fields["retry_in"] = wait }
+      fields["failures"] = retry.failures
+      log.event("whiteboard_sync", fields)
+      retryTask?.cancel()
+      retryTask = nil
+      guard let wait else { return }
+      retryTask = Task { [weak self] in
+        try? await Task.sleep(for: .seconds(wait))
+        guard !Task.isCancelled else { return }
+        await self?.sync(reason: "retry")
+      }
     }
   }
 }
@@ -555,21 +574,24 @@ struct BoardCloud {
     try await write(tombstone, deleting: self.id(id))
   }
 
-  /// One record saved and another gone, each on its own: there's seldom a record to delete, and one already gone is
-  /// what was asked for, however CloudKit reports it. Anything else throws, a failed save above all, so the caller
-  /// tries again next sync.
+  /// One record saved, then another gone, in two calls (#1002): sent as one batch, CloudKit sometimes turned the pair
+  /// down as "Atomic failure", blamed on the delete, and the board stayed unsent. There's seldom a record to delete,
+  /// and one already gone is what was asked for, however CloudKit reports it. Anything else throws, a failed save above
+  /// all, so the caller tries again; the save is idempotent, so a delete that fails after it costs only a resend.
   private func write(_ record: CKRecord, deleting other: CKRecord.ID) async throws {
+    let saved = try await database.modifyRecords(
+      saving: [record], deleting: [], savePolicy: .allKeys, atomically: false)
+    if case .failure(let error)? = saved.saveResults[record.recordID] {
+      throw WriteFailed(error: error, save: error, delete: nil)
+    }
     do {
       let result = try await database.modifyRecords(
-        saving: [record], deleting: [other], savePolicy: .allKeys, atomically: false)
-      var saveError: (any Error)?
-      var deleteError: (any Error)?
-      if case .failure(let error)? = result.saveResults[record.recordID] { saveError = error }
-      if case .failure(let error)? = result.deleteResults[other] { deleteError = error }
-      if let saveError { throw WriteFailed(error: saveError, save: saveError, delete: deleteError) }
-      if let deleteError, (deleteError as? CKError)?.code != .unknownItem {
-        throw WriteFailed(error: deleteError, save: nil, delete: deleteError)
+        saving: [], deleting: [other], savePolicy: .allKeys, atomically: false)
+      if case .failure(let error)? = result.deleteResults[other], (error as? CKError)?.code != .unknownItem {
+        throw WriteFailed(error: error, save: nil, delete: error)
       }
+    } catch let error as CKError where error.code == .unknownItem {
+      return
     } catch let error as CKError
       where error.code == .partialFailure && error.partialErrorsByItemID?.count == 1
       && (error.partialErrorsByItemID?[other] as? CKError)?.code == .unknownItem
