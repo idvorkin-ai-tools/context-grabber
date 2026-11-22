@@ -76,6 +76,9 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// or the Pencil lifts, for a UI test's picture: the room band held after the lift, the scratch flash held bright
   /// before it fades, and *Nothing under the scribble* shown at least that long. Nil (none held) when unset.
   public var feedbackSeconds: Double?
+  /// `GRABBER_WHITEBOARD_LIST_CHAT=<board>`: on an iPhone, once the boards list is up, that board's chat bubble is
+  /// tapped, for the simulator (#1163, story 1097).
+  public var listChat: String?
 
   public init(_ env: [String: String] = [:]) {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
@@ -102,5 +105,6 @@ public struct WhiteboardHooks: Equatable, Sendable {
     selectNewest = env["GRABBER_WHITEBOARD_SELECT_NEWEST"].flatMap { Int($0) }
     zigzagAt = env["GRABBER_WHITEBOARD_ZIGZAG"].flatMap { Int($0) }
     feedbackSeconds = env["GRABBER_WHITEBOARD_FEEDBACK_SECONDS"].flatMap { Double($0) }
+    listChat = env["GRABBER_WHITEBOARD_LIST_CHAT"].flatMap { $0.isEmpty ? nil : $0 }
   }
 }

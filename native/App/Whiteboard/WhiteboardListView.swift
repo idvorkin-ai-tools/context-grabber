@@ -82,6 +82,9 @@ struct WhiteboardListView: View {
       } else {
         await store.sync(reason: "open")
       }
+      if store.onPhone, let id = LaunchHooks.current.whiteboard.listChat, let board = store.index.board(id) {
+        await openChat(board)
+      }
     }
     // #634: in a window of its own the list is already up when a link arrives. The first value is the task's.
     .onReceive(app.$whiteboardLink.dropFirst().compactMap { $0 }) { _ in Task { await followLink() } }
