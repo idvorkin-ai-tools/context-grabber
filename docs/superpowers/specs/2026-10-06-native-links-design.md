@@ -72,9 +72,10 @@ the cutover registers `grabber` and every saved link keeps working.
   link during a breathing session ends the session and starts the workout. A call carries on behind any screen,
   as it does when its own screen is closed. A link to the screen already in front with nothing to start leaves
   it as it is.
-- **Who wins when links come close together** (#818). Closing a full-screen screen takes a moment (about 0.7 s)
-  before another can come up, so a link that closed something waits that long before its screen comes up. A link
-  that arrives in that moment replaces the waiting one: only the latest link's screen comes up, once, and the
+- **Who wins when links come close together** (#818). Closing a screen takes a moment before another can come up, so
+  a link that closed something waits until what it closed has finished going down, and its screen comes up then: as
+  soon as the last one is gone, never after a fixed pause, and never more than about 0.7 s even if a closing screen
+  never says it has gone (bead context-grabber-mzdf). A link that arrives in that moment replaces the waiting one: only the latest link's screen comes up, once, and the
   earlier one never shows. The latest link still waits out the moment if it would come up in the home window; a
   link home, to a screen in a window of its own, or to the supermix cancels the waiting screen and shows at once.
   Choosing a home tile or a tile's popover choice in that moment counts as the latest ask too.

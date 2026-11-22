@@ -214,6 +214,9 @@ final class HomeStackTests: XCTestCase {
       apply(state.open(route, from: "link", ownWindow: ownWindow), ownWindow: ownWindow)
     }
 
+    /// `screen` reports it has finished going down: its cover's dismissal, or its pushed view gone.
+    mutating func gone(_ screen: Screen) { apply(state.gone(screen)) }
+
     /// Every wait asked for so far runs out, oldest first.
     mutating func settle() {
       let running = waits
@@ -371,6 +374,57 @@ final class HomeStackTests: XCTestCase {
     XCTAssertEqual(state.settle(wait: first), [], "a stale wait")
     XCTAssertEqual(state.settle(wait: second), [.present(.today, from: "shortcut")])
     XCTAssertEqual(state.settle(wait: second), [], "once")
+  }
+
+  /// Bead context-grabber-mzdf: a jump from a chat thread to its board no longer waits out the whole 0.7 s.
+  func testTheScreenComesUpOnceWhatItClosedHasGone() {
+    var window = Window([.chat])
+    window.link(.whiteboard(board: "b"))
+    XCTAssertEqual(window.presented, [], "the thread is still going")
+    window.gone(.chat)
+    XCTAssertEqual(window.presented, [.whiteboard(board: "b")])
+    XCTAssertEqual(window.state.pending, nil)
+    window.settle()
+    window.gone(.chat)
+    XCTAssertEqual(window.presented, [.whiteboard(board: "b")], "the wait's end and a late gone bring nothing more")
+  }
+
+  func testItWaitsForEveryScreenItClosed() {
+    var window = Window([.timer, .chat])
+    window.link(.places)
+    window.gone(.timer)
+    XCTAssertEqual(window.presented, [], "Chat is still going")
+    XCTAssertEqual(window.state.pending?.going, [.chat])
+    window.gone(.chat)
+    XCTAssertEqual(window.presented, [.places])
+  }
+
+  func testTheWaitsEndStillBringsItUpWhenNothingSaysGone() {
+    var window = Window([.timer])
+    window.link(.places)
+    window.settle()
+    XCTAssertEqual(window.presented, [.places])
+  }
+
+  func testAViewLeavingWhileItsScreenStaysOrThatWasNotClosedChangesNothing() {
+    var window = Window([.chat])
+    window.gone(.chat)  // a thread pushed over the list: the list's view goes, Chat stays
+    XCTAssertEqual(window.state.stack, [.chat])
+    window.link(.places)
+    window.gone(.timer)  // not one it closed
+    window.gone(.places)  // still to come up
+    XCTAssertEqual(window.presented, [])
+    window.gone(.chat)
+    XCTAssertEqual(window.presented, [.places])
+  }
+
+  func testASecondLinkInsideTheWaitStillWaitsForWhatTheFirstClosed() {
+    var window = Window([.chat])
+    window.link(.places)
+    window.link(.cockpit)
+    window.gone(.chat)
+    XCTAssertEqual(window.presented, [.cockpit], "the second, once Chat has gone")
+    XCTAssertEqual(window.waits.count, 1)
   }
 
   /// The reducer over every link pair, from each kind of start: the second link wins. Whatever the first asked

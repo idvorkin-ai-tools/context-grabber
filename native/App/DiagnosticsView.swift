@@ -9,6 +9,9 @@ import SwiftUI
 struct DiagnosticsView: View {
   @ObservedObject var model: AppModel
 
+  /// A cover's dismissal is over: a link waiting for it goes on (bead context-grabber-mzdf).
+  private func gone(_ screen: HomeStack.Screen) -> () -> Void { { model.screenGone(screen) } }
+
   var body: some View {
     NavigationStack {
       Form {
@@ -90,10 +93,12 @@ struct DiagnosticsView: View {
           .bugReporting(model.reporter)
       }
       // Each cover on a view of its own (one view cannot hold two), and none on a row: a hidden row's journey
-      // still opens from a link, a Shortcut or a hook.
+      // still opens from a link, a Shortcut or a hook. Each says when its dismissal is over, so a link waiting for it
+      // goes on then (bead context-grabber-mzdf).
       .background {
         Color.clear.fullScreenCover(
-          isPresented: Binding(get: { model.breathe != nil }, set: { if !$0 { model.closeBreathe() } })
+          isPresented: Binding(get: { model.breathe != nil }, set: { if !$0 { model.closeBreathe() } }),
+          onDismiss: gone(.breathe)
         ) {
           BreatheView(app: model, launch: model.breathe ?? BreatheLaunch(), onExit: model.closeBreathe)
             .bugReporting(model.reporter)
@@ -101,7 +106,8 @@ struct DiagnosticsView: View {
       }
       .background {
         Color.clear.fullScreenCover(
-          isPresented: Binding(get: { model.card != nil }, set: { if !$0 { model.closeCard() } })
+          isPresented: Binding(get: { model.card != nil }, set: { if !$0 { model.closeCard() } }),
+          onDismiss: gone(.card)
         ) {
           CardView(app: model, think: model.card ?? false, onDone: model.closeCard)
             .bugReporting(model.reporter)
@@ -109,7 +115,8 @@ struct DiagnosticsView: View {
       }
       .background {
         Color.clear.fullScreenCover(
-          isPresented: Binding(get: { model.showWhiteboard }, set: { if !$0 { model.closeWhiteboard() } })
+          isPresented: Binding(get: { model.showWhiteboard }, set: { if !$0 { model.closeWhiteboard() } }),
+          onDismiss: gone(.whiteboard)
         ) {
           WhiteboardListView(app: model, onDone: model.closeWhiteboard)
             .bugReporting(model.reporter)
@@ -117,18 +124,25 @@ struct DiagnosticsView: View {
       }
       .background {
         Color.clear.fullScreenCover(
-          isPresented: Binding(get: { model.showPlaces }, set: { if !$0 { model.closePlaces() } })
+          isPresented: Binding(get: { model.showPlaces }, set: { if !$0 { model.closePlaces() } }),
+          onDismiss: gone(.places)
         ) {
           PlacesView(app: model, places: model.places, tracker: model.tracker, onExit: model.closePlaces)
             .bugReporting(model.reporter)
         }
       }
       // Its own presenter: one view cannot hold two full-screen covers.
-      .fullScreenCover(isPresented: Binding(get: { model.showCockpit }, set: { if !$0 { model.closeCockpit() } })) {
+      .fullScreenCover(
+        isPresented: Binding(get: { model.showCockpit }, set: { if !$0 { model.closeCockpit() } }),
+        onDismiss: gone(.cockpit)
+      ) {
         CockpitView(model: model.cockpit, onDone: model.closeCockpit)
           .bugReporting(model.reporter)
       }
-      .fullScreenCover(isPresented: Binding(get: { model.callOpen }, set: { if !$0 { model.closeCall() } })) {
+      .fullScreenCover(
+        isPresented: Binding(get: { model.callOpen }, set: { if !$0 { model.closeCall() } }),
+        onDismiss: gone(.call)
+      ) {
         CallView(call: model.call, onDone: model.closeCall)
           .bugReporting(model.reporter)
       }
@@ -149,6 +163,8 @@ struct DiagnosticsView: View {
       }
       .navigationDestination(isPresented: Binding(get: { model.showToday }, set: { if !$0 { model.close(.today) } })) {
         TodayView(app: model, mirror: model.mirror)
+          // Bead context-grabber-mzdf: a link waiting for Today to go goes on once it has.
+          .onDisappear { model.screenGone(.today) }
       }
       .navigationDestination(
         isPresented: Binding(
@@ -157,7 +173,8 @@ struct DiagnosticsView: View {
       ) { ChatListView(chat: model.chat, voice: model.chatVoice, logger: model.bugLogger) }
     }
     .fullScreenCover(
-      isPresented: Binding(get: { model.gymTimer != nil }, set: { if !$0 { model.closeGymTimer() } })
+      isPresented: Binding(get: { model.gymTimer != nil }, set: { if !$0 { model.closeGymTimer() } }),
+      onDismiss: gone(.timer)
     ) {
       GymTimerView(app: model, launch: model.gymTimer ?? GymTimerLaunch(), onExit: model.closeGymTimer)
         // A cover is its own presentation: the app's shake detector and report sheet do not reach into it.

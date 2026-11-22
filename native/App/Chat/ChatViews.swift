@@ -178,7 +178,10 @@ struct ChatListView: View {
       chat.listOnScreen = true
       openKey = nil
     }
-    .onDisappear { chat.listOnScreen = false }
+    .onDisappear {
+      chat.listOnScreen = false
+      chat.viewGone()
+    }
     .task(id: listRefs) { await chat.watchPRStates(listRefs, from: "list") }
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
@@ -791,7 +794,10 @@ struct ChatThreadView: View {
     // No identifier on the whole screen: SwiftUI hands it down over a contained element's own, and the decision
     // card's `decision-card-<id>` read as `chat-thread` (#878, on the simulator).
     .onAppear { if let key { chat.open(key) } }
-    .onDisappear { if let key { chat.close(key) } }
+    .onDisappear {
+      if let key { chat.close(key) }
+      chat.viewGone()
+    }
     // A new chat becomes its thread once the Cockpit has the first message: the same screen, now live.
     .onChange(of: first?.chatThread) { _, thread in
       if let landed = newThread.firstMoved(to: thread) { chat.open(landed) }

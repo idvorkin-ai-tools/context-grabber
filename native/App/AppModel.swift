@@ -201,6 +201,7 @@ final class AppModel: ObservableObject {
     LinkLauncher.handler = { [weak self] route in self?.open(route: route, from: "shortcut") }
     chat.findBoard = { [weak self] board, context in await self?.findBoard(board, context: context) }
     chat.openBoard = { [weak self] board in self?.open(route: .whiteboard(board: board), from: "chat") }
+    chat.viewGone = { [weak self] in self?.screenGone(.chat) }
     // Chat: a reply's notification opens its thread (set before the launch finishes, for a tap that launches us).
     chatNotifications.open = { [weak self] thread in self?.open(route: .chat(thread: thread), from: "notification") }
     chatNotifications.onScreen = { [weak self] in self?.chat.openThread }
@@ -362,13 +363,49 @@ final class AppModel: ObservableObject {
       case .dismissed(let shown): closed(shown)
       case .present(let route, let source): present(route, from: source)
       case .wait(let milliseconds, let id):
-        // #818: a newer link replaces the one waiting here, so a settle for a dropped wait presents nothing.
+        waitStarted[id] = ProcessInfo.processInfo.systemUptime
+        // #818: a newer link replaces the one waiting here, so a settle for a dropped wait presents nothing. Bead
+        // context-grabber-mzdf: this is the most it waits; `screenGone` brings the screen up sooner.
         Task {
           try? await Task.sleep(for: .milliseconds(milliseconds))
-          apply(screens.settle(wait: id))
+          let going = screens.pending.flatMap { $0.wait == id ? $0.going : nil } ?? []
+          settled(screens.settle(wait: id), wait: id, via: "ceiling", going: going)
         }
       }
     }
+  }
+
+  /// When each link's wait began, to log how long its screen waited.
+  private var waitStarted: [Int: TimeInterval] = [:]
+
+  /// Bead context-grabber-mzdf: `screen` has finished going down — its cover's dismissal is over, its pushed view has
+  /// left. A link waiting on it brings its screen up now rather than at the end of its wait.
+  func screenGone(_ screen: HomeStack.Screen) {
+    guard let waiting = screens.pending else { return }
+    settled(screens.gone(screen), wait: waiting.wait, via: "gone", last: screen)
+  }
+
+  /// A waiting link's screen comes up (or nothing, for a wait a newer link took over or dropped), logged with what
+  /// let it: every screen it closed said it had gone, or the most it waits ran out first.
+  private func settled(
+    _ effects: [HomeStack.Effect], wait id: Int, via: String, last: HomeStack.Screen? = nil,
+    going: Set<HomeStack.Screen> = []
+  ) {
+    let started = waitStarted[id]
+    // The wait's own end always comes, so nothing is left behind.
+    if via == "ceiling" || !effects.isEmpty { waitStarted[id] = nil }
+    for case .present(let route, _) in effects {
+      var fields: [String: Any] = [
+        "action": "settled", "route": route.name, "via": via,
+        "ms": started.map { Int((ProcessInfo.processInfo.systemUptime - $0) * 1000) } ?? -1,
+      ]
+      if let last { fields["screen"] = last.reportName }
+      if via == "ceiling" {
+        fields["going"] = going.map(\.reportName).sorted().joined(separator: ",")
+      }
+      log.event("links", fields)
+    }
+    apply(effects)
   }
 
   /// Takes one screen down: its Done, its cover's binding, another window taking it.

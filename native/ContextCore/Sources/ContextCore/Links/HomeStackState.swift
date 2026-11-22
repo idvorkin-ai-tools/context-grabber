@@ -11,7 +11,8 @@ extension HomeStack {
     case showHomeWindow
     /// The screen is down; AppModel does what its closing does besides (a log line, a refresh).
     case dismissed(Screen)
-    /// Call `settle(wait:)` with this id after this long: the covers going down have to settle first.
+    /// Call `settle(wait:)` with this id after this long, the most it waits: the screens going down have to settle
+    /// first, and `gone(_:)` brings the screen up sooner once each has said so.
     case wait(milliseconds: Int, id: Int)
     /// Bring the route's screen up (its opener calls `open(_:)`), or open it in its own window or another app.
     case present(AppRoute, from: String)
@@ -23,6 +24,9 @@ extension HomeStack {
     public let from: String
     /// The wait it comes up after: a newer link that replaces it keeps the wait already running.
     public let wait: Int
+    /// The screens it closed that haven't said they are gone yet (bead context-grabber-mzdf): it comes up once none
+    /// is left, or at the wait's end, whichever is first.
+    public var going: Set<Screen>
   }
 
   public struct State: Equatable, Sendable {
@@ -90,20 +94,24 @@ extension HomeStack {
       let waiting = pending
       pending = nil
       var effects: [Effect] = []
+      var closed = waiting?.going ?? []
       for step in HomeStack.go(to: route, up: Set(stack), ownWindow: ownWindow) {
         switch step {
         case .showHomeWindow: effects.append(.showHomeWindow)
         case .close(let screen):
-          if close(screen) { effects.append(.dismissed(screen)) }
+          if close(screen) {
+            closed.insert(screen)
+            effects.append(.dismissed(screen))
+          }
         case .wait(let milliseconds):
           waits += 1
-          pending = Pending(route: route, from: source, wait: waits)
+          pending = Pending(route: route, from: source, wait: waits, going: closed)
           effects.append(.wait(milliseconds: milliseconds, id: waits))
           return effects
         case .present(let presented):
           if let waiting, !ownWindow, Screen(route: presented) != nil {
             // The covers the earlier link closed are still going down.
-            pending = Pending(route: presented, from: source, wait: waiting.wait)
+            pending = Pending(route: presented, from: source, wait: waiting.wait, going: waiting.going)
             return effects
           }
           effects.append(.present(presented, from: source))
@@ -116,6 +124,19 @@ extension HomeStack {
     /// started over, or whose link was dropped, does nothing.
     public mutating func settle(wait id: Int) -> [Effect] {
       guard let waiting = pending, waiting.wait == id else { return [] }
+      pending = nil
+      return [.present(waiting.route, from: waiting.from)]
+    }
+
+    /// `screen` has finished going down (its cover's dismissal, its pushed view gone). Once every screen the waiting
+    /// link closed has, its screen comes up without waiting out the rest of the wait. A screen still up, or one the
+    /// waiting link didn't close, changes nothing: a view can leave the screen without its screen closing.
+    public mutating func gone(_ screen: Screen) -> [Effect] {
+      guard var waiting = pending, !stack.contains(screen), waiting.going.remove(screen) != nil else { return [] }
+      guard waiting.going.isEmpty else {
+        pending = waiting
+        return []
+      }
       pending = nil
       return [.present(waiting.route, from: waiting.from)]
     }

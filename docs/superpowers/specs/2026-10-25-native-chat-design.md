@@ -148,7 +148,8 @@ it, so iCloud can bring nothing newer, only a delete made on another device. A d
 doesn't stop the jump: the board opens, and the delete lands once the board is closed, unless it was drawn on meanwhile,
 which keeps it (#1137, Igor, 2026-11-22, on the iPad: *"Jump to board has a super slow
 implementation"*; the jump took nearly three seconds, half of it asking iCloud twice). The full-size view goes down at
-once rather than sliding away. **Another device's board**, or one whose latest drawing isn't here yet, asks iCloud
+once rather than sliding away, and the board comes up as soon as the thread has finished going, not after a fixed
+pause (bead context-grabber-mzdf). **Another device's board**, or one whose latest drawing isn't here yet, asks iCloud
 first, so newer ink from that device is there when the board opens; out of iCloud's reach, it opens the last drawing
 this device knew of. iCloud is asked at most once for a jump, never again as the board comes up. A board that was deleted (on another device's board, or once the delete has reached this device), that isn't on this device even
 after asking iCloud, or whose latest drawing didn't come down, says so in a copyable problem and the picture stays open. A picture from anywhere else has no button. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
