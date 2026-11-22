@@ -39,23 +39,23 @@ Igor's picks on the design board, 2026-11-22. Each rule is stated here once; the
 What moves whole, and is never cut through by a push:
 
 - a mark of Larry's or Claude's kept on its own with **Keep**;
-- a whole reply kept with **Keep group** or **Keep all**: what he kept together moves together (story 1152);
+- a whole reply kept with **Keep group** or **Keep all**: what he kept together moves together (story 1205);
 - a group Larry made himself;
 - a kept text or a paste, which can also be reworded;
 - a word of his that a connector is tied to;
 - a folded section, with its header.
 
 His own loose strokes are never one thing by themselves. Erasing part of a thing leaves plain ink (decision 4), and a
-fold is erased only by its words or its marker, never by its underline or its # alone (story 1151).
+fold is erased only by its words or its marker, never by its underline or its # alone (story 1170).
 
 ### What a tap picks up
 
 A finger tap is tried in this order, and the first that fits wins:
 
-1. **His own selection.** A tap inside it is always the selection's, whatever lies under the finger (story 1153).
+1. **His own selection.** A tap inside it is always the selection's, whatever lies under the finger (story 1196).
 2. **What he kept together.** A piece of a reply kept with Keep group or Keep all picks up that reply; a mark kept on
-   its own with Keep picks up that mark alone; a group of Larry's picks up the group (stories 947, 1140, 1152).
-3. **A text.** The first tap selects it, ready to drag; the second opens its words (stories 940, 1154).
+   its own with Keep picks up that mark alone; a group of Larry's picks up the group (stories 947, 1140, 1205).
+3. **A text.** The first tap selects it, ready to drag; the second opens its words (stories 940, 1197).
 
 The Pencil never selects with a tap: it draws. A Pencil held still on a word picks that word up (story 859).
 
@@ -69,7 +69,7 @@ a cut that always lands between rows of writing; writing Larry saw never moves f
 - **A paste or a dropped selection**, which first looks for clear paper and pushes only if there is none.
 - **A suggestion of Larry's**, when it is kept, by Keep, Keep group or Keep all alike (story 1149).
 - **A change Larry makes to the board directly**, when it lands with the Pencil up. His own make-room cuts between
-  rows and moves whole lines like every other push (story 1150).
+  rows and moves whole lines like every other push (story 1195).
 
 This reverses decision 2: Larry's room no longer waits for a tap on *Make room*. It also reverses "it lands where it
 is dropped, even on ink": a selection dropped onto writing pushes the writing down (story 973, Igor 2026-11-17).
@@ -77,9 +77,10 @@ is dropped, even on ink": a selection dropped onto writing pushes the writing do
 ### Larry's suggestions, and reaching him
 
 - His suggestions stay until Igor keeps or dismisses them, across later replies and across closing and opening the
-  board. An answer to a board Igor has already written past is dropped. Claude's quick ghosts still fade.
-- The bar's switch is *Ask at my pauses*, for whoever answers (story 1156). There is one *Send to Larry* button, which
-  waits when offline (story 1157), and a Send from any device goes to the board's one conversation (story 1158).
+  board. A reply of Larry's is never dropped, however much Igor has written since he looked: the one rule for making room
+  moves Igor's newer writing down instead. Claude's quick ghosts still fade.
+- The bar's switch is *Ask at my pauses*, for whoever answers (story 1171). There is one *Send to Larry* button, which
+  waits when offline (story 1176), and a Send from any device goes to the board's one conversation (story 1158).
 
 ### Built, and not yet
 
@@ -1078,7 +1079,7 @@ board of 2026-11-22.
 | 17 | A fold is erased only by its words or its marker. | Design board pick |
 | 18 | What he kept together moves together: Keep is that piece, Keep group or Keep all is the reply. | Design board pick |
 | 19 | His own selection always wins a tap; a second tap rewords a text. | Design board pick |
-| 20 | Larry's suggestions stay until kept or dismissed, across close and reopen; an answer to a board already written past is dropped; Claude's quick ghosts still fade. | Design board pick |
+| 20 | Larry's suggestions stay until kept or dismissed, across close and reopen; a reply of his is never dropped, and making room moves Igor's newer writing down instead (Igor, 2026-11-22, withdrawing "an answer to a board already written past is dropped"); Claude's quick ghosts still fade. | Design board pick |
 | 21 | The switch is *Ask at my pauses*; one Send button that waits offline; a Send from any device goes to the board's one conversation. Marks stay inside the page and paper stays light. | Design board picks |
 
 Still open: questions 5 and 6 under *Requirements*, and what "reflows like text" asks beyond a rigid push (bead
