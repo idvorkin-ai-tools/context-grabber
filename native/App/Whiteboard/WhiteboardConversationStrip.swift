@@ -26,6 +26,10 @@ struct WhiteboardNoteStrip: View {
     let interrupt: (() -> Void)?
   }
 
+  /// What it shows, read by the drawing screen as it draws (context-grabber-c59d): a value, so a change in the model
+  /// draws the strip again. A closure alone looks the same to SwiftUI every time, and the line went stale.
+  let current: Shown
+  /// What it shows at each tick; read once a second while the line ticks.
   let shown: (ContinuousClock.Instant) -> Shown
   /// Whether the line ticks once a second: Larry's clock, or a message holding the middle (story 766).
   let ticks: Bool
@@ -35,14 +39,13 @@ struct WhiteboardNoteStrip: View {
 
   var body: some View {
     if ticks {
-      TimelineView(.periodic(from: .now, by: 1)) { _ in content(now: .now) }
+      TimelineView(.periodic(from: .now, by: 1)) { _ in content(shown(.now)) }
     } else {
-      content(now: .now)
+      content(current)
     }
   }
 
-  @ViewBuilder private func content(now: ContinuousClock.Instant) -> some View {
-    let shown = shown(now)
+  @ViewBuilder private func content(_ shown: Shown) -> some View {
     let (tap, conversationOpen) = (shown.tap, shown.conversationOpen)
     if let line = shown.line {
       HStack(spacing: 6) {
@@ -135,7 +138,10 @@ struct WhiteboardConversationPanel: View {
   let rows: [WhiteboardNote.Row]
   /// Whether the live rows tick once a second, with Larry's clock.
   let ticks: Bool
-  /// The status chip and what the mic hears, at a moment (story 1047).
+  /// The status chip and what the mic hears, read by the drawing screen as it draws: a value, so a change draws the
+  /// panel again (context-grabber-c59d).
+  let current: [WhiteboardNote.Row]
+  /// The status chip and what the mic hears, at a moment (story 1047); read once a second while the rows tick.
   let live: (ContinuousClock.Instant) -> [WhiteboardNote.Row]
   /// The whole page's height, not the paper's it pushes down, so opening it doesn't change its own limit (story 837).
   let pageHeight: CGFloat
@@ -156,9 +162,9 @@ struct WhiteboardConversationPanel: View {
     VStack(alignment: .leading, spacing: 6) {
       WhiteboardConversationText(rows: rows, maxHeight: threadCap)
       if ticks {
-        TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(now: .now) }
+        TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(live(.now)) }
       } else {
-        liveRows(now: .now)
+        liveRows(current)
       }
       if let openInChat {
         Button("Open in Chat", action: openInChat)
@@ -176,10 +182,10 @@ struct WhiteboardConversationPanel: View {
   }
 
   /// Under the thread: the status chip (story 1047) and what the mic is hearing.
-  private func liveRows(now: ContinuousClock.Instant) -> some View {
+  private func liveRows(_ rows: [WhiteboardNote.Row]) -> some View {
     // One column of its own: a TimelineView lays several children over each other (#882).
     VStack(alignment: .leading, spacing: 4) {
-      ForEach(live(now)) { row in
+      ForEach(rows) { row in
         Group {
           if row.id == "live-chip" {
             Text("\(Text(row.who).bold()) · \(row.text)")

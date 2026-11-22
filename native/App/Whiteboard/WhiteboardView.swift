@@ -2998,7 +2998,8 @@ struct WhiteboardView: View {
         interrupt: model.larryWait == .working ? { model.interruptLarry() } : nil)
     }
     return WhiteboardNoteStrip(
-      shown: shown, ticks: WhiteboardNote.ticks(larry: model.larry, notice: model.notice), onPhone: onPhone,
+      current: shown(.now), shown: shown, ticks: WhiteboardNote.ticks(larry: model.larry, notice: model.notice),
+      onPhone: onPhone,
       tapNote: { model.tapNote(onPhone: onPhone, openChat: openChat) })
   }
 
@@ -3014,6 +3015,6 @@ struct WhiteboardView: View {
     let openInChat: (() -> Void)? = model.threadKey.map { key in { openChat(key) } }
     return WhiteboardConversationPanel(
       rows: WhiteboardNote.recent(model.thread), ticks: WhiteboardNote.ticks(larry: model.larry, notice: nil),
-      live: live, pageHeight: pageHeight, openInChat: openInChat)
+      current: live(.now), live: live, pageHeight: pageHeight, openInChat: openInChat)
   }
 }
