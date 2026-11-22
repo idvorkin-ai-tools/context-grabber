@@ -1286,7 +1286,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1122:
 
 - **Summary:** A board's thread has *Board* in its top bar, back to the board
-- **Status:** native app only: not yet implemented
+- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the host by `ChatThreadBoardTests` (the newest board message names it, else this device's record; none for a thread with no board), the Mac build, and the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testABoardsThreadHasBoardInItsBarBackToTheBoard` and `testAThreadWithNoBoardHasNoBoardInItsBar` against the fake Cockpit; the iPad and the phone not yet
 - **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
 - **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1311,7 +1311,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1123:
 
 - **Summary:** *Board* on a thread whose board can't be opened says why and keeps the thread
-- **Status:** native app only: not yet implemented
+- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testBoardOnAThreadWhoseBoardIsMissingSaysSoAndTheThreadStays` against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet
 - **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
 - **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
 
