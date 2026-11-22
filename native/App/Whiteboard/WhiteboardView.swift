@@ -338,6 +338,7 @@ struct WhiteboardView: View {
     let openInChat: (() -> Void)? = model.threadKey.map { key in { openChat(key) } }
     return WhiteboardConversationPanel(
       rows: WhiteboardNote.recent(model.thread), ticks: WhiteboardNote.ticks(larry: model.larry, notice: nil),
-      current: live(.now), live: live, pageHeight: pageHeight, openInChat: openInChat)
+      current: live(.now), live: live, pageHeight: pageHeight, openInChat: openInChat,
+      linkOpened: { model.logLinkOpened($0) })
   }
 }

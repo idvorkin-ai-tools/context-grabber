@@ -68,4 +68,41 @@ final class ChatBubbleLinksTests: XCTestCase {
     XCTAssertEqual(link.id, "pr:idvorkin/context-grabber#734", "the strip's id, so its state applies")
     XCTAssertEqual(trailing, ".")
   }
+
+  // Story 1127 (#1138): Lavish, on the Cockpit's host at 8444, is Larry's, not a blog preview.
+  private let lavish = "https://c-5004.squeaker-teeth.ts.net:8444/session/7d7f837c3898ed37"
+
+  func testLavishReadsLarryLavishInABubbleAndOnTheStrip() {
+    XCTAssertEqual(read("plus AI multiplier: \(lavish)"), ["plus AI multiplier: [Larry: Lavish]"])
+    XCTAssertEqual(ChatLinks.found(in: lavish).map(\.label), ["Larry: Lavish"])
+    XCTAssertEqual(read("preview at \(preview)."), ["preview at [Preview]."], "the blog's preview still reads Preview")
+  }
+
+  func testTwoLavishPagesAreTwoChips() {
+    let other = "https://c-5004.squeaker-teeth.ts.net:8444/session/6ca47370d1a1f30b"
+    XCTAssertEqual(ChatLinks.found(in: "\(lavish) \(other)").map(\.id).count, 2)
+    XCTAssertNotEqual(ChatLinks.found(in: lavish).first?.id, ChatLinks.found(in: other).first?.id)
+  }
+
+  /// The board's conversation (story 1127): the words as written, each link its bubble chip in its place.
+  func testPiecesKeepTheWordsAndPutChipsWhereTheLinksWere() {
+    let reply = "All three trees are there,\nplus AI multiplier: \(lavish) and \(pr734)."
+    let pieces = ChatBubbleLinks.pieces(in: reply).map { piece -> String in
+      switch piece {
+      case .words(let words): return words
+      case .chip(let link): return "[\(link.label)]"
+      }
+    }
+    XCTAssertEqual(
+      pieces, ["All three trees are there,\nplus AI multiplier: ", "[Larry: Lavish]", " and ", "[PR]", "."])
+    guard case .chip(let first)? = ChatBubbleLinks.pieces(in: reply).dropFirst().first else {
+      return XCTFail("the Lavish link is a chip")
+    }
+    XCTAssertEqual(first.url.absoluteString, lavish, "the chip opens the full address")
+  }
+
+  func testPiecesOfWordsWithNoLinkAreTheWords() {
+    XCTAssertEqual(ChatBubbleLinks.pieces(in: "no links here"), [.words("no links here")])
+    XCTAssertEqual(ChatBubbleLinks.pieces(in: ""), [])
+  }
 }

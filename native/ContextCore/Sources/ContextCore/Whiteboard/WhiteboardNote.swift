@@ -253,7 +253,8 @@ public enum WhiteboardNote {
 
   /// The newest thing said, by whoever said it last, and whether it is Larry's.
   private static func middle(_ said: WhiteboardSaid, micOn: Bool) -> (text: String, keepsEnd: Bool, larry: Bool)? {
-    let larry = said.larry.map { (text: "Larry: \($0)", keepsEnd: false, larry: true) }
+    // Story 1127: a link reads as its chip's words, never the long address.
+    let larry = said.larry.map { (text: "Larry: \(ChatBubbleLinks.shortened($0))", keepsEnd: false, larry: true) }
     guard said.youLast else { return larry ?? said.you.map { ("You: \($0)", true, false) } }
     if let you = said.you { return ("You: \(you)", true, false) }
     return micOn ? ("Listening…", false, false) : larry

@@ -23,6 +23,16 @@ extension WhiteboardModel {
   /// The board has a thread with Larry on this device.
   var threadKey: String? { threads.thread(board: board.id) }
 
+  /// Story 1127 (#1138): a link chip in the open conversation was tapped; the kind and the board, never the link.
+  func logLinkOpened(_ link: ChatLink) {
+    log.event(
+      "chat",
+      [
+        "action": "link_opened", "from": "board", "board": board.id, "thread": threadKey ?? "",
+        "kind": link.kind.logName,
+      ])
+  }
+
   /// Story 768: a tap on the note's line opens or closes the panel over the board, remembered for the next board; an
   /// iPhone has no panel, so it opens the board's thread in Chat.
   func tapNote(onPhone: Bool, openChat: (String) -> Void) {

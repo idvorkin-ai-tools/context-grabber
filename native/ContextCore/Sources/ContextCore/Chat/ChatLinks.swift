@@ -187,8 +187,14 @@ public enum ChatLinks {
     }
     let page = host + (parts.isEmpty ? "" : "/" + parts.joined(separator: "/")) + (url.query.map { "?" + $0 } ?? "")
     if host == "gist.github.com" { return ChatLink(url: url, kind: .gist, label: "gist", id: page) }
+    if host == CockpitPage.host, url.port == lavishPort {
+      return ChatLink(url: url, kind: .web, label: "Larry: Lavish", id: page)
+    }
     return ChatLink(url: url, kind: .web, label: webLabel(host: host, parts: parts), id: page)
   }
+
+  /// Lavish, the review pages Larry hands over, on the Cockpit's host (#1138): Larry's, not the blog's preview.
+  static let lavishPort = 8444
 
   /// The site and the last part of the path, with the part before it when the last is only a number.
   /// The Cockpit's long tailnet host reads *Larry* (story 744): *Larry*, *Larry: ai-journal*.

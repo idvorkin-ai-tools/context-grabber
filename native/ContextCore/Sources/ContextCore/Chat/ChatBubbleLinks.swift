@@ -96,6 +96,38 @@ public enum ChatBubbleLinks {
     guard link.kind == .web, let raw = link.url.host?.lowercased() else { return false }
     let host = raw.hasPrefix("www.") ? String(raw.dropFirst(4)) : raw
     if host == "idvork.in" || host == "idvorkin.github.io" { return true }
-    return host == CockpitPage.host && link.url.port.map { previewPorts.contains($0) } ?? false
+    guard host == CockpitPage.host, let port = link.url.port, port != ChatLinks.lavishPort else { return false }
+    return previewPorts.contains(port)
+  }
+
+  /// One stretch of a message where chips stand in its words (the whiteboard's conversation, story 1127): the words as
+  /// written, spaces and line breaks kept, or a link as its bubble chip.
+  public enum Piece: Equatable, Sendable {
+    case words(String)
+    case chip(ChatLink)
+  }
+
+  /// `text` with each link as its chip's words, for a line too short for the chips themselves (the board's note).
+  public static func shortened(_ text: String) -> String {
+    pieces(in: text).map { piece in
+      switch piece {
+      case .words(let words): return words
+      case .chip(let link): return link.label
+      }
+    }.joined()
+  }
+
+  /// `text` as its words and chips, in order; a text with no link is one stretch of words.
+  public static func pieces(in text: String) -> [Piece] {
+    guard let finder = ChatLinks.Finder() else { return text.isEmpty ? [] : [.words(text)] }
+    var out: [Piece] = []
+    var cursor = text.startIndex
+    for (range, link) in ChatLinks.located(in: text, finder) where range.lowerBound >= cursor {
+      if cursor < range.lowerBound { out.append(.words(String(text[cursor..<range.lowerBound]))) }
+      out.append(.chip(inBubble(link)))
+      cursor = range.upperBound
+    }
+    if cursor < text.endIndex { out.append(.words(String(text[cursor...]))) }
+    return out
   }
 }

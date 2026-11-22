@@ -19,4 +19,23 @@ final class NewestInView: UITextView {
     let end = max(-adjustedContentInset.top, contentSize.height - bounds.height + adjustedContentInset.bottom)
     if abs(contentOffset.y - end) > 0.5 { contentOffset.y = end }
   }
+
+  /// Story 1127: a copy holding a link chip carries the link's full address where the chip was, not its words.
+  override func copy(_ sender: Any?) {
+    let range = selectedRange
+    guard range.length > 0, let text = attributedText else { return super.copy(sender) }
+    let picked = text.attributedSubstring(from: range)
+    var out = ""
+    var lastURL: URL?
+    picked.enumerateAttribute(.link, in: NSRange(location: 0, length: picked.length)) { value, run, _ in
+      if let url = value as? URL {
+        if url != lastURL { out += url.absoluteString }
+        lastURL = url
+      } else {
+        out += picked.attributedSubstring(from: run).string.replacingOccurrences(of: "\u{FFFC}", with: "")
+        lastURL = nil
+      }
+    }
+    UIPasteboard.general.string = out
+  }
 }

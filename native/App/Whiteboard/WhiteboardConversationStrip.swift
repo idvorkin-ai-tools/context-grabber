@@ -147,6 +147,8 @@ struct WhiteboardConversationPanel: View {
   let pageHeight: CGFloat
   /// Opens the board's thread in Chat; nil when the board has none yet.
   let openInChat: (() -> Void)?
+  /// Story 1127: a link chip in the thread was tapped; it opens on its own, this only tells the log.
+  var linkOpened: (ChatLink) -> Void = { _ in }
   /// Story 1045 (#1003): the conversation's text stops at about seventy characters of its own type.
   @ScaledMetric(relativeTo: .footnote) private var readableWidth: CGFloat = 470
   /// Story 837: what the panel's chip, Open in Chat and padding take, and the fewest lines of thread it keeps.
@@ -160,7 +162,7 @@ struct WhiteboardConversationPanel: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      WhiteboardConversationText(rows: rows, maxHeight: threadCap)
+      WhiteboardConversationText(rows: rows, maxHeight: threadCap, linkOpened: linkOpened)
       if ticks {
         TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(live(.now)) }
       } else {
@@ -219,9 +221,36 @@ enum WhiteboardNoteInk {
 /// Story 768: the board's thread in the open note, one text that can be selected and copied across rows and scrolls
 /// inside the panel, newest at the bottom. A UITextView rather than SwiftUI text: its gestures can be told to take
 /// fingers only, so the Pencil neither scrolls nor selects it, and a ticking clock beside it doesn't reset a selection.
+/// Its links are chips a finger opens (story 1127, #1138), with the words Chat's bubbles give them.
 struct WhiteboardConversationText: UIViewRepresentable {
   let rows: [WhiteboardNote.Row]
   let maxHeight: CGFloat
+  var linkOpened: (ChatLink) -> Void = { _ in }
+
+  func makeCoordinator() -> Coordinator { Coordinator() }
+
+  /// Opens a tapped chip as UIKit would, after telling the log which kind it was.
+  final class Coordinator: NSObject, UITextViewDelegate {
+    var links: [URL: ChatLink] = [:]
+    var linkOpened: (ChatLink) -> Void = { _ in }
+    var shown: (rows: [WhiteboardNote.Row], size: CGFloat)?
+
+    func textView(_ textView: UITextView, primaryActionFor textItem: UITextItem, defaultAction: UIAction) -> UIAction? {
+      guard case .link(let url) = textItem.content, let link = links[url] else { return defaultAction }
+      let opened = linkOpened
+      let target = Self.target(link)
+      return UIAction { _ in
+        opened(link)
+        UIApplication.shared.open(target)
+      }
+    }
+
+    /// Story 1127: an Inbox chip opens its thread in the app, in either spelling; any other link where it points.
+    static func target(_ link: ChatLink) -> URL {
+      guard case .inbox = link.kind, let short = URL(string: ChatLinks.address(link)) else { return link.url }
+      return short
+    }
+  }
 
   func makeUIView(context: Context) -> NewestInView {
     let view = NewestInView()
@@ -232,13 +261,20 @@ struct WhiteboardConversationText: UIViewRepresentable {
     view.textContainer.lineFragmentPadding = 0
     view.adjustsFontForContentSizeCategory = true
     view.accessibilityIdentifier = "whiteboard-conversation-text"
+    view.delegate = context.coordinator
+    // Story 1127: a chip keeps the look the text gives it, no underline.
+    view.linkTextAttributes = [.foregroundColor: UIColor.tintColor]
     return view
   }
 
   func updateUIView(_ view: NewestInView, context: Context) {
-    let text = Self.text(rows)
+    context.coordinator.linkOpened = linkOpened
     fingersOnly(view)
-    guard view.attributedText != text else { return }
+    let size = UIFont.preferredFont(forTextStyle: .footnote).pointSize
+    if let shown = context.coordinator.shown, shown.rows == rows, shown.size == size { return }
+    let (text, links) = Self.text(rows)
+    context.coordinator.links = links
+    context.coordinator.shown = (rows, size)
     view.attributedText = text
     view.showNewest()
   }
@@ -259,18 +295,54 @@ struct WhiteboardConversationText: UIViewRepresentable {
     }
   }
 
-  private static func text(_ rows: [WhiteboardNote.Row]) -> NSAttributedString {
+  private static func text(_ rows: [WhiteboardNote.Row]) -> (NSAttributedString, [URL: ChatLink]) {
     let body = UIFont.preferredFont(forTextStyle: .footnote)
     let bold = UIFont(
       descriptor: body.fontDescriptor.withSymbolicTraits(.traitBold) ?? body.fontDescriptor, size: body.pointSize)
     let text = NSMutableAttributedString()
+    var links: [URL: ChatLink] = [:]
     for (index, row) in rows.enumerated() {
       if index > 0 { text.append(NSAttributedString(string: "\n")) }
       // Story 1053 (#1003): Larry's words lead; Igor's are quieter, still 4.5:1.
       let color: UIColor = row.kind == .larry ? .label : WhiteboardNoteInk.quiet
       text.append(NSAttributedString(string: "\(row.who): ", attributes: [.font: bold, .foregroundColor: color]))
-      text.append(NSAttributedString(string: row.text, attributes: [.font: body, .foregroundColor: color]))
+      for piece in ChatBubbleLinks.pieces(in: row.text) {
+        switch piece {
+        case .words(let words):
+          text.append(NSAttributedString(string: words, attributes: [.font: body, .foregroundColor: color]))
+        case .chip(let link):
+          links[link.url] = link
+          text.append(chip(link, font: bold))
+        }
+      }
     }
-    return text
+    return (text, links)
+  }
+
+  /// A link as a chip in the text (story 1127): its icon and words on a tinted ground, the whole of it the link.
+  /// Copying it gives the full address (`NewestInView.copy`).
+  private static func chip(_ link: ChatLink, font: UIFont) -> NSAttributedString {
+    let attributes: [NSAttributedString.Key: Any] = [
+      .font: font, .link: link.url, .backgroundColor: UIColor.tertiarySystemFill,
+    ]
+    let chip = NSMutableAttributedString(string: "\u{2009}", attributes: attributes)
+    if let icon = UIImage(systemName: chipIcon(link.kind), withConfiguration: UIImage.SymbolConfiguration(font: font)) {
+      let attachment = NSMutableAttributedString(attachment: NSTextAttachment(image: icon))
+      attachment.addAttributes(attributes, range: NSRange(location: 0, length: attachment.length))
+      chip.append(attachment)
+      chip.append(NSAttributedString(string: "\u{2009}", attributes: attributes))
+    }
+    chip.append(NSAttributedString(string: link.label + "\u{2009}", attributes: attributes))
+    return chip
+  }
+
+  /// Chat's chip icons (`LinkChip`).
+  private static func chipIcon(_ kind: ChatLink.Kind) -> String {
+    switch kind {
+    case .pullRequest: return "arrow.triangle.pull"
+    case .gist: return "doc.text"
+    case .web: return "link"
+    case .inbox: return "tray"
+    }
   }
 }
