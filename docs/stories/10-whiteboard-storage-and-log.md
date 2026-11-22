@@ -199,7 +199,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1143:
 
 - **Summary:** The log says what a moving touch began on and held, what the board changed under it, and whose ink moved
-- **Status:** implemented (the logging alone); verified by host tests and the Mac build; the iPad's own drag is still owed
+- **Status:** implemented (the logging alone) in [4cc6d29b](https://github.com/idvorkin/context-grabber/commit/4cc6d29b); verified by host tests (`PaperProbeMoveAuditTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2: `WhiteboardGroupTapUITests` and `WhiteboardTheirsTapUITests` pass, and their log shows a group drag beginning on PaperKit's `CanvasElementResizeView` with all 3 moved strokes held, Larry's, and moved alike; the reflow view sits idle at the sheet's size, without the focus); the iPad's own reflow drag is still owed
 - **Issues:** bead context-grabber-eg7v (2026-11-22, the iPad log behind #1171: a finger drag moved 54 strokes, Larry's 52-stroke text and two of Igor's, with nothing selected, as a Larry turn landed; the drag began on PaperKit's handwriting reflow view, a popover of its own over exactly those strokes)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The log says what a moving touch held and what moved*
 
