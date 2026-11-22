@@ -189,7 +189,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 359:
 
 - **Summary:** Strokes made during a ghost turn get their own turn
-- **Status:** superseded by story 894 (the Pencil going down drops a turn that hasn't landed) and story 892 (the next turn waits for my next pause, by my rhythm); was implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3); its rules verified by host tests (`WhiteboardPacerTests`); not on the simulator, whose fake Cockpit answers with no delay, and the Pencil lift still to try on the iPad
+- **Status:** its one-second wait is superseded by story 892 (the wait follows my rhythm, 1.5 to 5 s); what the Pencil going down does to a turn still on its way is story 894, which story 350 reads differently; was implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3); its rules verified by host tests (`WhiteboardPacerTests`); not on the simulator, whose fake Cockpit answers with no delay, and the Pencil lift still to try on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:

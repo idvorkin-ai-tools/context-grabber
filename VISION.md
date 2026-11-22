@@ -32,8 +32,8 @@ Coaching comes from Larry: the app carries his reminders to the front door and d
 ## Thinking on paper with Larry
 
 The whiteboard is the line to Larry in ink: Igor thinks with the Pencil on the iPad, Larry sees the board and draws back.
-A board is a column of ruled pages with always another blank one below, and everything on it is ink: pasted text, Larry's labels and snapped shapes land as ink, with no shapes palette, text boxes or layers.
-Nothing Larry or Claude draws joins the board until Igor keeps it, and a stray tap never keeps or loses a mark.
+A board is a column of pages with always another blank one below, and what is drawn on it is ink: pasted text, Larry's labels and snapped shapes land as ink, with no shapes palette, text boxes or layers.
+A mark Larry or Claude suggests joins the board only when Igor keeps it, and a stray tap never keeps or loses one; a change Larry makes to the board directly is one Undo away from gone.
 Larry answers a board unless Igor picks someone else, and he waits until Igor has stopped writing.
 One device draws a board and every other device only looks; the iPhone looks and talks, and never draws.
 Every gesture shows what it did, and a wrong guess by the board costs one Undo.
