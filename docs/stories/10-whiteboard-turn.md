@@ -1809,3 +1809,23 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a pause has asked Claude and no answer has landed yet, and I spoke some words with it
 - **When:** I put the Pencil down to write again
 - **Then:** that request is dropped, any of its marks already shown go, the bar says nothing went wrong, and my words go with the next turn after my next pause
+
+---
+
+### User Story 1103:
+
+- **Summary:** Pick the board's microphone and see the sound coming in
+- **Status:** implemented in [f6fd7a73](https://github.com/idvorkin/context-grabber/commit/f6fd7a73); verified by the lint and host rungs, the Mac build, and every whiteboard UI test on the iPad simulator (the bar's buttons and the mic's turns unchanged). The simulator has no real microphone to pick or level to show: the pocket mic, the reopening and the moving bar are the iPad's to show
+- **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139) (the replay half is `context-grabber-3tdv`)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Which microphone, and what it hears*
+
+#### Use Case:
+- **As someone** talking to the board through a pocket mic rather than the iPad's own
+- **I want to** see which microphone the open mic hears, pick another, and watch the sound coming in
+- **so that** I know my words are reaching it before I say something that matters
+
+#### Acceptance Criteria:
+- **Scenario:** Switching to the pocket mic with the mic open
+- **Given:** the board's mic is open on the iPad's own microphone, its name and moving level bar at the end of the note's line, and a pocket mic is connected
+- **When:** I tap the name and pick the pocket mic
+- **Then:** the mic closes, its words so far still go, and opens again on the pocket mic: the line names it, the bar moves with it as I talk, and the next opening, on any board, uses it too

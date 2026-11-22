@@ -636,7 +636,8 @@ Ghosts, Larry's turn and the board's open mic are built, and specified in
 could mean two things is best answered with both readings as ghosts, and that Claude can't read cursive, so words come
 from Igor's voice.
 
-1. **Voice.** A level meter on the open mic (the Inbox's mic UI). "Your turn" said out loud gets a full drawing turn.
+1. **Voice.** "Your turn" said out loud gets a full drawing turn. (The open mic's level meter and microphone picker are
+   built: [Which microphone, and what it hears](2026-11-01-whiteboard-shapes-design.md), #1139.)
 2. **Larry.** A call with the board as Larry's context while Igor keeps drawing.
 
 Claude's side runs through the Cockpit on the Mac (Igor's pick), so no model key goes on the device. The cost is
