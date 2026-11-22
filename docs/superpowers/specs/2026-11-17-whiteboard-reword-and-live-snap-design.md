@@ -24,6 +24,8 @@ box or a loop: the clean shape shows at once, and lands when you lift.
 - A finger tap on a kept text (on its letters, or within a finger's width of them) on a board drawn on here opens it for
   editing in place: a text field over the text, where the text is, its words in it, the keyboard up. A tap on one of
   Larry's marks still chooses the mark; a tap in the margin is still the margin's; a look-only board opens nothing.
+  A text of Larry's, or one inside a group, is picked up by the first tap and opens at the second (#1171, #947; the
+  shapes spec, *A finger tap on anything of Larry's he kept*); a text of Igor's own opens at the first.
 - A tap on ink that isn't a kept text, or on blank paper, does what it did before. The Pencil writes as ever: a Pencil
   tap on a text is a dot, not an edit.
 - He edits the words. Return, or a tap anywhere off the field, is *done*.

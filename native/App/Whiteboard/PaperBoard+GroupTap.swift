@@ -5,11 +5,13 @@ import PaperKit
 import UIKit
 
 extension PaperBoardController {
-  /// A group a finger tapped: its name, its strokes' names, and whether it was already the whole selection.
+  /// A group a finger tapped: its name, its strokes' names, and whether it was already the whole selection. `kind` is
+  /// "group", or "theirs" for one thing of Larry's outside a group (story 1140, PaperBoard+TheirsTap.swift).
   struct TappedGroup {
     var name: String
     var names: Set<String>
     var selected: Bool
+    var kind = "group"
   }
 
   /// Story 947: the group whose stroke is within a fingertip (22 screen points) of `at`, in board points, on a board he
@@ -48,7 +50,8 @@ extension PaperBoardController {
     model.selectionChanged(Set(ids.map(Self.key)))
     showToText()
     let event: [String: Any] = [
-      "action": "group_tap", "board": model.board.id, "at": point(at), "group": group.name, "strokes": ids.count,
+      "action": "group_tap", "board": model.board.id, "at": point(at), "group": group.name, "kind": group.kind,
+      "strokes": ids.count,
       "touch_mode": name(paper.directTouchMode), "fingers_draw": fingersDraw, "selected": paper.selection.count,
     ]
     log.event("whiteboard", event)
@@ -61,7 +64,8 @@ extension PaperBoardController {
       self.log.event(
         "whiteboard",
         [
-          "action": "group_tap_held", "board": self.model.board.id, "group": group.name, "held": held,
+          "action": "group_tap_held", "board": self.model.board.id, "group": group.name, "kind": group.kind,
+          "held": held,
           "selected": self.paper.selection.count, "strokes": wanted.count, "touched_since": !ours,
         ])
       if ours { self.groupTap = nil }

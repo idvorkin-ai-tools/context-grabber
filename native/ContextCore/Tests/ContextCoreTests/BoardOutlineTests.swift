@@ -254,6 +254,44 @@ final class BoardOutlineTests: XCTestCase {
     XCTAssertNil(o.group(at: CGPoint(x: 105, y: 412), slop: 22), "a bare text is no group")
   }
 
+  /// Stories 1140–1142 (#1171): a finger tap on one thing of Larry's he kept takes that one thing, every stroke made at
+  /// its moment and nothing else: not his ink under it, not Larry's other marks; his ink nearer is his; a group is the
+  /// group's.
+  func testAFingerTapOnOneThingOfLarrysTakesItAlone() {
+    // A box of his (one stroke) round Larry's text of three glyphs; two marks of Larry's, kept apart, of two strokes each.
+    let box = BoardOps.Stroke(
+      ids: ["box"], t: 1, bounds: CGRect(x: 80, y: 180, width: 200, height: 70),
+      points: [
+        CGPoint(x: 80, y: 180), CGPoint(x: 280, y: 180), CGPoint(x: 280, y: 250), CGPoint(x: 80, y: 250),
+        CGPoint(x: 80, y: 180),
+      ], pen: 3)
+    var glyphs = word("t", x: 100, y: 200)
+    for i in glyphs.indices { glyphs[i].t = 1000 }
+    var markA = word("a", x: 100, y: 400)
+    var markB = word("b", x: 300, y: 400)
+    for i in markA.indices { markA[i].t = 2000 }
+    for i in markB.indices { markB[i].t = 3000 }
+    var mine = word("m", x: 100, y: 500)
+    for i in mine.indices { mine[i].t = 4000 }
+    let texts = [BoardText(id: "text-1", t: 1000, text: "hi", font: .plain, size: 24, color: "#000000", glyphs: 3)]
+    let o = BoardOutline(strokes: [box] + glyphs + markA + markB + mine, headers: [], texts: texts)
+    let theirs: Set<Int64> = [1000, 2000, 3000]
+    XCTAssertEqual(
+      o.theirs(at: CGPoint(x: 105, y: 212), slop: 22, moments: theirs)?.names.sorted(), ["t0", "t1", "t2"])
+    XCTAssertEqual(
+      o.theirs(at: CGPoint(x: 105, y: 412), slop: 22, moments: theirs)?.names.sorted(), ["a0", "a1", "a2"])
+    XCTAssertEqual(o.theirs(at: CGPoint(x: 320, y: 412), slop: 22, moments: theirs)?.moment, 3000, "the other mark")
+    XCTAssertNil(o.theirs(at: CGPoint(x: 180, y: 182), slop: 5, moments: theirs), "on his box, nearer than the text")
+    XCTAssertNil(o.theirs(at: CGPoint(x: 105, y: 512), slop: 22, moments: theirs), "his own writing")
+    XCTAssertNil(o.theirs(at: CGPoint(x: 600, y: 600), slop: 22, moments: theirs), "off ink")
+    XCTAssertNil(o.theirs(at: CGPoint(x: 105, y: 412), slop: 22, moments: []), "nothing of theirs on the board")
+    var groups: [String: String] = [:]
+    for s in markA { for id in s.ids { groups[id] = "reply-1" } }
+    let grouped = BoardOutline(strokes: [box] + glyphs + markA + markB, headers: [], texts: texts, groups: groups)
+    XCTAssertNil(grouped.theirs(at: CGPoint(x: 105, y: 412), slop: 22, moments: theirs), "a group's is the group's")
+    XCTAssertEqual(grouped.theirs(at: CGPoint(x: 320, y: 412), slop: 22, moments: theirs)?.names.count, 3)
+  }
+
   func testFoldsGoBesideTheStrokesToTheCockpit() throws {
     let picture = WhiteboardPicture(board: "b1", title: "t", rect: CGRect(x: 0, y: 0, width: 10, height: 10), scale: 1)
     let fold: [String: Any] = ["header": "h-1", "header_strokes": ["a"], "lines": 2, "strokes": ["b"]]
