@@ -192,7 +192,7 @@ to that event's own bullet; never join two events on one line.
   - **dissolved** with ids and erased (a group or kept text Igor erased part of).
 - `board_events`:
   - **overlay_tap** with overlay
-  - **sent** or **held** (with reason) when events go to the Cockpit at once, with why, events and ms.
+  - **sent** or **held** (with reason) when events go to the Cockpit at once, with why, events and ms; when the cap let some go, also events_dropped and dropped_kinds (a count per wire `type`; bead context-grabber-27sv).
 - `board_outline`:
   - **margin_tap** with y, did and changed
   - **changed** with label, moved, hidden, shown, headers, folded, pages and ms
@@ -228,7 +228,7 @@ to that event's own bullet; never join two events on one line.
   - a keep carries text_id for Larry's text, and room_cut, room_dy and landed_dy when it made room (#938)
   - a keep of his marks and **keep_group** carry picture_t (when the picture his reply answers was taken, unix ms, or null when this device doesn't know it) with covered_newer (how many things made after it the marks sat on) and late_cut and late_dy when they made room (#894)
   - `whiteboard_marks` **shown** carries picture_known
-- `whiteboard_turn` adds rev, events, op_result and folds; a Larry hand-off also render_ms, encode_ms, strokes_ms and upload_ms (bead context-grabber-7zmj, story 1112)
+- `whiteboard_turn` adds rev, events, op_result and folds (and, when the cap let some go, events_dropped and dropped_kinds, a count per wire `type`; bead context-grabber-27sv); a Larry hand-off also render_ms, encode_ms, strokes_ms and upload_ms (bead context-grabber-7zmj, story 1112)
 
 ## What goes to the Cockpit for its board debug page (story 1112, bead context-grabber-7zmj)
 
