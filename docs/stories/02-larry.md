@@ -1346,7 +1346,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1125:
 
 - **Summary:** A file delivered to a chat shows as a row that opens it
-- **Status:** native app only: implemented in COMMIT (#633); the row's kind and name verified on the host by `ChatTests`; the rest pending
+- **Status:** native app only: implemented in [a33ba02d](https://github.com/idvorkin/context-grabber/commit/a33ba02d) (#633); the row's kind and name verified on the host by `ChatTests`; `ChatFileUITests` (rung 2, iPhone 17 against the fake Cockpit, 2026-11-21) sees the row read *Lease.pdf, PDF* and the tap open the system preview; against the real Cockpit on the phone, not yet
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — A delivered file in the thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1366,7 +1366,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1126:
 
 - **Summary:** A delivered file that can't be fetched says why
-- **Status:** native app only: implemented in COMMIT (#633); the problem's words verified on the host by `ChatTests`; on screen, on the simulator or the phone, not yet
+- **Status:** native app only: implemented in [a33ba02d](https://github.com/idvorkin/context-grabber/commit/a33ba02d) (#633); the problem's words verified on the host by `ChatTests`; on screen, on the simulator or the phone, not yet
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — A delivered file in the thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
