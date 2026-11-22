@@ -112,12 +112,16 @@ extension PaperBoardController {
       let raw = markup.subelements.strokes.first(where: { Self.key($0.elementID) == key })
     else { return }
     let points = raw.path.map { $0.location.applying(raw.transform) }
+    // Story 1104: the stroke the snap read, for the log.
+    let path = BoardTouchPath.encode(
+      raw.path.map { BoardTouchPath.Sample($0.location.applying(raw.transform), ms: $0.timeOffset * 1000) })
     defer {
       snaps.landing.forEach { $0.removeFromSuperlayer() }
       snaps.landing = []
     }
     guard let shape = BoardShapeSnap.clean(points) else {
-      log.event("whiteboard", ["action": "shape_snap_none", "board": model.board.id, "points": points.count])
+      log.event(
+        "whiteboard", ["action": "shape_snap_none", "board": model.board.id, "points": points.count, "path": path])
       return
     }
     let sizes = raw.path.map(\.size.width)
@@ -136,7 +140,7 @@ extension PaperBoardController {
       "whiteboard",
       [
         "action": "shape_snap", "board": model.board.id, "kind": name, "err": shape.error, "points": points.count,
-        "clean_points": shape.points.count, "width": Double(width),
+        "clean_points": shape.points.count, "width": Double(width), "path": path,
       ])
   }
 

@@ -193,6 +193,15 @@ native-run-mac: native-build-mac
 board-ops *args:
     swift run --quiet --package-path "{{justfile_directory()}}/native/ContextCore" board-ops-harness {{args}}
 
+# A pulled iPad log's pen touches judged again on the Mac, and written as a host fixture (story 1105): its scratch-outs,
+# shape snaps, margin holds and held lifts, each with what the iPad decided and what the Mac decides (docs/TESTING.md).
+#   just touch-fixture <log.jsonl> [<log.jsonl> ...] [--board <id>] [--all] [--out <fixture.json>]
+# Fixtures go in native/ContextCore/Tests/ContextCoreTests/Fixtures/touches/, where BoardTouchReplayTests holds them.
+[no-cd]
+[positional-arguments]
+touch-fixture *args:
+    swift run --quiet --package-path "{{justfile_directory()}}/native/ContextCore" touch-replay "$@"
+
 # Copy the native app's session logs, bug reports (with screenshots) and crash files from the phone and the iPad to
 # ~/tmp/agent/grabber-logs/<phone|ipad>/ (the iPad's id: IPAD=<udid> or scripts/native/ipad-udid.local)
 pull-logs:
