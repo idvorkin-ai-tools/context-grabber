@@ -122,6 +122,7 @@ extension PaperBoardController {
         "moved": plan.moved, "pages_before": plan.pagesBefore, "pages": pages,
       ])
     undoSoonForTests(LaunchHooks.current.whiteboard.afterKeep)
+    lookAtKeptInk(strokes, why: why)
     return true
   }
 
