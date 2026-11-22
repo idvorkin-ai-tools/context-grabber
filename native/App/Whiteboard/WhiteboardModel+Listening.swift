@@ -12,13 +12,13 @@ extension WhiteboardModel {
     let label = WhiteboardLarryListening.label(in: messages)
     if case .awaiting(let since, _) = larry.state, !larrySending {
       let out = larryOut.flatMap { $0.turn == larry.state ? $0 : nil }
-      let looking = Int((ContinuousClock.now - since).components.seconds)
-      let went = Date() - TimeInterval(max(0, looking))
+      let looking = max(0, (ContinuousClock.now - since) / .seconds(1))
+      let went = Date() - looking
       if WhiteboardLarryListening.holdsTurn(larry, thread: messages, picture: out?.picture.pictureID, went: went) {
         // Story 929: a hold is an answer, not a silence: no Interrupt, no *Larry didn't answer*, waiting ink goes.
         larryFollowUp(
           larry.replied(version: ops.rev, now: .now), why: "larry_waiting",
-          facts: ["picture": out?.picture.pictureID ?? "", "looking_s": looking])
+          facts: ["picture": out?.picture.pictureID ?? "", "looking_s": Int(looking)])
         checkLarryWait()
       }
     }
