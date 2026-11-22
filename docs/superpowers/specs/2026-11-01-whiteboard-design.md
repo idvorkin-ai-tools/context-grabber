@@ -624,6 +624,76 @@ stroke can be judged again on the Mac.
   tests holds each case to its expected verdict, so a gesture bug is fixed against Igor's real stroke on the Mac.
 - Nothing Igor sees changes.
 
+## Playing a board back, as Notability does (proposed, bead context-grabber-3tdv; stories 958, 959; not built, waiting on Igor's choice)
+
+Igor, 2026-11-22 (#1139, on the iPad): *"where is my replay button so I can rewatch it the way you do in Notability?
+Go do some research on Notability to see this."* Called **playback** here, so it isn't confused with the replays that
+already exist for agents (a pulled log's touches, Larry's marks on a copy of the board).
+
+**What Notability does** (researched 2026-11-22). From Notability's own help article (*Recording and Playing Audio*):
+a record button in the note's toolbar records while he writes, with a level meter and a timer; *Play* enters playback;
+with the hand tool, a tap on a word, a sketch or a photo plays what was said at that moment; a handle drags through the
+recording, buttons skip 10 s either way, and the speed is 0.7×, 1×, 1.25×, 1.5× or 2×; what is written during playback
+is tied to the recording too; a note keeps a list of its recordings, each can be trimmed, split, merged or deleted, and
+it advises a new recording after an hour. Exporting a note can take the audio with it. From guides by others, which
+disagree with each other on handwriting: with *Note Replay* on, the ink being written at that moment is highlighted, or
+drawn again, as the sound plays; paid plans add a time-stamped transcript, where a tap on a paragraph shows the
+handwriting from then. Recording is a paid feature there.
+
+**What the board keeps today.**
+
+- **When each stroke was drawn, and how fast.** Every stroke Igor draws keeps the moment it began and, for each of its
+  points, how far into the stroke it was. The order and the pace of his drawing are already in every board, on every
+  device, the old boards too.
+- **Not every stroke has a moment of its own.** A text of Larry's that he kept shares one time across its letters;
+  pasted ink and a snapped shape take the time they were made, not the time of the hand that drew them.
+- **Nothing that was taken away.** Erased, scratched-out and undone ink is gone from the board, so playback can't show
+  it being drawn and taken away.
+- **No sound and no words.** Apple's dictation hears the mic and lets the sound go; the words go to the Cockpit with
+  the next picture and are not kept on the board (*Talking while drawing*: "Words aren't kept for later"), and the
+  board's log carries counts and places, never the words said or written.
+
+**Three ways to go**, each adding to the one before:
+
+| | Plays back | New on the board | Size | Privacy |
+|---|---|---|---|---|
+| 1. The ink alone | the board drawn again, in order, at his pace | nothing | none | as today |
+| 2. And the words | the ink, with what he said shown as he said it | the words heard while the mic was open, with when | kilobytes an hour | his words kept on the board, and in iCloud if the board's meaning goes there |
+| 3. And the sound | the ink with the sound of the room, as Notability does | a recording of each time he records | megabytes an hour | the room's sound kept, other voices in it too |
+
+**What Igor sees, for each.**
+
+- **Play** is on the board's menu, on the iPad, the iPhone and the Mac, on any board with ink. It clears the board and
+  draws it again, stroke by stroke in the order they were drawn, each at the pace his hand drew it. A long pause between
+  strokes plays as a short one, so an evening's board doesn't take an evening. Strokes that share one moment (a kept
+  text, a paste) appear together.
+- A bar along the bottom shows how far it is, with play and pause, 10 s back and on, a handle to drag to any moment,
+  and the speeds Notability has. While playing, the board can't be drawn on, and a finger still pans and pinches.
+- **Tap a stroke while playing** and playback jumps to the moment it was drawn: the board as it was then, that stroke
+  next. Leaving playback (*Done*, or closing the board) shows the board as it is, with nothing changed: no save, no
+  undo step, nothing sent to Larry.
+- **With the words (option 2):** while the mic is open, the words it heard are kept with the board, each line with the
+  moment it was said. In playback the line being said shows above the bar as the ink of that moment draws, and a tap on
+  a stroke shows what he was saying as he drew it. The mic is still the one the board has today: open only with Ghosts
+  on, stopped by a call with Larry or a shake report, so words are kept only while it is open.
+- **With the sound (option 3):** a record button of its own, beside the mic, records the room while he draws, whether
+  Ghosts are on or not, with the time recorded showing while it runs. Playback plays the sound with the ink, and a tap on
+  a stroke plays what was said as he drew it. A call with Larry, or a shake report, stops the recording as it stops the
+  mic, and he taps it again to go on. A board keeps a list of its recordings, each one deletable; deleting the board
+  deletes them.
+- **Nothing in playback goes to Larry.** The words and the sound stay out of the pictures, the board's log and the
+  Cockpit unless a later change decides otherwise.
+- A board whose ink can't be read, or a board with no ink, has no *Play*.
+
+**The choices that are Igor's** (the plan beside this spec has the arithmetic):
+
+1. Build the ink alone now? It needs nothing from him and changes nothing about what is kept.
+2. Then the words or the sound? The words are small, readable and searchable later, but they're Apple's dictation, not
+   what he said; the sound is what Notability has, and it is the room, other people's voices included, which they may
+   need to agree to.
+3. If the sound: kept on the device that recorded it, or sent through iCloud with the board? Through iCloud, the iPhone
+   plays back what the iPad heard, at the cost of his iCloud storage and the upload; on the device, a reinstall loses it.
+
 ## Trial on paper (removed 2026-11-07)
 
 The trial (#635, #636) settled what it was for: Igor made paper the default on 2026-11-03 and the only canvas on 2026-11-07.
@@ -652,6 +722,10 @@ that ghosts need the tailnet.
   iCloud's back; a newer version whose drawing fails to come down is not taken, and neither is one whose meaning
   can't be read: the device keeps the pair it had and asks again on the next sync; a TestFlight build that sends the
   meaning up isn't shipped until the CloudKit schema is deployed to production.
+- (Proposed, bead context-grabber-3tdv, stories 958, 959.) *Play* on a board with ink clears it and draws it again in
+  the order it was drawn; a tap on a stroke jumps to the moment it was drawn; *Done* shows the board as it was, with no
+  save, no undo step and nothing sent. With the words or the sound chosen, a tap on a stroke shows or plays what was being
+  said as it was drawn.
 - On the iPad, the Pencil draws, a finger pans, and the eraser removes strokes.
 - A stroke whose ink is of a kind the app has no name for draws, saves and goes to Larry like any other, and the board
   stays open; the log names that kind once (#1083).

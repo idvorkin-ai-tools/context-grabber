@@ -1096,3 +1096,43 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** I have just kept a group of Larry's marks
 - **When:** VoiceOver reaches the Undo button
 - **Then:** it reads *Undo Keep group*; for my own stroke it reads *Undo*, and with nothing to undo it says the button is dimmed
+
+---
+
+### User Story 958:
+
+- **Summary:** I watch a board draw itself again in the order I drew it, and jump to any stroke
+- **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139) (Igor, 2026-11-22: "where is my replay button so I can rewatch it the way you do in Notability?")
+- **Status:** not implemented; asks: bead context-grabber-3tdv (proposed, waiting on Igor's choice; the plan is `docs/superpowers/plans/2026-11-22-whiteboard-playback-plan.md`)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
+
+#### Use Case:
+- **As someone** who thinks on a board and comes back to it later
+- **I want to** watch the board draw itself again, stroke by stroke, at the pace I drew it, and jump to any stroke
+- **so that** I can follow how the thinking went, not only where it ended
+
+#### Acceptance Criteria:
+- **Scenario:** Play a board and tap a stroke
+- **Given:** a board with three strokes drawn a minute apart
+- **When:** I choose *Play* on the board's menu, then tap the second stroke once it has appeared, then *Done*
+- **Then:** the board empties and the strokes draw again in their order, the minute between them short; the tap goes back to the moment the second stroke began; *Done* shows the board as it was, with nothing saved, no undo step and nothing sent to Larry
+
+---
+
+### User Story 959:
+
+- **Summary:** In playback, a tap on a stroke tells me what I was saying as I drew it
+- **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
+- **Status:** not implemented; asks: bead context-grabber-3tdv (proposed, waiting on Igor's choice between keeping the words and keeping the sound, and where the sound is kept)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
+
+#### Use Case:
+- **As someone** who talks while drawing, as in Notability
+- **I want to** see or hear what I was saying when a stroke was drawn
+- **so that** the board brings back the words behind the marks
+
+#### Acceptance Criteria:
+- **Scenario:** Tap a stroke drawn while I talked
+- **Given:** a board I drew on while talking (with the mic open for the words, or recording for the sound)
+- **When:** I play it back and tap a stroke I drew as I talked
+- **Then:** playback jumps there and shows the line I was saying then, or plays the sound from that moment
