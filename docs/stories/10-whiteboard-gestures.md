@@ -900,7 +900,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1108:
 
 - **Summary:** The eraser scrubbed back and forth over ink erases, and is never a scratch-out
-- **Status:** in progress
+- **Status:** implemented in [11de5bf2](https://github.com/idvorkin/context-grabber/commit/11de5bf2); verified on the iPad simulator (`WhiteboardScratchOutUITests.testTheEraserAcrossInkIsNeverAScratchOut`: the eraser's sweep fired a scratch-out before the fix, none after; the whole whiteboard UI suite, 66 passing), `just native-test` and the Mac build. The Pencil's eraser scrub on the iPad, which crashed, is still to see
 - **Issues:** [#1121](https://github.com/idvorkin/context-grabber/issues/1121), [#1120](https://github.com/idvorkin/context-grabber/issues/1120): the iPad crashed (signal 5, PaperKit trapping inside Undo) when the board took back the "zigzag" of an eraser sweep it had read as a scratch-out
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
