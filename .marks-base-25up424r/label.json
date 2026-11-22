@@ -1,1 +1,0 @@
-{"id": "label", "who": "larry", "text": "Label for the sequence", "frame": {"x": 0, "y": 0, "w": 640, "h": 310, "scale": 1}, "shapes": [{"kind": "label", "text": "Next: run a dry run", "x": 40, "y": 216, "size": 24, "font": "print"}]}
