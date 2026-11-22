@@ -762,6 +762,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1148:
+
+- **Summary:** One rule for making room: Larry's ink never covers writing he didn't see, and mine moves down in whole lines from a cut between lines
+- **Status:** the rule decided 2026-11-22; already what a paste (stories 852, 869), a dropped selection (973), the margin handle (858, 930), Keep and Keep group (1004–1006) and Larry's text from a change (992) do, each verified on its own story; not yet what Keep all (story 1149, bead context-grabber-nrg) or Larry's own make-room (story 1150, bead context-grabber-2gu) do
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "One rule everywhere: his ink never covers writing he didn't see; my newer writing moves down in whole lines; every cut lands between lines; Keep all behaves like Keep group. A fold is erased only by its words or its marker."
+
+#### Use Case:
+- **As someone** whose ink is moved by Larry, by a paste and by my own hand
+- **I want to** have one rule for whatever moves my writing
+- **so that** I can tell what will move, and how far, before it does
+
+#### Acceptance Criteria:
+- **Scenario:** Something lands on writing Larry didn't see
+- **Given:** writing of mine that wasn't in the picture Larry answered, and something about to land on it: a mark of his I keep, however I keep it, a text of his, or a paste
+- **When:** it lands
+- **Then:** it sits where it was meant to, my writing from the nearest clear line between rows moves down by whole lines until it is clear of it, no row of mine is split or covered, writing he saw doesn't move, and one Undo puts it all back
+
+---
+
 ### User Story 969:
 
 - **Summary:** A word slid along its own line moves nothing else
@@ -786,7 +806,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A finger tap on a kept text rewords it in place
 - **Issues:** bead context-grabber-yfrl (the UI test read the old words before the new ones were drawn: a flake, not the app)
-- **Status:** implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testATapOnAKeptTextRewordsItInPlace`, rung 2); the test waits for the new words before reading them in [cafe6cc1](https://github.com/idvorkin/context-grabber/commit/cafe6cc1) (context-grabber-yfrl), passing 3 runs of 3 on the iPad simulator (rung 2); a text of Larry's opens at the second tap in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5) (#1171, story 1141), host tests and the Mac build; not yet seen on the iPad
+- **Status:** decided 2026-11-22 to change (story 1154, not yet built: the first tap selects my own text too, the second opens its words); implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testATapOnAKeptTextRewordsItInPlace`, rung 2); the test waits for the new words before reading them in [cafe6cc1](https://github.com/idvorkin/context-grabber/commit/cafe6cc1) (context-grabber-yfrl), passing 3 runs of 3 on the iPad simulator (rung 2); a text of Larry's opens at the second tap in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5) (#1171, story 1141), host tests and the Mac build; not yet seen on the iPad
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
 
 #### Use Case:
@@ -975,3 +995,43 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a word of mine a connector ends on
 - **When:** I hold the Pencil on it and lift without moving
 - **Then:** the label says *Group · moves as one · a connector follows it*, and a selected connector says *Connector · follows its two ends*
+
+---
+
+### User Story 1153:
+
+- **Summary:** A tap inside my own selection is always the selection's
+- **Status:** not implemented; asks: bead context-grabber-nkh (decided 2026-11-22; today a tap inside a selection that lands on a group, a thing of Larry's or a kept text picks that instead)
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "What I kept together moves together: Keep = that piece, Keep group or Keep all = the reply. My own selection always wins a tap; a second tap rewords a text."
+
+#### Use Case:
+- **As someone** who has lassoed part of the board
+- **I want to** tap my selection and get its menu, whatever lies under my finger
+- **so that** selecting something never changes because of where inside it I tapped
+
+#### Acceptance Criteria:
+- **Scenario:** A tap on a group inside my selection
+- **Given:** a selection of mine that covers a group of Larry's and a kept text, no marks showing
+- **When:** I tap inside the selection with a finger, on the group
+- **Then:** my selection stays exactly as it was and its menu comes up; the group is not picked up instead and the text does not open
+
+---
+
+### User Story 1154:
+
+- **Summary:** The first tap on any kept text selects it; the second opens its words
+- **Status:** not implemented for my own typed and To text texts, which open at the first tap (story 940); asks: bead context-grabber-awz (decided 2026-11-22). Already so for a text of Larry's or one in a group (stories 947, 1141)
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "What I kept together moves together: Keep = that piece, Keep group or Keep all = the reply. My own selection always wins a tap; a second tap rewords a text."
+
+#### Use Case:
+- **As someone** with typed text of my own on the board
+- **I want to** pick it up with one tap and reword it with a second
+- **so that** every text answers a tap the same way, whoever wrote it
+
+#### Acceptance Criteria:
+- **Scenario:** My own text, tapped once
+- **Given:** a kept text of my own (typed, or a To text result), no marks showing
+- **When:** I tap it once with a finger
+- **Then:** it is selected and ready to drag, its label says it can be reworded, and its words open only at a second tap (story 940)

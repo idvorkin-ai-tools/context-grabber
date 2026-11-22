@@ -26,14 +26,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The Pencil touches down
 - **Given:** ghosts are showing, or a ghost turn is still on its way
 - **When:** I touch the Pencil down and draw on
-- **Then:** the ghosts stay, and the answer on its way still shows, drawn in one shape after another
+- **Then:** the ghosts already showing stay; an answer still on its way is dropped and asked again after my next pause (story 894; decided 2026-11-22, in place of the answer still landing)
 
 ---
 
 ### User Story 351:
 
 - **Summary:** Turn the ghosts off
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on), which passed with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3). Since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`: a stroke with Ghosts off starts no pause, Claude's go and Larry's stay, an answer on its way lands stale, on again asks), and that UI test is gone
+- **Status:** decided 2026-11-22 to change (story 1156, not yet built: the switch is *Ask at my pauses*, for whoever answers); app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on), which passed with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3). Since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`: a stroke with Ghosts off starts no pause, Claude's go and Larry's stay, an answer on its way lands stale, on again asks), and that UI test is gone
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -288,7 +288,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 356:
 
 - **Summary:** Larry's marks stay when the ghosts go off
-- **Status:** app side implemented in [e2f693e](https://github.com/idvorkin/context-grabber/commit/e2f693e); verified on the simulator by the session log (`whiteboard` ghosts: Ghosts off drops Claude's one ghost, then Larry's turn shows his two); a UI test could not read it, as the Ghosts button's accessibility label does not refresh for XCUITest while Ghosts is off; on the iPad not yet
+- **Status:** decided 2026-11-22 to change (story 1156, not yet built: the switch is *Ask at my pauses*, for whoever answers); app side implemented in [e2f693e](https://github.com/idvorkin/context-grabber/commit/e2f693e); verified on the simulator by the session log (`whiteboard` ghosts: Ghosts off drops Claude's one ghost, then Larry's turn shows his two); a UI test could not read it, as the Ghosts button's accessibility label does not refresh for XCUITest while Ghosts is off; on the iPad not yet
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -760,7 +760,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 895:
 
 - **Summary:** Keep all of Larry's marks at once, in the order he drew them
-- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`) and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2)
+- **Status:** decided 2026-11-22 to change (story 1149, not yet built: Keep all makes room as Keep group does and keeps each reply as a group); implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`) and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
 
 #### Use Case:
@@ -773,6 +773,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** Larry's marks show on my board and the first of his labels sits on a line I wrote
 - **When:** I tap Keep all beside the count of marks to keep
 - **Then:** every one of his marks becomes ink in his colour, the label on my writing moves just under it and the marks below it move down with it, my own ink doesn't move, and one undo takes all of them back
+
+---
+
+### User Story 1149:
+
+- **Summary:** Keep all keeps each reply of Larry's as one group and makes room as Keep group does
+- **Status:** not implemented; asks: bead context-grabber-nrg (decided 2026-11-22; it replaces story 895's moving of his label)
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "One rule everywhere: his ink never covers writing he didn't see; my newer writing moves down in whole lines; every cut lands between lines; Keep all behaves like Keep group. A fold is erased only by its words or its marker."
+
+#### Use Case:
+- **As someone** whose board Larry answered with several marks
+- **I want to** keep them all in one tap and get what Keep group gives me
+- **so that** his reply stays where he drew it, in one piece, and never sits on writing he didn't see
+
+#### Acceptance Criteria:
+- **Scenario:** Keep all over newer writing
+- **Given:** a reply of Larry's showing, one of its labels on a line I wrote after his picture went
+- **When:** I tap Keep all
+- **Then:** every mark becomes ink where it showed, my line and everything under it move down in whole lines clear of it (story 1148), the reply is one group that a tap picks up whole (story 1152), and one Undo takes all of it back
 
 ---
 
@@ -1128,7 +1148,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1140:
 
 - **Summary:** A finger tap on anything of Larry's I kept picks up that one thing alone, ready to drag
-- **Status:** implemented in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5), [e1409a33](https://github.com/idvorkin/context-grabber/commit/e1409a33); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: one of two kept marks, his ink nearer and a group's left to the group; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardTheirsTapUITests`, rung 2, 2026-11-22: three circles kept with Keep all, a finger tap selects the first alone, its Delete leaves the other two, one Undo brings it back); the drag not yet seen on the iPad
+- **Status:** decided 2026-11-22 to change (story 1152, not yet built: marks kept with Keep all will move as their reply; a mark kept on its own with Keep still moves alone); implemented in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5), [e1409a33](https://github.com/idvorkin/context-grabber/commit/e1409a33); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: one of two kept marks, his ink nearer and a group's left to the group; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardTheirsTapUITests`, rung 2, 2026-11-22: three circles kept with Keep all, a finger tap selects the first alone, its Delete leaves the other two, one Undo brings it back); the drag not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on anything of Larry's he kept)
 - **Issues:** [#1171](https://github.com/idvorkin/context-grabber/issues/1171): Igor, 2026-11-22 17:21, on the iPad, Larry's steps written inside a box of his: "I want to be able to click what Larry wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"
 
@@ -1182,6 +1202,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a stroke of mine nearer the tap than any of Larry's
 - **When:** I tap there
 - **Then:** the tap does what it did before, and a text I typed or made with To text still opens at the first tap
+
+---
+
+### User Story 1152:
+
+- **Summary:** What I kept together moves together: a tap picks up the piece or the reply, as I kept it
+- **Status:** the rule decided 2026-11-22; a piece kept with Keep picked up alone is story 1140 and a reply kept with Keep group picked up whole is stories 947 and 998, each verified there; a reply kept with Keep all picked up whole is not implemented, asks: bead context-grabber-nrg
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "What I kept together moves together: Keep = that piece, Keep group or Keep all = the reply. My own selection always wins a tap; a second tap rewords a text."; it settles story 1140 against PR #1187
+
+#### Use Case:
+- **As someone** with Larry's kept marks on my board
+- **I want to** have a tap pick up exactly what one Keep made
+- **so that** I know before I tap whether one piece or the whole reply will move
+
+#### Acceptance Criteria:
+- **Scenario:** A piece and a reply
+- **Given:** one mark of Larry's kept on its own with Keep, and a reply of his kept with Keep group or Keep all, no marks showing
+- **When:** I tap the single mark, and then a piece of the reply, with a finger
+- **Then:** the first tap selects that mark alone and the second selects the whole reply and nothing else of his or mine; each drags as one, and one Undo puts it back
 
 ---
 

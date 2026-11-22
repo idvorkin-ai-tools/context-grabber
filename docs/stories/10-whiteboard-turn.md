@@ -110,7 +110,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 349:
 
 - **Summary:** Larry takes a turn on the board
-- **Status:** first implemented as a call that waited for him in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to the chat path, no waiting, in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b) (Igor, 2026-11-02); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: Larry's turn brings his marks with no further tap) against the fake Cockpit; the real Larry's answer on the iPad not yet tried; the bar's note beginning with Larry's clock where it said *Larry is looking…* in [4f92205](https://github.com/idvorkin/context-grabber/commit/4f92205) (story 667), verified by host tests (`WhiteboardLarryClockTests`)
+- **Status:** decided 2026-11-22 to change (story 1157, not yet built: *Larry's turn* and *Send to Larry* become one Send button); first implemented as a call that waited for him in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to the chat path, no waiting, in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b) (Igor, 2026-11-02); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: Larry's turn brings his marks with no further tap) against the fake Cockpit; the real Larry's answer on the iPad not yet tried; the bar's note beginning with Larry's clock where it said *Larry is looking…* in [4f92205](https://github.com/idvorkin/context-grabber/commit/4f92205) (story 667), verified by host tests (`WhiteboardLarryClockTests`)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -149,7 +149,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 359:
 
 - **Summary:** Strokes made during a ghost turn get their own turn
-- **Status:** its one-second wait is superseded by story 892 (the wait follows my rhythm, 1.5 to 5 s); what the Pencil going down does to a turn still on its way is story 894, which story 350 reads differently; was implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3); its rules verified by host tests (`WhiteboardPacerTests`); not on the simulator, whose fake Cockpit answers with no delay, and the Pencil lift still to try on the iPad
+- **Status:** superseded by story 894 (the Pencil going down drops a turn that hasn't landed; decided 2026-11-22) and story 892 (the next turn waits for my next pause, by my rhythm); was implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3); its rules verified by host tests (`WhiteboardPacerTests`); not on the simulator, whose fake Cockpit answers with no delay, and the Pencil lift still to try on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -520,7 +520,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 385:
 
 - **Summary:** One board, one thread
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b), and a Send recording the thread as it lands, closed board or not, in the review fixes on this branch; verified by host tests (`WhiteboardMarksTests`: pictures queued with no thread share the one the first starts, a lost thread frees the board); the buttons holding each other back, and a Send's thread on the iPad, not yet tried
+- **Status:** on the device that started the thread; decided 2026-11-22 to hold on every device (story 1158, not yet built); implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b), and a Send recording the thread as it lands, closed board or not, in the review fixes on this branch; verified by host tests (`WhiteboardMarksTests`: pictures queued with no thread share the one the first starts, a lost thread frees the board); the buttons holding each other back, and a Send's thread on the iPad, not yet tried
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -533,6 +533,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** I sent this board to Larry, went back and read the thread in Chat
 - **When:** I open the board, draw more and tap Send to Larry
 - **Then:** the new picture goes to that thread, not a new one
+
+---
+
+### User Story 1158:
+
+- **Summary:** A Send from any device goes to the board's one conversation
+- **Status:** not implemented; asks: bead context-grabber-da1 (decided 2026-11-22; today a Send goes to the thread this device started, so an iPhone's Send on an iPad's board starts a second one)
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "the switch becomes 'Ask at my pauses' for whoever answers; one Send button that waits when offline; a Send from any device goes to the board's one conversation"
+
+#### Use Case:
+- **As someone** looking at an iPad's board on my iPhone
+- **I want to** send it to Larry from the phone and land in the conversation the board already has
+- **so that** one board, one thread (story 385) is true on every device
+
+#### Acceptance Criteria:
+- **Scenario:** A phone's Send on an iPad's board
+- **Given:** a board drawn on the iPad that already has a conversation with Larry, open on my iPhone
+- **When:** I tap *Send to Larry* on the phone
+- **Then:** the picture lands in that same conversation, the one the phone's note opens (story 1110), and no second thread is started
 
 ---
 
@@ -776,7 +796,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 428:
 
 - **Summary:** With no network Larry's turn says so and nothing waits
-- **Status:** implemented in [53481a1](https://github.com/idvorkin/context-grabber/commit/53481a1); the simulator compile only: no test runs a turn with no network, so this is owed on the iPad
+- **Status:** decided 2026-11-22 to change (story 1157, not yet built: the one Send button waits in the outbox when offline); implemented in [53481a1](https://github.com/idvorkin/context-grabber/commit/53481a1); the simulator compile only: no test runs a turn with no network, so this is owed on the iPad
 - **Why:** split from story 421, whose old wording promised this case a send or a wait; a turn has no outbox
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -790,6 +810,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** no network
 - **When:** I tap *Larry's turn*
 - **Then:** a copyable error says Larry couldn't be reached, and nothing is queued
+
+---
+
+### User Story 1157:
+
+- **Summary:** One Send to Larry button, which waits when I'm offline
+- **Status:** not implemented; asks: bead context-grabber-rtl (decided 2026-11-22; today *Larry's turn*, story 349, and *Send to Larry*, story 343, are two buttons and only Send waits, stories 427, 428)
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "the switch becomes 'Ask at my pauses' for whoever answers; one Send button that waits when offline; a Send from any device goes to the board's one conversation"
+
+#### Use Case:
+- **As someone** handing a board to Larry with no signal
+- **I want to** tap the one Send button and have it go when it can
+- **so that** I never have to choose between two buttons or send again
+
+#### Acceptance Criteria:
+- **Scenario:** Sent with no network
+- **Given:** a board with new ink, and no network
+- **When:** I tap *Send to Larry*
+- **Then:** the picture waits with its strokes and the board says it is waiting, it goes once when the network is back, his clock runs and his marks come to the board with no further tap, and there is no separate *Larry's turn* button
 
 ---
 
@@ -982,6 +1022,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board I set to Sonnet
 - **When:** I open it
 - **Then:** it stays Sonnet
+
+---
+
+### User Story 1156:
+
+- **Summary:** The bar's switch is *Ask at my pauses*, for whoever answers the board
+- **Status:** not implemented; asks: bead context-grabber-4ic (decided 2026-11-22; today it is *Ghosts* and its row reads *Hide Claude's suggestions*, stories 351, 1055, though it already stops Larry's pause turns too)
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "the switch becomes 'Ask at my pauses' for whoever answers; one Send button that waits when offline; a Send from any device goes to the board's one conversation"
+
+#### Use Case:
+- **As someone** whose board Larry answers
+- **I want to** have the switch named for what it does
+- **so that** I don't think I'm only quieting Claude when I'm turning Larry's turns off
+
+#### Acceptance Criteria:
+- **Scenario:** Off, on a board Larry answers
+- **Given:** a board Larry answers, with *Ask at my pauses* on
+- **When:** I turn it off, draw a stroke and pause
+- **Then:** nothing is sent to Larry or to Claude, marks already showing stay to be kept or dismissed, and the switch and its long-press row both read *Ask at my pauses*
 
 ---
 
