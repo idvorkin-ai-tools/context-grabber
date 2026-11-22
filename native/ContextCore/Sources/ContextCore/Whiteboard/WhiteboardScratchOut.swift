@@ -21,13 +21,42 @@ public enum WhiteboardScratchOut {
   /// A stroke on the board, as the scratch-out sees it.
   public struct Ink: Equatable, Sendable {
     public var id: String
-    public var points: [CGPoint]
+    /// The stretches of the stroke still on the board, never empty: one for a whole stroke, one per part the pixel
+    /// eraser left (context-grabber-p5hy). A gap between two is bare paper, so no line runs across it.
+    public var runs: [[CGPoint]]
     public var width: CGFloat
 
+    /// Every point still on the board.
+    public var points: [CGPoint] { runs.flatMap { $0 } }
+
     public init(id: String, points: [CGPoint], width: CGFloat = 3) {
+      self.init(id: id, runs: [points], width: width)
+    }
+
+    public init(id: String, runs: [[CGPoint]], width: CGFloat = 3) {
       self.id = id
-      self.points = points
+      self.runs = runs.filter { !$0.isEmpty }
       self.width = width
+    }
+  }
+
+  /// The stretches of a stroke's control `points` still on the board, given its `visible` ranges of parametric value
+  /// (control point i at i): the points inside each range, with the range's ends where they fall between two, read
+  /// `at` (context-grabber-p5hy). A range over the whole stroke gives its points as they are; no ranges, nothing.
+  public static func runs(
+    _ points: [CGPoint], visible: [ClosedRange<CGFloat>], at point: (CGFloat) -> CGPoint
+  ) -> [[CGPoint]] {
+    guard !points.isEmpty else { return [] }
+    let last = CGFloat(points.count - 1)
+    return visible.compactMap { range -> [CGPoint]? in
+      let (lo, hi) = (max(0, range.lowerBound), min(last, range.upperBound))
+      guard lo <= hi else { return nil }
+      var run: [CGPoint] = []
+      if lo != lo.rounded(.up) { run.append(point(lo)) }
+      let (first, end) = (Int(lo.rounded(.up)), Int(hi.rounded(.down)))
+      if first <= end { run += points[first...end] }
+      if hi != hi.rounded(.down), hi > lo { run.append(point(hi)) }
+      return run.isEmpty ? nil : run
     }
   }
 
@@ -196,16 +225,20 @@ public enum WhiteboardScratchOut {
     let line = path.count > 1 ? path : [first, first]
     let pathBox = box(line)
     return ink.filter { stroke in
-      guard let start = stroke.points.first else { return false }
+      guard !stroke.points.isEmpty else { return false }
       let pad = reach + stroke.width / 2
       let own = box(stroke.points)
       guard
         pathBox.maxX >= own.minX - pad, pathBox.minX <= own.maxX + pad, pathBox.maxY >= own.minY - pad,
         pathBox.minY <= own.maxY + pad
       else { return false }
-      let points = stroke.points.count > 1 ? stroke.points : [start, start]
-      for (a, b) in zip(points, points.dropFirst()) {
-        for (c, d) in zip(line, line.dropFirst()) where distance(a, b, c, d) <= pad { return true }
+      // Each stretch on its own: never a line across a gap the pixel eraser left (context-grabber-p5hy).
+      for run in stroke.runs {
+        guard let start = run.first else { continue }
+        let points = run.count > 1 ? run : [start, start]
+        for (a, b) in zip(points, points.dropFirst()) {
+          for (c, d) in zip(line, line.dropFirst()) where distance(a, b, c, d) <= pad { return true }
+        }
       }
       return false
     }.map(\.id)

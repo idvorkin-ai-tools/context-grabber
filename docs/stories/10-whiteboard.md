@@ -6551,7 +6551,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A fast zigzag over ink scratches it out
 - **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4) (the Cockpit's web board's `scratchOut`, ported); verified on the host (`WhiteboardScratchOutTests`, the web board's own zigzags, humps and loops; `just native-test`). The Pencil's feel and the one undo are the iPad's to show. Staying gone when he writes on (#999) fixed in [19fa533e](https://github.com/idvorkin/context-grabber/commit/19fa533e); verified on the simulator (`WhiteboardScratchOutUITests`, failing before the fix: the word stayed on the sheet), the Pencil's zigzag on the iPad still to see. A scribble that drifts along the word (context-grabber-4kj) in [eb73c30](https://github.com/idvorkin/context-grabber/commit/eb73c30); verified on the Linux rung (`WhiteboardScratchOutTests`, Igor's real scribbles of 2026-11-21 replayed, failing before the fix on *short sweeps*), the iPad still to see
-- **Issues:** [#999](https://github.com/idvorkin/context-grabber/issues/999), context-grabber-4kj (a scribble that drifts along the word stayed ink, *short sweeps*, Igor 2026-11-21)
+- **Issues:** [#999](https://github.com/idvorkin/context-grabber/issues/999), context-grabber-4kj (a scribble that drifts along the word stayed ink, *short sweeps*, Igor 2026-11-21), context-grabber-p5hy (a zigzag over a gap the pixel eraser left took the whole stroke around it; codex review 2026-11-21)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
@@ -6569,6 +6569,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board on paper with a word written on it
 - **When:** I scribble fast over the word, turning back five times or more, drifting along it so no sweep spans the whole scribble
 - **Then:** the word and the scribble are gone, as for a straight zigzag
+
+- **Scenario:** A zigzag over a gap the pixel eraser left
+- **Given:** a board on paper with a stroke whose middle I rubbed out with the pixel eraser
+- **When:** I draw a quick zigzag over the gap, touching neither part that is left
+- **Then:** nothing of that stroke goes, as the gap is bare paper; a zigzag over one of the parts that is left takes the stroke, both parts, as before
 
 ---
 
