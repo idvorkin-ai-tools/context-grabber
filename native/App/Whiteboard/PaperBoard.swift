@@ -45,6 +45,8 @@ class PaperHost: UIViewController {
     var tool: String
     /// The pen's colour and width with the kind (`toolText`): Igor's own ink, told from a mark he kept.
     var ink: String = ""
+    /// The tool the picker shows selected (`pickerText`), which the board's own `drawingTool` may not follow (#1078).
+    var picker: String = ""
     var facts = PaperProbe.TouchFacts()
     /// Every touch in it, so the Pencil is the Pencil whatever landed first (#825).
     var tally = PaperProbe.TouchTally()
@@ -230,7 +232,8 @@ class PaperHost: UIViewController {
     lastTouchBoardPoint = CGPoint(x: visible.minX + at.x * scale, y: visible.minY + at.y * scale)
     run = TouchRun(
       type: Self.name(touch.type), began: CACurrentMediaTime(), start: at, visibleAtStart: visible,
-      zoomAtStart: paper.scrollConfiguration.zoomScale, tool: toolName, ink: toolText(paper.drawingTool))
+      zoomAtStart: paper.scrollConfiguration.zoomScale, tool: toolName, ink: toolText(paper.drawingTool),
+      picker: pickerText)
   }
 
   /// The view closing: a touch still being watched goes in the log now.
@@ -319,6 +322,19 @@ class PaperHost: UIViewController {
     let width = (ink.width * 100).rounded() / 100
     let kind = WhiteboardInk.name(ink.ink, at: "tool") ?? "unknown"
     return "\(kind) \(WhiteboardStrokes.hex(red: red, green: green, blue: blue)) \(width)"
+  }
+
+  /// #1078 (story 1064): the tool the picker shows selected, as `toolText` says an ink; the eraser, the lasso, or the
+  /// item's own identifier for anything else. Every iPad touch logged `drawingTool` as a black pen, even ones that
+  /// erased or drew blue, so the log carries the picker's word beside it.
+  var pickerText: String {
+    let item = picker.selectedToolItem
+    switch item {
+    case let inking as PKToolPickerInkingItem: return toolText(inking.inkingTool)
+    case is PKToolPickerEraserItem: return "eraser"
+    case is PKToolPickerLassoItem: return "lasso"
+    default: return item.identifier
+    }
   }
 
   func name(_ mode: PaperMarkupViewController.TouchMode) -> String {
@@ -2321,6 +2337,13 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       if self.place.erasing != erasing { self.place.erasing = erasing }
       // #949: the pen Igor holds is the width Larry's labels take; the eraser or lasso leaves the last pen's.
       if let ink = self.paper.drawingTool as? PKInkingTool { self.model.penInHand = ink.width }
+      // #1078 (story 1064): what the picker shows beside what the board holds, as each pick lands.
+      self.log.event(
+        "whiteboard",
+        [
+          "action": "tool_changed", "board": self.model.board.id, "picker_tool": self.pickerText,
+          "tool": self.toolName, "tool_ink": self.toolText(self.paper.drawingTool),
+        ])
     }
   }
 
@@ -2348,7 +2371,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "scroll_dx": round(dx), "scroll_dy": round(dy), "zoom_from": Double(run.zoomAtStart), "zoom_to": Double(zoom),
         "selected": run.selected, "selection_changes": run.facts.selectionChanges, "ink_added": run.facts.inkAdded,
         "ink_moved": run.facts.inkMoved, "ink_removed": run.facts.inkRemoved, "began_drawing": run.facts.beganDrawing,
-        "page_added_during": run.pageAdded, "tool": run.tool, "tool_ink": run.ink,
+        "page_added_during": run.pageAdded, "tool": run.tool, "tool_ink": run.ink, "picker_tool": run.picker,
         "touch_mode": name(paper.directTouchMode),
         "auto_draws": paper.directTouchAutomaticallyDraws, "pages": pages,
         "page": board.page(at: CGPoint(x: 0, y: visible.midY)), "ghosts": model.ghosts.count,
