@@ -568,7 +568,7 @@ public struct BoardOutline: Sendable {
       } else {
         d = u.members.map { inkDistance(point, strokes[$0]) }.min() ?? .infinity
       }
-      // Between two as near, the one drawn later, on top.
+      // Between two as near, the later in the outline's order (by each one's first stroke).
       if d <= slop, d <= (best?.distance ?? .infinity) { best = (u, d) }
     }
     guard let hit = best?.unit, let tag = hit.tag, named.contains(tag), !isText(tag) else { return nil }

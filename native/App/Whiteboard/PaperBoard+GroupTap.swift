@@ -39,7 +39,8 @@ extension PaperBoardController {
   func select(_ group: TappedGroup, tappedAt at: CGPoint) {
     guard let markup = paper.markup else { return }
     let now = CACurrentMediaTime()
-    groupTap = (group.names, now + 1.0)
+    let until = now + 1.0
+    groupTap = (group.names, until)
     if fingersDraw { ghostTap = (at, now, PaperProbe.tapDotSeconds) }
     let ids = groupElements(group.names, in: markup)
     paper.selection = ids
@@ -56,13 +57,14 @@ extension PaperBoardController {
       guard let self else { return }
       let wanted = self.paper.markup.map { self.groupElements(group.names, in: $0) } ?? []
       let held = !wanted.isEmpty && self.paper.selection == wanted
+      let ours = self.groupTap?.until == until
       self.log.event(
         "whiteboard",
         [
           "action": "group_tap_held", "board": self.model.board.id, "group": group.name, "held": held,
-          "selected": self.paper.selection.count, "strokes": wanted.count, "touched_since": self.groupTap == nil,
+          "selected": self.paper.selection.count, "strokes": wanted.count, "touched_since": !ours,
         ])
-      self.groupTap = nil
+      if ours { self.groupTap = nil }
     }
   }
 
