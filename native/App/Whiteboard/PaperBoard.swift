@@ -426,6 +426,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     ]
     event.merge(unheard(change, frames: frames, undo: controller.undoManager)) { $1 }
     event.merge(moveAudit(change, markup: markup, frames: frames)) { $1 }
+    event.merge(keepOwnersApart(change, markup: markup, previous: previous, undo: controller.undoManager)) { $1 }
     // #999: scratched-out ink back without an Undo or Redo.
     if !scratched.isEmpty, controller.undoManager?.isUndoing != true, controller.undoManager?.isRedoing != true {
       let back = change.added.filter(scratched.contains).count
@@ -504,7 +505,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   /// Every stroke where it was, to half a point.
-  private static func close(_ a: [String: CGRect], _ b: [String: CGRect]) -> Bool {
+  static func close(_ a: [String: CGRect], _ b: [String: CGRect]) -> Bool {
     a.count == b.count
       && a.allSatisfy { key, box in b[key].map { abs($0.minX - box.minX) + abs($0.minY - box.minY) < 0.5 } ?? false }
   }

@@ -1227,6 +1227,66 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1145:
+
+- **Summary:** PaperKit's handwriting reflow never moves my ink and Larry's together
+- **Status:** implemented in [bbd89c38](https://github.com/idvorkin/context-grabber/commit/bbd89c38); verified by host tests (`PaperProbeOwnersApartTests`: the iPad's 52 + 2 case, Igor's line with Larry's strokes caught, a tie, one owner, a selection, nothing known as Larry's; `just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2, `just test-ladder`: every whiteboard UI test and the PaperKit contract tests pass, and a group's drag logs `apart: selected`, moved whole); the reflow itself can't be reached on the simulator, so the split, its take-back and its Undo are still owed on the iPad (rung 3: read `paper_ink`'s `apart` and the `paper_apart` line)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (PaperKit's handwriting reflow never carries Igor's ink and Larry's together)
+- **Issues:** bead context-grabber-eg7v (the iPad, 2026-11-22, log grabber-20261122-091406: a finger tap on Larry's kept text opened PaperKit's handwriting reflow over it and two of my strokes, and a drag on it moved all 54 strokes together); Igor, 2026-11-22 12:56: keep the reflow, but never group my ink with Larry's or Claude's
+
+#### Use Case:
+- **As someone** writing beside a text of Larry's I kept
+- **I want** the system's handwriting reflow to move his ink or mine, never both at once
+- **so that** reflowing his words never drags my writing along, and mine never drags his
+
+#### Acceptance Criteria:
+- **Scenario:** The reflow takes his text and two of my strokes
+- **Given:** a kept text of Larry's and two strokes of mine beside it, nothing selected
+- **When:** the handwriting reflow moves all of them with one drag
+- **Then:** his text stays where the drag took it, my two strokes go back where they were, and one Undo puts his text back too
+
+---
+
+### User Story 1146:
+
+- **Summary:** PaperKit's handwriting reflow on my line leaves Larry's strokes caught in it where they were
+- **Status:** implemented in [bbd89c38](https://github.com/idvorkin/context-grabber/commit/bbd89c38); verified by host tests (`PaperProbeOwnersApartTests`: Igor's line with Larry's strokes caught, a tie; `just native-test`) and the Mac build (`just native-build-mac`); the reflow can't be reached on the simulator, so the split is still owed on the iPad (rung 3: read `paper_ink`'s `apart` and the `paper_apart` line)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (PaperKit's handwriting reflow never carries Igor's ink and Larry's together)
+- **Issues:** bead context-grabber-eg7v
+
+#### Use Case:
+- **As someone** writing a line of my own over a few of Larry's strokes
+- **I want** the system's handwriting reflow to move my line without his strokes
+- **so that** reflowing my words never drags his marks along
+
+#### Acceptance Criteria:
+- **Scenario:** My line with a few of his strokes caught
+- **Given:** a line of my handwriting with a few of Larry's strokes in it
+- **When:** the reflow moves them all
+- **Then:** my line stays moved and his strokes go back where they were
+
+---
+
+### User Story 1147:
+
+- **Summary:** What I select and drag moves whole, my ink and Larry's together
+- **Status:** implemented in [bbd89c38](https://github.com/idvorkin/context-grabber/commit/bbd89c38); verified by host tests (`PaperProbeOwnersApartTests`: a selection; `just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2, `just test-ladder`: a group's drag logs `apart: selected`, moved whole)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (PaperKit's handwriting reflow never carries Igor's ink and Larry's together)
+- **Issues:** bead context-grabber-eg7v
+
+#### Use Case:
+- **As someone** who lassoed my ink and Larry's on purpose
+- **I want** the drag to move everything I selected
+- **so that** keeping owners apart never undoes a move I chose
+
+#### Acceptance Criteria:
+- **Scenario:** What I selected moves whole
+- **Given:** a lasso round my ink and Larry's
+- **When:** I drag it
+- **Then:** everything I selected moves together, as before
+
+---
+
 ### User Story 1000:
 
 - **Summary:** The buttons beside a chosen mark sit clear of the board's corner and wholly on screen
