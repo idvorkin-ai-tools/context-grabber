@@ -73,6 +73,7 @@ extension PaperBoardController {
     let ready = connectOps(keys, id: "connect-probe") != nil
     connectKeys = ready ? keys : []
     showConnect()
+    nameSelection(connectReady: ready)
   }
 
   /// Where the lassoed arrow is on screen now, for its Connect.

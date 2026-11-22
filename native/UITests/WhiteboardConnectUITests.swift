@@ -44,6 +44,10 @@ final class WhiteboardConnectUITests: XCTestCase {
     wait(send, label: "Send to Larry, 3 strokes")
     let connect = app.buttons["whiteboard-connect"]
     XCTAssertTrue(connect.appears(within: 5), "Connect beside the selected arrow: \(app.debugDescription)")
+    // Story 1095: the label above it names it as an arrow Connect can join.
+    let named = app.descendants(matching: .any)["whiteboard-selection-label"]
+    XCTAssertTrue(named.appears(within: 5), "the selection's label: \(app.debugDescription)")
+    XCTAssertEqual(named.label, "Selected: Arrow, Connect")
     let picture = XCTAttachment(screenshot: app.screenshot())
     picture.name = "arrow selected, with Connect"
     picture.lifetime = .keepAlways

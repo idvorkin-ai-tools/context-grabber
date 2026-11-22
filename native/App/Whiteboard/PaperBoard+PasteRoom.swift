@@ -209,6 +209,7 @@ extension PaperBoardController {
       }
     }
     if frame != pastedFrame { pastedFrame = frame }
+    showSelectionLabel()
   }
 
   func forgetPaste() {

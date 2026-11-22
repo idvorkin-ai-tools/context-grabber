@@ -7,7 +7,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 [paste](../superpowers/specs/2026-11-02-whiteboard-paste-design.md),
 [question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md),
 [to text and snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md),
-[reword and live snap](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md).
+[reword and live snap](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md),
+[what's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md).
 
 ---
 
@@ -914,3 +915,63 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board on paper with a word written on it, and the eraser picked
 - **When:** I scrub the eraser back and forth fast over the word with the Pencil
 - **Then:** the eraser rubs out what it crosses, no scratch-out flash or *Nothing under the scribble to erase* shows, and the app stays up
+
+---
+
+### User Story 1095:
+
+- **Summary:** A small label on a selection says what I picked and what applies to it
+- **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
+- **Status:** implemented in [13ab6905](https://github.com/idvorkin/context-grabber/commit/13ab6905); verified by host tests (`BoardSelectionLabelTests`; `just native-test`), the Mac build (rung 1.5) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace` reads *Selected: Ink, To text* and `WhiteboardConnectUITests.testALassoedArrowBetweenTwoWordsConnectsThem` *Selected: Arrow, Connect*, all 66 whiteboard UI tests passing); not yet seen on the iPad: a real lasso and the comparison #1045 asks for
+- **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
+
+#### Use Case:
+- **As someone** whose board holds handwriting, Larry's kept texts and groups, and connectors that all look alike
+- **I want** a small label beside what I selected saying what it is (*Ink*, *Text*, *Group*, *Connector*) and what applies (*To text*, *tap to reword*, *moves as one*, *follows its two ends*)
+- **so that** my first action on it is the one I meant, not a try to find out what it is
+
+#### Acceptance Criteria:
+- **Scenario:** My handwriting
+- **Given:** a board on paper with my handwriting
+- **When:** I lasso my handwriting
+- **Then:** the label says *Ink · To text*; it sits just above the selection, never takes a touch (my next stroke draws), and is in no picture Larry gets
+
+---
+
+### User Story 1096:
+
+- **Summary:** The label on a kept text says it can be reworded, and an erase turns it to ink
+- **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
+- **Status:** implemented in [13ab6905](https://github.com/idvorkin/context-grabber/commit/13ab6905); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a kept text, reworded or erased
+- **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
+
+#### Use Case:
+- **As someone** whose board holds Larry's kept texts beside my handwriting
+- **I want** the label on a selected text to say *Text · tap to reword*, and to say *Ink · To text* once an erase has broken it
+- **so that** I know a tap rewords it before I try, and know when it has become ink
+
+#### Acceptance Criteria:
+- **Scenario:** A kept text, then one an erase broke
+- **Given:** a board on paper with a kept text of Larry's, and another kept text with one letter erased
+- **When:** I select each one in turn
+- **Then:** the label says *Text · tap to reword* on the whole text, and *Ink · To text* on the one with the erased letter
+
+---
+
+### User Story 1094:
+
+- **Summary:** The label on a connected word says a connector follows it
+- **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
+- **Status:** implemented in [13ab6905](https://github.com/idvorkin/context-grabber/commit/13ab6905); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a connected word and a connector
+- **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
+
+#### Use Case:
+- **As someone** who joins words on my board with connectors
+- **I want** the label on a connected word to say a connector follows it, and on a connector that it follows its two ends
+- **so that** I move a connected word knowing its connector comes along
+
+#### Acceptance Criteria:
+- **Scenario:** A connected word
+- **Given:** a word of mine a connector ends on
+- **When:** I hold the Pencil on it and lift without moving
+- **Then:** the label says *Group · moves as one · a connector follows it*, and a selected connector says *Connector · follows its two ends*

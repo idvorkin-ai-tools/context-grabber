@@ -46,6 +46,7 @@ extension PaperBoardController {
       }
     }
     if frame != toText.frame { toText.frame = frame }
+    showSelectionLabel()
   }
 
   /// Story 920: the selected ink's picture to the Cockpit, and its words in the ink's place when they come.
@@ -176,6 +177,7 @@ extension PaperBoardController {
     guard let markup = paper.markup else { return }
     paper.selection = Set(markup.subelements.strokes.map(\.elementID))
     showToText()
+    nameSelection(connectReady: false)
     log.event(
       "whiteboard", ["action": "paper_select_hook", "board": model.board.id, "selected": paper.selection.count])
   }

@@ -55,6 +55,10 @@ final class WhiteboardToTextUITests: XCTestCase {
     let app = try openBoard(cockpit)
     let toText = app.buttons["whiteboard-to-text"]
     XCTAssertTrue(toText.appears(within: 10), "To text beside the selection: \(app.debugDescription)")
+    // Story 1095: the label above the selection names it as ink, with what applies.
+    let named = app.descendants(matching: .any)["whiteboard-selection-label"]
+    XCTAssertTrue(named.appears(within: 5), "the selection's label: \(app.debugDescription)")
+    XCTAssertEqual(named.label, "Selected: Ink, To text")
     toText.tap()
     waitUntil(
       NSPredicate(format: "label BEGINSWITH 'Send to Larry, ' AND label != 'Send to Larry, 1 strokes'"),
