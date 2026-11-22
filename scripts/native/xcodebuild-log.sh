@@ -173,6 +173,7 @@ if [ "$is_test" -eq 1 ]; then
         # no test can open the mic any more, and the result stands (story 1018 reads it). It keeps looking after a
         # closing line: a run of several test targets closes one per target, and the next can start (bead i5x4).
         if [ "$sim_test" -eq 1 ] && tests_running; then
+          echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
           touch "$lock_stopped"
           stop_for_lock
           exit

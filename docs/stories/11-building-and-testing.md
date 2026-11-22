@@ -1211,7 +1211,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a test run on a simulator whose tests are still running
 - **When:** the screen is seen locked (it is looked at every 2 s)
 - **Then:** the run is stopped within seconds: xcodebuild is ended and the app and its test runner are ended on that simulator before a test can open the mic, and the run exits 75 saying when the screen locked, that the run was stopped so the app could not crash, and to unlock and rerun; if a case had already failed before the lock, the run fails with exit 65 instead, naming the lock; once the run's tests have all finished, a lock no longer stops it, and its result stands
-- **And:** a run of several test targets (the contract tests are two) is guarded to the end of its last: a lock seen during any target stops the run as above, and one seen between two targets stops it as soon as the next target starts while the screen is still locked; unlocked by then, the run goes on, and its result stands with a line saying the screen locked
+- **And:** a run of several test targets (the contract tests are two) is guarded to the end of its last: a lock seen during any target stops the run as above, and one seen between two targets stops it as soon as the next target starts while the screen is still locked; unlocked by then, the run goes on: a pass stands with a line saying the screen locked, a failure after that lock is read as story 1018 says, and a later lock that stops the run is the one it names, its 75 or 65 counting the cases that had failed before it
 
 ---
 
