@@ -12,7 +12,7 @@ extension PaperBoardController {
   /// One stroke drawn with an inking tool (the element `key`): read for a header after PaperKit's callback.
   func inkHeaderSoon(_ change: PaperProbe.InkChange) {
     guard model.editable, change.added.count == 1, change.removed.isEmpty, change.moved.isEmpty,
-      paper.drawingTool is PKInkingTool, let key = change.added.first
+      touchTool.ink != nil, let key = change.added.first
     else { return }
     Task { @MainActor [weak self] in self?.inkHeader(key) }
   }

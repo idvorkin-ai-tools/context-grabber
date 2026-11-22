@@ -82,7 +82,7 @@ extension PaperBoardController {
   /// The Pencil went down in the margin: once it has held still there for half a second, off a header's mark, the band
   /// shows, as the stroke's own verdict will find when it lifts.
   func roomBandPencilDown(_ touch: UITouch, at point: CGPoint) {
-    guard model.editable, paper.drawingTool is PKInkingTool else { return }
+    guard model.editable, touchTool.ink != nil else { return }
     roomBand.pencil = (ObjectIdentifier(touch), [(point, touch.timestamp)])
     roomBand.waiting?.cancel()
     roomBand.waiting = Task { @MainActor [weak self] in

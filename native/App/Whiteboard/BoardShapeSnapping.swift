@@ -36,7 +36,7 @@ extension PaperBoardController {
 
   /// A touch that draws, from the base's touch hooks: `draws` when it is the Pencil, or a finger while fingers draw.
   func snapTouch(_ touch: UITouch, _ phase: SnapTouch, draws: Bool) {
-    guard model.editable, draws, paper.drawingTool is PKInkingTool else { return }
+    guard model.editable, draws, touchTool.ink != nil else { return }
     let id = ObjectIdentifier(touch)
     let point = lines.columnPoint(of: touch.location(in: lines))
     switch phase {
@@ -154,7 +154,7 @@ extension PaperBoardController {
 
   /// The clean shape over the stroke, in the pen's colour and width, the wet stroke covered in paper colour beneath it.
   private func showPreview(_ shape: BoardShapeSnap.Shape) {
-    guard snaps.cover == nil, let tool = paper.drawingTool as? PKInkingTool else { return }
+    guard snaps.cover == nil, let tool = touchTool.ink else { return }
     let zoom = screenScale
     let path = { (points: [CGPoint]) -> CGPath in
       let out = CGMutablePath()
