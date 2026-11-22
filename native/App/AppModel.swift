@@ -368,7 +368,8 @@ final class AppModel: ObservableObject {
         // context-grabber-mzdf: this is the most it waits; `screenGone` brings the screen up sooner.
         Task {
           try? await Task.sleep(for: .milliseconds(milliseconds))
-          settled(screens.settle(wait: id), wait: id, via: "ceiling")
+          let going = screens.pending.flatMap { $0.wait == id ? $0.going : nil } ?? []
+          settled(screens.settle(wait: id), wait: id, via: "ceiling", going: going)
         }
       }
     }
@@ -386,7 +387,10 @@ final class AppModel: ObservableObject {
 
   /// A waiting link's screen comes up (or nothing, for a wait a newer link took over or dropped), logged with what
   /// let it: every screen it closed said it had gone, or the most it waits ran out first.
-  private func settled(_ effects: [HomeStack.Effect], wait id: Int, via: String, last: HomeStack.Screen? = nil) {
+  private func settled(
+    _ effects: [HomeStack.Effect], wait id: Int, via: String, last: HomeStack.Screen? = nil,
+    going: Set<HomeStack.Screen> = []
+  ) {
     let started = waitStarted[id]
     // The wait's own end always comes, so nothing is left behind.
     if via == "ceiling" || !effects.isEmpty { waitStarted[id] = nil }
@@ -397,7 +401,7 @@ final class AppModel: ObservableObject {
       ]
       if let last { fields["screen"] = last.reportName }
       if via == "ceiling" {
-        fields["going"] = (screens.pending?.going ?? []).map(\.reportName).sorted().joined(separator: ",")
+        fields["going"] = going.map(\.reportName).sorted().joined(separator: ",")
       }
       log.event("links", fields)
     }
