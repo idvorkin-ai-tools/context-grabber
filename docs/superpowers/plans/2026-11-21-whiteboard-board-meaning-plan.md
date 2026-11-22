@@ -3,7 +3,7 @@
 Bead context-grabber-cc75 (whiteboard architecture item 5). Review: `~/tmp/agent/notes/wb-arch-data-sync.md`, option B.
 Specs: [board ops](../specs/2026-11-16-whiteboard-board-ops-design.md) (*Edge cases*), and for step 2
 [whiteboard](../specs/2026-11-01-whiteboard-design.md) (*Every device signed into Igor's iCloud sees every board*).
-Stories: 1106 (step 1).
+Stories: 1106 (step 1), 1109 (step 2, proposed).
 
 ## Why
 
@@ -49,13 +49,54 @@ A delete (here, or arriving from elsewhere) forgets every key of the board (`Boa
 - An unreadable meaning file is set aside (`.unreadable`) and the board opens with none; logged as
   `error` `whiteboard_meaning`.
 
-## Step 2 (next PR): the file goes to iCloud as a third asset
+## Step 2 (proposed; spec and story 1109 only, waiting on Igor): the file goes to iCloud as a third asset
 
-- Upload: `meaning` CKAsset beside `drawing` and `picture`; download asks for it; `takeReplica` validates it before it
-  replaces the local copy, as #1043 does the drawing. A record with no meaning (an older build drew it) is normal.
-- A meaning-only change bumps the board's `updated` so it uploads (and stays clear of `dropsOnClose`).
-- Rules to spec first: the owner's file wins on every other device (a look-only device's own cards and refusals are
-  replaced on the next download); an owner whose file was unreadable must not upload an empty one over iCloud's.
-- `whiteboard_sync` fields: meaning taken, missing, unreadable.
-- Open: whether a new record field needs the CloudKit production schema deployed before TestFlight builds can save
-  (see the TestFlight lane spec, step 5). Builds from the cable use the development environment.
+Spec: [whiteboard](../specs/2026-11-01-whiteboard-design.md), *A board's meaning goes through iCloud with its ink*.
+Not built until Igor says yes to syncing the meaning at all, and to the production-schema step below.
+
+- **Upload.** `WhiteboardStore`'s record gets `record["meaning"] = CKAsset(fileURL: boards/<id>.meaning.json)` beside
+  `drawing` and `picture`, only on the drawing device (the single-writer rule is unchanged). No file, or a meaning
+  the device couldn't read (set aside as `.unreadable` in step 1), leaves the key unset: with `savePolicy .allKeys`
+  an unset key isn't sent, so iCloud's asset stays. Never upload an empty `BoardMeaning` written to stand in for an
+  unreadable one; a per-board "meaning held" flag (like the drawing's #1042 hold) says the local file isn't
+  authoritative until a download replaces it or a real change is saved over it.
+- **Meaning-only changes upload.** Step 1 saves the meaning alone without touching the index; step 2 makes that save
+  call `index.drew(...)` (or a `meaningChanged`) so `updated` moves and `pendingUploads` picks the board up. It
+  must stay clear of `dropsOnClose` (a board with meaning but no strokes is still dropped only by the strokes rule).
+- **Download.** `download` asks for `["drawing", "picture", "meaning"]`. `takeReplica` takes the pair: decode the
+  drawing and the meaning (`BoardMeaning` decode, every field optional) before replacing either; if the drawing
+  fails, take neither; if only the meaning fails, keep the drawing, keep the old meaning and leave the board's
+  `fetched` behind so the next sync asks again. A record with no `meaning` (an older build drew it) keeps the
+  local meaning, or none.
+- **Replica wins over local.** On a look-only device the downloaded meaning replaces the local file whole (its own
+  cards and refusals go). An open look-only board reloads its ledger from the new file as it reloads the drawing.
+- **Own board after a lost meaning.** On the drawing device, a held meaning is replaced by iCloud's on the next
+  download of its own board (the merge already lists own boards; `takeReplica` today refuses this device's boards,
+  so the meaning needs its own path there, or the hold just clears once a change is saved).
+- **Delete.** The record goes, so the asset goes; nothing new.
+- **Logs.** `whiteboard_sync` per board: `meaning` = `taken` | `missing` (no asset on the record) | `unreadable`
+  | `held` (upload left it out). DEBUGGING's whiteboard rows get the field.
+- **Tests (host).** Upload leaves `meaning` out when held or absent; `takeReplica` takes the pair or neither; a
+  record without `meaning` keeps the local file; a meaning-only save moves `updated` and isn't dropped on close.
+  CloudKit itself is phone- and iPad-only (the simulator has no iCloud account).
+
+### The CloudKit production schema (TestFlight)
+
+- Cable builds use the container's development environment, where CloudKit creates `WhiteboardBoard.meaning` (an
+  Asset field) the first time a record carries it. TestFlight builds are distribution-signed and use production,
+  which has only deployed fields: saving a record with an unknown field fails the whole record, so ink would stop
+  syncing too.
+- Igor's step, once, before the first TestFlight build that carries this: run a cable build that uploads one board
+  with a meaning, then CloudKit Console → the container → Schema → *Deploy Schema Changes…* to production. This also
+  deploys `WhiteboardBoard` itself if it was never deployed (check: Console → production → Record Types; if the
+  record type isn't there, TestFlight builds can't sync boards today, with or without this).
+- The TestFlight lane spec's one-time setup gets a line for it when this is built.
+- Possible safeguard (Igor to decide): on a save refused for an unknown field, retry once without `meaning` and log
+  it, so a TestFlight build shipped before the deploy still syncs ink.
+
+### For Igor to confirm
+
+1. Sync the meaning at all (folds, cards, Larry's groups on the iPhone, Mac and a reinstalled iPad).
+2. The drawing device wins: a card Larry leaves on a board on the iPhone is replaced on the next sync.
+3. A meaning-only change moves the board's `updated` (it goes up, and moves to the top of the list like new ink).
+4. The production-schema deploy before TestFlight, and whether to build the retry-without-meaning safeguard.
