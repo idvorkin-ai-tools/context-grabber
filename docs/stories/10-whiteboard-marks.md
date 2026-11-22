@@ -246,6 +246,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1101:
+
+- **Summary:** A tap on my selection brings up its menu while Larry's marks show
+- **Status:** implemented in [57dc58d5](https://github.com/idvorkin/context-grabber/commit/57dc58d5); verified by host tests (`WhiteboardMarkChoiceTests`: the iPad's own selection box and tap keep the selection, a tap on a mark or off the box lets it go; `just native-test`) and the Mac build (`just native-build-mac`); the simulator (rung 2) is owed, as the simulator stack was wedged on 2026-11-22, and the iPad still to do
+- **Issues:** [#1170](https://github.com/idvorkin/context-grabber/issues/1170) (the iPad, 2026-11-22: ink selected, Larry's three marks landed, a finger tap on the selection cleared it, `paper_tap` `selected_at_tap` 6, and the menu came up as *Paste* and *Select All*, so there was no Delete)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on his own selection is still his*
+
+#### Use Case:
+- **As someone** who selected some of my ink while Larry's marks are on the board
+- **I want to** tap my selection and get its menu, Delete among it
+- **so that** Larry's marks arriving never stop me deleting what I selected
+
+#### Acceptance Criteria:
+- **Scenario:** Deleting a selection with Larry's marks showing
+- **Given:** Larry's marks are showing and some of my ink is selected
+- **When:** I tap with a finger inside the selection, away from his marks
+- **Then:** the selection stays, its menu shows with Delete, and Delete removes that ink
+
+---
+
 ### User Story 355:
 
 - **Summary:** Keep Larry's mark

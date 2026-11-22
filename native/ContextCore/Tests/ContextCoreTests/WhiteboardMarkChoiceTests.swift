@@ -23,6 +23,28 @@ final class WhiteboardMarkChoiceTests: XCTestCase {
     return (turns, claudes, larrys)
   }
 
+  // MARK: A tap on his selection (story 1101, #1170)
+
+  func testATapInsideHisSelectionOffTheMarksKeepsIt() {
+    // The iPad's #1170: "OK, ah 2" selected at [66, 1717, 139, 92], tapped at (124.5, 1729.5), no mark chosen.
+    let box = CGRect(x: 66, y: 1717, width: 139, height: 92)
+    XCTAssertTrue(WhiteboardMarkChoice.onSelection(box, at: CGPoint(x: 124.5, y: 1729.5), reach: 22, onMark: false))
+    XCTAssertTrue(
+      WhiteboardMarkChoice.onSelection(box, at: CGPoint(x: 60, y: 1700), reach: 22, onMark: false),
+      "a fingertip's reach round the box counts")
+  }
+
+  func testATapOnAMarkOrOffTheSelectionLetsItGo() {
+    let box = CGRect(x: 66, y: 1717, width: 139, height: 92)
+    XCTAssertFalse(
+      WhiteboardMarkChoice.onSelection(box, at: CGPoint(x: 124.5, y: 1729.5), reach: 22, onMark: true),
+      "a mark in reach takes the tap")
+    XCTAssertFalse(WhiteboardMarkChoice.onSelection(box, at: CGPoint(x: 400, y: 1729.5), reach: 22, onMark: false))
+    XCTAssertFalse(
+      WhiteboardMarkChoice.onSelection(.null, at: CGPoint(x: 124.5, y: 1729.5), reach: 22, onMark: false),
+      "nothing selected")
+  }
+
   // MARK: Which mark a tap chooses
 
   func testATapOnAMarkChoosesItAndChangesNothing() {

@@ -628,10 +628,17 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     // With his controls showing a finger taps too (story 846): no dot, no selection.
     guard count > 0 || !model.overlays.list.isEmpty else { return }
-    noSelectionUntil = CACurrentMediaTime() + 0.8
     ghostTap = (at, CACurrentMediaTime(), PaperProbe.tapDotSeconds)
     let selected = paper.selection.count
-    if selected > 0 { paper.selection = [] }
+    // Story 1101 (#1170): a tap on his selection that reaches no mark is his, so PaperKit's menu (Delete) shows.
+    let box = paper.selection.map(Self.key).compactMap { inkFrames[$0] }.reduce(CGRect.null) { $0.union($1) }
+    let onSelection = WhiteboardMarkChoice.onSelection(
+      box, at: at, reach: WhiteboardTurn.tapReach / max(screenScale, 0.01),
+      onMark: model.reachesMark(at: at, zoom: screenScale))
+    if !onSelection {
+      noSelectionUntil = CACurrentMediaTime() + 0.8
+      if selected > 0 { paper.selection = [] }
+    }
     guard count > 0 else { return }
     model.tap(at: at, zoom: screenScale)
     log.event(
@@ -639,6 +646,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       [
         "action": "paper_tap", "board": model.board.id, "at": point(at), "ghosts_before": count,
         "ghosts_after": model.ghosts.count, "chosen": model.chosen != nil, "selected_at_tap": selected,
+        "selection_box": rect(box), "on_selection": onSelection,
         "touch_mode": name(paper.directTouchMode), "auto_draws": paper.directTouchAutomaticallyDraws,
         "screen_scale": Double(screenScale),
       ])

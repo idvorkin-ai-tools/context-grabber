@@ -388,6 +388,13 @@ public enum WhiteboardMarkChoice {
     return best?.mark
   }
 
+  /// Story 1101 (#1170): whether a finger tap at `point` is on his own selection rather than for the marks: within
+  /// `reach` of the selected ink's box, and reaching no mark. Such a tap keeps the selection, so its menu shows.
+  public static func onSelection(_ selection: CGRect, at point: CGPoint, reach: CGFloat, onMark: Bool) -> Bool {
+    guard !onMark, !selection.isNull else { return false }
+    return selection.insetBy(dx: -reach, dy: -reach).contains(point)
+  }
+
   /// A mark's box from its lines, in their own points; null for none.
   public static func bounds(_ lines: [[CGPoint]]) -> CGRect {
     let points = lines.joined()
