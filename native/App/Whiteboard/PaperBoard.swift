@@ -606,6 +606,16 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   override func fingerTapped(at spot: CGPoint, beganAt: Date) {
+    // Story 968: a tap on PaperKit's menu beside a selection (Delete) is the menu's: no mark, no letting the selection go.
+    if let start = run?.startView, PaperProbe.isSelectionMenu(start) {
+      log.event(
+        "whiteboard",
+        [
+          "action": "menu_tap", "board": model.board.id, "view": start, "selected": paper.selection.count,
+          "ghosts": model.ghosts.count,
+        ])
+      return
+    }
     let at = lines.columnPoint(of: view.convert(spot, to: lines))
     // Story 818: Larry hears every tap, marks showing or not.
     model.tapped(at: at, zoom: screenScale)
