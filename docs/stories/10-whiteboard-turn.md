@@ -776,7 +776,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 428:
 
 - **Summary:** With no network Larry's turn says so and nothing waits
-- **Status:** implemented in [53481a1](https://github.com/idvorkin/context-grabber/commit/53481a1); the simulator compile only: no test runs a turn with no network, so this is owed on the iPad
+- **Status:** implemented in [53481a1](https://github.com/idvorkin/context-grabber/commit/53481a1); the simulator compile only: no test runs a turn with no network, so this is owed on the iPad. The lost connection's one quiet second try (#1136) in [11e9176a](https://github.com/idvorkin/context-grabber/commit/11e9176a); verified by host tests (`WhiteboardLostConnectionTests`: lost once, lost twice, no network, one per hand-off, a turn taken over), the Mac build and the whiteboard UI tests on the iPad simulator (none drops a connection); the drop itself is owed on the iPad
 - **Why:** split from story 421, whose old wording promised this case a send or a wait; a turn has no outbox
 - **Issues:** [#1136](https://github.com/idvorkin/context-grabber/issues/1136) (*The network connection was lost* on the iPad when the app left the screen for a moment during a turn: one quiet second try)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
