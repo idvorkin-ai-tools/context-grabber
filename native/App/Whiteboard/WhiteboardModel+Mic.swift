@@ -97,7 +97,11 @@ extension WhiteboardModel {
       // Closed meanwhile (the board left, a call, Ghosts off): it doesn't open.
       guard micOpening else { return }
       micOpening = false
-      guard turns.micMayOpen(), !callLive() else { return }
+      let refused = !turns.micMayOpen() ? "ghosts_off" : callLive() ? "call_live" : nil
+      if let refused {
+        log.event("whiteboard", ["action": "mic_refused", "board": board.id, "why": refused, "opening": true])
+        return
+      }
       speech = WhiteboardSpeech()
       lastSaid.micOpened()
       dictation.toggle(note: "") { [weak self] text in self?.heard(text) }
@@ -124,7 +128,7 @@ extension WhiteboardModel {
   /// Story 1103 (#1139): another microphone picked in the note's line. Closed, the next opening uses it; open, the mic
   /// closes (its words so far still go) and opens again on it.
   func pickMicrophone(_ id: String?) {
-    guard id != dictation.selectedMicrophoneID else { return }
+    guard id != dictation.selectedMicrophoneID, !micOpening else { return }
     let open = micOn
     log.event("whiteboard", ["action": "mic_picked", "board": board.id, "automatic": id == nil, "mic_open": open])
     guard open else {
