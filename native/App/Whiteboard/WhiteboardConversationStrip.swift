@@ -49,6 +49,12 @@ struct WhiteboardNoteStrip: View {
     let (tap, conversationOpen) = (shown.tap, shown.conversationOpen)
     if let line = shown.line {
       HStack(spacing: 6) {
+        // Story 929: Larry is holding for more, where his state would be.
+        if let listening = line.listening {
+          LarryListeningEar(label: listening).layoutPriority(1)
+            .accessibilityIdentifier("whiteboard-larry-listening")
+          if line.middle != nil { Text("·") }
+        }
         if let state = line.state {
           Text(state).lineLimit(1).layoutPriority(1)
             .accessibilityLabel(line.spokenState ?? state)
@@ -190,9 +196,13 @@ struct WhiteboardConversationPanel: View {
       ForEach(rows) { row in
         Group {
           if row.id == "live-chip" {
-            Text("\(Text(row.who).bold()) · \(row.text)")
-              .padding(.horizontal, 10).padding(.vertical, 3)
-              .background(Color(WhiteboardNoteInk.quiet).opacity(0.12), in: Capsule())
+            HStack(spacing: 4) {
+              // Story 929: the ear while Larry holds for more.
+              if row.listening { LarryListeningEar.icon }
+              Text("\(Text(row.who).bold()) · \(row.text)")
+            }
+            .padding(.horizontal, 10).padding(.vertical, 3)
+            .background(Color(WhiteboardNoteInk.quiet).opacity(0.12), in: Capsule())
           } else {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
               Text("\(row.who):").bold()
@@ -206,6 +216,36 @@ struct WhiteboardConversationPanel: View {
         .accessibilityIdentifier("whiteboard-conversation-\(row.id)")
       }
     }
+  }
+}
+
+/// Story 929: Larry has seen Igor's newest post and is holding for more: an ear, gently pulsing (still with Reduce
+/// Motion), and his words for it.
+struct LarryListeningEar: View {
+  let label: String
+
+  var body: some View {
+    HStack(spacing: 4) {
+      Self.icon
+      Text(label).lineLimit(1)
+    }
+    .padding(.horizontal, 8).padding(.vertical, 2)
+    .background(Color(WhiteboardNoteInk.quiet).opacity(0.12), in: Capsule())
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(label)
+  }
+
+  static var icon: some View { LarryListeningIcon() }
+}
+
+/// The ear itself, pulsing unless Reduce Motion is on.
+struct LarryListeningIcon: View {
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+  var body: some View {
+    Image(systemName: "ear")
+      .symbolEffect(.pulse, options: .repeating, isActive: !reduceMotion)
+      .accessibilityHidden(true)
   }
 }
 

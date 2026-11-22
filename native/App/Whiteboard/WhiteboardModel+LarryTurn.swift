@@ -412,6 +412,7 @@ extension WhiteboardModel {
         lookWorked(rows)
         questions.looked(body)
         larryClosed(messages)
+        heardLarryHold(messages)
         return
       }
       if status == 404 {
@@ -435,6 +436,7 @@ extension WhiteboardModel {
 
   /// The Cockpit answered and no longer has the thread: the next picture starts a new one.
   private func threadGone(_ thread: String) {
+    larryListeningChanged(nil, why: "thread_gone")
     if threads.forget(thread, board: board.id) {
       Task { [store] in await store.sync(reason: "thread_gone") }
     }
@@ -734,7 +736,7 @@ extension WhiteboardModel {
 
   /// His answer came, or the wait ran out: one fresh picture if the board moved on or words waited, else nothing.
   /// `facts`: the state a timeout's problem carries, in the log too.
-  private func larryFollowUp(_ next: WhiteboardLarryTurn.Next, why: String, facts: [String: Any] = [:]) {
+  func larryFollowUp(_ next: WhiteboardLarryTurn.Next, why: String, facts: [String: Any] = [:]) {
     var event: [String: Any] = ["action": "larry_turn_over", "board": board.id, "why": why]
     event.merge(facts) { $1 }
     switch next {

@@ -2029,3 +2029,38 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the board's mic is open on the iPad's own microphone, and a pocket mic is connected
 - **When:** I hold the mic button and pick the pocket mic
 - **Then:** the mic closes, its words so far still go, and it opens again on the pocket mic, as a pick from the note's line does
+
+---
+
+### User Story 929:
+
+- **Summary:** An ear on the board while Larry is waiting for more
+- **Status:** implemented in [13bddda6](https://github.com/idvorkin/context-grabber/commit/13bddda6); verified by host tests (`WhiteboardLarryListeningTests`: the Cockpit's `receipt.waiting` decoded from sample JSON, a malformed one never costing the receipt's state, only Igor's newest message holding, a hold on the turn's picture being his answer, the ear on the line and the chip only with no turn out; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`WhiteboardListeningUITests` against the fake Cockpit's hold: the ear with Larry's words, the clock gone, no Interrupt, the chip *Your board · Larry: hmm, go on*, gone on his next row; `WhiteboardTurnUITests` still green). The pulse and the real Cockpit's hold are for the iPad's eye
+- **Issues:** bead `context-grabber-4fww` (Igor, 2026-11-22, on board ead78e80 via Larry: "when Larry has seen a post but is waiting for more, no text reply; show a tiny indicator")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Larry is listening*
+
+#### Use Case:
+- **As someone** thinking out loud on the board, mid-thought
+- **I want to** see that Larry has my last post and is holding for more, without him writing a reply
+- **so that** I keep going instead of wondering whether he is stuck or waiting for me
+
+#### Acceptance Criteria:
+- **Scenario:** Larry holds on my picture
+- **Given:** I tapped *Larry's turn* and the clock is counting
+- **When:** the Cockpit marks my picture *waiting*, with Larry's words *Larry: waiting for more*
+- **Then:** the clock stops, a gently moving ear and *Larry: waiting for more* start the note's line, the open panel's chip reads *Your board · Larry: waiting for more*, and no *Interrupt* or *Larry didn't answer* comes however long it lasts
+
+- **Scenario:** He answers
+- **Given:** the ear is showing
+- **When:** Larry's next message lands, or the Cockpit stops marking the hold
+- **Then:** the ear goes, and the line shows his words as usual
+
+- **Scenario:** I keep drawing while he waits
+- **Given:** I drew while his turn was out, so *next: ink* was waiting
+- **When:** he holds on the picture
+- **Then:** the waiting ink goes at once as a new picture, his clock starts again, and the ear goes with my new picture
+
+- **Scenario:** Words he gives none of
+- **Given:** a hold with no words of Larry's for it
+- **When:** the board reads the thread
+- **Then:** the ear reads *Larry: waiting for more*

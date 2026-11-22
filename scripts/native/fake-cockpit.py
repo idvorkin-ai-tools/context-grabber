@@ -17,7 +17,9 @@ on the message's own rev (one behind it with "behind", which the board still app
 board remembers with "stale", which it refuses); with "kind": "connector_marks", marks instead: a
 connector by points from the end of the first stroke sent to the start of the second (story 917); with "kind": "link_reply",
 the usual arrow and label with a reply that ends on a Lavish link on the Cockpit's host (story 1127); with "kind": "words_only",
-his usual words and no marks at all (story 1155); with "kind": "ink_and_button", instead a purple line of his
+his usual words and no marks at all (story 1155); with "kind": "hold" (and "label", else none, as the Cockpit may send),
+no answer at all: the picture's receipt goes seen with "waiting" {label, ts}, Larry holding for more, which his next
+row (any of his) clears (story 929); with "kind": "ink_and_button", instead a purple line of his
 across the gap below the picture and a green button under it whose tap_event is {"type": "make_room"}. POST
 /whiteboard/events takes the events a tap on one of his controls sends at once (stories 845, 846). GET /fake/ops says
 what each board message reported back (its rev and op_result) and every events post. Every request is a JSON line in
@@ -161,6 +163,10 @@ def row(key, who, text, mid=None, attachments=None, board=None):
         r["attachments"] = attachments
     if board:
         r["board"] = board
+    if who == "larry":
+        # Story 929: his next message clears his hold, as the Cockpit's does.
+        for m in THREADS.get(key, {}).get("messages", []):
+            m.get("receipt", {}).pop("waiting", None)
     return r
 
 
@@ -386,6 +392,16 @@ def answer_board_later(key):
                 # Story 1127 (#1138): his reply links a Lavish page, which the board's conversation shows as a chip.
                 LARRY_OPS = None
                 said += ", the map: https://c-5004.squeaker-teeth.ts.net:8444/session/7d7f837c3898ed37."
+            if LARRY_OPS is not None and LARRY_OPS.get("kind") == "hold":
+                # Story 929: he has seen the picture and holds for more: its receipt seen and waiting, and no row.
+                label, LARRY_OPS = LARRY_OPS.get("label"), None
+                stamp = now()
+                waiting = {"ts": stamp}
+                if label:
+                    waiting["label"] = label
+                BOARD_MESSAGES[key]["receipt"] = {"state": "seen", "received_ts": stamp, "seen_ts": stamp,
+                                                  "waiting": waiting}
+                return
             if LARRY_OPS is not None and LARRY_OPS.get("kind") == "words_only":
                 # Story 1155: his answer is words alone, so a test's unprompted marks after it are the only ones to keep.
                 LARRY_OPS = None
