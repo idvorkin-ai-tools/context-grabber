@@ -24,11 +24,12 @@
 <h3>Microphones</h3><ul id="inputs"><li class="muted">waiting…</li></ul>
 <h3>Outputs</h3><ul id="outputs"><li class="muted">waiting…</li></ul>
 <p>Live: <span id="live">–</span></p>
-<p class="muted" id="steps"></p>
 <!-- The real page's ☎: the hand-off message, then its fallback link (story 200). -->
 <p><button id="call" onclick="callLarry()" style="font-size:20px;padding:8px 16px">☎ Call</button></p>
 <!-- #234: a page on the Cockpit's own machine, opened in place (Lavish, a blog proposal). -->
 <p><a id="away" href="cockpit-away-test.html" style="font-size:20px">Open another page</a></p>
+<!-- Below the buttons: a step written on a tap must not move what is being tapped (context-grabber-ybo3). -->
+<p class="muted" id="steps"></p>
 <script>
   var b = window.CockpitAudioBridge;
   var tagged = /[?&]client=context-grabber(&|$)/.test(location.search) && /[?&]v=/.test(location.search);
