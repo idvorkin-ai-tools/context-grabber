@@ -54,7 +54,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 432:
 
 - **Summary:** A mark past the page edge widens the board
-- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** retired 2026-11-22: Igor decided marks stay inside the page (stories 624, 635); it was never implemented, and #636 is closed
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1012,7 +1012,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** In dark mode
 - **Given:** a board on paper, and the device in dark mode
 - **When:** I draw
-- **Then:** the ink shows dark on the colour's pale shade, as dark mode's deep shades aren't on paper yet
+- **Then:** the ink shows dark on the colour's pale shade: paper stays light in both modes (decided 2026-11-22)
 
 ---
 
@@ -1298,15 +1298,15 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 624:
 
-- **Summary:** A mark past the page's side, for now
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the telling verified by host tests (`BoardPagesTests`); the case not driven on the simulator. The log's `paper_ghosts` says `past_side`. A later step widens the board for these
+- **Summary:** A mark past the page's side shows only as far as the page
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the telling verified by host tests (`BoardPagesTests`); the case not driven on the simulator. The log's `paper_ghosts` says `past_side`. Decided 2026-11-22: marks stay inside the page, and no later step widens the board
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** whose suggestion lands past the page's edge
 - **I want to** know nothing is lost
-- **so that** the board's later widening has all of it
+- **so that** what the page can't show is still kept
 
 #### Acceptance Criteria:
 - **Scenario:** Past the side
@@ -1520,14 +1520,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 635:
 
 - **Summary:** A kept mark past the page's side is saved and sent
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the case not driven on the simulator. A later step widens the board for these
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the case not driven on the simulator. Decided 2026-11-22: marks stay inside the page, and no later step widens the board
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** keeping a suggestion that runs past the page's edge
 - **I want to** have all of it kept, not just what shows
-- **so that** the board's later widening has all of it
+- **so that** what the page can't show is still kept
 
 #### Acceptance Criteria:
 - **Scenario:** Kept past the side

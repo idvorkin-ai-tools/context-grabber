@@ -26,7 +26,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The Pencil touches down
 - **Given:** ghosts are showing, or a ghost turn is still on its way
 - **When:** I touch the Pencil down and draw on
-- **Then:** the ghosts stay, and the answer on its way still shows, drawn in one shape after another
+- **Then:** the ghosts already showing stay; Claude's quick answer still on its way is dropped and asked again after my next pause (story 894); a reply of Larry's is never dropped, however much I wrote since he looked: it lands, and the one rule for making room (story 1148) moves my newer writing down rather than his reply giving way (Igor, 2026-11-22)
 
 ---
 
@@ -947,6 +947,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1149:
+
+- **Summary:** One Keep all keeps each reply of Larry's as one group, with one make-room and one Undo
+- **Status:** decided 2026-11-22 (bead context-grabber-nrg); implemented in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e) (#1224, merge ef074fc8: Keep group and Keep all made one *Keep all*, bead context-grabber-yqau), the change main's stories 895, 995, 999, 1004 and 1009 also record; verified by host tests (`WhiteboardKeepAllTests`, `BoardMarksReplayTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`); not yet seen on the iPad
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "One rule everywhere: his ink never covers writing he didn't see; my newer writing moves down in whole lines; every cut lands between lines; Keep all behaves like Keep group. A fold is erased only by its words or its marker."
+
+#### Use Case:
+- **As someone** whose board Larry answered with marks from one reply or several
+- **I want to** keep them all with the one Keep all button, each reply as one group
+- **so that** each reply stays where he drew it, in one piece, never sits on writing he didn't see, and one Undo takes the keep back
+
+#### Acceptance Criteria:
+- **Scenario:** Keep all over newer writing
+- **Given:** marks from two of Larry's replies showing, one of their labels on a line I wrote after his picture went
+- **When:** I tap *Keep all* beside the count of marks to keep (there is no *Keep group*; a single mark I tap offers only Keep and Dismiss)
+- **Then:** every mark becomes ink where it showed, each reply's marks become one group a tap picks up whole (story 1205), my newer line and everything under it move down in whole lines in one make-room (story 1148), and one Undo, named *Keep all*, takes all of it back
+
+---
+
 ### User Story 896:
 
 - **Summary:** Tidy overlaps moves kept labels off my writing
@@ -1572,6 +1592,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a lasso round my ink and Larry's
 - **When:** I drag it
 - **Then:** everything I selected moves together, as before
+
+---
+
+### User Story 1205:
+
+- **Summary:** What I kept together moves together: a tap picks up the piece or the reply, as I kept it
+- **Status:** the rule decided 2026-11-22; a piece kept with Keep picked up alone is story 1140 and a reply kept with Keep group picked up whole is stories 947 and 998, each verified there; a reply kept with Keep all is one group since [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e) (story 1149), and a drag on part of a kept group brings the rest along since [7fe61413](https://github.com/idvorkin/context-grabber/commit/7fe61413) (story 1193); a tap on a Keep all reply picking it up whole not yet seen on the iPad
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "What I kept together moves together: Keep = that piece, Keep group or Keep all = the reply. My own selection always wins a tap; a second tap rewords a text."; it settles story 1140 against PR #1187
+
+#### Use Case:
+- **As someone** with Larry's kept marks on my board
+- **I want to** have a tap pick up exactly what one Keep made
+- **so that** I know before I tap whether one piece or the whole reply will move
+
+#### Acceptance Criteria:
+- **Scenario:** A piece and a reply
+- **Given:** one mark of Larry's kept on its own with Keep, and a reply of his kept with Keep group or Keep all, no marks showing
+- **When:** I tap the single mark, and then a piece of the reply, with a finger
+- **Then:** the first tap selects that mark alone and the second selects the whole reply and nothing else of his or mine; each drags as one, and one Undo puts it back
 
 ---
 
