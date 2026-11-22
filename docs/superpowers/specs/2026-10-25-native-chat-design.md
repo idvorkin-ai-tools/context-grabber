@@ -466,6 +466,14 @@ recording ends with the report still open, the report's mic comes back at his ne
   and speaker before and after, what iOS offers, the seconds in, and whether the app was on screen and the phone
   unlocked. The recording's stop line records the same state. A headset that went away can then be told apart from a
   route iOS moved when the phone locked, never with the words.
+- **The screen stays awake while it records** (#1165, Igor 2026-11-22, after a headset recording stopped about 50 s
+  after the phone auto-locked). From the moment a recording starts until it ends the phone does not auto-lock, however
+  it ends: the stop tap, Send or a quote, leaving the thread, a call taking the microphone, an interruption or failure,
+  or the five-minute stop. Auto-lock is back as soon as it ends, so the hold is never longer than the recording (five
+  minutes at most), and a recording never leaves the screen awake after it. The side button still locks the phone. If
+  something else is already keeping the screen awake (the Gym Timer, breathing), the recording leaves it as it found it.
+  The session log says when the hold went on and off. This keeps the phone from locking mid-recording; it does not
+  explain why the recording stopped after the lock, which the logged route change is there to settle.
 - **Five minutes at most.** Igor, 2026-10-26: a recording is capped at 5 minutes. At 5:00 it stops on its own and
   the words settle into the field exactly as if Igor had tapped stop — still never sent — and a quiet line under that
   thread's bar says *Stopped at 5 minutes.*
