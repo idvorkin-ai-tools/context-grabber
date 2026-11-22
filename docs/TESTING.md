@@ -66,6 +66,7 @@ same tests pass on Linux, but only the Mac's run says the app is right. Left out
 | Mac-only code, or anything else that goes into the Mac build | Mac | `just native-build-mac`; a host test can't compile it, and neither can a simulator build |
 | A batch of Larry's board changes: what it will do to a board | Host, on the Mac | `just board-ops` (below); the rules are `BoardOpsTests` and `BoardReplayTests` |
 | A UI test | Simulator | that class: `just test-ladder` |
+| What PaperKit or PencilKit does that the whiteboard relies on, an Xcode or iOS update | Simulator | `just native-test-contracts` (below) |
 | Chat or whiteboard on screen | Simulator | `just test-ladder` for the area's classes, `--full` for its suite |
 | The timer, breathing, Places, the mirror, the card, the Cockpit, the daily strip, the eulogy or the links on screen | Simulator | `just test-ladder` for the feature's own classes (the map below) |
 | Any other screen on screen (a call, an iPad's windows, the home screen itself) | Simulator | the feature's own rows below, or `just test-ladder --all`; the ladder has no map for it and says so |
@@ -509,6 +510,33 @@ just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-gr
 What it doesn't show: the Pencil's hold (a batch always applies at once), folds (a snapshot's `folds` are left out),
 connectors' routes, and anything PaperKit itself does; those are the simulator's (`WhiteboardPaperGhostsUITests`) and
 the iPad's.
+
+## What PaperKit itself does: `just native-test-contracts`
+
+The whiteboard leans on PaperKit and PencilKit doing things their documentation doesn't promise, and 14 of its 18
+platform fixes were behaviour nobody knew about until Igor's iPad showed it. `native/ContractTests` pins that
+behaviour on real PaperKit: a test bundle hosted in the app, on an iPad simulator in a build lane, each test setting the
+paper up as the board does (its feature set and inks, the tool picker shown) on its own window. No retry: a contract
+that fails once has moved. Run it after every Xcode or iOS update, and with any change to how the board drives PaperKit.
+When one fails, the platform changed: read what the board does with that behaviour before changing the test.
+
+What it pins (iOS 27.2 simulator, 2026-11-21):
+
+- **The tool.** A pick made in code moves the picker's `selectedToolItem` and tells its observers at once, while the
+  paper's `drawingTool` stays the pen, half a second on (#1078). Setting `drawingTool` leaves the picker where it was.
+  The picker offers the board's eight inks, an eraser and a lasso.
+- **Setting the markup.** A set is held at once, told to the delegate at once and once, and is no undo step. A set
+  built from an older markup than the one held (a sibling of it, with ink of its own, or ink taken away) is refused
+  whole, and the held one's newer ink goes too: the paper falls back to what both were built from (#999, #1015). A set
+  built from `paper.markup` as it is now, a markup it held before, or a new one built from nothing is held, from inside
+  PaperKit's change callback too. A set that takes the selected stroke leaves its id selected.
+- **Undo.** A step the board registers on PaperKit's undo manager says its own name, past the turn.
+- **Ink.** Every ink reads its kind through the Objective-C `inkType` key, through a markup and the paper; an ink of a
+  kind the Swift enum lacks (#1083) rides them unchanged, and a drawing holding one writes but is refused when read
+  back ("from a future version").
+
+What it can't see: anything that needs a touch (a finger tap's dot, a touch cancelled rather than ended, a pick made
+with a finger in the picker, a drawn stroke's undo name). Those are UI tests' and the iPad's.
 
 ## A worktree that keeps its build
 
