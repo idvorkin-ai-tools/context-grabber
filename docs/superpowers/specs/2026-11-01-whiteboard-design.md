@@ -484,6 +484,18 @@ Where that ink came from isn't known yet; the log is what will say.
 - **The log names it**: the first stroke of each unknown kind in a session logs that kind, as the ink spells it, where it
   was met, and how many points the stroke has, so the next time it happens the log says what it was.
 
+### The log says which tool Igor picked (story 1064, #1078; Igor, 2026-11-21: "Switched to eraser still drew normally")
+
+Igor picked the eraser and the Pencil went on drawing. The log couldn't say why: every touch it has ever written names a
+black pen, including touches that erased ink and touches that drew in blue, so what the board believes it holds is not
+what Igor picked. Before anything changes how the tools behave, the log has to say both.
+
+- **Every pen touch names two tools**: the one the tool picker shows selected (its kind, colour and width for an ink; the
+  eraser; the lasso; or the picker's own name for anything else), beside the one the board says it is drawing with.
+- **Picking a tool is a line of its own**: each time the picker's tool changes, the log says what the picker now shows
+  and what the board now holds.
+- Nothing Igor sees changes: this is the evidence for the fix, not the fix.
+
 ## Trial on paper (removed 2026-11-07)
 
 The trial (#635, #636) settled what it was for: Igor made paper the default on 2026-11-03 and the only canvas on 2026-11-07.
@@ -504,6 +516,7 @@ that ghosts need the tailnet.
 
 ## Acceptance
 
+- Picking the eraser, the lasso or another pen in the tool picker logs what the picker shows and what the board holds, and every pen touch after it names both (story 1064, #1078).
 - On the iPad, the Pencil draws, a finger pans, and the eraser removes strokes.
 - A stroke whose ink is of a kind the app has no name for draws, saves and goes to Larry like any other, and the board
   stays open; the log names that kind once (#1083).
