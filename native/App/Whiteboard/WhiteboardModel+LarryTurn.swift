@@ -34,9 +34,11 @@ extension WhiteboardModel {
   }
 
   /// Story 768: a tap on the note's line opens or closes the panel over the board, remembered for the next board; an
-  /// iPhone has no panel, so it opens the board's thread in Chat.
+  /// iPhone has no panel, so it opens the board's thread in Chat, or says where the conversation is when this device
+  /// has none for the board (story 769, #1161).
   func tapNote(onPhone: Bool, openChat: (String) -> Void) {
-    switch WhiteboardNote.tap(onPhone: onPhone, thread: threadKey) {
+    let tap = WhiteboardNote.tap(onPhone: onPhone, thread: threadKey)
+    switch tap {
     case .toggle:
       conversationOpen.toggle()
       UserDefaults.standard.set(conversationOpen, forKey: Self.conversationKey)
@@ -44,10 +46,15 @@ extension WhiteboardModel {
         "whiteboard",
         ["action": "conversation", "board": board.id, "open": conversationOpen, "messages": thread.count])
     case .openChat(let key):
-      log.event("whiteboard", ["action": "conversation_chat", "board": board.id, "thread": key])
+      log.event(
+        "whiteboard", ["action": "conversation_chat", "board": board.id, "thread": key, "found": tap.found ?? ""])
       openChat(key)
     case .nothing:
-      log.event("whiteboard", ["action": "conversation_chat", "board": board.id, "thread": ""])
+      log.event(
+        "whiteboard", ["action": "conversation_chat", "board": board.id, "thread": "", "found": tap.found ?? ""])
+      // Cleared first, so a second tap with the same words takes the middle again for its few seconds.
+      pasteNote = nil
+      say(WhiteboardNote.noThread(drawnOn: store.editable(board) ? nil : board.deviceName))
     }
   }
 
