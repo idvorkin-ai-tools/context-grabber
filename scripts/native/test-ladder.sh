@@ -685,7 +685,7 @@ climb() {  # <rung> <name> <function>
   note finish --arg outcome "$outcome" --argjson status "$status" --argjson first_failure "$(jq -cn --arg rung "$1" '$ARGS.named')"
   finish
   case $status in
-    75) echo "stopped on rung $1 $2: it could not start: the build lock or another xcodebuild was still busy, the screen was locked, or no test started; the lines above say which (exit 75)" ;;
+    75) echo "stopped on rung $1 $2: it could not run: the build lock or another xcodebuild was still busy, the screen was locked, no test started, or a test failed after the screen locked during it (story 1018); the lines above say which (exit 75)" ;;
     124) echo "stopped on rung $1 $2: it ran past its time limit (exit 124)" ;;
     *) echo "stopped on rung $1 $2 (exit $status)" ;;
   esac

@@ -3,12 +3,16 @@
 # test, a build doesn't, an xcodebuild that hangs after its suite closes is stopped and judged by the log, and a run of
 # built tests whose first suite never starts is stopped and fails with exit 75 (story 783), and the hang stop waits for
 # the result bundle to be written in full, so a failed test's screenshots can still be opened (story 790), and a case
-# that passed only on its retry fails the run unless it is quarantined with its bead (story 1017).
+# that passed only on its retry fails the run unless it is quarantined with its bead (story 1017), and a failed run
+# during which the Mac's screen locked exits 75, asking for a rerun unlocked, while a passed one stands (story 1018).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
 fail=0
+# Story 1018: the wrapper watches the Mac's screen during a test run. Unlocked, unless a case below locks it: this check
+# runs on whatever Mac runs it, locked or not.
+export SMOKE_LOCK_PROBE="echo unlocked"
 ok() { echo "ok   $1"; }
 bad() { echo "FAIL $1"; fail=1; }
 mkdir -p "$dir/bin"
@@ -20,6 +24,19 @@ if [ -n "${FAKE_NO_START:-}" ]; then  # a dark or locked Mac: the runner waits, 
   while :; do sleep 1; done
 fi
 echo "Test Suite 'Selected tests' started at now."
+if [ -n "${FAKE_EARLY_FAIL:-}" ]; then  # a case fails while the screen is still unlocked
+  c="Test Case '-[GrabberNativeUITests.SynthUITests testEarly]'"
+  printf '%s\n' "$c started." "$c failed (1.000 seconds)."
+fi
+if [ -n "${FAKE_LOCK:-}" ]; then  # the screen locks during the run, for long enough to be seen, then unlocks
+  echo '"CGSSessionScreenIsLocked"=Yes' >"$FAKE_LOCK"
+  sleep 3
+  echo '"CGSSessionScreenIsLocked"=No' >"$FAKE_LOCK"
+fi
+if [ -n "${FAKE_LATE_FAIL:-}" ]; then  # a case fails after the lock
+  c="Test Case '-[GrabberNativeUITests.SynthUITests testLate]'"
+  printf '%s\n' "$c started." "$c failed (1.000 seconds)."
+fi
 if [ -n "${FAKE_FLAKY:-}" ]; then  # Class.test: fails, then passes on its retry
   c="Test Case '-[GrabberNativeUITests.${FAKE_FLAKY%.*} ${FAKE_FLAKY#*.}]'"
   printf '%s\n' "$c started." "$c failed (1.000 seconds)." "$c started." "$c passed (1.000 seconds)."
@@ -37,6 +54,7 @@ if [ -n "${FAKE_RETRY:-}" ]; then  # the retry runs on, printing, well past the 
   for _ in $(seq 16); do echo "    t = 0.00s Retrying"; sleep 0.5; done
   echo "Test Suite 'Selected tests' passed at now."
 fi
+[ -n "${FAKE_EXIT:-}" ] && exit "$FAKE_EXIT"  # a failed run that ends by itself, as xcodebuild's does
 [ -n "${FAKE_HANG:-}" ] && while :; do sleep 1; done  # stays this script, so the watchdog sees "/xcodebuild "
 echo "** TEST SUCCEEDED **"
 FAKE
@@ -135,4 +153,35 @@ FAKE_SLOW=2 XCODEBUILD_START_SECONDS=1 run xcodebuild -scheme X build
 [ $? -eq 0 ] && ok "nor is a build" || bad "a slow build was stopped"
 FAKE_SLOW=2 XCODEBUILD_START_SECONDS=5 run xcodebuild -scheme X test-without-building
 [ $? -eq 0 ] && ok "a run that starts inside the limit runs on" || bad "a run that started in time was stopped"
+# Story 1018: the screen locks for a while during the run.
+locked() { : >"$dir/lock"; FAKE_LOCK="$dir/lock" SMOKE_LOCK_PROBE="cat $dir/lock" XCODEBUILD_LOCK_POLL=1 PATH="$dir/bin:$PATH" \
+  NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" "$@" \
+  scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" xcodebuild -scheme X test 2>&1 >/dev/null; }
+out=$(locked env FAKE_LATE_FAIL=1 FAKE_RESULT=failed FAKE_HANG=1 XCODEBUILD_IDLE_SECONDS=1)
+status=$?
+[ "$status" -eq 75 ] && ok "a failed run during which the screen locked exits 75, not run" || bad "a failed locked run exited $status: $out"
+case $out in *"screen locked during the run (first seen locked at "*"a test failed after that"*"unlock the Mac and rerun"*) ok "and says the screen locked and to rerun";;
+  *) bad "a failed locked run said: $out";; esac
+out=$(locked env FAKE_LATE_FAIL=1 FAKE_RESULT=failed FAKE_EXIT=65)
+[ $? -eq 75 ] && ok "and so does one whose xcodebuild exits by itself" || bad "a failed locked run that ended itself: $out"
+out=$(locked env FAKE_RESULT=failed FAKE_EXIT=65)
+status=$?
+[ "$status" -eq 65 ] && ok "a locked run that failed with no failed test (a build) fails as before" || bad "a locked build failure exited $status: $out"
+case $out in *"wasn't a test, so it counts as a failure"*) ok "and names the lock";; *) bad "a locked build failure said: $out";; esac
+out=$(locked env FAKE_EARLY_FAIL=1 FAKE_LATE_FAIL=1 FAKE_RESULT=failed FAKE_EXIT=65)
+status=$?
+[ "$status" -eq 65 ] && ok "a case that failed before the screen locked fails the run as before" || bad "an early failure exited $status: $out"
+out=$(locked env FAKE_FLAKY=SynthUITests.testFlaky UI_QUARANTINE="$dir/none")
+[ $? -eq 75 ] && ok "and one that passed a case only on its retry" || bad "a locked retried-only pass: $out"
+out=$(locked env)
+status=$?
+[ "$status" -eq 0 ] && ok "a passed run during which the screen locked stands" || bad "a passed locked run exited $status: $out"
+case $out in *"screen locked during the run"*"it passed anyway"*) ok "and says the screen locked";;
+  *) bad "a passed locked run said: $out";; esac
+out=$(FAKE_RESULT=failed FAKE_EXIT=65 PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
+  XCODEBUILD_LOCK_POLL=1 scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" xcodebuild -scheme X test 2>&1 >/dev/null)
+status=$?
+[ "$status" -ne 75 ] && [ "$status" -ne 0 ] && ok "a failed run with the screen never locked fails as before ($status)" ||
+  bad "a failed unlocked run exited $status"
+case $out in *"screen locked"*) bad "an unlocked run blamed the lock: $out";; *) ok "and doesn't blame the lock";; esac
 exit $fail

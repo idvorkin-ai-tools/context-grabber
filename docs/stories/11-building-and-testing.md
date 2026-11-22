@@ -1096,6 +1096,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1018:
+
+- **Summary:** A UI test that fails after the Mac's screen has locked during the run is sent back to be rerun, rather than failing as if it were broken
+- **Status:** implemented on branch `native/voice-test-lock-2v63`; verified on the host by `scripts/native/test-xcodebuild-log.sh` (the lock probe faked: a case that fails after the screen locked makes the run exit 75 with the line, whether xcodebuild hangs or ends, and so does a case that passed only on its retry; a passed run stands with a note; a locked run that failed with no failed case, a case that failed before the lock, and a run never locked fail as before). On the simulator (iPhone 17, 2026-11-21 at 07880738, the Mac's screen locked), the voice button test's app aborted where the bead's runs did, both tries, and the wrapper ended that run with exit 75 and the line. Unlocked, the same test passed twice that morning (05:29 and 05:35, the screen unlocked from 04:32); its pass unlocked on this branch is still to see
+- **Issues:** bead `context-grabber-2v63` (`ChatNewThreadUITests.testTheVoiceButtonOpensANewChatWithItsMicTapped` failed, then the app crashed on the retry, on two agents' runs of 2026-11-21: all four crash reports are the app aborting inside Apple's audio toolbox, its call to the simulator's audio server timing out as the mic opened, each while the Mac's screen was locked); [#419](https://github.com/idvorkin/context-grabber/issues/419) (a locked Mac starves the simulator's audio)
+
+#### Use Case:
+- **As Igor,** reading a UI test run while I'm away from the Mac
+- **I want to** have a test that failed after the screen locked named as that, and sent back to be rerun unlocked
+- **so that** nobody chases a crash in the mic, the call or the timer that only a locked Mac makes, and a real failure still fails
+
+#### Acceptance Criteria:
+- **Scenario:** The screen locks during a UI test run
+- **Given:** a UI test run, during which the Mac's screen locks at some point, even for a few seconds
+- **When:** the run ends
+- **Then:** if every case that failed (a retried pass's first try included) failed after the screen was first seen locked, the run stops with exit 75, as a run that could not run does, saying the screen locked during it and when, that a locked Mac starves the simulator's audio and stalls UI tests, and to unlock and rerun; if a case had already failed before the lock, or nothing that failed was a test (a build that failed), the run fails as before and names the lock; a run that passed stands, with a line saying the screen locked; a run during which the screen never locked is as before
+
+---
+
 ### User Story 1019:
 
 - **Summary:** What PaperKit itself does, that the whiteboard relies on, is checked on the simulator before it reaches the iPad
