@@ -210,7 +210,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Keep beside a mark makes it ink
 - **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests.testKeepTakesTheChosenMarkOffTheGhosts`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
-- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
+- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing); context-grabber-ikya (a kept text of Larry's drew black all but its first glyph, now and then on the iPad simulator, 2026-11-20 and 21: PaperKit held every stroke purple and drew one tile of it blank or black; the board now finds that and draws the mark again, story 650, since [ce66651b](https://github.com/idvorkin/context-grabber/commit/ce66651b))
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:

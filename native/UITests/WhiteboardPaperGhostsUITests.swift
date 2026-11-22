@@ -638,6 +638,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let kept = try XCTUnwrap(
       PaperScreen.showing(app, { $0.larryKept }) { abs($0.width - ghost.width) < 0.03 }, "ink in his purple")
     shot(app, "his text kept")
+    // context-grabber-ikya: narrower is glyphs not drawn in his purple (once, all but the first in black); the log's
+    // `paper_kept_ink` says whether PaperKit held them so or only drew them so.
+    XCTAssertEqual(kept.width, ghost.width, accuracy: 0.03, "every glyph in his purple")
     XCTAssertEqual(kept.center.x, ghost.center.x, accuracy: 0.03, "where the ghost was")
     XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.03, "where the ghost was")
 

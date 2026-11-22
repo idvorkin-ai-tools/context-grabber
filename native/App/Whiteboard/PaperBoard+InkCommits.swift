@@ -74,6 +74,7 @@ extension PaperBoardController {
       ])
     undoSoonForTests(LaunchHooks.current.whiteboard.afterKeep)
     lookForInk(made.bounds, why: "kept")
+    lookAtKeptInk(strokes, why: "keep")
   }
 
   /// Stories 814–816, 840–842: a batch of Larry's changes on the markup. Every stroke it moves moves whole, by a transform
