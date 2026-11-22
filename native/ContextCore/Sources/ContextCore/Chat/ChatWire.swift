@@ -292,11 +292,56 @@ public enum ChatWire {
     return items.filter { item in item.status != .sent && item.thread.map { !keys.contains($0) } ?? true }
   }
 
-  /// Where an attachment's image is served; nil for a ref that is not one the Cockpit mints.
+  /// Where an attachment is served; nil for a ref that is not one the Cockpit mints (a picture, or since Cockpit
+  /// story 167 a document, #633).
   public static func attachmentURL(_ ref: String, cockpit: String) -> URL? {
-    guard ref.range(of: #"^\d{4}-\d{2}-\d{2}/[0-9a-f]{16}\.(png|jpg|gif|webp)$"#, options: .regularExpression) != nil
-    else { return nil }
+    guard attachment(ref) != nil else { return nil }
     return URL(string: cockpit.trimmingSuffix("/") + "/attachments/" + ref)
+  }
+
+  /// What a minted ref holds: a picture to draw, or a document to show as a file row (spec "A delivered file in the
+  /// thread"). The Cockpit names the type by the bytes, so the ref's extension is the truth.
+  public enum Attachment: Equatable, Sendable {
+    case image
+    case document(ext: String, label: String)
+  }
+
+  static let documentLabels: [String: String] = [
+    "pdf": "PDF", "txt": "Text", "docx": "Word document", "xlsx": "Excel spreadsheet",
+    "pptx": "PowerPoint presentation",
+  ]
+
+  public static func attachment(_ ref: String) -> Attachment? {
+    guard
+      ref.range(
+        of: #"^\d{4}-\d{2}-\d{2}/[0-9a-f]{16}\.(png|jpg|gif|webp|pdf|txt|docx|xlsx|pptx)$"#, options: .regularExpression
+      )
+        != nil, let ext = ref.split(separator: ".").last.map(String.init)
+    else { return nil }
+    if let label = documentLabels[ext] { return .document(ext: ext, label: label) }
+    return .image
+  }
+
+  /// The name a delivered document shows and opens under: the message's first line when that is a file name of the
+  /// same type (the phone sends the name first, `ChatSend.text(for:)`), else the name the Cockpit minted.
+  public static func documentName(_ ref: String, text: String) -> String {
+    let minted = String(ref.split(separator: "/").last ?? Substring(ref))
+    let ext = (minted as NSString).pathExtension.lowercased()
+    let first = text.split(whereSeparator: \.isNewline).first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
+    guard first.count <= 200, (first as NSString).pathExtension.lowercased() == ext,
+      first.count > ext.count + 1, !first.contains("/"), !first.contains(":")
+    else { return minted }
+    return first
+  }
+
+  /// Why a delivered document's fetch can't open, or nil when it can: an answer other than 200, or nothing in it.
+  public static func documentProblem(name: String, status: Int?, bytes: Int, error: String? = nil) -> String? {
+    if let error { return "\(name) could not be fetched from the Cockpit: \(error)" }
+    guard let status else { return "\(name) could not be fetched from the Cockpit: no answer" }
+    if status == 404 { return "The Cockpit no longer has \(name) (HTTP 404)." }
+    if status != 200 { return "\(name) could not be fetched from the Cockpit (HTTP \(status))." }
+    if bytes == 0 { return "The Cockpit sent \(name) back empty." }
+    return nil
   }
 
   /// A thread key as one path segment: `auto:note:2026-10-25` and bead ids survive, a slash cannot sneak in.

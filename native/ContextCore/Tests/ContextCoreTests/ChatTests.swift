@@ -305,6 +305,48 @@ final class ChatTests: XCTestCase {
     XCTAssertNil(ChatWire.attachmentURL("../../etc/passwd", cockpit: cockpit))
   }
 
+  /// #633, story 1122: a document the Cockpit minted (Cockpit story 167) is served and drawn as a file row.
+  func testADeliveredDocumentIsAFileRowNamedFromTheMessage() {
+    let pdf = "2026-11-21/0123456789abcdef.pdf"
+    XCTAssertEqual(ChatWire.attachment(pdf), .document(ext: "pdf", label: "PDF"))
+    XCTAssertEqual(ChatWire.attachment("2026-11-21/0123456789abcdef.png"), .image)
+    XCTAssertEqual(ChatWire.attachment("2026-11-21/0123456789abcdef.txt"), .document(ext: "txt", label: "Text"))
+    XCTAssertEqual(
+      ChatWire.attachment("2026-11-21/0123456789abcdef.xlsx"), .document(ext: "xlsx", label: "Excel spreadsheet"))
+    XCTAssertNil(ChatWire.attachment("2026-11-21/0123456789abcdef.zip"))
+    XCTAssertNil(ChatWire.attachment("2026-11-21/0123456789abcdef.pdf.png/../x"))
+    XCTAssertEqual(
+      ChatWire.attachmentURL(pdf, cockpit: cockpit)?.absoluteString, "\(cockpit)/attachments/\(pdf)")
+    // The phone sends the file's name first, then the words.
+    XCTAssertEqual(ChatWire.documentName(pdf, text: "Lease.pdf\n\nread page 3"), "Lease.pdf")
+    XCTAssertEqual(ChatWire.documentName(pdf, text: "LEASE.PDF"), "LEASE.PDF")
+    // Words that are not a name of that type, a path, or nothing: the Cockpit's own name.
+    XCTAssertEqual(ChatWire.documentName(pdf, text: "read this"), "0123456789abcdef.pdf")
+    XCTAssertEqual(ChatWire.documentName(pdf, text: "notes.txt"), "0123456789abcdef.pdf")
+    XCTAssertEqual(ChatWire.documentName(pdf, text: "../../x.pdf"), "0123456789abcdef.pdf")
+    XCTAssertEqual(ChatWire.documentName(pdf, text: ".pdf"), "0123456789abcdef.pdf")
+    XCTAssertEqual(ChatWire.documentName(pdf, text: ""), "0123456789abcdef.pdf")
+  }
+
+  /// Story 1123: a fetch that can't open says why; a good one says nothing.
+  func testADocumentThatCannotBeFetchedSaysWhy() {
+    XCTAssertNil(ChatWire.documentProblem(name: "Lease.pdf", status: 200, bytes: 10))
+    XCTAssertEqual(
+      ChatWire.documentProblem(name: "Lease.pdf", status: 404, bytes: 0),
+      "The Cockpit no longer has Lease.pdf (HTTP 404).")
+    XCTAssertEqual(
+      ChatWire.documentProblem(name: "Lease.pdf", status: 502, bytes: 3),
+      "Lease.pdf could not be fetched from the Cockpit (HTTP 502).")
+    XCTAssertEqual(
+      ChatWire.documentProblem(name: "Lease.pdf", status: 200, bytes: 0), "The Cockpit sent Lease.pdf back empty.")
+    XCTAssertEqual(
+      ChatWire.documentProblem(name: "Lease.pdf", status: nil, bytes: 0, error: "offline"),
+      "Lease.pdf could not be fetched from the Cockpit: offline")
+    XCTAssertEqual(
+      ChatWire.documentProblem(name: "Lease.pdf", status: nil, bytes: 0),
+      "Lease.pdf could not be fetched from the Cockpit: no answer")
+  }
+
   func testOpeningAThreadMarksItSeenByKey() throws {
     let request = try ChatWire.seenRequest("auto:note:2026-10-25", cockpit: cockpit)
     XCTAssertEqual(request.url?.absoluteString, "\(cockpit)/chat-seen")

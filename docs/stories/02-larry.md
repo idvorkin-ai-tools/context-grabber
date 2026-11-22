@@ -1343,6 +1343,46 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 1125:
+
+- **Summary:** A file delivered to a chat shows as a row that opens it
+- **Status:** native app only: implemented in COMMIT (#633); the row's kind and name verified on the host by `ChatTests`; the rest pending
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — A delivered file in the thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who sent him a PDF
+- **I want to** see it in the thread and open it again from there
+- **so that** the conversation shows what Larry was given, and I can read it beside his answer
+
+#### Acceptance Criteria:
+- **Scenario:** Opening a delivered PDF
+- **Given:** a thread holding a message that carries a PDF the Cockpit took, its words starting with *Lease.pdf*
+- **When:** I tap the row reading *Lease.pdf* and *PDF* above the message's words
+- **Then:** the PDF opens in the system's preview, where I can read, share or save it
+
+---
+
+### User Story 1126:
+
+- **Summary:** A delivered file that can't be fetched says why
+- **Status:** native app only: implemented in COMMIT (#633); the problem's words verified on the host by `ChatTests`; on screen, on the simulator or the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — A delivered file in the thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client opening a file while the Cockpit is away or no longer has it
+- **I want to** be told what went wrong, and try again
+- **so that** a tap that opens nothing never leaves me guessing
+
+#### Acceptance Criteria:
+- **Scenario:** The file can't be fetched
+- **Given:** a thread's file row, and the Cockpit away or without that file
+- **When:** I tap the row
+- **Then:** a copyable problem under the row gives the reason and the file's address, and tapping the row again tries once more
+
+---
+
 ### User Story 834:
 
 - **Summary:** Show only the chats with a reply I haven't read
@@ -1651,14 +1691,14 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
-- **As** Larry's client while the Cockpit holds only pictures
+- **As** Larry's client with a kind of file the Cockpit doesn't take
 - **I want to** be told the file did not go, and keep it
 - **so that** I never believe Larry has a file he doesn't
 
 #### Acceptance Criteria:
 - **Scenario:** The Cockpit refuses a file
-- **Given:** the Cockpit takes only pictures
-- **When:** I send a PDF
+- **Given:** a kind of file the Cockpit doesn't take (since Cockpit story 167 it takes pictures, PDFs, plain text, Word, Excel and PowerPoint; a zip, say, it refuses)
+- **When:** I send it
 - **Then:** a copyable problem names the file and gives the Cockpit's reason, the file stays on the phone, and no message goes without it
 
 ---
@@ -1691,13 +1731,13 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
-- **As** Larry's client trying again while the Cockpit holds only pictures
+- **As** Larry's client trying again while the Cockpit still doesn't take the file
 - **I want to** hear the same answer and keep the file
 - **so that** trying costs me nothing
 
 #### Acceptance Criteria:
 - **Scenario:** Sending again too soon
-- **Given:** a refused file, and the Cockpit still takes only pictures
+- **Given:** a refused file, and the Cockpit still doesn't take its kind
 - **When:** I tap *Send again*
 - **Then:** it is refused again with the same problem, and still kept
 
