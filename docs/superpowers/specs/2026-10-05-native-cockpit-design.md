@@ -75,7 +75,8 @@ Everything the four specs above promise, with the tab replaced by a screen:
 - **The audio session.** Opening the Cockpit readies the phone's audio for recording, as the tab's first visit did.
   If the Gym Timer has since set the audio its own way, the next opening readies it again; otherwise opening the
   Cockpit leaves the audio alone.
-- **Everything it does is in the session log** — each load and how long it took or why it failed, each bridge
+- **Everything it does is in the session log** — each load and how long it took or why it failed, each navigation
+  the page asks for (a link, Back, a reload) and the moment it starts, one replaced before it finished, each bridge
   message both ways, the roster and route each time it is sent — so a shake from the Cockpit attaches the evidence.
 
 ## The usage strip on the home screen

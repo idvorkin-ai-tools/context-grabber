@@ -149,7 +149,9 @@ final class CockpitModel: NSObject, ObservableObject {
     state.apply(event)
     var fields: [String: Any] = ["ms": Int(Date().timeIntervalSince(since) * 1000)]
     switch state.page {
-    case .loading: return  // a cancelled navigation: the one that replaced it lands instead
+    case .loading:  // a cancelled navigation: the one that replaced it lands instead
+      log.event("cockpit_nav", ["kind": "cancelled", "ms": fields["ms"] ?? 0])
+      return
     case .shown(let url):
       fields.merge(["url": url, "ok": true]) { $1 }
     case .failed(let why, let url):
@@ -312,7 +314,11 @@ extension CockpitModel: WKNavigationDelegate {
     // `where` is a keyword.
     // swift-format-ignore: AlwaysUseLowerCamelCase
     let where_ = CockpitPage.navigation(to: url, home: home)
-    if where_ == .stay { return decisionHandler(.allow) }
+    if where_ == .stay {
+      // context-grabber-ybo3: a page's own navigation, so a tap that went nowhere shows whether WebKit asked at all.
+      log.event("cockpit_nav", ["url": url.absoluteString, "kind": Self.kind(of: action.navigationType)])
+      return decisionHandler(.allow)
+    }
     // A Grabber link stays in this app (grabber://call is the page's ☎ fallback); anything else goes to iOS.
     if where_ == .appLink, AppLink.schemes.contains(url.scheme?.lowercased() ?? "") {
       let handled = handOff(AppLink.parse(url).route, from: "cockpit_link")
@@ -338,6 +344,7 @@ extension CockpitModel: WKNavigationDelegate {
   // WebKit's own signature.
   // swiftlint:disable:next implicitly_unwrapped_optional
   func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+    log.event("cockpit_nav", ["url": webView.url?.absoluteString ?? "", "kind": "started"])
     // Back, Cockpit, a reload or a link: whatever showed, the screen is loading again (the panel comes down).
     state.apply(.started(url: webView.url?.absoluteString, at: Date()))
     setCallLive(false, why: "load")  // a reload ends whatever call the old page had
@@ -363,6 +370,16 @@ extension CockpitModel: WKNavigationDelegate {
   // swiftlint:disable:next implicitly_unwrapped_optional
   func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
     failed(error)
+  }
+
+  private static func kind(of type: WKNavigationType) -> String {
+    switch type {
+    case .linkActivated: "link"
+    case .formSubmitted, .formResubmitted: "form"
+    case .backForward: "back_forward"
+    case .reload: "reload"
+    default: "other"
+    }
   }
 
   private func failed(_ error: any Error) {
