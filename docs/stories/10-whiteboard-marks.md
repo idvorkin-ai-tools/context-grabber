@@ -52,7 +52,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1114:
 
 - **Summary:** Writing with Ghosts off says no one is watching
-- **Status:** implemented in [4afecf5f](https://github.com/idvorkin/context-grabber/commit/4afecf5f); verified on the host (`WhiteboardGhostTurnsTests`: the first stroke with Ghosts off sets the line, Ghosts on clears it; `WhiteboardNoteTests`: the line holds the middle) and the Mac build. Not yet seen on the iPad
+- **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified on the host (`WhiteboardGhostTurnsTests`: the first stroke with Ghosts off sets the line, Ghosts on clears it; `WhiteboardNoteTests`: the line holds the middle) and the Mac build. Not yet seen on the iPad
 - **Issues:** bead `context-grabber-bozm` (iPad, 2026-11-22: a tap meant for the mic landed on Ghosts at 13:31; 16 minutes of writing went to no one, with nothing on screen saying so)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 

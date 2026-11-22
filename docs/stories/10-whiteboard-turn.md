@@ -716,7 +716,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1115:
 
 - **Summary:** A Send's message and its picture share one id
-- **Status:** implemented in [4afecf5f](https://github.com/idvorkin/context-grabber/commit/4afecf5f); verified by the Mac build. A Send from the iPad against the Cockpit not yet seen
+- **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified by the Mac build. A Send from the iPad against the Cockpit not yet seen
 - **Issues:** bead `context-grabber-bozm` (iPad, 2026-11-22 13:47: a Send's strokes were stored under its picture's id while its message had another, so a look-up by the message found no strokes, and Larry's reply to it was to a picture the board didn't know: `picture_known: false`)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
