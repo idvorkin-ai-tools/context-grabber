@@ -322,6 +322,15 @@ public struct WhiteboardMarks: Sendable {
     return Dictionary(names.map { ($0, meta) }, uniquingKeysWith: { a, _ in a })
   }
 
+  /// Keep all (stories 895, 995, 999; bead context-grabber-yqau): the reply each of `marks` is kept under as one group,
+  /// by mark id. A reply with two or more of `marks` is a group; a reply with one, and a mark that belongs to no reply
+  /// (his text from a change), is kept alone and not named here.
+  public static func keptGroups(_ marks: [String]) -> [String: String] {
+    let replies = marks.compactMap { mark in reply(of: mark).map { (mark, $0) } }
+    let counts = Dictionary(replies.map { ($0.1, 1) }, uniquingKeysWith: +)
+    return Dictionary(replies.filter { counts[$0.1, default: 0] > 1 }, uniquingKeysWith: { a, _ in a })
+  }
+
   /// How many rows a board remembers as showing on this device (story 1155); an older one stays in Chat.
   private static let rowsKept = 20
 

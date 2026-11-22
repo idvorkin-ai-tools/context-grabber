@@ -65,10 +65,10 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
     let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
-    PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.center.y))
-    let group = app.buttons["whiteboard-mark-keep-group"]
-    XCTAssertTrue(group.appears(within: 5), app.debugDescription)
-    group.tap()
+    // Keep all keeps his reply as one group (story 995; bead context-grabber-yqau).
+    let keepAll = app.buttons["whiteboard-keep-all"]
+    XCTAssertTrue(keepAll.appears(within: 5), app.debugDescription)
+    keepAll.tap()
     waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 4 strokes"), send, timeout: 10)
     XCTAssertTrue(toKeep(app, 1).waitForNonExistence(timeout: 5) || !toKeep(app, 1).exists)
     return marks

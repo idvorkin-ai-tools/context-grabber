@@ -1,6 +1,6 @@
 # The whiteboard: Ghosts and Larry's marks
 
-What Larry and Claude draw back: ghosts, Keep and Dismiss, how their marks look, keeping a reply as a group, Keep all and Tidy, and the room a kept reply makes. One of the whiteboard journey's files; the
+What Larry and Claude draw back: ghosts, Keep and Dismiss, how their marks look, Keep all (each reply kept as a group) and Tidy, and the room a kept reply makes. One of the whiteboard journey's files; the
 [journey table](README.md) lists them all.
 Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md),
 [shapes](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md),
@@ -835,9 +835,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** his reply never lands on my newer ink, and his marks still sit beside what they name
 
 #### Acceptance Criteria:
-- **Scenario:** Keep group over writing newer than his picture
+- **Scenario:** Keep all over writing newer than his picture
 - **Given:** Larry's reply of several marks showing where I have written two lines since his picture went, under my older plan
-- **When:** I tap one of his marks and *Keep group*
+- **When:** I tap *Keep all* beside the count of marks to keep
 - **Then:** his marks become ink where they showed, my two lines and everything under them move down in whole lines until they sit half a line under his lowest mark, my plan above doesn't move, and one Undo puts my lines back and takes his marks away
 
 ---
@@ -904,20 +904,30 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 895:
 
-- **Summary:** Keep all of Larry's marks at once, in the order he drew them
-- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`) and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2)
+- **Summary:** Keep all of Larry's marks at once, where he drew them, each reply as one group
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`) and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2); changed for bead context-grabber-yqau (Keep group and Keep all are one *Keep all*) on branch `native/keep-all-yqau`: his labels no longer move down off my writing, my newer writing makes room instead, as Keep group did; verified by host tests (`WhiteboardKeepAllTests`; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator PENDING
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
 
 #### Use Case:
-- **As someone** whose board Larry answered with several labels
-- **I want to** keep them all in one go, each clear of my writing and still in order
-- **so that** his answer reads as he wrote it without my tapping every mark
+- **As someone** whose board Larry answered with several marks
+- **I want to** keep them all in one go, where he drew them, each reply in one piece
+- **so that** his answer reads as he wrote it, never sits on writing he didn't see, and I never tap every mark
 
 #### Acceptance Criteria:
-- **Scenario:** Larry's labels, one landing on my writing
-- **Given:** Larry's marks show on my board and the first of his labels sits on a line I wrote
+- **Scenario:** Larry's labels, one landing on what I wrote after his picture
+- **Given:** Larry's marks show on my board and the first of his labels sits on a line I wrote after his picture went
 - **When:** I tap Keep all beside the count of marks to keep
-- **Then:** every one of his marks becomes ink in his colour, the label on my writing moves just under it and the marks below it move down with it, my own ink doesn't move, and one undo takes all of them back
+- **Then:** every one of his marks becomes ink in his colour where it showed, my line and everything under it move down in whole lines until they sit under his lowest mark, ink that was in his picture doesn't move, and one undo takes all of it back
+
+- **Scenario:** Two replies showing
+- **Given:** marks from two replies of Larry's show, each of several marks
+- **When:** I tap Keep all
+- **Then:** all of them become ink in one step, each reply one group named for it that a finger tap picks up whole, one room is made for all of them, and one Undo takes all of it back
+
+- **Scenario:** Only Keep all keeps more than one
+- **Given:** several marks of a reply of his show
+- **When:** I tap one of them
+- **Then:** only Keep and Dismiss show beside it, and Keep keeps that mark alone
 
 ---
 
@@ -1195,9 +1205,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** his drawing lands whole and moves as one, and one Undo takes it all back
 
 #### Acceptance Criteria:
-- **Scenario:** Keep group
-- **Given:** Larry's reply of several marks showing, and I tap one of them
-- **When:** I tap *Keep group* between Keep and Dismiss
+- **Scenario:** Keep all keeps the reply as a group
+- **Given:** Larry's reply of several marks showing
+- **When:** I tap *Keep all* beside the count of marks to keep (there is no separate *Keep group*)
 - **Then:** every mark of that reply still showing becomes ink in his colours where it showed, none is left to keep, and one Undo takes them all back
 
 ---
@@ -1265,21 +1275,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 999:
 
-- **Summary:** Keep group is offered only when more than one mark of the reply shows
+- **Summary:** A reply with one mark left showing is kept alone, not as a group
 - **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
 - **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942)
 
 #### Use Case:
 - **As someone** keeping Larry's marks
-- **I want** *Keep group* only when there is a group to keep
-- **so that** the buttons beside one mark stay Keep and Dismiss
+- **I want** a group only when there is a group to keep
+- **so that** a lone mark of his is one thing on its own, as Keep makes it
 
 #### Acceptance Criteria:
 - **Scenario:** One mark left
 - **Given:** only one mark of his reply still shows
-- **When:** I tap it
-- **Then:** Keep and Dismiss show, and no *Keep group*
+- **When:** I tap it, or tap *Keep all*
+- **Then:** beside it only Keep and Dismiss show, and Keep all keeps it as one thing on its own, in no group
 
 ---
 
@@ -1417,7 +1427,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** One of his, alone
-- **Given:** three marks of Larry's kept with Keep all, on a board I can draw on, no marks showing
+- **Given:** three marks of Larry's kept one at a time with Keep, on a board I can draw on, no marks showing
 - **When:** I tap one of them with a finger and drag it
 - **Then:** that mark alone is selected and moves; his other two and my ink stay where they were, and one Undo puts it back
 
@@ -1582,6 +1592,6 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** The board's own take-back comes just after a keep
-- **Given:** I have just tapped *Keep group* (or *Keep*, *Keep all* or *Tidy overlaps*), and the board then takes back a step of PaperKit's of its own, for a tap's dot, a zigzag or a dropped selection, before PaperKit's step is on top
+- **Given:** I have just tapped *Keep all* (or *Keep* or *Tidy overlaps*), and the board then takes back a step of PaperKit's of its own, for a tap's dot, a zigzag or a dropped selection, before PaperKit's step is on top
 - **When:** I press Undo until the keep is reached
 - **Then:** the keep is still a step of its own, named for it, and one Undo takes every mark it kept back off the board

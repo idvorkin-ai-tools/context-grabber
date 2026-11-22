@@ -3,9 +3,9 @@ import XCTest
 
 @testable import ContextCore
 
-/// The oracle is the shapes spec's *Keep all and Tidy overlaps* (stories 895, 896), after the Cockpit web board's
-/// `keepAll` and `tidy` (assets/ink/test_board.mjs): marks kept together land in order, and Tidy moves only the labels
-/// that sit on ink. Unlike the web board, his ink never moves.
+/// The oracle is the shapes spec's *Keep all and Tidy overlaps* (story 896), after the Cockpit web board's `tidy`
+/// (assets/ink/test_board.mjs): Tidy moves only the labels that sit on ink. Unlike the web board, his ink never moves.
+/// Keep all no longer lays labels out (bead context-grabber-yqau): its rule is `WhiteboardKeepAllTests`.
 final class WhiteboardTidyTests: XCTestCase {
   typealias Tidy = WhiteboardTidy
 
@@ -39,41 +39,6 @@ final class WhiteboardTidyTests: XCTestCase {
 
   func testInkBesideTheLabelIsNotUnderIt() {
     XCTAssertEqual(Tidy.clearing(Tidy.bounds(label(500, 110)), of: [writing(100, 100, 300)]), 0)
-  }
-
-  func testKeptTogetherTheyLandInTheOrderTheyWereDrawn() {
-    // Larry's three labels down the page; the first lands on a line of his writing.
-    let marks = [
-      Tidy.Mark(id: "c", lines: label(100, 200), label: true),
-      Tidy.Mark(id: "a", lines: label(100, 110), label: true),
-      Tidy.Mark(id: "b", lines: label(100, 150), label: true),
-    ]
-    let moves = Tidy.keepAll(marks, over: [writing(100)])
-    let a = moves["a"] ?? 0
-    let b = moves["b"] ?? 0
-    let c = moves["c"] ?? 0
-    XCTAssertEqual(110 + a, 124 + Tidy.air, "the first moves under the writing")
-    XCTAssertGreaterThanOrEqual(150 + b, 110 + a + 20, "the second still under the first")
-    XCTAssertGreaterThan(200 + c, 150 + b, "and the third under the second")
-    XCTAssertGreaterThanOrEqual(b, a, "a mark after one that moved moves with it")
-  }
-
-  func testAShapeKeptWithLabelsMovesOnlyWithThoseAboveIt() {
-    let marks = [
-      Tidy.Mark(id: "label", lines: label(100, 110), label: true),
-      Tidy.Mark(id: "arrow", lines: [[CGPoint(x: 150, y: 200), CGPoint(x: 250, y: 200)]], label: false),
-      Tidy.Mark(id: "above", lines: [[CGPoint(x: 150, y: 50), CGPoint(x: 250, y: 50)]], label: false),
-    ]
-    let moves = Tidy.keepAll(marks, over: [writing(100)])
-    XCTAssertEqual(moves["above"], 0)
-    XCTAssertEqual(moves["arrow"], moves["label"], "below the label that moved, it moves with it")
-    XCTAssertGreaterThan(moves["label"] ?? 0, 0)
-  }
-
-  func testAShapeOnInkStaysOnIt() {
-    let circle = Tidy.Mark(id: "circle", lines: [writing(100)], label: false)
-    XCTAssertEqual(
-      Tidy.keepAll([circle], over: [writing(100)])["circle"], 0, "a mark round his words is meant to be there")
   }
 
   func testTidyMovesOnlyTheLabelsThatSitOnInk() {

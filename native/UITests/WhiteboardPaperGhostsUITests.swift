@@ -532,10 +532,11 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(send(app).label, strokes(2))
   }
 
-  /// Story 995 (#942): beside one of Larry's marks, Keep group keeps his whole reply at once, in his purple, with nothing
-  /// left to keep, and one undo takes all of it back. Its buttons are a finger's height. That the strokes are one group
-  /// named for the reply, and move as one, is `WhiteboardKeepGroupTests` and `BoardMarksReplayTests`, on the host.
-  func testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack() throws {
+  /// Stories 995, 999 (#942; bead context-grabber-yqau): beside one of Larry's marks only Keep and Dismiss show, each a
+  /// finger's height, and no Keep group; Keep all keeps his whole reply at once, in his purple, with nothing left to
+  /// keep, and one undo takes all of it back. That the strokes are one group named for the reply, and move as one, is
+  /// `WhiteboardKeepAllTests` and `BoardMarksReplayTests`, on the host.
+  func testKeepAllKeepsHisWholeReplyAndOneUndoTakesItBack() throws {
     let cockpit = try cockpit()
     let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_KEEP": "8,undo"])
     ghosts(app).tap()  // Ghosts off: only Larry's marks show.
@@ -549,14 +550,15 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
     // The first circle's left side.
     PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.center.y))
-    let group = app.buttons["whiteboard-mark-keep-group"]
-    XCTAssertTrue(group.appears(within: 5), app.debugDescription)
-    XCTAssertTrue(group.label.hasPrefix("Keep group · 3"), group.label)
-    for id in ["whiteboard-mark-keep", "whiteboard-mark-keep-group", "whiteboard-mark-dismiss"] {
+    XCTAssertTrue(app.buttons["whiteboard-mark-keep"].appears(within: 5), app.debugDescription)
+    for id in ["whiteboard-mark-keep", "whiteboard-mark-dismiss"] {
       XCTAssertGreaterThanOrEqual(app.buttons[id].frame.height, 36, "\(id) a finger's height")
     }
-    shot(app, "keep group beside his mark")
-    group.tap()
+    XCTAssertFalse(app.buttons["whiteboard-mark-keep-group"].exists, "no Keep group beside a mark")
+    shot(app, "Keep and Dismiss beside his mark")
+    let keepAll = app.buttons["whiteboard-keep-all"]
+    XCTAssertTrue(keepAll.appears(within: 5), app.debugDescription)
+    keepAll.tap()
     waitUntil(NSPredicate(format: "label != %@", strokes(1)), send(app), timeout: 10)
     XCTAssertFalse(toKeep(app, 3).exists, "none of his reply left to keep")
     XCTAssertNotNil(PaperScreen.settled(app) { $0.larryKept }, "ink in his purple")
@@ -567,7 +569,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   }
 
   /// Stories 1008, 1009 (#965): the bar's Undo and Redo, a finger's size, dimmed with nothing to do, take a stroke back and
-  /// bring it again; after Keep group, Undo names it and one press takes the whole group back. What each label says for
+  /// bring it again; after Keep all, Undo names it and one press takes the whole group back. What each label says for
   /// each state of the stack is `BoardUndoButtonsTests`, on the host.
   func testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup() throws {
     let cockpit = try cockpit()
@@ -600,22 +602,21 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
-    let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
-    PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.center.y))
-    let group = app.buttons["whiteboard-mark-keep-group"]
-    XCTAssertTrue(group.appears(within: 5), app.debugDescription)
-    group.tap()
+    _ = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
+    let keepAll = app.buttons["whiteboard-keep-all"]
+    XCTAssertTrue(keepAll.appears(within: 5), app.debugDescription)
+    keepAll.tap()
     waitUntil(NSPredicate(format: "label != %@", strokes(1)), send(app), timeout: 10)
-    waitUntil(NSPredicate(format: "label == %@", "Undo Keep group"), undo, timeout: 5)
+    waitUntil(NSPredicate(format: "label == %@", "Undo Keep all"), undo, timeout: 5)
     undo.tap()
     wait(send(app), label: strokes(1), timeout: 10)
     XCTAssertNil(PaperScreen(app).larryKept, "one press took the whole group back")
     shot(app, "kept group undone from the bar")
   }
 
-  /// #894 (stories 1004, 1005): a line Igor writes after the picture went, where Larry's reply lands. Keep group pushes
+  /// #894 (stories 1004, 1005): a line Igor writes after the picture went, where Larry's reply lands. Keep all pushes
   /// the line down under the reply, his marks stay where they showed, and one undo puts the line back through them.
-  func testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply() throws {
+  func testKeepAllPushesWhatIgorWroteSinceThePictureUnderTheReply() throws {
     let cockpit = try cockpit()
     let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_KEEP": "8,undo"])
     ghosts(app).tap()  // Ghosts off: only Larry's marks show.
@@ -639,10 +640,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertNotNil(PaperScreen(app).ink(in: marks), "the new line runs through his circles")
     let before = try XCTUnwrap(PaperScreen(app).ink(in: under), "Igor's first line, just under his circles")
     shot(app, "a line written through his reply after the picture")
-    PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.minY + (marks.maxY - marks.minY) * 0.3))
-    let group = app.buttons["whiteboard-mark-keep-group"]
-    XCTAssertTrue(group.appears(within: 5), app.debugDescription)
-    group.tap()
+    let keepAll = app.buttons["whiteboard-keep-all"]
+    XCTAssertTrue(keepAll.appears(within: 5), app.debugDescription)
+    keepAll.tap()
     waitUntil(NSPredicate(format: "label != %@", strokes(2)), send(app), timeout: 10)
     let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his reply as ink in his purple")
     XCTAssertEqual(kept.center.y, marks.center.y, accuracy: 0.02, "his marks stay where they showed")

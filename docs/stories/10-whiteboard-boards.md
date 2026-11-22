@@ -1172,7 +1172,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A named step on top
 - **Given:** I have just kept a group of Larry's marks
 - **When:** VoiceOver reaches the Undo button
-- **Then:** it reads *Undo Keep group*; for my own stroke it reads *Undo*, and with nothing to undo it says the button is dimmed
+- **Then:** it reads *Undo Keep all*; for my own stroke it reads *Undo*, and with nothing to undo it says the button is dimmed
 
 ---
 

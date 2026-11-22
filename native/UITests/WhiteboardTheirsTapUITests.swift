@@ -1,5 +1,5 @@
 //  Story 1140 (#1171) on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): Larry's
-//  three circles kept with Keep all, each its own thing; a finger tap on the first selects that circle alone (its Delete
+//  three circles kept one at a time with Keep, each its own thing; a finger tap on the first selects that circle alone (its Delete
 //  takes it and leaves the other two), and one Undo puts it back. A finger drag of a selection is story 947's test. Where the circles sit is read from the screen's pixels (`PaperScreen`,
 //  in WhiteboardPaperGhostsUITests.swift); what is selected, from To text, which shows beside the selected ink. Which
 //  strokes a tap reaches is `BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`.
@@ -61,10 +61,17 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
-    // Keep all: three circles in a row, each kept as its own thing, not grouped.
-    let keepAll = app.buttons["whiteboard-keep-all"]
-    XCTAssertTrue(keepAll.appears(within: 5), app.debugDescription)
-    keepAll.tap()
+    // Three circles in a row, kept one at a time with Keep, each its own thing: Keep all would keep them as one group
+    // (story 995; bead context-grabber-yqau).
+    let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
+    let keep = app.buttons["whiteboard-mark-keep"]
+    for circle in 0..<3 {
+      PaperScreen.tap(app, CGPoint(x: marks.minX + CGFloat(circle) * marks.width / 3 + 0.003, y: marks.center.y))
+      XCTAssertTrue(keep.appears(within: 5), "circle \(circle) chosen: \(app.debugDescription)")
+      keep.tap()
+      XCTAssertTrue(keep.waitForNonExistence(timeout: 5), "circle \(circle) kept")
+    }
+    XCTAssertFalse(toKeep(app, 1).exists, "none left to keep")
     waitUntil(NSPredicate(format: "label != %@", "Send to Larry, 1 strokes"), send, timeout: 10)
     let label = send.label
     let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his three circles in his purple")

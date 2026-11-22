@@ -133,13 +133,29 @@ public enum BoardRoom {
     _ marks: [CGRect], seen: Int64, strokes: [BoardOps.Stroke], texts: [BoardText] = [],
     groups: [String: String] = [:], folds: [String: String] = [:], theirs: Set<Int64> = []
   ) -> Late {
+    late(
+      marks.map { (box: $0, seen: Optional(seen)) }, strokes: strokes, texts: texts, groups: groups, folds: folds,
+      theirs: theirs)
+  }
+
+  /// Keep all (stories 895, 1004; bead context-grabber-yqau): `late` for marks of several replies kept at once, each
+  /// with the time of the picture its own reply answers (nil when this device doesn't know it). A thing makes room only
+  /// where it sits on a mark and was made after that mark's picture, so ink one reply's picture had never moves for that
+  /// reply's marks. One room for all of them, under the lowest mark, a mark with no time among them.
+  public static func late(
+    _ marks: [(box: CGRect, seen: Int64?)], strokes: [BoardOps.Stroke], texts: [BoardText] = [],
+    groups: [String: String] = [:], folds: [String: String] = [:], theirs: Set<Int64> = []
+  ) -> Late {
     let shown = BoardOps.items(strokes: strokes, texts: texts, groups: groups, folds: folds).filter { !$0.hidden }
-    let newer = shown.filter { item in
-      item.members.contains { member in
-        strokes[member].t.map { t in t > seen && ![t - 1, t, t + 1].contains(where: theirs.contains) } ?? false
+    let covered = shown.filter { item in
+      marks.contains { mark in
+        guard let seen = mark.seen, !mark.box.isNull, sitsOn(mark.box, item.bounds) else { return false }
+        return item.members.contains { member in
+          strokes[member].t.map { t in t > seen && ![t - 1, t, t + 1].contains(where: theirs.contains) } ?? false
+        }
       }
     }
-    return late(marks, newer: newer.map(\.bounds), among: shown.map(\.bounds))
+    return late(marks.map(\.box), newer: covered.map(\.bounds), among: shown.map(\.bounds))
   }
 
   /// Overlapping by some area: touching an edge isn't sitting on it.

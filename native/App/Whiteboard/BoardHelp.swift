@@ -122,7 +122,9 @@ struct BoardHelpSheet: View {
     (
       "Larry's marks",
       [
-        Row(gesture: "Keep all", does: "Beside the count of marks: keeps every one as ink, in the order he drew them."),
+        Row(
+          gesture: "Keep all",
+          does: "Beside the count of marks: keeps every one as ink where it showed, each reply as one group."),
         Row(gesture: "Tidy overlaps", does: "In the Board menu: moves kept labels off your writing."),
       ]
     ),
