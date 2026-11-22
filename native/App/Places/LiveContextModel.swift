@@ -90,10 +90,11 @@ final class LiveContextModel: ObservableObject {
     save()
   }
 
-  /// The app came to the front: the quiet since the last position counts as staying, then what waits goes.
-  func foreground() {
+  /// The app came to the front: the quiet since the last position counts as staying while `recording`, then what
+  /// waits goes (with recording off too: it was noticed while recording was on).
+  func foreground(recording: Bool) {
     guard on else { return }
-    settled(state.advance(to: Geo.ms(Date())))
+    settled(state.advance(to: Geo.ms(Date()), recording: recording))
     send(reason: "foreground")
   }
 

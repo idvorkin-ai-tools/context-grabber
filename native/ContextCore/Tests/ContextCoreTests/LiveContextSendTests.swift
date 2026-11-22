@@ -220,10 +220,27 @@ final class LiveContextSendTests: XCTestCase {
 
   func testAnEventIsHeldOnceAndTheStateKeeps() throws {
     var state = aGymVisit()
-    _ = state.advance(to: monday + 200 * minute)
+    _ = state.advance(to: monday + 200 * minute, recording: true)
     XCTAssertEqual(state.waiting.count, 2)
     let kept = try JSONDecoder().decode(LiveContext.self, from: JSONEncoder().encode(state))
     XCTAssertEqual(kept, state)
+  }
+
+  /// context-grabber-1zrt: Background Tracking turned off two minutes into the gym, the app opened an hour later.
+  /// The silence is the phone no longer listening, so nothing settles; what had settled before still goes.
+  func testWithRecordingOffTheQuietSettlesNothing() {
+    var state = LiveContext()
+    _ = state.observe([outside(-20), outside(-10)], places: [gym])
+    _ = state.observe([inside(0), inside(2)], places: [gym])
+    XCTAssertEqual(state.advance(to: monday + 60 * minute, recording: false), [])
+    XCTAssertTrue(state.waiting.isEmpty)
+
+    var visit = aGymVisit()
+    _ = visit.observe([inside(80), inside(82)], places: [gym])  // back at the gym, then tracking off
+    XCTAssertEqual(visit.advance(to: monday + 200 * minute, recording: false), [])
+    XCTAssertEqual(visit.waiting.map(\.kind), [.arrived, .left])
+
+    XCTAssertEqual(visit.advance(to: monday + 200 * minute, recording: true).count, 1)  // recording on, it would
   }
 
   func testTheDetectedLineNamesThePlaceAndTimes() {

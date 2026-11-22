@@ -283,7 +283,8 @@ final class AppModel: ObservableObject {
     dailyStrip.refresh()
     places.prune(reason: "foreground")
     tracker.foreground()
-    liveContext.foreground()  // #84: the quiet since the last position counts as staying; what waits goes to Larry
+    // #84: the quiet since the last position counts as staying while recording runs; what waits goes to Larry
+    liveContext.foreground(recording: tracker.trackingOn)
     if showPlaces || ledger.window(holding: .places) != nil { places.reload(reason: "foreground") }
     mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     startDelivery()  // story 152: what waited for a connection goes up now
