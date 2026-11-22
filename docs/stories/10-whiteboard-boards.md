@@ -1022,7 +1022,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 952:
 
 - **Summary:** Feedback from the board is one tap, on a ladybug with no word beside it
-- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) a tap on Feedback opened *Report a problem* over the board; not yet seen on the iPad. The ladybug alone (#1162) in COMMIT_1162
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) a tap on Feedback opened *Report a problem* over the board; not yet seen on the iPad. The ladybug alone (#1162) in [c2725da](https://github.com/idvorkin/context-grabber/commit/c2725da); `just native-test` and `just native-build-mac` green, and on the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-22) the ladybug was no wider than the **?** and still read *Feedback*; not yet seen on the phone
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 - **Issues:** [#1162](https://github.com/idvorkin/context-grabber/issues/1162) (Igor on the iPhone, 2026-11-22: "Just a bug buttons enough I don't need to say feedback"; the word covered the board's ink)
 
