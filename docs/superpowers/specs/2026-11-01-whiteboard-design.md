@@ -624,7 +624,7 @@ stroke can be judged again on the Mac.
   tests holds each case to its expected verdict, so a gesture bug is fixed against Igor's real stroke on the Mac.
 - Nothing Igor sees changes.
 
-## Playing a board back, as Notability does (proposed, bead context-grabber-3tdv; stories 958, 959; not built, waiting on Igor's choice)
+## Playing a board back, as Notability does (proposed, bead context-grabber-3tdv; stories 956–959; not built, waiting on Igor's choice)
 
 Igor, 2026-11-22 (#1139, on the iPad): *"where is my replay button so I can rewatch it the way you do in Notability?
 Go do some research on Notability to see this."* Called **playback** here, so it isn't confused with the replays that
@@ -650,7 +650,7 @@ handwriting from then. Recording is a paid feature there.
 - **Nothing that was taken away.** Erased, scratched-out and undone ink is gone from the board, so playback can't show
   it being drawn and taken away.
 - **No sound and no words.** Apple's dictation hears the mic and lets the sound go; the words go to the Cockpit with
-  the next picture and are not kept on the board (*Talking while drawing*: "Words aren't kept for later"), and the
+  the next picture and are not kept on the board ([Whiteboard shapes](2026-11-01-whiteboard-shapes-design.md), *Talking while drawing*: "Words aren't kept for later"), and the
   board's log carries counts and places, never the words said or written.
 
 **Three ways to go**, each adding to the one before:
@@ -722,7 +722,7 @@ that ghosts need the tailnet.
   iCloud's back; a newer version whose drawing fails to come down is not taken, and neither is one whose meaning
   can't be read: the device keeps the pair it had and asks again on the next sync; a TestFlight build that sends the
   meaning up isn't shipped until the CloudKit schema is deployed to production.
-- (Proposed, bead context-grabber-3tdv, stories 958, 959.) *Play* on a board with ink clears it and draws it again in
+- (Proposed, bead context-grabber-3tdv, stories 956–959.) *Play* on a board with ink clears it and draws it again in
   the order it was drawn; a tap on a stroke jumps to the moment it was drawn; *Done* shows the board as it was, with no
   save, no undo step and nothing sent. With the words or the sound chosen, a tap on a stroke shows or plays what was being
   said as it was drawn.

@@ -1,7 +1,7 @@
 # Plan: playing a board back, as Notability does
 
 Bead context-grabber-3tdv (from #1139: *"where is my replay button so I can rewatch it the way you do in Notability?"*).
-Spec: `2026-11-01-whiteboard-design.md`, *Playing a board back, as Notability does*; stories 958 (the ink) and 959
+Spec: `2026-11-01-whiteboard-design.md`, *Playing a board back, as Notability does*; stories 958, 956, 957 (the ink) and 959
 (what was said). Docs only so far: nothing is built until Igor picks.
 
 ## Research
@@ -23,7 +23,7 @@ cloud now, not iCloud, by the 2026 reviews. No source gave a size per hour: the 
 | `PKStrokePoint.timeOffset` per point | the same | drawing each stroke at the hand's pace (the scratch-out and hold rules already read it from real Pencil strokes) |
 | Kept texts: one shared creation time per text (story 817); paste and snapped shapes: `creationDate: made` | the same | they appear as a unit, at the time they were made |
 | Erased, scratched-out, undone ink | nowhere | nothing: playback shows what is left |
-| Dictation: BugKit's `NoteDictation` gives text with `firstStart`/`lastEnd` seconds from the start of listening; `mic_on` / `mic_off` log lines have the wall time | words go to the Cockpit with the next picture; not kept on the device (spec: "Words aren't kept for later", #824) | option 2, once kept |
+| Dictation: BugKit's `NoteDictation` gives text with `firstStart`/`lastEnd` seconds from the start of listening; `mic_on` / `mic_off` log lines have the wall time | words go to the Cockpit with the next picture; not kept on the device (`2026-11-01-whiteboard-shapes-design.md`, *Talking while drawing*: "Words aren't kept for later", #824) | option 2, once kept |
 | Sound | nowhere: SFSpeechRecognizer consumes the buffers | option 3 needs a capture |
 | `board_touch` paths (story 1104) | the session log, thinned to 600 points | not for playback: logs rotate, and it is diagnostics |
 
@@ -33,7 +33,7 @@ cloud now, not iCloud, by the 2026 reviews. No source gave a size per hour: the 
 |---|---|---|---|
 | What Igor gets | the board redrawn in order at his pace; tap a stroke to jump | plus captions of what he said as he drew; tap a stroke to read it | Notability's feature: hear the room as the ink draws; tap a stroke to hear it |
 | New data | none | per board: lines of `{text, startMs, endMs}` in unix ms, kept in the board's meaning file | per board: one AAC file per recording, plus its start time and length in the meaning |
-| Size (our arithmetic) | 0 | at about 150 spoken words a minute and its timing, about 1–2 KB a minute of speech, under 100 KB an hour | AAC mono speech at 32 kbit/s is 4 KB/s, about 14 MB an hour; at 64 kbit/s about 29 MB an hour |
+| Size (our arithmetic) | 0 | at about 150 spoken words a minute and its timing, about 1–2 KB a minute of speech, about 60–120 KB an hour of continuous speech | AAC mono speech at 32 kbit/s is 4 KB/s, about 14 MB an hour; at 64 kbit/s about 29 MB an hour |
 | Privacy | unchanged | his own words kept on the board; changes the spec's "Words aren't kept for later"; the words are dictation's guesses | the room's audio kept, other people's voices included; recording others can need their consent; iOS's orange mic dot shows while it runs |
 | iCloud | nothing new | rides the board's meaning sync, which is itself still proposed (cc75 step 2, story 1109); without it the words stay on the drawing device | a CKAsset per recording counts against Igor's iCloud storage and uploads tens of MB over cellular; device-only loses it on a reinstall and the iPhone can't play it |
 | Mic rules | none | inherits the board mic's: Ghosts on only, stopped by a call and a shake report | its own button, independent of Ghosts; still stopped by a call (the call owns the mic and its voice processing) and by a shake report |

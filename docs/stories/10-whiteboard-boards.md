@@ -1112,10 +1112,50 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** I can follow how the thinking went, not only where it ended
 
 #### Acceptance Criteria:
-- **Scenario:** Play a board and tap a stroke
+- **Scenario:** Play a board
 - **Given:** a board with three strokes drawn a minute apart
-- **When:** I choose *Play* on the board's menu, then tap the second stroke once it has appeared, then *Done*
-- **Then:** the board empties and the strokes draw again in their order, the minute between them short; the tap goes back to the moment the second stroke began; *Done* shows the board as it was, with nothing saved, no undo step and nothing sent to Larry
+- **When:** I choose *Play* on the board's menu
+- **Then:** the board empties and the strokes draw again in their order, the minute between them short
+
+---
+
+### User Story 956:
+
+- **Summary:** In playback, a tap on a stroke jumps to the moment I drew it
+- **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
+- **Status:** not implemented; asks: bead context-grabber-3tdv (proposed, waiting on Igor's choice; the plan is `docs/superpowers/plans/2026-11-22-whiteboard-playback-plan.md`)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
+
+#### Use Case:
+- **As someone** watching a board play back
+- **I want to** tap a stroke to jump to when I drew it
+- **so that** I can go straight to the part of the thinking I care about
+
+#### Acceptance Criteria:
+- **Scenario:** Tap a stroke during playback
+- **Given:** a board with three strokes playing back, the second stroke already drawn again
+- **When:** I tap the second stroke
+- **Then:** playback goes back to the moment the second stroke began
+
+---
+
+### User Story 957:
+
+- **Summary:** Leaving playback shows the board as it was, with nothing changed
+- **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
+- **Status:** not implemented; asks: bead context-grabber-3tdv (proposed, waiting on Igor's choice; the plan is `docs/superpowers/plans/2026-11-22-whiteboard-playback-plan.md`)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
+
+#### Use Case:
+- **As someone** who watched a board play back
+- **I want to** leave playback and find the board exactly as I left it
+- **so that** watching never costs me ink, an undo step or a message to Larry
+
+#### Acceptance Criteria:
+- **Scenario:** Finish playback
+- **Given:** a board playing back
+- **When:** I choose *Done*
+- **Then:** the board shows as it was, with nothing saved, no undo step and nothing sent to Larry
 
 ---
 
