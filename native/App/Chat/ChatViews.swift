@@ -814,6 +814,7 @@ struct ChatThreadView: View {
   private func openBoard(_ found: ChatThreadBoard) {
     lookingForBoard = true
     boardProblem = nil
+    let started = ProcessInfo.processInfo.systemUptime
     Task {
       let problem = await chat.findBoard(found.board, "ChatThreadView.openBoard")
       lookingForBoard = false
@@ -822,6 +823,7 @@ struct ChatThreadView: View {
         [
           "action": "thread_open_board", "thread": .string(key ?? ""), "board": .string(found.board),
           "via": .string(found.source.rawValue), "found": .string(problem == nil ? "yes" : "no"),
+          "ms": .int(Int((ProcessInfo.processInfo.systemUptime - started) * 1000)),
         ])
       boardProblem = problem
       if problem == nil { chat.openBoard(found.board) }
@@ -1213,6 +1215,7 @@ private struct ChatImage: View {
   private func jump(to board: String) {
     looking = true
     jumpProblem = nil
+    let started = ProcessInfo.processInfo.systemUptime
     Task {
       let problem = await chat.findBoard(board, "ChatThreadView.jumpToBoard")
       looking = false
@@ -1221,12 +1224,16 @@ private struct ChatImage: View {
         [
           "action": "jump_to_board", "message": .string(message), "board": .string(board),
           "found": .string(problem == nil ? "yes" : "no"),
+          "ms": .int(Int((ProcessInfo.processInfo.systemUptime - started) * 1000)),
         ])
       guard full else { return }  // closed while it looked
       jumpProblem = problem
       if problem == nil {
         leaving = true
-        full = false
+        // #1137: the cover goes down at once rather than sliding, so the board isn't kept waiting on it.
+        var quick = Transaction()
+        quick.disablesAnimations = true
+        withTransaction(quick) { full = false }
       }
     }
   }

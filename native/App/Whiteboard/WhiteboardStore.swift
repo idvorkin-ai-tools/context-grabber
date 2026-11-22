@@ -30,6 +30,8 @@ final class WhiteboardStore: ObservableObject {
   private var again = false
   /// Whether this launch has synced yet: a failed first sync says so (#1002).
   private var syncedThisLaunch = false
+  /// #1137: whether a jump waits on iCloud, and the board just found for one.
+  private var finding = BoardFind()
 
   init(log: SessionLog, device: String) {
     self.log = log
@@ -199,9 +201,23 @@ final class WhiteboardStore: ObservableObject {
   /// Why a board can't be opened as it is now, once iCloud has been asked; nil when it can (#603). Out of iCloud's
   /// reach, the last drawing this device knew of is as new as can be told. The id is only looked up, never made into a
   /// path: it came from a link or the Cockpit.
+  /// #1137: a board this device draws, here, opens without the wait; a jump asks iCloud at most once.
   func find(_ id: String, context: String) async -> BugProblem? {
-    await sync(reason: "find_board")
-    guard let why = index.whyNotOpen(id) else { return nil }
+    let started = ProcessInfo.processInfo.systemUptime
+    let ask = finding.ask(id, index: index, device: device, now: started)
+    if ask == .asked { await sync(reason: "find_board") }
+    let why = index.whyNotOpen(id)
+    let now = ProcessInfo.processInfo.systemUptime
+    log.event(
+      "whiteboard",
+      [
+        "action": "find", "board": id, "context": context, "icloud": ask.rawValue, "found": why == nil,
+        "ms": Int((now - started) * 1000),
+      ])
+    guard let why else {
+      finding.opens(id, now: now)
+      return nil
+    }
     log.event(
       "whiteboard",
       ["action": "board_missing", "board": id, "listed": index.board(id) != nil, "sync": syncNote ?? "ok"])
