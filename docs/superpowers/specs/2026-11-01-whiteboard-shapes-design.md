@@ -409,7 +409,8 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 - **The session log says** how many microphones each opening listed and which one the mic hears, and each pick:
   whether it was *Automatic* and whether the mic was open.
 - **Not here: replaying a board with its sound**, as Notability plays a recording back with the ink (#1139's second
-  ask, `context-grabber-3tdv`). The board's mic is dictation; it keeps the words, not the sound.
+  ask, `context-grabber-3tdv`). The board's mic is dictation; it hears the words, not the sound. Playback is proposed
+  in [Whiteboard with Claude](2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*.
 
 ## Where it runs
 
