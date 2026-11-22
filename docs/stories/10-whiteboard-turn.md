@@ -539,7 +539,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 386:
 
 - **Summary:** Larry draws unprompted
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note. Since story 770 the simulator keeps the unprompted marks and the reopen after a dismissal; the newest set on opening and a seen set never coming back are `WhiteboardMarksTests` on the host. Changed in COMMIT_N8AB (bead `context-grabber-n8ab`, story 1155): his next marks join his unkept ones instead of replacing them; verified by host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`) and the Mac build
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note. Since story 770 the simulator keeps the unprompted marks and the reopen after a dismissal; the newest set on opening and a seen set never coming back are `WhiteboardMarksTests` on the host. Changed in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4) (bead `context-grabber-n8ab`, story 1155): his next marks join his unkept ones instead of replacing them; verified by host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`), the Mac build and the simulator (`WhiteboardTurnUITests`: *5 to keep* after two replies)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:

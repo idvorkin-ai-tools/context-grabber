@@ -421,7 +421,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 383:
 
 - **Summary:** A board opens with his newest marks and the ones still showing when it closed, and a dismissed set stays gone
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: reopened with his newest set). Changed in COMMIT_N8AB (bead `context-grabber-n8ab`, story 1155): an earlier row still showing when the board closed comes back with the newest; verified by host tests (`WhiteboardMarksTests`)
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: reopened with his newest set). Changed in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4) (bead `context-grabber-n8ab`, story 1155): an earlier row still showing when the board closed comes back with the newest; verified by host tests (`WhiteboardMarksTests`)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -441,7 +441,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1155:
 
 - **Summary:** His earlier marks stay when he replies again
-- **Status:** implemented in COMMIT_N8AB; verified by host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`, `BoardMarksReplayTests`) and the Mac build; the simulator (`WhiteboardTurnUITests.testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem`, two replies) is owed
+- **Status:** implemented in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4); verified by host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`, `BoardMarksReplayTests`) the Mac build, and the simulator (`WhiteboardTurnUITests.testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem`: his second reply's three marks join the first's two, *5 to keep*, and a stray tap leaves all five); the reopen and the iPad's own look are owed
 - **Issues:** bead `context-grabber-n8ab`: Igor, 2026-11-22 12:35 on board 8f986938 (iPad log): Larry's 12-mark sequence diagram (row 99edfb64758e) was showing; his next reply, a label with a question card (row 4d4bc5dd9efd), took the board from 12 marks to 1, and the reply after it replaced that one too
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A new reply adds his marks, never clears them*
 
