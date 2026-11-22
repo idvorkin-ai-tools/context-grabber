@@ -163,6 +163,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
     watchUndo()
     watchCovers()
+    watchHandwritingOffers()
     settleFinger()
   }
 

@@ -135,6 +135,28 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     XCTAssertNotNil(back, "one Undo put all three circles back at \(kept)")
   }
 
+  /// Stories 945, 946 (bead context-grabber-4nnh): the simulator's stand-in for the iPad's handwriting popover
+  /// (`GRABBER_WHITEBOARD_FAKE_OFFER`) comes over the tapped group and empties its selection without a callback; the
+  /// board puts the popover away and the group back, and a finger drag still moves all of it.
+  func testTheHandwritingOfferIsPutAwayAndTheTappedGroupStillDrags() throws {
+    let app = XCUIApplication.forTests(animated: true)
+    app.launchEnvironment["GRABBER_WHITEBOARD_FAKE_OFFER"] = "1"
+    let marks = try keptGroup(app)
+    let kept = try XCTUnwrap(visibleGroup(app, at: marks), "all three circles kept at their ghost positions")
+    PaperScreen.tap(app, CGPoint(x: kept.minX + 0.003, y: kept.center.y))
+    XCTAssertTrue(app.buttons["whiteboard-to-text"].appears(within: 5), "the tap selected ink: \(app.debugDescription)")
+    sleep(2)  // past the stand-in offer, shown 0.6 s after the tap
+    shot(app, "after the offer")
+    XCTAssertFalse(
+      app.staticTexts["whiteboard-fake-handwriting-offer"].exists, "the offer put away: \(app.debugDescription)")
+    let from = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y))
+    let to = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y + 0.1))
+    from.press(forDuration: 0.3, thenDragTo: to, withVelocity: 200, thenHoldForDuration: 0.5)
+    let moved = visibleGroup(app, at: kept, dy: 0.1, yTolerance: 0.03)
+    shot(app, "dragged")
+    XCTAssertNotNil(moved, "all three circles moved down together from \(kept)")
+  }
+
   /// Off every group the tap does what it did: nothing is selected.
   func testATapBesideTheGroupSelectsNothing() throws {
     let app = XCUIApplication.forTests(animated: true)

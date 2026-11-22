@@ -84,6 +84,10 @@ public struct WhiteboardHooks: Equatable, Sendable {
   public var pencilSeen: Bool
   /// `GRABBER_WHITEBOARD_FINGER_LABEL=1`: whether a finger draws, as an element a UI test reads (stories 1152, 1153).
   public var fingerLabel: Bool
+  /// `GRABBER_WHITEBOARD_FAKE_OFFER=1`: a beat after a finger tap selects a group, the board shows a stand-in for the
+  /// iPad's handwriting popover at the paper and empties the selection without a callback, as the iPad did, for the
+  /// simulator, which never offers it (stories 945, 946).
+  public var fakeHandwritingOffer: Bool
 
   public init(_ env: [String: String] = [:]) {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
@@ -113,5 +117,6 @@ public struct WhiteboardHooks: Equatable, Sendable {
     listChat = env["GRABBER_WHITEBOARD_LIST_CHAT"].flatMap { $0.isEmpty ? nil : $0 }
     pencilSeen = env["GRABBER_WHITEBOARD_PENCIL"] == "seen"
     fingerLabel = env["GRABBER_WHITEBOARD_FINGER_LABEL"] == "1"
+    fakeHandwritingOffer = env["GRABBER_WHITEBOARD_FAKE_OFFER"] == "1"
   }
 }

@@ -80,6 +80,21 @@ suggest changes the board until Igor keeps it.
     - Not yet (non-goal): a mark still showing, not kept, is never dragged; it is kept first, then picked up.
     - The session log says, for each such tap, that it was one thing of Larry's rather than a group, how many strokes
       it selected, and whether it was still selected a beat later.
+  - **The board never offers to convert handwriting to text** (bead context-grabber-4nnh; Igor, 2026-11-22: "Also never
+    prompt me to convert"). On the iPad, a selection of handwriting (a finger tap on a group or on a text of Larry's,
+    or a lasso) brought up the system's own handwriting popover over it about a second later, and with it the
+    selection silently went: the tapped group showed selected, then nothing was, and the finger drag that followed
+    moved nothing. iPadOS has no setting to switch that offer off, so the board puts it away as soon as it shows, on
+    a selection, on a tap or anywhere else over the paper. The board's own *To text* (story 1095) is untouched and
+    is the one way to turn ink into text.
+    - **A tapped group stays selected and draggable.** If the selection a group's tap (or a tap on one thing of
+      Larry's) made goes while the tap's window is open (three seconds, or until the next touch), with no touch of
+      Igor's since, the board puts the whole selection back; a finger drag then moves it as one. A selection Igor
+      changes himself, by a touch, a lasso or a tap elsewhere, is never put back. The board tries at most three times
+      per tap, then leaves it and says so in the log.
+    - The session log says each time the system offers its popover (what it is, what it points at, what holds the
+      keyboard focus, how much is selected), whether the board put it away and how much was selected after; and, for
+      a tapped group whose selection went, when it went, whether the offer was showing, and whether the put-back held.
   - **PaperKit's handwriting reflow never carries Igor's ink and Larry's together** (bead context-grabber-eg7v; Igor,
     2026-11-22: keep the reflow, but it must never group his ink with Larry's or Claude's). On the iPad a finger tap on
     a text of Larry's can open the system's handwriting reflow over it, which takes Larry's text and Igor's strokes

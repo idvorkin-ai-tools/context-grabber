@@ -88,7 +88,7 @@ final class BoardCoverWatch {
   }
 
   /// A view hosting another process's scene: touches on it go to that process, never through the app's window.
-  private static func drawnElsewhere(_ view: UIView) -> Bool {
+  static func drawnElsewhere(_ view: UIView) -> Bool {
     var looks = [(view, 0)]
     var seen = 0
     while let (here, depth) = looks.popLast(), seen < 300 {
