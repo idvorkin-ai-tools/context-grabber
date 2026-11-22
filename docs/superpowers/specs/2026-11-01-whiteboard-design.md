@@ -46,9 +46,18 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   filled with the current one. The new name shows at once in the list and in the board's bar, is the name the board's
   chat thread takes from the next *Send to Larry* or turn, and reaches the other devices when they next sync. A blank
   name, or *Cancel*, leaves the name as it was. A renamed board counts as changed: it moves to the top of the list and
-  isn't dropped as an empty new board. A board drawn on another device offers no *Rename*. Not from the board's own
-  bar: a rename menu on its name there made the iPad's Board menu open as a full-height list that stayed up after a
-  pick (2026-11-16).
+  isn't dropped as an empty new board. A board drawn on another device offers no *Rename*.
+- **Rename from the board's own bar** (Igor, 2026-11-22, context-grabber-5chm: he looked for rename inside a board and
+  couldn't find it). A tap on the board's name in the middle of its top bar opens the same box as the row's *Rename*,
+  filled with the current name, with the same *Rename* and *Cancel*. The new name shows at once in the bar (and in the
+  list behind it), saves and reaches the other devices as the row's rename does, and is the name the next picture,
+  *Send to Larry*, turn or Claude's look carries. Only a board that draws here offers it: on a look-only board (another
+  device's, an old-canvas one, one that couldn't be read, and every board on an iPhone, its own included) the name is
+  plain text and a tap on it does nothing; an iPhone renames its own boards from the list. The name is a plain tap
+  target, not a menu: a menu on the name (2026-11-16) made the iPad's Board menu open as a full-height list that stayed
+  up after a pick. Renaming doesn't cost a stroke, close the board, or change what the Board menu does: after the box
+  closes, the next stroke draws and the Board menu opens and closes as before. A long name is cut short in the bar
+  rather than pushing its buttons away.
 - **Any device can delete any board.** Delete asks first, there's no undo, and the board leaves every device: this one
   at once, the others the next time they sync, even one that was off when the delete happened. Only the device that
   drew a board can rename it.
@@ -157,6 +166,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     story 926).
   - On a width as narrow as an iPhone's the Board menu stays at the bottom of the screen (below), and Paste with it in
     the top bar's right group.
+  - **The board's name** sits in the middle of the bar. On a board that draws here a tap on it renames the board
+    (*Rename from the board's own bar*, above); on a look-only board it is only the name.
 - **Who draws:**
   - With a Pencil paired, only the Pencil draws, and a finger moves the board. A palm resting on the glass never
     leaves a mark.
@@ -806,6 +817,9 @@ that ghosts need the tailnet.
 - Draw on the iPad and close the board: within a minute, the iPhone's list shows it with the same picture. Opening
   it there shows the drawing with no tool picker, and a finger only pans.
 - Rename and delete a board on the iPad: the iPhone follows on its next refresh.
+- Open a board the iPad drew and tap its name in the bar: the rename box, filled with the name. Rename it: the bar
+  shows the new name at once, the next stroke draws, the Board menu still opens and closes, and back in the list the
+  row has the new name. On another device's board the name in the bar does nothing.
 - On the iPad, swipe left on a board's row: Rename is there beside Delete. Rename it: the row shows the new name at the
   top of the list, and opening the board, its bar does too.
 - Choose Cream on a board, draw, close and reopen it: it's still Cream, deep in dark mode and pale in light mode, and the

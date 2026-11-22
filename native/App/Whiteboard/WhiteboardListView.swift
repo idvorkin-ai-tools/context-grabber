@@ -104,7 +104,7 @@ struct WhiteboardListView: View {
       presenting: renaming
     ) { board in
       TextField("Name", text: $newName)
-      Button("Rename") { store.rename(board.id, to: newName) }.macDefaultAction()
+      Button("Rename") { store.rename(board.id, to: newName, from: "list") }.macDefaultAction()
       Button("Cancel", role: .cancel) {}
     }
     .confirmationDialog(

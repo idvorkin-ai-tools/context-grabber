@@ -31,7 +31,7 @@ to that event's own bullet; never join two events on one line.
   - open with board, strokes, editable — false for a board another device draws or one drawn on the old canvas, which opens to look at only, and for every board on an iPhone —, old_canvas (story 658) and look_only: the bar's reason, null on a board that draws (story 746)
   - close with board, strokes and saved — false when that last write failed, which also puts the problem on the list — logged only when leaving had unsaved strokes to write
   - send with board, strokes, bytes, pixels and frame: the picture's rect on the board, x, y, w, h — the pages on screen
-  - rename with board
+  - rename with board and from: list — the row's swipe or long press — or title — a tap on the name in the board's own bar (story 946)
   - paper with board and paper: the board's colour chosen
   - lettering with board and lettering: single / font, the Board menu's Real font switch (#950)
   - delete with board, own — false for a board another device drew — and why: asked, or empty — a new board closed without a stroke, and keys: how many of this device's whiteboard_*_<id> keys it forgot (story 1106)
