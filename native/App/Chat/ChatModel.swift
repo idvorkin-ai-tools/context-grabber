@@ -40,6 +40,9 @@ final class ChatModel: ObservableObject {
   var findBoard: @MainActor (String, String) async -> BugProblem? = { _, _ in nil }
   /// #603, set by the app: leaves the thread for that board.
   var openBoard: @MainActor (String) -> Void = { _ in }
+  /// The list or a thread has left the screen: when Chat is closing, a link waiting for it goes on (bead
+  /// context-grabber-mzdf). It also leaves when a thread is pushed over it, which the stack tells apart.
+  var viewGone: @MainActor () -> Void = {}
   /// Threads whose strip of links Igor folded away (#736), remembered across launches.
   @Published private(set) var foldedLinks: Set<String> = []
   /// Each thread's links (#736), from its last read: the open thread's strip and a wide list's rows.

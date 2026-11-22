@@ -107,7 +107,8 @@ public enum HomeStack {
     order.first(where: up.contains) ?? .home
   }
 
-  /// SwiftUI drops a cover asked for while another is still going down, so what comes next waits this long.
+  /// SwiftUI drops a cover asked for while another is still going down, so what comes next waits for what it closed to
+  /// say it has gone, and never longer than this (bead context-grabber-mzdf: a cover's dismissal that never reports).
   public static let coverSettles = 700
 
   public enum Step: Equatable, Sendable {
