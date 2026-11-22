@@ -4,11 +4,13 @@
 //  (`MicFloor`, spec 2026-11-10-microphone-floor-design.md): a tap asks it first, and a call taking it stops the
 //  recording through `yieldToCall`. A recording stops itself at ChatVoice.limit.
 
+import AVFoundation
 import BugKit
 import Combine
 import ContextCore
 import Foundation
 import Security
+import UIKit
 
 @MainActor
 final class ChatVoiceModel: ObservableObject {
@@ -43,6 +45,7 @@ final class ChatVoiceModel: ObservableObject {
   private var namedSavedMicrophone = false
   private var capTimer: Task<Void, Never>?
   private var watches: Set<AnyCancellable> = []
+  private nonisolated(unsafe) var routeObserver: NSObjectProtocol?
 
   init(log: SessionLog, callLive: AnyPublisher<Bool, Never>) {
     self.log = log
@@ -59,6 +62,20 @@ final class ChatVoiceModel: ObservableObject {
       MainActor.assumeIsolated { self?.callChanged(live) }
     }
     .store(in: &watches)
+    // #1165: every route change during a recording, read here on the main queue before BugKit's own observer hops to
+    // a Task and stops the recording, so a stop for "the microphone changed" says what changed.
+    // ponytail: idvorkin/bug-kit#133 (NoteDictation logs no reason or input when it stops); drop once it ships.
+    // On the main queue and read at once: BugKit's observer, registered first, only enqueues its stop as a Task, so
+    // this runs while the recording is still live.
+    routeObserver = NotificationCenter.default.addObserver(
+      forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
+    ) { [weak self] note in
+      MainActor.assumeIsolated { self?.routeChanged(note) }
+    }
+  }
+
+  deinit {
+    if let routeObserver { NotificationCenter.default.removeObserver(routeObserver) }
   }
 
   /// The Deepgram key the first version of this mic kept (#533) has no use now: gone from the Keychain at launch,
@@ -190,8 +207,55 @@ final class ChatVoiceModel: ObservableObject {
     case .stopped(let seconds):
       capTimer?.cancel()
       capTimer = nil
-      log.event("chat_voice", ["action": "record_stop", "thread": thread, "seconds": seconds])
+      var fields = Self.sessionFields()
+      fields["action"] = "record_stop"
+      fields["thread"] = thread
+      fields["seconds"] = seconds
+      log.event("chat_voice", fields)
     }
+  }
+
+  /// `route_change` (#1165): only while a recording is starting or under way; never the words.
+  private func routeChanged(_ note: Notification) {
+    guard dictation.starting || dictation.listening else { return }
+    var fields = Self.sessionFields()
+    fields["action"] = "route_change"
+    fields["thread"] = thread
+    let raw = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt ?? 0
+    fields["reason"] = AudioRouting.reasonName(raw)
+    if let previous = note.userInfo?[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription {
+      fields["before_input"] = previous.inputs.map(Self.port)
+      fields["before_output"] = previous.outputs.map(Self.port)
+    }
+    if let since = clock.since { fields["seconds"] = (Date().timeIntervalSince(since) * 10).rounded() / 10 }
+    log.event("chat_voice", fields)
+  }
+
+  /// The audio session and the phone as they are now: the live route, what iOS offers, the category, and whether
+  /// the app is on screen and the phone unlocked (a locked phone's health data is protected).
+  private static func sessionFields() -> [String: Any] {
+    let session = AVAudioSession.sharedInstance()
+    let app = UIApplication.shared
+    let state: String
+    switch app.applicationState {
+    case .active: state = "active"
+    case .inactive: state = "inactive"
+    case .background: state = "background"
+    @unknown default: state = "unknown"
+    }
+    return [
+      "input": session.currentRoute.inputs.map(port),
+      "output": session.currentRoute.outputs.map(port),
+      "inputs": (session.availableInputs ?? []).map(port),
+      "category": session.category.rawValue.replacingOccurrences(of: "AVAudioSessionCategory", with: ""),
+      "app_state": state,
+      "protected_data": app.isProtectedDataAvailable,
+    ]
+  }
+
+  /// A port as `name [type] uid`: the uid is what `dictation_start`'s input names.
+  private static func port(_ port: AVAudioSessionPortDescription) -> String {
+    "\(port.portName) [\(port.portType.rawValue)] \(port.uid)"
   }
 
   /// The five-minute limit: stopped exactly as a tap on stop would, the words settling into the draft, never sent.
