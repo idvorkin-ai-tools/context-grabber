@@ -1243,7 +1243,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 1100:
+### User Story 1120:
 
 - **Summary:** Turn down a chat Larry thinks looks done
 - **Status:** native app only: implemented in [2abe843c](https://github.com/idvorkin/context-grabber/commit/2abe843c) (#1098); verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build; the simulator and the phone not yet
@@ -1263,7 +1263,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 1101:
+### User Story 1121:
 
 - **Summary:** A turned-down chat looks done again only when Larry proposes it again
 - **Status:** native app only: implemented in [2abe843c](https://github.com/idvorkin/context-grabber/commit/2abe843c) (#1098); verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build; the simulator and the phone not yet

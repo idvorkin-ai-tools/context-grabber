@@ -1,4 +1,4 @@
-//  Larry's *Looks done* proposals Igor turned down on this device (#1098, stories 314, 1100, 1101): a swipe's *Not
+//  Larry's *Looks done* proposals Igor turned down on this device (#1098, stories 314, 1120, 1121): a swipe's *Not
 //  done*, or a proposal left unticked when a Review's *Archive (N)* is tapped. The Cockpit keeps its proposal (it has no
 //  way to take one off), so the phone hides it until the Cockpit's list no longer carries it.
 
@@ -56,7 +56,7 @@ extension ChatSummary {
   }
 }
 
-/// The leading swipe on a live row (#1098, story 1100): *Not done* while it says *Looks done*.
+/// The leading swipe on a live row (#1098, story 1120): *Not done* while it says *Looks done*.
 public enum ChatLooksDoneSwipe {
   public static func offers(_ thread: ChatSummary) -> Bool { thread.showsLooksDone && !thread.pinned }
 }

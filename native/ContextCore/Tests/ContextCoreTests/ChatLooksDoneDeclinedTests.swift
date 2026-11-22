@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// #1098, stories 314, 1100, 1101: turning Larry's *Looks done* proposals down on this device.
+/// #1098, stories 314, 1120, 1121: turning Larry's *Looks done* proposals down on this device.
 final class ChatLooksDoneDeclinedTests: XCTestCase {
   private func row(
     _ key: String, done: Bool = false, archived: Bool = false, looksDone: Bool = false, pinned: Bool = false

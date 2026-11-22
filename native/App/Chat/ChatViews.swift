@@ -309,7 +309,7 @@ struct ChatListView: View {
       case nil: EmptyView()
       }
     }
-    // #1098, story 1100: a swipe from the leading edge turns Larry's *Looks done* down; the thread stays live.
+    // #1098, story 1120: a swipe from the leading edge turns Larry's *Looks done* down; the thread stays live.
     .swipeActions(edge: .leading) {
       if ChatLooksDoneSwipe.offers(thread) {
         Button("Not done") { chat.declineLooksDone([thread.key], from: "swipe") }.tint(.orange)
