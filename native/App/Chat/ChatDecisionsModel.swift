@@ -26,7 +26,7 @@ final class ChatDecisionsModel: ObservableObject {
   @Published private(set) var cards: [String: Card] = [:]
   /// Asks finished from the Decisions screen while it is open, with their titles, so its card leaves a line.
   @Published private(set) var finished: [(id: String, title: String)] = []
-  /// Story 1130: the asks whose cards Igor folded to one line, kept on this device until he opens them.
+  /// Story 1131: the asks whose cards Igor folded to one line, kept on this device until he opens them.
   @Published private(set) var folds: ChatDecisionFolds
   private let foldsKey: String
 
@@ -128,7 +128,7 @@ final class ChatDecisionsModel: ObservableObject {
     log.event("chat", ["action": "decision_close_asked", "ask": ask.id, "from": place])
   }
 
-  /// Story 1130: a card folded to its line or opened from it; nothing reaches the Cockpit.
+  /// Story 1131: a card folded to its line or opened from it; nothing reaches the Cockpit.
   func fold(_ ask: ChatAsk, _ folded: Bool, from place: String) {
     guard folds.set(ask.id, folded: folded) else { return }
     UserDefaults.standard.set(folds.ids, forKey: foldsKey)

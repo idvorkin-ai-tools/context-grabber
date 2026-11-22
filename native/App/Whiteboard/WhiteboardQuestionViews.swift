@@ -157,7 +157,8 @@ private struct WhiteboardQuestionPopup: View {
     } else if let ask = questions.asks[card.ask] {
       let fold = { questions.fold(card) }
       ChatDecisionCard(
-        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, contextOpen: $contextOpen, fold: fold,
+        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, contextOpen: $contextOpen,
+        fold: fold,
         done: { verb, outcome in questions.decided(card, ask: ask, verb: verb, outcome: outcome) }
       )
       #if targetEnvironment(simulator)

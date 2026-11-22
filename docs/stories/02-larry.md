@@ -3173,7 +3173,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 1130:
+### User Story 1131:
 
 - **Summary:** Fold a decision card to one line, and open it again
 - **Status:** native app: implemented in 'a661cba2' on branch `native/decision-fold-fjh0`; verified on the host (`just native-test`: `ChatDecisionFoldsTests`, the fold per ask, its saved list, the cap), the Mac build (`just native-build-mac`), and on the iPhone 17 simulator (`just test-ladder`: `ChatDecisionUITests.testACardFoldsToItsLineStaysFoldedAndOpensAgain` folds a card on *Decisions*, finds it folded in its thread with the row's mark and the count unchanged, still folded after a relaunch, and opens it again; nothing posted to the Cockpit); not yet on the phone or the iPad

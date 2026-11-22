@@ -59,7 +59,7 @@ final class ChatDecisionUITests: XCTestCase {
     let app = XCUIApplication.forTests()
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     app.launchEnvironment["GRABBER_SILENT"] = "1"
-    // Story 1130: every card whole at launch, unless a test keeps an earlier launch's folds.
+    // Story 1131: every card whole at launch, unless a test keeps an earlier launch's folds.
     app.launchEnvironment["GRABBER_DECISION_FOLDS"] = "reset"
     for (key, value) in environment { app.launchEnvironment[key] = value }
     app.launch()
@@ -217,7 +217,7 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertEqual(posted.map { $0["response"] as? String }, ["DECISION: Month to month"], "\(posted)")
   }
 
-  /// Story 1130 (bead context-grabber-fjh0): a card folds to its line without answering, stays folded on Decisions, in
+  /// Story 1131 (bead context-grabber-fjh0): a card folds to its line without answering, stays folded on Decisions, in
   /// its thread and after a restart, and a tap on the line opens it again; the row's mark and the count stay.
   func testACardFoldsToItsLineStaysFoldedAndOpensAgain() throws {
     let cockpit = try fakeCockpit()

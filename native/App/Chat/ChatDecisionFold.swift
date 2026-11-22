@@ -1,4 +1,4 @@
-//  Folding a decision card (spec 2026-11-14-chat-decision-cards-design.md, *Folding a card*; story 1130, bead
+//  Folding a decision card (spec 2026-11-14-chat-decision-cards-design.md, *Folding a card*; story 1131, bead
 //  context-grabber-fjh0): every card in Chat folds to one line and opens again, the fold kept per ask on the device.
 //  Its own file, so the card's own file grows by its one control.
 

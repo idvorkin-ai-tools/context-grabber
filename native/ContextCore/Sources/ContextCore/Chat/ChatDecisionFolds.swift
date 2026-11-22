@@ -1,4 +1,4 @@
-//  Folded decision cards (spec 2026-11-14-chat-decision-cards-design.md, *Folding a card*; story 1130, bead
+//  Folded decision cards (spec 2026-11-14-chat-decision-cards-design.md, *Folding a card*; story 1131, bead
 //  context-grabber-fjh0): which asks' cards Igor folded to one line, remembered on the device until he opens them again.
 
 /// The asks whose cards are folded, oldest fold first. Kept as a list so the oldest go once it holds `cap`: a fold
