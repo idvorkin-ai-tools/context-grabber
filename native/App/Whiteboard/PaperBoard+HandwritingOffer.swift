@@ -100,6 +100,7 @@ extension PaperBoardController {
       watch.gaveUp = false
       if LaunchHooks.current.whiteboard.fakeHandwritingOffer { fakeHandwritingOffer(until: tap.until) }
     }
+    guard paper.selection.isEmpty else { return }
     let undo = paper.undoManager
     let wanted = groupElements(tap.names, in: markup)
     let verdict = PaperProbe.groupTapLoss(
