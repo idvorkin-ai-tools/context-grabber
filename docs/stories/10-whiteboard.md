@@ -8234,7 +8234,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1061:
 
 - **Summary:** A board whose newer version fails to come down from iCloud keeps showing the last one that did
-- **Status:** implemented in [b00acbce](https://github.com/idvorkin/context-grabber/commit/b00acbce); verified by host tests (`BoardKeepingTests`: a failed copy, an unreadable or missing drawing and an interrupted asset each leave the old drawing and picture untouched and nothing removed first; a retry brings the new version; a failed first download leaves no file; a missing or failed picture still takes the drawing and says so) and the Mac build. The simulator has no iCloud account, so the CloudKit path itself waits for the iPhone and the iPad
+- **Status:** implemented in [b00acbce](https://github.com/idvorkin/context-grabber/commit/b00acbce); verified by host tests (`BoardKeepingTests`: a failed copy, an unreadable or missing drawing and an interrupted asset each leave the old drawing and picture untouched and nothing removed first; a retry brings the new version; a failed first download leaves no file; a missing or failed picture still takes the drawing and says so) and the Mac build; still in the list while its newer version fails in [d4103e05](https://github.com/idvorkin/context-grabber/commit/d4103e05) (`BoardIndexTests`). The simulator has no iCloud account, so the CloudKit path itself waits for the iPhone and the iPad
 - **Issues:** [#1043](https://github.com/idvorkin/context-grabber/issues/1043) (bead context-grabber-nuyw): a source review, 2026-11-21, "a copy failure can leave a reading device without its last viewable replica"
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *A board that fails to come down keeps the one that did*
 
@@ -8304,3 +8304,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board open on the iPad with the pen in hand
 - **When:** Igor picks the eraser in the tool picker and touches the board with the Pencil
 - **Then:** the log has a line for the change naming the eraser the picker shows and the tool the board holds, and the touch's line names both
+
+---
+
+### User Story 1090:
+
+- **Summary:** A board whose first download from iCloud failed stays out of the list until its drawing arrives
+- **Status:** implemented in [d4103e05](https://github.com/idvorkin/context-grabber/commit/d4103e05); verified by host tests (`BoardIndexTests`: another device's board, and this device's own board back after a reinstall, are listed only once their drawing is here) and the Mac build. The simulator has no iCloud account, so the CloudKit path waits for the iPhone and the iPad
+- **Issues:** bead context-grabber-1jb4 (codex review 2026-11-21, finding 4): the list showed a board from iCloud before its drawing came down, so a failed first download opened it blank; on the iPad that drew it, back after a reinstall, the blank board took ink and would have gone up over iCloud's copy
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *A board that fails to come down keeps the one that did*
+
+#### Use Case:
+- **As someone** opening the iPad's board on the iPhone, or my own boards on a reinstalled iPad
+- **I want to** see a board in the list only once its drawing is on this device
+- **so that** I never open a blank board by mistake, or draw over one and lose what iCloud holds
+
+#### Acceptance Criteria:
+- **Scenario:** The first download fails
+- **Given:** iCloud lists a board this device has never had the drawing of
+- **When:** the sync fails to bring its drawing down
+- **Then:** the board isn't in the list, the list says boards aren't syncing, a link to it says its drawing hasn't come down, and the next good sync puts it in the list with its ink
