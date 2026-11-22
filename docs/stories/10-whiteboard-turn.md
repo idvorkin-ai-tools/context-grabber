@@ -1773,7 +1773,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1103:
 
 - **Summary:** Pick the board's microphone and see the sound coming in
-- **Status:** not implemented
+- **Status:** implemented in [f6fd7a73](https://github.com/idvorkin/context-grabber/commit/f6fd7a73); verified by the lint and host rungs, the Mac build, and every whiteboard UI test on the iPad simulator (the bar's buttons and the mic's turns unchanged). The simulator has no real microphone to pick or level to show: the pocket mic, the reopening and the moving bar are the iPad's to show
 - **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139) (the replay half is `context-grabber-3tdv`)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Which microphone, and what it hears*
 
