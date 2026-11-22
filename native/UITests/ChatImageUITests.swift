@@ -53,19 +53,43 @@ final class ChatImageUITests: XCTestCase {
     let done = app.buttons["chat-image-done"]
     XCTAssertTrue(done.isHittable, app.debugDescription)
 
-    // Beside the badge is the white picture (once it has loaded), and inside the badge, left of the word, it is dark.
+    // Share is live once the picture has loaded, so a dark reading below is never the spinner.
+    let loaded = expectation(
+      for: NSPredicate(format: "isEnabled == true"), evaluatedWith: app.buttons["chat-image-share"])
+    wait(for: [loaded], timeout: 15)
+
+    // Beside the badge is the white picture, and inside the badge, left of the word, it is dark.
     let frame = done.frame
     let beside = CGPoint(x: frame.minX - 4, y: frame.midY)
     let inside = CGPoint(x: frame.minX + 8, y: frame.midY)
-    let deadline = Date().addingTimeInterval(10)
-    var shot = XCUIScreen.main.screenshot()
-    while try brightness(at: beside, in: shot) < 240, Date() < deadline {
-      Thread.sleep(forTimeInterval: 0.5)
-      shot = XCUIScreen.main.screenshot()
+    func whiteBeside(within seconds: TimeInterval) throws -> XCUIScreenshot {
+      let deadline = Date().addingTimeInterval(seconds)
+      var shot = XCUIScreen.main.screenshot()
+      while try brightness(at: beside, in: shot) < 240, Date() < deadline {
+        Thread.sleep(forTimeInterval: 0.5)
+        shot = XCUIScreen.main.screenshot()
+      }
+      return shot
     }
-    add(XCTAttachment(screenshot: shot))
+    var shot = try whiteBeside(within: 3)
+    // The picture is half as wide as tall: fitted on the iPad's wider screen it leaves Done over the black margin
+    // (context-grabber-ootp), so there a double tap zooms it until the white lies under the badge.
+    let middle = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    let zoomed = try brightness(at: beside, in: shot) < 240
+    if zoomed {
+      middle.doubleTap()
+      shot = try whiteBeside(within: 5)
+    }
+    let attachment = XCTAttachment(screenshot: shot)
+    attachment.lifetime = .keepAlways
+    add(attachment)
     XCTAssertGreaterThan(try brightness(at: beside, in: shot), 240, "the picture is white beside Done")
     XCTAssertLessThan(try brightness(at: inside, in: shot), 140, "Done has a dark badge over the white")
+    if zoomed {
+      // Back to fitted, so the swipe closes rather than pans.
+      middle.doubleTap()
+      Thread.sleep(forTimeInterval: 0.5)
+    }
 
     app.swipeDown()
     XCTAssertTrue(done.waitForNonExistence(timeout: 5), "a swipe down closes it: \(app.debugDescription)")

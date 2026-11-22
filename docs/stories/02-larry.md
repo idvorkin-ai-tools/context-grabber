@@ -985,8 +985,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 306:
 
 - **Summary:** A picture opened full size in a thread always has a way back
-- **Status:** native app only: implemented in [8625876](https://github.com/idvorkin/context-grabber/commit/8625876); verified by the simulator build, `ChatImageCloseTests` (host: only a swipe down past 80 points closes) and `ChatImageUITests` (simulator: Done and a swipe down close it); tapping Done and swiping down over a white picture on the iPad not yet; since story 770 one launch does both (`testDoneShowsOverAWhitePictureAndASwipeOrDoneCloses`: a swipe down closes it, a tap on the picture opens it again, Done closes it)
-- **Issues:** [#592](https://github.com/idvorkin/context-grabber/issues/592)
+- **Status:** native app only: implemented in [8625876](https://github.com/idvorkin/context-grabber/commit/8625876); verified by the simulator build, `ChatImageCloseTests` (host: only a swipe down past 80 points closes) and `ChatImageUITests` (simulator: Done and a swipe down close it); tapping Done and swiping down over a white picture on the iPad not yet; since story 770 one launch does both (`testDoneShowsOverAWhitePictureAndASwipeOrDoneCloses`: a swipe down closes it, a tap on the picture opens it again, Done closes it); the iPad (`context-grabber-ootp`): [ffd468b4](https://github.com/idvorkin/context-grabber/commit/ffd468b4), the test zooms the tall picture until the white lies under *Done* where fitted leaves it on the margin, verified on the simulator on the iPad Pro 11-inch (M5), where the zoom ran and the white showed under the dark badge, and on the iPhone 17, plus `just native-test` and the Mac build; a real iPad not yet
+- **Issues:** [#592](https://github.com/idvorkin/context-grabber/issues/592); bead `context-grabber-ootp` (the simulator check failed on the iPad, where the fitted picture left *Done* over the black margin, not over the picture)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -998,7 +998,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Back from a white picture
 - **Given:** a thread holds a picture that is mostly white, like a whiteboard
 - **When:** I tap it, then tap *Done* or swipe down
-- **Then:** the picture fills the screen with *Done* on a dark badge I can see over it, and either one brings me back to the thread
+- **Then:** the picture fills the screen as far as its shape allows (a tall picture on the iPad leaves dark margins at its sides), *Done* is on a dark badge I can see over the picture wherever the picture lies under it, fitted or zoomed, and either one brings me back to the thread
 
 ---
 
