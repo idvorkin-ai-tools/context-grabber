@@ -370,7 +370,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1158:
 
 - **Summary:** Every picture a board sends Larry carries the board's name, so a renamed board renames its chat
-- **Status:** in progress
+- **Status:** implemented in [0361d1b2](https://github.com/idvorkin/context-grabber/commit/0361d1b2); verified by a host test (`BoardDebugTimingTests`: `board_title` on the chat message on a started thread and a new one, through the outbox's saved copy, and on the strokes; none for an unnamed picture) and the Mac build (rung 1.5). Not yet seen on the iPad with a live Cockpit (rung 3 owed: a rename retitling the chat)
 - **Issues:** bead context-grabber-8rei (Igor via Larry, 2026-11-22: renamed boards should rename their chat and show on the debug page)
 - **Spec:** [Board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *What the board says about its own sending, for the debug page*
 
