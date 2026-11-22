@@ -117,6 +117,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var noSelectionUntil: Double = 0
   /// The last finger tap while marks showed, in board points, and when: the dot PaperKit draws there is taken back.
   var ghostTap: (at: CGPoint, time: Double, within: Double)?
+  /// Story 947: the group a finger tap selected, by its strokes' names, and until when a selection PaperKit makes of the
+  /// same tap is put back to it. Gone at the next touch.
+  var groupTap: (names: Set<String>, until: Double)?
   /// How far a ghost's place on the sheet was from where the visible frame says, over this touch, and how many looks
   /// that took. For the iPad: the spec's "A ghost sits on the paper".
   var seat = (worst: CGFloat(0), checks: 0)
@@ -521,6 +524,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   func paperMarkupViewControllerDidChangeSelection(_ controller: PaperMarkupViewController) {
     run?.facts.selectionChanges += 1
     run?.selected = controller.selection.count
+    // Story 947: PaperKit's own selection for a tap on a group goes back to the whole group.
+    holdGroupTap(controller)
     let putBack = !controller.selection.isEmpty && CACurrentMediaTime() < noSelectionUntil
     logSelection(controller.selection, putBack: putBack)
     if putBack { controller.selection = [] }
@@ -604,6 +609,17 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       noSelectionUntil = CACurrentMediaTime() + 0.8
       return
     }
+    // Story 947: with no marks or controls showing, a tap on a group's stroke selects all of it; with it selected, a tap
+    // on its text opens the words (story 940).
+    if count == 0, model.overlays.list.isEmpty, reword.editing == nil, let group = tappedGroup(at: at) {
+      if group.selected, rewordTapped(at: at) {
+        noSelectionUntil = CACurrentMediaTime() + 0.8
+        ghostTap = (at, CACurrentMediaTime(), PaperProbe.rewordDotSeconds)
+      } else {
+        select(group, tappedAt: at)
+      }
+      return
+    }
     // Story 940: with no marks to choose, a tap on a kept text opens its words (or, with them open, is done).
     if count == 0, rewordTapped(at: at) {
       noSelectionUntil = CACurrentMediaTime() + 0.8
@@ -629,6 +645,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   override func touchWentDown(_ touch: UITouch) {
+    groupTap = nil
     if touch.type == .pencil { toolWentDown() }
     lastDown = pencilDown ? .pencil : touch.type
     toolInHand(touchTool)

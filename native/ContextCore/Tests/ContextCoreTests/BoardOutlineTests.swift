@@ -212,6 +212,48 @@ final class BoardOutlineTests: XCTestCase {
     XCTAssertNil(o.pickUp(still.map { (point: CGPoint(x: 400, y: 400), time: $0.time) }), "held off ink draws")
   }
 
+  /// Story 947 (#947): a finger tap on any stroke of a group, within a finger's reach of its line, takes the whole group;
+  /// inside the group's box but off its strokes, on his own writing nearer, on a bare text or on a header is no group's.
+  func testAFingerTapOnAGroupsStrokeTakesTheWholeGroup() {
+    // His word at y 100; Larry's group of two words at y 200, one at x 100 and one at x 300; his word between them.
+    let mine = word("m", x: 100, y: 100)
+    let larry = word("g", x: 100, y: 200) + word("k", x: 300, y: 200)
+    let between = word("b", x: 190, y: 200)
+    var groups: [String: String] = [:]
+    for s in larry { for id in s.ids { groups[id] = "reply-1" } }
+    let o = BoardOutline(strokes: mine + larry + between, headers: [], groups: groups)
+    let all = ["g0", "g1", "g2", "k0", "k1", "k2"]
+    // On g0's left leg: (100, 224) to (110, 200).
+    XCTAssertEqual(o.group(at: CGPoint(x: 105, y: 212), slop: 22)?.group, "reply-1")
+    XCTAssertEqual(o.group(at: CGPoint(x: 105, y: 212), slop: 22)?.names.sorted(), all)
+    XCTAssertEqual(o.group(at: CGPoint(x: 320, y: 230), slop: 22)?.names.sorted(), all, "any stroke of it, near")
+    XCTAssertNil(o.group(at: CGPoint(x: 105, y: 260), slop: 22), "out of a finger's reach of every stroke")
+    XCTAssertNil(o.group(at: CGPoint(x: 122, y: 201), slop: 5), "inside the group's box, off its strokes")
+    XCTAssertNil(o.group(at: CGPoint(x: 200, y: 212), slop: 22), "his own word is nearer")
+    XCTAssertNil(o.group(at: CGPoint(x: 105, y: 112), slop: 22), "his writing is no group")
+    XCTAssertNil(
+      BoardOutline(strokes: mine + larry, headers: []).group(at: CGPoint(x: 105, y: 212), slop: 22), "no groups")
+  }
+
+  /// Story 947: a kept text inside a group is the group's; one outside any is not (a tap there rewords it, story 940).
+  func testATextInsideAGroupIsTheGroupsAndABareTextIsNot() {
+    var glyphs = word("t", x: 100, y: 200)
+    for i in glyphs.indices { glyphs[i].t = 1000 }
+    var bare = word("u", x: 100, y: 400)
+    for i in bare.indices { bare[i].t = 2000 }
+    let circle = letter("c", x: 200, y: 200)
+    let texts = [
+      BoardText(id: "text-1", t: 1000, text: "hi", font: .plain, size: 24, color: "#000000", glyphs: 3),
+      BoardText(id: "text-2", t: 2000, text: "ok", font: .plain, size: 24, color: "#000000", glyphs: 3),
+    ]
+    let groups = ["text-1": "reply-2", "c": "reply-2"]
+    let o = BoardOutline(strokes: glyphs + [circle] + bare, headers: [], texts: texts, groups: groups)
+    XCTAssertEqual(o.group(at: CGPoint(x: 105, y: 212), slop: 22)?.group, "reply-2", "the text's glyph")
+    XCTAssertEqual(o.group(at: CGPoint(x: 105, y: 212), slop: 22)?.names.sorted(), ["c", "t0", "t1", "t2"])
+    XCTAssertEqual(o.group(at: CGPoint(x: 205, y: 212), slop: 22)?.names.sorted(), ["c", "t0", "t1", "t2"], "its mark")
+    XCTAssertNil(o.group(at: CGPoint(x: 105, y: 412), slop: 22), "a bare text is no group")
+  }
+
   func testFoldsGoBesideTheStrokesToTheCockpit() throws {
     let picture = WhiteboardPicture(board: "b1", title: "t", rect: CGRect(x: 0, y: 0, width: 10, height: 10), scale: 1)
     let fold: [String: Any] = ["header": "h-1", "header_strokes": ["a"], "lines": 2, "strokes": ["b"]]
