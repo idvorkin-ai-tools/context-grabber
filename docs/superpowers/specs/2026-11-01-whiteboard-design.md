@@ -115,7 +115,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   ink not yet sent was sometimes refused as *Batch Request Failed / Atomic failure*, and the board then waited for the
   next time the list opened or the app came forward). The board stays on the device as drawn and the list says boards
   aren't syncing; the sync tries again on its own after a short wait, longer each time it fails again (a few minutes at
-  most, or longer if iCloud asks for that), and the note goes once one gets through. Clearing what an earlier delete left in
+  most, or longer if iCloud asks for that), and the note goes once one gets through. A failure that keeps coming back
+  stops retrying on its own after eight tries in a row, about twenty minutes, and waits for the next time the list
+  opens or the app comes forward. Clearing what an earlier delete left in
   iCloud is its own step after the board is saved, so it can't take the board's upload down with it. Signed out or
   without iCloud, nothing is retried: the next time it can, as above.
 - **The board drawn before the list existed** becomes the first board in the list, and nothing on it is lost.

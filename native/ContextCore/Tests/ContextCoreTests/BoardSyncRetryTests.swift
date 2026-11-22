@@ -11,6 +11,15 @@ final class BoardSyncRetryTests: XCTestCase {
     XCTAssertEqual(retry.failures, 8)
   }
 
+  func testAFailureThatKeepsComingBackStopsAfterEightTries() {
+    var retry = BoardSyncRetry()
+    for _ in 0..<8 { XCTAssertNotNil(retry.failed()) }
+    XCTAssertNil(retry.failed(), "the ninth failure in a row schedules nothing")
+    XCTAssertNil(retry.failed(retryAfter: 30))
+    retry.succeeded()
+    XCTAssertEqual(retry.failed(), 15, "a sync that gets through earns the tries back")
+  }
+
   func testCloudKitsOwnWaitIsNeverCutShort() {
     var retry = BoardSyncRetry()
     XCTAssertEqual(retry.failed(retryAfter: 2.5), 15, "a shorter ask still waits the backoff")

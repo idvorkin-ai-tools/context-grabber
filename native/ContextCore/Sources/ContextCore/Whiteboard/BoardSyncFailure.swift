@@ -83,19 +83,22 @@ public struct BoardSyncFailure {
 }
 
 /// When a failed whiteboard sync tries again by itself (#1002): 15 s after the first failure, twice as long after each
-/// failure in a row, at most five minutes, and never sooner than CloudKit asked. A sync that gets through starts over.
+/// failure in a row, at most five minutes, and never sooner than CloudKit asked. After eight tries in a row it stops
+/// and waits for the next sync something else starts. A sync that gets through starts over.
 public struct BoardSyncRetry: Sendable {
   public static let first: Double = 15
   public static let longest: Double = 300
+  public static let tries = 8
   /// Failed syncs in a row.
   public private(set) var failures = 0
 
   public init() {}
 
-  /// A sync failed: the wait before the next try, in seconds.
-  public mutating func failed(retryAfter: Double? = nil) -> Double {
+  /// A sync failed: the wait before the next try, in seconds, or nil once the tries are spent.
+  public mutating func failed(retryAfter: Double? = nil) -> Double? {
     failures += 1
-    let backoff = min(Self.longest, Self.first * pow(2, Double(min(failures - 1, 16))))
+    guard failures <= Self.tries else { return nil }
+    let backoff = min(Self.longest, Self.first * pow(2, Double(failures - 1)))
     return max(backoff, retryAfter ?? 0)
   }
 

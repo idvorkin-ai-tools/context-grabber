@@ -458,10 +458,12 @@ final class WhiteboardStore: ObservableObject {
         recordName: { ($0.base as? CKRecord.ID)?.recordName ?? "\($0.base)" })
       let wait = retry.failed(retryAfter: failure.retryAfter)
       var fields = failure.fields
-      fields["retry_in"] = wait
+      if let wait { fields["retry_in"] = wait }
       fields["failures"] = retry.failures
       log.event("whiteboard_sync", fields)
       retryTask?.cancel()
+      retryTask = nil
+      guard let wait else { return }
       retryTask = Task { [weak self] in
         try? await Task.sleep(for: .seconds(wait))
         guard !Task.isCancelled else { return }
