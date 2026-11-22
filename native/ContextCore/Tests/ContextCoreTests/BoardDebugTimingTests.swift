@@ -103,6 +103,24 @@ final class BoardDebugTimingTests: XCTestCase {
       ] as NSDictionary)
   }
 
+  /// Story 1119: every picture's message names the board, on a thread already started as on the first, from the outbox.
+  func testEveryPicturesMessageCarriesTheBoardsName() throws {
+    let picture = WhiteboardPicture(
+      board: "b1", title: "Ink lab", rect: CGRect(x: 0, y: 0, width: 10, height: 10), scale: 1, pictureID: "p1")
+    let queued = try JSONDecoder().decode(WhiteboardPicture.self, from: JSONEncoder().encode(picture))
+    for thread in ["t9", nil] {
+      let item = InboxItem(id: "p1", kind: .image, sharedAt: 1, note: "n", thread: thread, whiteboard: queued)
+      let request = try ChatSend.messageRequest(item, attachment: "r", cockpit: "https://c.example")
+      let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+      XCTAssertEqual(body["board_title"] as? String, "Ink lab", "thread \(thread ?? "new")")
+    }
+    let strokes = try WhiteboardStrokes.request(picture: picture, strokes: [], cockpit: "https://c.example")
+    let sent = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(strokes.httpBody)) as? [String: Any])
+    XCTAssertEqual(sent["board_title"] as? String, "Ink lab")
+    let unnamed = WhiteboardPicture(board: "b1", title: "", rect: .zero, scale: 1)
+    XCTAssertNil(unnamed.wire["board_title"], "no name, no field")
+  }
+
   func testAPictureWithNoBuildSendsNone() throws {
     let picture = WhiteboardPicture(
       board: "b1", title: "Plan", rect: CGRect(x: 0, y: 0, width: 10, height: 10), scale: 1, pictureID: "p1")
