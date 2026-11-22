@@ -457,6 +457,10 @@ recording ends with the report still open, the report's mic comes back at his ne
   line says the call took the microphone.
 - **An interruption.** A phone call, Siri or the microphone changing mid-recording stops it; the words heard so far
   stay in the field (still never sent), and a copyable line says the microphone was interrupted.
+  The session log records every microphone change during a recording (#1165): why iOS moved the route, the microphone
+  and speaker before and after, what iOS offers, the seconds in, and whether the app was on screen and the phone
+  unlocked. The recording's stop line records the same state. A headset that went away can then be told apart from a
+  route iOS moved when the phone locked, never with the words.
 - **Five minutes at most.** Igor, 2026-10-26: a recording is capped at 5 minutes. At 5:00 it stops on its own and
   the words settle into the field exactly as if Igor had tapped stop — still never sent — and a quiet line under that
   thread's bar says *Stopped at 5 minutes.*
