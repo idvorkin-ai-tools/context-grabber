@@ -1527,7 +1527,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 769:
 
 - **Summary:** On an iPhone a tap on the note opens the board's thread in Chat
-- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); a tap that finds no thread says where the conversation is, and `conversation_chat` logs found, in [f5453423](https://github.com/idvorkin/context-grabber/commit/f5453423) (#1161), and it finds an iPad's board's thread among Larry's chats in [HASH](https://github.com/idvorkin/context-grabber/commit/HASHFULL) (#1163, story 1101); verified by host tests (`WhiteboardNoteTests`, `BoardThreadFindTests`: the tap on an iPhone with a thread and with none, `testATapWithNoThreadOnThisPhoneSaysWhereTheConversationIs`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPhone
+- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); a tap that finds no thread says where the conversation is, and `conversation_chat` logs found, in [f5453423](https://github.com/idvorkin/context-grabber/commit/f5453423) (#1161), and it finds an iPad's board's thread among Larry's chats in [a43e6bf](https://github.com/idvorkin/context-grabber/commit/a43e6bfd) (#1163, story 1101); verified by host tests (`WhiteboardNoteTests`, `BoardThreadFindTests`: the tap on an iPhone with a thread and with none, `testATapWithNoThreadOnThisPhoneSaysWhereTheConversationIs`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPhone
 - **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#1161](https://github.com/idvorkin/context-grabber/issues/1161) ("on the iPhone I should be able to interact with the chat": a tap on an iPad's board did nothing); [#1163](https://github.com/idvorkin/context-grabber/issues/1163), a board drawn on the iPad (story 1101)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *One line that opens*
 
@@ -1557,7 +1557,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1097:
 
 - **Summary:** On an iPhone every board in the list has a chat bubble that opens its thread
-- **Status:** STATUS_1097
+- **Status:** implemented in [a43e6bf](https://github.com/idvorkin/context-grabber/commit/a43e6bfd); verified by host tests (`BoardThreadFindTests`; `just native-test`) and the Mac build (`just native-build-mac`); the simulator (rung 2) and the iPhone are owed
 - **Issues:** [#1163](https://github.com/idvorkin/context-grabber/issues/1163) ("Maybe I should have a chat button on every board when I'm in this view on the iPhone … maybe something subtle")
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The board's chat from the iPhone*
 
@@ -1577,7 +1577,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1101:
 
 - **Summary:** On an iPhone the note finds the thread of a board drawn on another device
-- **Status:** STATUS_1101
+- **Status:** implemented in [a43e6bf](https://github.com/idvorkin/context-grabber/commit/a43e6bfd); verified by host tests (`BoardThreadFindTests`; `just native-test`) and the Mac build (`just native-build-mac`); the simulator (rung 2) and the iPhone are owed
 - **Issues:** [#1163](https://github.com/idvorkin/context-grabber/issues/1163) (the session log: a tap on the note of a board drawn on the iPad logged no thread and did nothing)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The board's chat from the iPhone*
 

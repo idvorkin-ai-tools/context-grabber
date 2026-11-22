@@ -64,7 +64,8 @@ extension WhiteboardModel {
           self?.pasteNote = nil
           // No chat is the board's: say where the conversation is (#1161); a Cockpit out of reach says why.
           self?.say(
-            problem.message == BoardThreadFind.noneMessage ? WhiteboardNote.noThread(drawnOn: drawnOn) : problem.message)
+            problem.message == BoardThreadFind.noneMessage ? WhiteboardNote.noThread(drawnOn: drawnOn) : problem.message
+          )
         case .busy: break
         }
       }
