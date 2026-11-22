@@ -1103,7 +1103,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** I watch a board draw itself again in the order I drew it, and jump to any stroke
 - **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139) (Igor, 2026-11-22: "where is my replay button so I can rewatch it the way you do in Notability?")
-- **Status:** not implemented; asks: bead context-grabber-3tdv (proposed, waiting on Igor's choice; the plan is `docs/superpowers/plans/2026-11-22-whiteboard-playback-plan.md`)
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:
@@ -1114,8 +1114,43 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** Play a board
 - **Given:** a board with three strokes drawn a minute apart
-- **When:** I choose *Play* on the board's menu
-- **Then:** the board empties and the strokes draw again in their order, the minute between them short
+- **When:** I tap *Play*, beside *?* and *Feedback*
+- **Then:** the board empties and the strokes draw again in their order, each at the pace I drew it, the minute between them half a second, and the board's own bar and tool picker are gone while it plays
+
+- **Scenario:** A board with no ink
+- **Given:** a new board with nothing on it
+- **When:** I look beside *?* and *Feedback*
+- **Then:** there is no *Play*
+
+---
+
+### User Story 954:
+
+- **Summary:** In playback, a bar lets me pause, skip 10 s, scrub and change the speed
+- **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
+
+#### Use Case:
+- **As someone** watching a board play back
+- **I want** play and pause, 10 s back and on, a handle to drag, and Notability's speeds
+- **so that** I can watch the part I care about at the pace I like
+
+#### Acceptance Criteria:
+- **Scenario:** The bar
+- **Given:** a board playing back
+- **When:** I look at the bar along the bottom
+- **Then:** it shows the time played of the whole and which stroke of how many, with play and pause, 10 s back, 10 s on, a handle to drag to any moment, and a speed button at 1×
+
+- **Scenario:** Change the speed
+- **Given:** playback at 1×
+- **When:** I tap the speed button
+- **Then:** it steps to 1.25×, then 1.5×, 2× and 0.7×, and back to 1×
+
+- **Scenario:** The end
+- **Given:** playback has drawn the last stroke
+- **When:** it reaches the end
+- **Then:** it stops with the whole board shown, and play starts again from the beginning
 
 ---
 
@@ -1123,7 +1158,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** In playback, a tap on a stroke jumps to the moment I drew it
 - **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
-- **Status:** not implemented; asks: bead context-grabber-3tdv (proposed, waiting on Igor's choice; the plan is `docs/superpowers/plans/2026-11-22-whiteboard-playback-plan.md`)
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:
@@ -1135,7 +1170,12 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Tap a stroke during playback
 - **Given:** a board with three strokes playing back, the second stroke already drawn again
 - **When:** I tap the second stroke
-- **Then:** playback goes back to the moment the second stroke began
+- **Then:** playback goes back to the moment the second stroke began: the first stroke showing, the second next, playing or paused as it was
+
+- **Scenario:** Tap bare paper
+- **Given:** a board playing back
+- **When:** I tap paper with no stroke near
+- **Then:** nothing happens
 
 ---
 
@@ -1143,7 +1183,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Leaving playback shows the board as it was, with nothing changed
 - **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
-- **Status:** not implemented; asks: bead context-grabber-3tdv (proposed, waiting on Igor's choice; the plan is `docs/superpowers/plans/2026-11-22-whiteboard-playback-plan.md`)
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:

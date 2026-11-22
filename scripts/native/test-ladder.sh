@@ -56,7 +56,7 @@ json_list() { printf '%s\n' "$@" | jq -R . | jq -cs 'map(select(length > 0))'; }
 # The areas' classes. The suite scripts hold what each area runs in full. What an iPhone does with boards (story 746) is
 # the smoke's whiteboard section, on the phone's simulator (story 770): no class of its own, no second session.
 chat_area="ChatArchiveUITests ChatDecisionUITests ChatFileUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
-whiteboard_area="WhiteboardConnectUITests WhiteboardEraserUITests WhiteboardGroupTapUITests WhiteboardHelpFeedbackUITests WhiteboardLetteringUITests WhiteboardLinkChipUITests WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardQuestionUITests WhiteboardRewordUITests WhiteboardRowDeleteUITests WhiteboardScratchOutUITests WhiteboardToTextUITests WhiteboardTurnUITests"
+whiteboard_area="WhiteboardConnectUITests WhiteboardEraserUITests WhiteboardGroupTapUITests WhiteboardHelpFeedbackUITests WhiteboardLetteringUITests WhiteboardLinkChipUITests WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardPlaybackUITests WhiteboardQuestionUITests WhiteboardRewordUITests WhiteboardRowDeleteUITests WhiteboardScratchOutUITests WhiteboardToTextUITests WhiteboardTurnUITests"
 # #795: the other features' own classes, by directory. Only classes that run on the ladder's simulator and open that
 # feature: Windows has none (MacKeysUITests is the Mac build's), nor Call, Archive or LiveActivity, so those paths stay
 # unmapped and the output says so. IPadUITests (story 150) skips on a phone, so wherever it is chosen (its own file,
@@ -173,6 +173,9 @@ for f in ${changed[@]+"${changed[@]}"}; do
     # #1041: the note's strip, the problem row and the conversation panel (#1039). The classes that tap or read them:
     # the note, its chevron and the panel (Turn), Keep all (Turn, Connect), the problem's Copy error (OnPaper). The
     # iPhone's tap to Chat is the smoke's whiteboard section.
+    # Stories 954, 956–958: playback draws on a canvas of its own, opened only by Play.
+    native/App/Whiteboard/WhiteboardPlayback*.swift | native/ContextCore/Sources/ContextCore/Whiteboard/BoardPlayback.swift)
+      add_classes WhiteboardPlaybackUITests ;;
     native/App/Whiteboard/WhiteboardConversationStrip.swift)
       add_classes WhiteboardTurnUITests WhiteboardConnectUITests WhiteboardOnPaperUITests ;;
     # A view file of its own gets a row here when it lands, naming the classes that open it (story 784); the board's two
