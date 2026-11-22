@@ -1213,7 +1213,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** In playback, a label says when the stroke being drawn is above or below the screen, and on which page
 - **Issues:** [#1169](https://github.com/idvorkin/context-grabber/issues/1169) (Igor, 2026-11-22: "maybe some indicator that I'm writing above or below on a separate page")
-- **Status:** implemented in [5df4fb2a](https://github.com/idvorkin/context-grabber/commit/5df4fb2a) (#1169); verified by host tests (`BoardPlaybackTests`: the stroke being drawn above, below or on the screen, and its page), `just test` and the Mac build (rung 1.5); rung 2 owed (`WhiteboardPlaybackUITests` on the iPad simulator fails before Play, its first stroke never landing, bead context-grabber-zj39); not yet seen on the iPad
+- **Status:** implemented in [5df4fb2a](https://github.com/idvorkin/context-grabber/commit/5df4fb2a) (#1169); verified by host tests (`BoardPlaybackOffScreenTests`: the stroke being drawn above, below or on the screen, and its page), `just test` and the Mac build (rung 1.5); rung 2 owed (`WhiteboardPlaybackUITests` on the iPad simulator fails before Play, its first stroke never landing, bead context-grabber-zj39); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:

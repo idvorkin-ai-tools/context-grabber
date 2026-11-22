@@ -7,7 +7,7 @@ is added are in [DEBUGGING.md](../DEBUGGING.md); this file only says what each w
 **Adding a line here**: a new event or action is a new bullet under its area (or a new area), and a new field is added
 to that event's own bullet; never join two events on one line.
 
-## Whiteboard playback (stories 954, 956–958, bead context-grabber-3tdv)
+## Whiteboard playback (stories 954–958, bead context-grabber-3tdv)
 
 - `whiteboard` action:
   - playback_start with board, strokes, timed (strokes drawn over time: their points have time offsets), shared (strokes that share one moment and appear together), real_s (first stroke's start to the last one's end, as drawn), plays_s (the playback's length) and ms (building the timeline): Play tapped. Timed far below strokes says a board's timestamps didn't survive. Also (#1169) rules (none, grid, ruled), pages, ghost (the faint whole board drawn) and ghost_ms (its cost), opened_page (the page showing when Play was tapped) and first_page (the first stroke's page): opened_page past first_page is a playback that starts off the screen
