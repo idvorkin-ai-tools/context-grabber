@@ -144,11 +144,13 @@ picture to share, and Done or a swipe down still closes the view, as they do whi
 view (#603, Igor, 2026-11-02: *"we opened a Zoom in and we get a button that says jump to the thing"*): it opens that
 board as it is now, not the old picture, leaving the thread behind as any link does, with no full-size view left over
 it. **A board drawn on this device opens at once**, from what is here, with no wait on iCloud: no other device draws on
-it, so iCloud has nothing newer to bring (#1137, Igor, 2026-11-22, on the iPad: *"Jump to board has a super slow
+it, so iCloud can bring nothing newer, only a delete made on another device. A delete that hasn't reached this device yet
+doesn't stop the jump: the board opens, and the delete lands once the board is closed, unless it was drawn on meanwhile,
+which keeps it (#1137, Igor, 2026-11-22, on the iPad: *"Jump to board has a super slow
 implementation"*; the jump took nearly three seconds, half of it asking iCloud twice). The full-size view goes down at
 once rather than sliding away. **Another device's board**, or one whose latest drawing isn't here yet, asks iCloud
 first, so newer ink from that device is there when the board opens; out of iCloud's reach, it opens the last drawing
-this device knew of. iCloud is asked at most once for a jump, never again as the board comes up. A board that was deleted, that isn't on this device even
+this device knew of. iCloud is asked at most once for a jump, never again as the board comes up. A board that was deleted (on another device's board, or once the delete has reached this device), that isn't on this device even
 after asking iCloud, or whose latest drawing didn't come down, says so in a copyable problem and the picture stays open. A picture from anywhere else has no button. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
 sent, 👀 when the Cockpit has received it, 🫡 when it is with Larry, 🏆 when the thing is done (with Larry's note),
 the same ladder as the Cockpit's web page (Igor, 2026-11-03, #630: *"Look at how we do Telegram. Copy that for

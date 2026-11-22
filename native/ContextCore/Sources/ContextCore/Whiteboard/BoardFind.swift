@@ -3,8 +3,9 @@
 
 import Foundation
 
-/// A board this device draws, whose drawing is here, opens at once: no other device draws on it, so iCloud has nothing
-/// newer for it (`BoardIndex.merge` leaves this device's own boards as they are). Another device's board, or one whose
+/// A board this device draws, whose drawing is here, opens at once: no other device draws on it, so iCloud can bring
+/// nothing newer, only another device's delete, which `BoardIndex.merge` holds while the board is open and carries out
+/// once it closes, unless it was drawn on meanwhile. Another device's board, or one whose
 /// drawing isn't here, asks iCloud first. A board just found for a jump isn't asked about again as the boards come up
 /// to open it, so a jump asks iCloud at most once (it asked twice, about 700 ms each, on the iPad).
 public struct BoardFind: Sendable {

@@ -1556,15 +1556,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **so that** going back to the board feels like a link, not a wait on iCloud (it took nearly three seconds, half of it asking iCloud twice)
 
 #### Acceptance Criteria:
-- **Scenario:** A board this device draws
-- **Given:** a thread holds a picture of a board drawn on this device, whose drawing is here
+- **Scenario:** Jumping to a board
+- **Given:** a thread holds a picture of a board, drawn on this device with its drawing here, or drawn on another device
 - **When:** I tap the picture, then *Jump to board* (or *Board* in the thread's bar)
-- **Then:** the board opens at once from what is here, with no *Looking for the board…* wait and no slide as the picture goes down, and iCloud isn't asked on the way
-
-- **Scenario:** Another device's board
-- **Given:** the picture's board was drawn on another device
-- **When:** I tap *Jump to board*
-- **Then:** iCloud is asked once, so that device's newest ink is there, and the board opens; it isn't asked a second time as the board comes up
+- **Then:** a board drawn here opens at once from what is here, with no *Looking for the board…* wait and no slide as the picture goes down, and iCloud isn't asked on the way (a delete made elsewhere that hasn't reached this device lands once the board is closed, unless I drew on it); another device's board opens after iCloud is asked once, so its newest ink is there, and never a second time as the board comes up
 
 ---
 
