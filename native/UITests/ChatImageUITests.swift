@@ -2,7 +2,7 @@
 //  (scripts/native/test-chat-ui.sh starts it), shows Done on a dark badge and closes with Done or a swipe down.
 //  Stories 821, 822 (#907): Share, and a double tap zooming so a swipe pans.
 //  Stories 317–319, 228 (#603): a picture from a board also jumps to that board; a missing board says so and the
-//  picture stays. A link to a missing board staying on the boards and saying so is whiteboard code, not chat's:
+//  picture stays. Stories 1122–1124 (#1091): the board's thread itself has *Board* in its bar, to the same ends. A link to a missing board staying on the boards and saying so is whiteboard code, not chat's:
 //  `WhiteboardRowDeleteUITests` ends on it, and why a board can't open is `BoardIndexTests` (story 770).
 
 import XCTest
@@ -11,16 +11,22 @@ final class ChatImageUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
   private func openPicture(thread: String = "igor2-88g.592", board: String? = nil) throws -> XCUIApplication {
+    let app = try launchThread(thread, board: board, picture: true)
+    XCTAssertTrue(app.buttons["chat-image-done"].appears(within: 20), app.debugDescription)
+    return app
+  }
+
+  /// The thread, with its picture opened full size by itself when `picture`.
+  private func launchThread(_ thread: String, board: String? = nil, picture: Bool) throws -> XCUIApplication {
     guard let cockpit = ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], !cockpit.isEmpty else {
       throw XCTSkip("needs the fake Cockpit: run scripts/native/test-chat-ui.sh")
     }
     let app = XCUIApplication.forTests()
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
-    app.launchEnvironment["GRABBER_CHAT_IMAGE"] = "open"
+    if picture { app.launchEnvironment["GRABBER_CHAT_IMAGE"] = "open" }
     app.launchEnvironment["GRABBER_LINK"] = "grabbernative://chat?thread=\(thread)"
     if let board { app.launchEnvironment["GRABBER_BOARD_FIXTURE"] = board }
     app.launch()
-    XCTAssertTrue(app.buttons["chat-image-done"].appears(within: 20), app.debugDescription)
     return app
   }
 
@@ -122,5 +128,40 @@ final class ChatImageUITests: XCTestCase {
     add(shot)
     app.buttons["chat-image-done"].tap()
     XCTAssertTrue(app.buttons["chat-image-done"].waitForNonExistence(timeout: 5), app.debugDescription)
+  }
+
+  /// Story 1122 (#1091): a board's thread has *Board* in its bar; it opens the board, whose Back shows the boards.
+  func testABoardsThreadHasBoardInItsBarBackToTheBoard() throws {
+    let app = try launchThread("igor2-88g.603", board: "board-603", picture: false)
+    let board = app.buttons["chat-thread-board"]
+    XCTAssertTrue(board.appears(within: 20), app.debugDescription)
+    board.tap()
+    XCTAssertTrue(app.descendants(matching: .any)["whiteboard"].appears(within: 15), app.debugDescription)
+    let back = app.navigationBars.buttons.firstMatch
+    XCTAssertTrue(back.appears(within: 5), app.debugDescription)
+    back.tap()
+    XCTAssertTrue(app.buttons["whiteboard-done"].appears(within: 10), "Back shows the boards: \(app.debugDescription)")
+  }
+
+  /// Story 1124: a thread with no board has no *Board*.
+  func testAThreadWithNoBoardHasNoBoardInItsBar() throws {
+    let app = try launchThread("igor2-88g.592", picture: false)
+    let bubble = app.descendants(matching: .any).matching(identifier: "chat-larry").firstMatch
+    XCTAssertTrue(bubble.appears(within: 20), app.debugDescription)
+    XCTAssertFalse(app.buttons["chat-thread-board"].exists, app.debugDescription)
+  }
+
+  /// Story 1123: *Board* on a thread whose board no device has says so, and the thread stays.
+  func testBoardOnAThreadWhoseBoardIsMissingSaysSoAndTheThreadStays() throws {
+    let app = try launchThread("igor2-88g.604", picture: false)
+    let board = app.buttons["chat-thread-board"]
+    XCTAssertTrue(board.appears(within: 20), app.debugDescription)
+    board.tap()
+    XCTAssertTrue(app.buttons["copy-error"].appears(within: 20), app.debugDescription)
+    XCTAssertTrue(board.exists, "the thread stays: \(app.debugDescription)")
+    XCTAssertFalse(app.descendants(matching: .any)["whiteboard"].exists, app.debugDescription)
+    let shot = XCTAttachment(screenshot: app.screenshot())
+    shot.lifetime = .keepAlways
+    add(shot)
   }
 }

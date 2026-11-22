@@ -177,7 +177,8 @@ of the screen is just under the panel.
 - **It shows the newest.** It opens scrolled to the bottom, the newest line in view, and a new line scrolls it back
   there. A finger can scroll up to read older messages.
 - **It is the conversation, not a log of turns.** Larry's words in full, newest at the bottom, up to the last ten
-  messages; *Open in Chat* opens the whole thread. Igor's pictures that carried no words of his (the *Your turn on
+  messages; *Open in Chat* opens the whole thread. The thread's top bar has *Board*, which comes back to
+  this board ([native chat, A board's thread opens its board](2026-10-25-native-chat-design.md); #1091). Igor's pictures that carried no words of his (the *Your turn on
   the board* the board sends on its own) are not rows: they were most of the panel, between Larry's sentences. A
   picture that went with Igor's own spoken words shows as a row of those words.
 - **Larry's words get the emphasis.** His lines are in the main text colour; Igor's lines and the status are quieter

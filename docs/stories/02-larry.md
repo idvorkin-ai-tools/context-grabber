@@ -1283,6 +1283,66 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 1122:
+
+- **Summary:** A board's thread has *Board* in its top bar, back to the board
+- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the host by `ChatThreadBoardTests` (the newest board message names it, else this device's record; none for a thread with no board), the Mac build, and the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testABoardsThreadHasBoardInItsBarBackToTheBoard` against the fake Cockpit; the iPad and the phone not yet
+- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
+- **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who left his board for its thread with *Open in Chat*
+- **I want to** tap *Board* in the thread's top bar
+- **so that** I am back on the board as it is now, and from its *Back* on every board, without hunting for a picture to zoom
+
+#### Acceptance Criteria:
+- **Scenario:** Back to the board from its thread
+- **Given:** a thread holds a message sent from a board that iCloud or this device holds, or this device started the thread from one of its boards
+- **When:** I open the thread and tap *Board*
+- **Then:** iCloud is asked first, the board opens with what is on it now, and its *Back* shows the boards
+
+---
+
+### User Story 1124:
+
+- **Summary:** A thread with no board has no *Board* in its top bar
+- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the host by `ChatThreadBoardTests` (none for a thread with no board) and on the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testAThreadWithNoBoardHasNoBoardInItsBar` against the fake Cockpit; the iPad and the phone not yet
+- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
+- **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man reading a thread that never came from a board
+- **I want to** see no *Board* in its top bar
+- **so that** the bar never offers a way to a board that isn't there
+
+#### Acceptance Criteria:
+- **Scenario:** A thread with no board
+- **Given:** a thread with no message from a board, which no board of this device started
+- **When:** I open it
+- **Then:** its top bar has no *Board*
+
+---
+
+### User Story 1123:
+
+- **Summary:** *Board* on a thread whose board can't be opened says why and keeps the thread
+- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testBoardOnAThreadWhoseBoardIsMissingSaysSoAndTheThreadStays` against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet
+- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
+- **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man tapping *Board* on an old board's thread
+- **I want to** be told when the board can't be opened
+- **so that** I stay in the thread and never land on a blank or old board by mistake
+
+#### Acceptance Criteria:
+- **Scenario:** A board that can't be opened
+- **Given:** the thread's board was deleted, isn't on this device even after asking iCloud, or its latest drawing didn't come down
+- **When:** I tap *Board*
+- **Then:** the button reads *Looking for the board…* while it asks, then a copyable problem at the top of the thread says so, and the thread stays open
+
+---
+
 ### User Story 834:
 
 - **Summary:** Show only the chats with a reply I haven't read
