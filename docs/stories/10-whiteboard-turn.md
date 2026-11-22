@@ -2050,9 +2050,19 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** the Cockpit marks my picture *waiting*, with Larry's words *Larry: waiting for more*
 - **Then:** the clock stops, a gently moving ear and *Larry: waiting for more* start the note's line, the open panel's chip reads *Your board · Larry: waiting for more*, and no *Interrupt* or *Larry didn't answer* comes however long it lasts
 
+- **Scenario:** My waiting ink goes when Larry holds
+- **Given:** I drew while his turn was out, so *next: ink* was waiting
+- **When:** he holds on the picture
+- **Then:** the waiting ink goes at once as a new picture, his clock starts again, and the ear goes with my new picture
+
+- **Scenario:** The ear has words even when Larry gives none
+- **Given:** a hold with no words of Larry's for it
+- **When:** the board reads the thread
+- **Then:** the ear reads *Larry: waiting for more*
+
 ---
 
-### User Story 1148:
+### User Story 934:
 
 - **Summary:** The ear goes when Larry answers
 - **Status:** implemented in [20178e28](https://github.com/idvorkin/context-grabber/commit/20178e28); verified by host tests (`WhiteboardLarryListeningTests`: only Igor's newest message holding) and on the iPad simulator (`WhiteboardListeningUITests`: the ear gone on Larry's next row)
@@ -2069,43 +2079,3 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the ear is showing
 - **When:** Larry's next message lands, or the Cockpit stops marking the hold
 - **Then:** the ear goes, and the line shows his words as usual
-
----
-
-### User Story 1149:
-
-- **Summary:** My waiting ink goes when Larry holds
-- **Status:** implemented in [20178e28](https://github.com/idvorkin/context-grabber/commit/20178e28); verified by host tests (`WhiteboardLarryListeningTests`: a hold on the turn's picture being his answer; `just native-test`); the waiting ink going on a hold is for the iPad's eye
-- **Issues:** bead `context-grabber-4fww`
-- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Larry is listening*
-
-#### Use Case:
-- **As someone** thinking out loud on the board, mid-thought
-- **I want to** have what I drew while he looked go to him once he holds
-- **so that** my newer thinking reaches him without a tap
-
-#### Acceptance Criteria:
-- **Scenario:** My waiting ink goes when Larry holds
-- **Given:** I drew while his turn was out, so *next: ink* was waiting
-- **When:** he holds on the picture
-- **Then:** the waiting ink goes at once as a new picture, his clock starts again, and the ear goes with my new picture
-
----
-
-### User Story 1150:
-
-- **Summary:** The ear has words even when Larry gives none
-- **Status:** implemented in [20178e28](https://github.com/idvorkin/context-grabber/commit/20178e28); verified by host tests (`WhiteboardLarryListeningTests`: an empty or missing label read as *Larry: waiting for more*)
-- **Issues:** bead `context-grabber-4fww`
-- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Larry is listening*
-
-#### Use Case:
-- **As someone** thinking out loud on the board, mid-thought
-- **I want to** read what the ear means even when the Cockpit sends no words with the hold
-- **so that** the ear is never a bare icon
-
-#### Acceptance Criteria:
-- **Scenario:** The ear has words even when Larry gives none
-- **Given:** a hold with no words of Larry's for it
-- **When:** the board reads the thread
-- **Then:** the ear reads *Larry: waiting for more*
