@@ -38,8 +38,8 @@ said how much was selected.
   - Only plain ink: *Ink · To text*.
   - Several texts and groups, no plain ink: *2 things · move together* (the count is how many).
   - Plain ink with texts, groups or connectors: *Ink and a text*, *Ink and a group*, *Ink and 3 things*.
-- **It says it again after a change**: after the eraser takes part of a selected text (it is ink now), after an undo
-  or redo, after a fold, and after Larry's change, the label says what the selection is then.
+- **It says it again after a change of Igor's**: after the eraser takes part of a selected text (it is ink now), and
+  after an undo or redo, the label says what the selection is then.
 - **Not shown** on a look-only board, beside a paste (it has its own Delete), or while a text is open for rewording.
 - **The buttons don't change.** To text and Connect show exactly as before; the label only names them.
 - **VoiceOver** reads it as *Selected: Text, tap to reword*, and it is reachable as one element.
