@@ -56,17 +56,15 @@ struct ChatDecisionCard: View {
   /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
   let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
   let fold: () -> Void
-  @Binding private var contextOpen: Bool
+  @Binding private var draft: Draft
   @State private var closing = false
   @State private var closeReason = ""
-  @State private var otherOpen = false
-  @State private var otherWords = ""
 
   private var state: ChatDecisionsModel.Card { decisions.card(ask.id) }
 
   init(
     decisions: ChatDecisionsModel, ask: ChatAsk, place: String, voice: ChatVoiceModel?, logger: @escaping BugLogger,
-    contextOpen: Binding<Bool>, fold: @escaping () -> Void,
+    draft: Binding<Draft>, fold: @escaping () -> Void,
     done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
   ) {
     self.decisions = decisions
@@ -74,9 +72,16 @@ struct ChatDecisionCard: View {
     self.place = place
     self.voice = voice
     self.logger = logger
-    self._contextOpen = contextOpen
+    self._draft = draft
     self.fold = fold
     self.done = done
+  }
+
+  /// What Igor opened and typed on the card, kept by its holder so a fold and a tap on the line bring it back.
+  struct Draft {
+    var contextOpen = false
+    var otherOpen = false
+    var otherWords = ""
   }
 
   var body: some View {
@@ -93,8 +98,8 @@ struct ChatDecisionCard: View {
         Text(ask.context)
           .font(.subheadline)
           .foregroundStyle(.secondary)
-          .lineLimit(contextOpen ? nil : 3)
-          .onTapGesture { contextOpen.toggle() }
+          .lineLimit(draft.contextOpen ? nil : 3)
+          .onTapGesture { draft.contextOpen.toggle() }
           .accessibilityIdentifier("decision-context")
       }
       ForEach(ask.options) { option in
@@ -125,11 +130,13 @@ struct ChatDecisionCard: View {
         .accessibilityIdentifier("decision-option-\(option.key)")
       }
       if let voice {
-        if ChatDecisions.addsOther(ask) { ChatDecisionOtherButton(action: openOther) }
-        if otherOpen {
+        if ChatDecisions.addsOther(ask) {
+          ChatDecisionOtherButton(action: openOther).disabled(state.sending)
+        }
+        if draft.otherOpen {
           ChatDecisionOtherField(
-            voice: voice, ask: ask, words: $otherWords, sending: state.sending, logger: logger
-          ) { go(.ownWords(otherWords)) }
+            voice: voice, ask: ask, words: $draft.otherWords, sending: state.sending, logger: logger
+          ) { go(.ownWords(draft.otherWords)) }
         }
       }
       if let expiry = ChatDecisions.expiry(ask.expiresAt, now: Date()) {
@@ -187,13 +194,8 @@ struct ChatDecisionCard: View {
   /// *Other…*, or Larry's own *Other*: the field opens (on the board, the popup's own field takes the cursor); nothing
   /// is answered until *Send*.
   private func openOther() {
-    guard voice != nil else {
-      decisions.otherOpened(ask, from: place)
-      ownAnswer?()
-      return
-    }
-    guard !otherOpen else { return }
-    otherOpen = true
+    guard !draft.otherOpen else { return }
+    draft.otherOpen = true
     decisions.otherOpened(ask, from: place)
   }
 

@@ -22,8 +22,10 @@ struct ChatDecisionOtherField: View {
         TextField("Your own answer", text: $words, axis: .vertical)
           .lineLimit(1...4)
           .textFieldStyle(.roundedBorder)
+          .disabled(sending)
           .accessibilityIdentifier("decision-other-words")
         MicButton(voice: voice, thread: thread, draft: words, identifier: "decision-other-mic")
+          .disabled(sending)
         Button {
           voice.sent(thread: thread)
           send()

@@ -13,7 +13,7 @@ struct ChatDecisionFoldable: View {
   let place: String
   let voice: ChatVoiceModel?
   let logger: BugLogger
-  @State private var contextOpen = false
+  @State private var draft = ChatDecisionCard.Draft()
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -21,7 +21,7 @@ struct ChatDecisionFoldable: View {
         ChatDecisionFoldedLine(ask: ask) { fold(false) }
       } else {
         ChatDecisionCard(
-          decisions: decisions, ask: ask, place: place, voice: voice, logger: logger, contextOpen: $contextOpen,
+          decisions: decisions, ask: ask, place: place, voice: voice, logger: logger, draft: $draft,
           fold: { fold(true) })
       }
     }

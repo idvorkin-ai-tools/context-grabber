@@ -149,10 +149,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1149:
+### User Story 1116:
 
 - **Summary:** An opened question folds back to its one line without answering
-- **Status:** implemented in 'a661cba2' on branch `native/decision-fold-fjh0`; verified on the Mac build and on the iPad simulator (`just test-ladder`: `WhiteboardQuestionUITests.testLarrysQuestionLandsAnswersAndFolds` folds the opened question, sees the card's one open line, and opens it again before answering); not yet on the iPad
+- **Status:** implemented in 'e714b372', fixed after review in 'f417516e' (rebased from 'a4613ba7') and '22ad3561', on branch `native/decision-fold-fjh0`; verified on the Mac build and on the iPad simulator (`just test-ladder`: `WhiteboardQuestionUITests.testLarrysQuestionLandsAnswersAndFolds` folds the opened question, sees the card's one open line, and opens it again before answering); after review round 1 ('a4613ba7') the simulator was re-run: `WhiteboardQuestionUITests` on the iPad simulator, and the smoke's *whiteboard: the question opened and folded back to its unanswered line* passed; not yet on the iPad
 - **Issues:** bead context-grabber-fjh0
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Folding an open card*
 

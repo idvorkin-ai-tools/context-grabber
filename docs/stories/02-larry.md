@@ -3176,7 +3176,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1131:
 
 - **Summary:** Fold a decision card to one line, and open it again
-- **Status:** native app: implemented in 'a661cba2' on branch `native/decision-fold-fjh0`; verified on the host (`just native-test`: `ChatDecisionFoldsTests`, the fold per ask, its saved list, the cap), the Mac build (`just native-build-mac`), and on the iPhone 17 simulator (`just test-ladder`: `ChatDecisionUITests.testACardFoldsToItsLineStaysFoldedAndOpensAgain` folds a card on *Decisions*, finds it folded in its thread with the row's mark and the count unchanged, still folded after a relaunch, and opens it again; nothing posted to the Cockpit); not yet on the phone or the iPad
+- **Status:** native app: implemented in 'e714b372', fixed after review in 'f417516e' (rebased from 'a4613ba7') and '22ad3561', on branch `native/decision-fold-fjh0`; verified on the host (`just native-test`: `ChatDecisionFoldsTests`, the fold per ask, its saved list, the cap), the Mac build (`just native-build-mac`), and on the iPhone 17 simulator (`just test-ladder`: `ChatDecisionUITests.testACardFoldsToItsLineStaysFoldedAndOpensAgain` folds a card on *Decisions*, finds it folded in its thread with the row's mark and the count unchanged, still folded after a relaunch, and opens it again; nothing posted to the Cockpit); after review round 1 ('a4613ba7') the simulator was re-run: `ChatDecisionUITests` 4/4 on the iPhone 17 simulator, and the smoke's *chat: the decision card folded and reopened from its line* passed; not yet on the phone or the iPad
 - **Issues:** bead context-grabber-fjh0
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Folding a card*
 
@@ -3189,5 +3189,5 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** I put a decision card aside and return to it
 - **Given:** a decision card, in its chat or under *Decisions*
 - **When:** I tap the chevron beside its **⋯**, even while a request is on its way
-- **Then:** it becomes one line with the question and a downward chevron. Folding sends nothing, and the row's *Decision waiting* and *Decisions (N)* stay the same. The fold survives leaving the screen, opening the ask in its other place, and restarting the app on this device. Tapping the line brings back the whole card, including any context I expanded on that screen, and keeps it open next time.
+- **Then:** it becomes one line with the question and a downward chevron. Folding sends nothing, and the row's *Decision waiting* and *Decisions (N)* stay the same. The fold survives leaving the screen, opening the ask in its other place, and restarting the app on this device. Tapping the line brings back the whole card, including any context I expanded and any own answer I had begun under *Other…* on that screen, and keeps it open next time.
 

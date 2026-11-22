@@ -84,7 +84,8 @@ able to collapse it"*). Every decision card in Chat, at the top of its thread an
 the question-mark icon, the question cut with *…* to the width, and a chevron pointing down. Folding answers nothing,
 closes nothing and tells the Cockpit nothing: the row's
 *Decision waiting* and the count on *Decisions (N)* stay as they were. A tap anywhere on the folded line opens the card
-again, with its context still expanded if Igor had opened it on this screen. The fold is remembered for that ask on
+again, with its context still expanded if Igor had opened it on this screen, and with any own answer he had begun
+under *Other…* still in its field, unsent (a recording under way stops when the card folds; its words stay). The fold is remembered for that ask on
 this device: the card stays folded when Igor leaves the thread and comes back, when he opens it from the other place
 (folded in its thread, it is folded on *Decisions* too), and
 after the app restarts, until he opens it again. Another device's cards are not folded by it. Once the ask is finished

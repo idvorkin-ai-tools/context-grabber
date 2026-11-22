@@ -124,7 +124,7 @@ private struct WhiteboardQuestionPopup: View {
   let logger: BugLogger
   let cardID: String
   @State private var words = ""
-  @State private var contextOpen = false
+  @State private var draft = ChatDecisionCard.Draft()
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
@@ -157,7 +157,7 @@ private struct WhiteboardQuestionPopup: View {
     } else if let ask = questions.asks[card.ask] {
       let fold = { questions.fold(card) }
       ChatDecisionCard(
-        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, contextOpen: $contextOpen,
+        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, draft: $draft,
         fold: fold,
         done: { verb, outcome in questions.decided(card, ask: ask, verb: verb, outcome: outcome) }
       )
