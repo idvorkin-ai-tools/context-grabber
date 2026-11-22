@@ -109,7 +109,9 @@ extension WhiteboardModel {
     // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
     event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, folds: folds, picture: picture))) { $1 }
     if !folds.isEmpty { event["folds"] = folds.count }
-    let outcome = await deliver(jpeg, picture: picture, thread: thread, note: said ?? WhiteboardNote.boardTurnNote)
+    let outcome = await deliver(
+      jpeg, picture: picture, thread: thread, note: said ?? WhiteboardNote.boardTurnNote, attempt: attempt,
+      facts: &event)
     shipLog(why: "larry_turn")
     switch outcome {
     case .sent(let key, _):
@@ -257,13 +259,29 @@ extension WhiteboardModel {
     }
   }
 
-  /// The picture uploaded, then the message that names it.
+  /// The picture uploaded, then the message that names it. #1136 (stories 908, 909): a connection lost under either is sent
+  /// once more by itself, once the app is back on screen and if the hand-off still speaks for the board; `facts` gets
+  /// what became of it, and the app's state when it was lost and when it went again.
   private func deliver(
-    _ jpeg: Data, picture: WhiteboardPicture, thread: String?, note: String
+    _ jpeg: Data, picture: WhiteboardPicture, thread: String?, note: String, attempt: Int,
+    facts: inout [String: Any]
   ) async -> ChatSend.Outcome {
+    var lost: WhiteboardLostConnection.Record?
+    var states: [String: Any] = [:]
+    defer {
+      if let lost { facts.merge(lost.logFields) { $1 } }
+      facts.merge(states) { $1 }
+    }
+    let again: (WhiteboardLostConnection.Record) async -> Bool = { [weak self] _ in
+      states["lost_app"] = Self.appState()
+      let back = await Self.appBack()
+      states["retry_app"] = Self.appState()
+      return back && self?.larryHandOffs.speaks(attempt) == true
+    }
     do {
-      let (body, response) = try await URLSession.shared.data(
-        for: try ChatSend.uploadRequest(image: jpeg, cockpit: cockpit))
+      let (body, response) = try await WhiteboardLostConnection.run("upload", record: &lost, again: again) {
+        try await URLSession.shared.data(for: try ChatSend.uploadRequest(image: jpeg, cockpit: self.cockpit))
+      }
       switch ChatSend.upload(status: (response as? HTTPURLResponse)?.statusCode, body: body) {
       case .refused(let status, let reason): return .refused(status: status, reason: reason)
       case .retry(let reason): return .retry(reason: "image upload: \(reason)")
@@ -272,13 +290,34 @@ extension WhiteboardModel {
         let item = InboxItem(
           id: picture.pictureID, kind: .image, sharedAt: Int64(Date().timeIntervalSince1970 * 1000), note: note,
           thread: thread, whiteboard: picture)
-        let (body, response) = try await URLSession.shared.data(
-          for: try ChatSend.messageRequest(item, attachment: ref, cockpit: cockpit))
+        let (body, response) = try await WhiteboardLostConnection.run("message", record: &lost, again: again) {
+          try await URLSession.shared.data(
+            for: try ChatSend.messageRequest(item, attachment: ref, cockpit: self.cockpit))
+        }
         return ChatSend.outcome(status: (response as? HTTPURLResponse)?.statusCode, body: body)
       }
     } catch {
       return .retry(reason: error.localizedDescription)
     }
+  }
+
+  /// #1136: the app's state, for the lost connection's log fields.
+  private static func appState() -> String {
+    switch UIApplication.shared.applicationState {
+    case .active: "active"
+    case .inactive: "inactive"
+    case .background: "background"
+    @unknown default: "unknown"
+    }
+  }
+
+  /// #1136: waits up to five seconds for the app to be back on screen, where the lost connection's second try goes.
+  private static func appBack() async -> Bool {
+    for _ in 0..<50 {
+      if UIApplication.shared.applicationState == .active { return true }
+      try? await Task.sleep(for: .milliseconds(100))
+    }
+    return UIApplication.shared.applicationState == .active
   }
 
   /// The board appearing or the app coming back: looks at its thread, once it has one, until `stopWatchingLarry`.
