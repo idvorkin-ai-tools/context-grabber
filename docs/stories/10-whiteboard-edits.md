@@ -306,7 +306,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** The board, not the device, remembers which ink is Larry's and which strokes are kept labels
 - **Issues:** bead context-grabber-p1pl (follow-up to context-grabber-cc75: the two lists were still kept on the device, so a reinstall or another device took Larry's kept marks for Igor's and *Tidy overlaps* found no labels)
-- **Status:** STATUS_PLACEHOLDER
+- **Status:** implemented in [f46ba39](https://github.com/idvorkin/context-grabber/commit/f46ba39); verified by host tests (`BoardMeaningTests`: a file from before reads, the keys join a file already there and go, with no file they make one, what the file holds is only added to, a failed move leaves the file and the keys, a board whose six old keys haven't moved waits, the keys fill the board as it opens, the ledger's caps; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator's whiteboard UI tests couldn't start (the Mac's screen was locked); not yet seen on the iPad, where the `meaning_migrated` line's labels and theirs counts show the move
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Edge cases*
 
 #### Use Case:
