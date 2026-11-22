@@ -1021,9 +1021,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 952:
 
-- **Summary:** Feedback from the board is one tap
-- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) a tap on Feedback opened *Report a problem* over the board; not yet seen on the iPad
+- **Summary:** Feedback from the board is one tap, on a ladybug with no word beside it
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) a tap on Feedback opened *Report a problem* over the board; not yet seen on the iPad. The ladybug alone (#1162) in COMMIT_1162
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
+- **Issues:** [#1162](https://github.com/idvorkin/context-grabber/issues/1162) (Igor on the iPhone, 2026-11-22: "Just a bug buttons enough I don't need to say feedback"; the word covered the board's ink)
 
 #### Use Case:
 - **As someone** who reports the board's bugs to Larry from the board itself
@@ -1036,6 +1037,12 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap Feedback at the board's top right
 - **Then:** the *Report a problem* sheet opens over the board with a picture of the board as it was and the session
   log, as a shake would open it
+
+- **Scenario:** The button is only a ladybug
+- **Given:** a board open, on the iPad or the iPhone
+- **When:** I look at the board's top right
+- **Then:** Feedback is a ladybug with no word beside it, no wider than the **?** next to it, and VoiceOver reads it
+  as *Feedback*
 
 ---
 

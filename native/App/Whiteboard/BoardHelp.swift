@@ -45,10 +45,14 @@ struct BoardHelpButtons: View {
         .accessibilityIdentifier("whiteboard-help")
         .popover(isPresented: $helpOpen) { BoardHelpSheet { helpOpen = false } }
       }
-      Button("Feedback", systemImage: "ladybug") {
+      // Story 952 (#1162): the ladybug alone, as small as the ?; VoiceOver still reads Feedback.
+      Button {
         log.event("whiteboard", ["action": "feedback", "board": board])
         report()
+      } label: {
+        Image(systemName: "ladybug").frame(minWidth: 20)
       }
+      .accessibilityLabel("Feedback")
       .accessibilityIdentifier("whiteboard-feedback")
     }
     .buttonStyle(.bordered)
@@ -124,7 +128,7 @@ struct BoardHelpSheet: View {
       "Feedback",
       [
         Row(
-          gesture: "Feedback, or shake the iPad",
+          gesture: "The ladybug, or shake the iPad",
           does: "A note, a picture of the screen and the recent log, for Larry and the Mac to file.")
       ]
     ),

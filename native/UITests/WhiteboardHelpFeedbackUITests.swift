@@ -28,16 +28,27 @@ final class WhiteboardHelpFeedbackUITests: XCTestCase {
     XCTAssertTrue(help.appears(within: 10), app.debugDescription)
     XCTAssertTrue(app.buttons["whiteboard-board"].isHittable, "the Board menu stays in the bar (#848)")
     XCTAssertTrue(app.buttons["whiteboard-send"].exists, "Send stays in the bar")
-    XCTAssertTrue(app.buttons["whiteboard-feedback"].exists, "Feedback beside it")
+    let feedback = app.buttons["whiteboard-feedback"]
+    XCTAssertTrue(feedback.exists, "Feedback beside it")
+    // Story 952 (#1162): a ladybug alone, no wider than the ?, still named Feedback.
+    XCTAssertEqual(feedback.label, "Feedback")
+    XCTAssertLessThanOrEqual(feedback.frame.width, help.frame.width + 1, "the ladybug carries no word")
     help.tap()
     XCTAssertTrue(app.navigationBars["How this board works"].appears(within: 5), app.debugDescription)
+    // Scrolled by a drag inside the cheat sheet, measured from its title: a swipe on the app's middle can start beside
+    // the popover and close it (with the ladybug alone the ? sits further right and the popover opens to its left, #1162).
+    let title = app.navigationBars["How this board works"]
+    let scroll = {
+      title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 8))
+        .press(forDuration: 0.05, thenDragTo: title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 2)))
+    }
     for gesture in [
       "Tap beside a line", "Hold and drag down", "Hold a header's mark", "Hold the Pencil on a word",
       "Underline a line, or start it with #", "Fast zigzag over ink", "Lasso, then To text",
       "Hold the Pencil at a stroke's end", "Keep all",
     ] {
       let row = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", gesture)).firstMatch
-      if !row.exists { app.swipeUp() }
+      if !row.exists { scroll() }
       XCTAssertTrue(row.appears(within: 3), "\(gesture) is listed: \(app.debugDescription)")
     }
     app.buttons["whiteboard-help-done"].tap()
