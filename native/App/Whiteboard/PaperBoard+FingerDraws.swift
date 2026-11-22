@@ -12,8 +12,8 @@ extension PaperBoardController {
 
   /// As the old canvas's `.pencilOnly`, which PaperKit doesn't have: while marks or his controls show, a finger selects
   /// rather than draws, and a tap's selection is put straight back, so a tap leaves nothing.
-  func fingerTaps(_ taps: Bool) {
-    finger.marks(taps)
+  func fingerTaps(marks: Bool, controls: Bool) {
+    finger.marks(marks, controls: controls)
     settleFinger()
   }
 

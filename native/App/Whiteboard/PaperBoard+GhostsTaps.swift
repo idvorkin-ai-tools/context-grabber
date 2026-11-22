@@ -19,7 +19,7 @@ extension PaperBoardController {
   func show(_ ghosts: [Ghost]) {
     Task { @MainActor [weak self] in self?.showChoice() }
     guard lines.ghostLayers.show(ghosts) else { return }
-    fingerTaps(!ghosts.isEmpty || !model.overlays.list.isEmpty)
+    fingerTaps(marks: !ghosts.isEmpty, controls: !model.overlays.list.isEmpty)
     let drawn = ghosts.flatMap(\.lines)
     log.event(
       "whiteboard",

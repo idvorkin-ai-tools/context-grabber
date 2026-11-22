@@ -817,7 +817,7 @@ extension PaperBoardController: BoardCanvas {
   func showOverlays(_ list: [BoardOverlay]) {
     lines.showOverlays(list)
     // Story 846: with his controls showing, a finger taps them, as it taps ghosts, rather than drawing.
-    fingerTaps(!model.ghosts.isEmpty || !list.isEmpty)
+    fingerTaps(marks: !model.ghosts.isEmpty, controls: !list.isEmpty)
   }
 
   func menuChose() { takeTheResponderBack() }

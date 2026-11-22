@@ -47,6 +47,18 @@ final class WhiteboardFingerTests: XCTestCase {
     XCTAssertEqual(finger.verdict, Verdict(usual: false, why: .marks), "the next marks set it tapping again")
   }
 
+  /// Story 846: his controls alone set a finger tapping, and a tap off his marks doesn't outlast them.
+  func testHisControlsAloneSetAFingerTappingEvenAfterATapOff() {
+    var finger = WhiteboardFinger()
+    finger.marks(false, controls: true)
+    XCTAssertEqual(finger.verdict, Verdict(usual: false, why: .marks))
+    finger.marks(true, controls: true)
+    finger.tapped(onMark: false, onSelection: false)
+    XCTAssertEqual(finger.verdict, Verdict(usual: true, why: .tapOff))
+    finger.marks(false, controls: true)
+    XCTAssertEqual(finger.verdict, Verdict(usual: false, why: .marks), "no mark left, his controls still showing")
+  }
+
   /// Story 1153: "I should never have finger drawn if I'm using the pencil."
   func testOnceThePencilHasTouchedAFingerNeverDraws() {
     var finger = WhiteboardFinger()

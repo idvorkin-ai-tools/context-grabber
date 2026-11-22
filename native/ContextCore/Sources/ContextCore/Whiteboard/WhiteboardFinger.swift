@@ -41,9 +41,10 @@ public struct WhiteboardFinger: Equatable, Sendable {
     return tappedOff ? Verdict(usual: true, why: .tapOff) : Verdict(usual: false, why: .marks)
   }
 
-  /// Marks or his controls showing, or none. None left forgets a tap off, so the next marks put the finger back to tapping.
-  public mutating func marks(_ showing: Bool) {
-    marksShowing = showing
+  /// Marks or his controls showing, or none. No mark left forgets a tap off, so his controls alone, or the next marks,
+  /// put the finger back to tapping.
+  public mutating func marks(_ showing: Bool, controls: Bool = false) {
+    marksShowing = showing || controls
     if !showing { tappedOff = false }
   }
 
