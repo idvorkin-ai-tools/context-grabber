@@ -32,17 +32,16 @@ final class WhiteboardQuestionsModel: ObservableObject {
   private var asksFailing = false
   private var answersFailing = false
 
-  private var key: String { "whiteboard_questions_\(boardID)" }
+  /// The board's meaning, where the cards are kept with the rest of it (`BoardMeaning`).
+  private let ledger: BoardMeaningLedger
 
-  init(board: String, log: SessionLog, inbox: InboxModel, cockpit: String) {
+  init(board: String, log: SessionLog, inbox: InboxModel, cockpit: String, ledger: BoardMeaningLedger) {
     boardID = board
     self.log = log
     self.inbox = inbox
     self.cockpit = cockpit
-    // ponytail: kept on this device, as the board's thread is; they go to the board's index if boards change hands.
-    self.board =
-      UserDefaults.standard.data(forKey: "whiteboard_questions_\(board)")
-      .flatMap { try? JSONDecoder().decode(WhiteboardQuestions.self, from: $0) } ?? WhiteboardQuestions()
+    self.ledger = ledger
+    self.board = ledger.questions(board: board)
   }
 
   private var reachable: Bool { !inbox.offline && cockpit != ChatCockpit.nowhere }
@@ -50,7 +49,7 @@ final class WhiteboardQuestionsModel: ObservableObject {
   private func change(_ new: WhiteboardQuestions) {
     guard new != board else { return }
     board = new
-    if let data = try? JSONEncoder().encode(new) { UserDefaults.standard.set(data, forKey: key) }
+    ledger.setQuestions(new, board: boardID)
   }
 
   func title(of card: WhiteboardQuestion) -> String? { asks[card.ask]?.title }

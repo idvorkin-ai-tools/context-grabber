@@ -5842,6 +5842,26 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1106:
+
+- **Summary:** A change of Larry's that landed just before the app quit is not lost
+- **Issues:** bead context-grabber-cc75 (the architecture review, 2026-11-21: a batch was remembered as handled about a second before its drawing saved, so a kill in that second lost it while Larry was told it applied)
+- **Status:** implemented in [42b31bf](https://github.com/idvorkin/context-grabber/commit/42b31bf), [b4175d5](https://github.com/idvorkin/context-grabber/commit/b4175d5); verified by host tests (`BoardMeaningTests`: the drawing is written before its meaning, a batch held for the Pencil or on its way to the canvas isn't saved as handled, a drawing that fails to save writes no meaning, the move from UserDefaults, a delete takes the meaning) the Mac build (`just native-build-mac`) and the iPad simulator (`just test-ladder --rung 2`: the whiteboard's 15 UI classes; the 6 that fail fail the same on main, beads context-grabber-zem0 and context-grabber-c59d); not yet seen on the iPad, where a kill in that second can't be staged; the `meaning_behind` log line says if a save is ever cut off between the two files
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Edge cases*
+
+#### Use Case:
+- **As someone** whose board Larry changes while I work
+- **I want to** have each change of his either on the board after a relaunch or offered again
+- **so that** Larry is never told a change applied that I will never see
+
+#### Acceptance Criteria:
+- **Scenario:** The app is killed right after Larry's change lands
+- **Given:** Larry's change has just appeared on my board and the board has not saved yet
+- **When:** the app is killed and I open the board again
+- **Then:** his change is offered again, and either lands or Larry is told it couldn't, instead of being remembered as done with its ink gone
+
+---
+
 ### User Story 840:
 
 - **Summary:** Larry draws ink straight onto my board
