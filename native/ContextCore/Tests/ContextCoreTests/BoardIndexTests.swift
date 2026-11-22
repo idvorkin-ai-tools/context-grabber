@@ -381,6 +381,33 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertNil(phone.whyNotOpen("a"))
   }
 
+  /// Bead context-grabber-1jb4 (story 1074): a board from iCloud is out of the list until its first drawing has come
+  /// down, so a failed first download never opens blank; one that arrived once stays while a newer version fails.
+  func testABoardIsListedOnlyOnceItsDrawingIsHere() {
+    var phone = BoardIndex()
+    let board = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad")
+    XCTAssertEqual(phone.merge(cloud: [board], device: "phone").fetch, ["a"])
+    XCTAssertEqual(phone.shown.map(\.id), [], "its first download hasn't landed: nothing to open")
+    phone.fetched("a", at: 10)
+    XCTAssertEqual(phone.shown.map(\.id), ["a"])
+    var newer = board
+    newer.updated = 20
+    _ = phone.merge(cloud: [newer], device: "phone")
+    XCTAssertEqual(phone.shown.map(\.id), ["a"], "a newer version failing to come down keeps the one here")
+  }
+
+  /// A reinstalled iPad gets its own board back from iCloud: not listed, so not drawn over blank, until its drawing is.
+  func testAnOwnBoardBackFromICloudIsListedOnceItsDrawingIsHere() {
+    var ipad = BoardIndex()
+    ipad.add(id: "new", at: nov1, device: "ipad", deviceName: "iPad")
+    let lost = BoardEntry(
+      id: "a", title: "A", created: 1, updated: 10, strokes: 4, device: "ipad", deviceName: "iPad")
+    XCTAssertEqual(ipad.merge(cloud: [lost], device: "ipad").fetch, ["a"])
+    XCTAssertEqual(ipad.shown.map(\.id), ["new"], "a board made here has nothing to wait for")
+    ipad.fetched("a", at: 10)
+    XCTAssertEqual(Set(ipad.shown.map(\.id)), ["new", "a"])
+  }
+
   func testOwnBoardsDrawnHereNeverNeedAFetch() {
     var ipad = BoardIndex()
     ipad.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")

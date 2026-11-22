@@ -30,6 +30,10 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   /// This device holds the drawing of the version it knows of.
   public var current: Bool { fetched == updated }
 
+  /// Some version's drawing is on this device: a board made here, or one whose first download landed. Until then it
+  /// has nothing to open but a blank (bead context-grabber-1jb4).
+  public var arrived: Bool { fetched != nil }
+
   public init(
     id: String, title: String, created: Int64, updated: Int64, strokes: Int, device: String, deviceName: String,
     uploaded: Int64? = nil, fetched: Int64? = nil, paperID: String? = nil, onPages: Bool? = nil
@@ -70,6 +74,10 @@ public struct BoardIndex: Codable, Equatable, Sendable {
 
   /// Newest change first.
   public var sorted: [BoardEntry] { boards.sorted { ($0.updated, $0.id) > ($1.updated, $1.id) } }
+
+  /// The list's rows, newest first: a board waits out of it until its first drawing has come down, so a failed first
+  /// download never opens blank, nor gets drawn over blank on the device that made it (bead context-grabber-1jb4).
+  public var shown: [BoardEntry] { sorted.filter(\.arrived) }
 
   public func board(_ id: String) -> BoardEntry? { boards.first { $0.id == id } }
 

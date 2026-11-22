@@ -40,11 +40,12 @@ struct WhiteboardListView: View {
         if let problem = store.problem { BugProblemView(problem: problem, logger: app.bugLogger) }
         if let linkProblem { BugProblemView(problem: linkProblem, logger: app.bugLogger) }
         if let note = store.syncNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
-        if store.index.boards.isEmpty {
+        // Bead context-grabber-1jb4: a board whose first drawing hasn't come down isn't a row yet.
+        if store.index.shown.isEmpty {
           ContentUnavailableView(
             "No boards yet", systemImage: "scribble.variable", description: Text("Tap + to start one."))
         } else {
-          ForEach(store.index.sorted) { board in row(board) }
+          ForEach(store.index.shown) { board in row(board) }
         }
       }
       .listStyle(.plain)
