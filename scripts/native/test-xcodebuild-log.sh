@@ -219,7 +219,7 @@ simrun() {  # simrun [VAR=value...] -- <command...>
   shift
   rm -f "$dir/args" "$dir/xcrun"
   env ${vars[@]+"${vars[@]}"} PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
-    SMOKE_LOCK_PROBE="cat $dir/lock" XCODEBUILD_LOCK_POLL=1 SIM_LOCK_POLL=1 scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" \
+    SMOKE_LOCK_PROBE="${LOCK_PROBE:-cat $dir/lock}" XCODEBUILD_LOCK_POLL=1 SIM_LOCK_POLL=1 scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" \
     "$@" 2>&1 >/dev/null
 }
 echo '"CGSSessionScreenIsLocked" = Yes' >"$dir/lock"
@@ -232,8 +232,11 @@ status=$?
   bad "the locked start waited $((SECONDS - start)) s"
 case $out in *"waiting up to 2 s"*"so the simulator test run fake didn't start"*"unlock it and rerun"*) ok "and says it waited and why";;
   *) bad "a locked start said: $out";; esac
-( sleep 1; echo unlocked >"$dir/lock" ) &
-out=$(simrun SIM_LOCK_WAIT=20 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+# Locked at the first look, unlocked from the next: a timed unlock in the background raced a slow start, which then
+# found the screen already unlocked and never waited.
+printf '#!/bin/bash\ncat "%s"\necho unlocked >"%s"\n' "$dir/lock" "$dir/lock" >"$dir/probe-once"
+chmod +x "$dir/probe-once"
+out=$(LOCK_PROBE="$dir/probe-once" simrun SIM_LOCK_WAIT=20 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
 status=$?
 [ "$status" -eq 0 ] && [ -e "$dir/args" ] && ok "unlocked while it waits, the run starts and passes" || bad "an unlock in the wait: $status $out"
 case $out in *"is unlocked: starting the simulator test run fake"*) ok "and says it started";; *) bad "the unlock said: $out";; esac
