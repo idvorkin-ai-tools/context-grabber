@@ -50,10 +50,20 @@ extension PaperMarkup {
     let near = zigzag.renderFrame.insetBy(dx: -12, dy: -12)
     let ink = strokes.filter {
       $0.elementID != zigzag.elementID && !$0.isFolded && $0.renderFrame.intersects(near)
-    }.map { stroke in
-      WhiteboardScratchOut.Ink(
-        id: PaperHost.key(stroke.elementID), points: stroke.path.map { $0.location.applying(stroke.transform) },
-        width: WhiteboardStrokes.width(sizes: stroke.path.map(\.size.width), transform: stroke.transform))
+    }.compactMap { stroke -> WhiteboardScratchOut.Ink? in
+      let path = stroke.path
+      let points = path.map { $0.location.applying(stroke.transform) }
+      // Only the ink still on the board (context-grabber-p5hy): what the pixel eraser rubbed out is bare paper.
+      let runs =
+        stroke.mask == nil
+        ? [points]
+        : WhiteboardScratchOut.runs(points, visible: stroke.maskedPathRanges) {
+          path.interpolatedPoint(at: $0).location.applying(stroke.transform)
+        }
+      let ink = WhiteboardScratchOut.Ink(
+        id: PaperHost.key(stroke.elementID), runs: runs,
+        width: WhiteboardStrokes.width(sizes: path.map(\.size.width), transform: stroke.transform))
+      return ink.runs.isEmpty ? nil : ink
     }
     let outcome = WhiteboardScratchOut.check(points, ms: ms.flatMap { $0 > 0 ? $0 : nil }, over: ink)
     var before = self

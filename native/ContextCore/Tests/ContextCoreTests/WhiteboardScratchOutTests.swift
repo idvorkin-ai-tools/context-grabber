@@ -251,4 +251,45 @@ final class WhiteboardScratchOutTests: XCTestCase {
     XCTAssertTrue(
       Scratch.redoTakeBack(could: true, zigzagHeld: true, held: ink, before: ink), "a step that moved ink is put back")
   }
+
+  // MARK: - Ink the pixel eraser rubbed out (context-grabber-p5hy)
+
+  /// `line` with only the parts whose x is in `keep` left on the board.
+  private func rubbed(_ id: String, _ y: CGFloat, keep: [ClosedRange<CGFloat>]) -> Scratch.Ink {
+    let whole = line(id, y)
+    return Scratch.Ink(id: id, runs: keep.map { k in whole.points.filter { k.contains($0.x) } }, width: whole.width)
+  }
+
+  func testAZigzagOverTheGapTheEraserLeftStaysInk() {
+    let scratch = zigzag(5, 200, 95, 100, 30)
+    // The whole stroke runs under it, so the zigzag touches it.
+    XCTAssertEqual(Scratch.touched(by: scratch, in: [line("a", 100)]), ["a"])
+    XCTAssertEqual(Scratch.touched(by: scratch, in: [rubbed("a", 100, keep: [100...180, 320...400])]), [])
+    // Its middle rubbed out, only the two ends are left, and the zigzag lies over the bare paper between.
+    let outcome = Scratch.check(scratch, ms: 100, over: [rubbed("a", 100, keep: [100...180, 320...400])])
+    XCTAssertFalse(outcome.ok)
+    XCTAssertEqual(outcome.gone, [])
+    XCTAssertEqual(outcome.why, "no ink")
+  }
+
+  func testAZigzagOverWhatIsLeftTakesTheStroke() {
+    let outcome = Scratch.check(
+      zigzag(5, 260, 95, 140, 30), ms: 100, over: [rubbed("a", 100, keep: [100...140, 260...400]), line("b", 300)])
+    XCTAssertTrue(outcome.ok, outcome.why ?? "")
+    XCTAssertEqual(outcome.gone, ["a"])
+  }
+
+  func testWhatTheEraserLeftIsReadFromTheVisibleRanges() {
+    let points = (0..<5).map { CGPoint(x: CGFloat($0) * 10, y: 0) }
+    let at = { (t: CGFloat) in CGPoint(x: t * 10, y: 1) }
+    // Unrubbed: the points as they are.
+    XCTAssertEqual(Scratch.runs(points, visible: [0...4], at: at), [points])
+    // The middle rubbed out: two stretches, their cut ends read between the points.
+    XCTAssertEqual(
+      Scratch.runs(points, visible: [0...1.5, 2.5...4], at: at),
+      [[points[0], points[1], CGPoint(x: 15, y: 1)], [CGPoint(x: 25, y: 1), points[3], points[4]]])
+    // Rubbed out entirely: nothing, and no ink.
+    XCTAssertEqual(Scratch.runs(points, visible: [], at: at), [])
+    XCTAssertTrue(Scratch.Ink(id: "a", runs: []).runs.isEmpty)
+  }
 }

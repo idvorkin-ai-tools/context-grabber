@@ -6730,6 +6730,26 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 899:
+
+- **Summary:** A zigzag over a gap the pixel eraser left leaves the stroke alone
+- **Status:** implemented in [e91e8bb5](https://github.com/idvorkin/context-grabber/commit/e91e8bb5); verified on the host (`WhiteboardScratchOutTests.testAZigzagOverTheGapTheEraserLeftStaysInk`, `testAZigzagOverWhatIsLeftTakesTheStroke`, `testWhatTheEraserLeftIsReadFromTheVisibleRanges`; `just native-test`) and the Mac build (`just native-build-mac`); a real pixel eraser's rub then a zigzag over the gap is the iPad's to see
+- **Issues:** context-grabber-p5hy (a zigzag over a gap the pixel eraser left took the whole stroke around it; codex review 2026-11-21)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** who rubs part of a stroke away with the pixel eraser
+- **I want to** have a scratch-out touch only the ink still on the board
+- **so that** a zigzag over bare paper never takes the ink around it
+
+#### Acceptance Criteria:
+- **Scenario:** A zigzag over a gap the pixel eraser left
+- **Given:** a board on paper with a stroke whose middle I rubbed out with the pixel eraser
+- **When:** I draw a quick zigzag over the gap, touching neither part that is left
+- **Then:** nothing of that stroke goes, as the gap is bare paper
+
+---
+
 ### User Story 920:
 
 - **Summary:** Selected handwriting becomes typed text

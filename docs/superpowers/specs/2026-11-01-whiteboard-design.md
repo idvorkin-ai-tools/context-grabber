@@ -365,6 +365,10 @@ ink it covers, without picking up the eraser.
   without a word; a short wiggle of three or four turns still needs sweeps across most of its length.
 - **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
   it doesn't touch stay, however close. What went stays gone as he writes on: only Undo brings it back (#999).
+- **Only the ink he can see is touched** (context-grabber-p5hy). Where the pixel eraser rubbed part of a stroke away, the
+  gap is bare paper: a zigzag over it takes nothing of that stroke, and the rubbed-out part doesn't count toward lying
+  over the ink. A zigzag over a part that is still there takes the stroke as before, the rest of what is left of it
+  included; a stroke rubbed out entirely is never taken.
 - **Nothing else changes.** Ink he moved with the lasso, wrote or erased just before the zigzag stays as he left it:
   a scratch-out never takes back his last other change, a move included (#966, story 1059).
 - **One undo brings it all back**: the ink it removed, without the zigzag. One redo removes it again.
