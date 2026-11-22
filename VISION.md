@@ -29,6 +29,17 @@ A live call comes first: anything else that wants the audio waits and yields.
 During a call Larry can ask the phone for a slice of the week, a day's places or a night's sleep, and the app answers over the call's bridge.
 Coaching comes from Larry: the app carries his reminders to the front door and does not invent advice of its own.
 
+## Thinking on paper with Larry
+
+The whiteboard is the line to Larry in ink: Igor thinks with the Pencil on the iPad, Larry sees the board and draws back.
+A board is a column of ruled pages with always another blank one below, and everything on it is ink: pasted text, Larry's labels and snapped shapes land as ink, with no shapes palette, text boxes or layers.
+Nothing Larry or Claude draws joins the board until Igor keeps it, and a stray tap never keeps or loses a mark.
+Larry answers a board unless Igor picks someone else, and he waits until Igor has stopped writing.
+One device draws a board and every other device only looks; the iPhone looks and talks, and never draws.
+Every gesture shows what it did, and a wrong guess by the board costs one Undo.
+It is not a notes app: a board has a name and a picture, with no folders, tags or search.
+When a rule is needed by more than one gesture (what a tap picks up, whose ink yields when Larry's meets Igor's, what counts as one thing that moves whole), it is decided once and written as one story that the special cases cite.
+
 ## Practice that reports back
 
 The Gym Timer and box breathing earn their place because their sessions land back in the mirror, as a gym day or mindful minutes in Health.

@@ -215,7 +215,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** still drawing when Larry answers
-- **I want to** have his push wait until I lift the Pencil, and be refused if I changed the board after he looked
+- **I want to** have his push wait until I lift the Pencil, and be refused only if I moved or erased what it names after he looked (stories 961, 964)
 - **so that** ink never jumps under my pen and never lands in the wrong place
 
 #### Acceptance Criteria:
@@ -239,7 +239,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** I drew after he looked
-- **Given:** the board changed after the picture Larry answered
+- **Given:** after the picture Larry answered I moved or erased something his push names, or his look is older than the board remembers (stories 964, 965); strokes I only added never refuse it (story 961)
 - **When:** his push arrives
 - **Then:** nothing moves, his next turn tells him it was stale, and a fresh push from him applies
 
@@ -689,7 +689,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Refused
-- **Given:** I wrote after Larry looked
+- **Given:** after Larry looked I moved or erased something his change names (story 964; writing on alone no longer refuses it, story 961)
 - **When:** his change comes back refused
 - **Then:** a chip in his purple says *Larry's edit blocked · Retry*, with × beside it, and nothing on the board moved
 
