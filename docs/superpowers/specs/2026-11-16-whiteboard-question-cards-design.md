@@ -42,8 +42,10 @@ zooms with the board.
 Chat's decision card shows them (the default marked, the expiry, the ⋯ menu with Snooze, Close… and Abandon). A tap on
 an option answers at once. Under the card, *Your own answer* and *Send* answer in Igor's words instead (needed for an ask
 with no options). The card in the popup has no *Other…* of its own, as it has in Chat: this field is the
-board's way to answer in Igor's words, already open, and an option of Larry's labelled *Other* is not drawn there
-either (it would only answer with the bare word). The answer can be spoken: a mic sits immediately beside *Send*, after the field, both at least a
+board's way to answer in Igor's words, already open. Larry's own-answer option (keyed *other*, or labelled *Other*,
+*Something else*, *Type your own answer* and the like, as Chat's decision cards define it) is drawn, and a tap on it
+answers nothing: it puts the cursor in *Your own answer* with the keyboard up, ready to type or dictate, and *Send*
+stays off until there are words. The answer can be spoken: a mic sits immediately beside *Send*, after the field, both at least a
 finger tall and wide (Igor, 2026-11-03, #625: the record button goes by Send on every input). It is Chat's mic: a tap
 records, it turns red with the seconds, the words fill the field after what was typed, and a tap stops it; nothing is
 sent until *Send*. *Send* or closing the popup stops a recording. A call, or another recording, holding the microphone
@@ -88,6 +90,8 @@ works. Never the answer's words.
 - An open ask that names the board's thread or the board shows as a card when the board opens.
 - A tap on an open card opens it; an option or Igor's own words answer it as the Inbox would, and the card turns into
   *✓ \<question>* over the answer.
+- Larry's own-answer option (keyed *other*, or labelled *Something else*, *Other* and the like) shows in the popup's
+  card; a tap on it sends nothing and puts the cursor in *Your own answer*; only Igor's words are ever sent from it.
 - A card whose ask was answered elsewhere shows that answer once the Cockpit gives it.
 - An answered card opens read-only, folds to a one-line chip, and a tap opens the chip out.
 - The eraser takes an answered card and leaves an open one.

@@ -184,8 +184,9 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertEqual(posted.first?["post_to_chat"] as? Bool, true)
   }
 
-  /// Story 1128: an ask that already offers Larry's own *Other* shows no second one, and his opens the field: the
-  /// Cockpit gets Igor's words, never the bare word.
+  /// Story 1129: an ask that already offers Larry's own-answer option (keyed other, labelled *Something else*, as on
+  /// 2026-11-22) shows no second *Other*, and his opens the field: the Cockpit gets Igor's words, never the bare label
+  /// and never an empty answer.
   func testLarrysOwnOtherOpensTheFieldAndNeverSendsTheBareWord() throws {
     let cockpit = try fakeCockpit(other: true)
     let app = launch(cockpit, ["GRABBER_INBOX": "open"])
@@ -198,11 +199,13 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertFalse(card.buttons["decision-other"].exists, "no second Other: \(app.debugDescription)")
     let larrys = card.buttons["decision-option-other"]
     XCTAssertTrue(larrys.exists, app.debugDescription)
+    XCTAssertTrue(larrys.label.contains("Something else"), larrys.label)
     larrys.tap()
     let send = app.buttons["decision-other-send"]
     XCTAssertTrue(send.appears(within: 5), "Larry's Other opened the field: \(app.debugDescription)")
+    XCTAssertFalse(send.isEnabled, "Send is off until there are words")
     XCTAssertTrue(card.exists, "nothing answered yet")
-    XCTAssertTrue(try answers(cockpit).isEmpty, "a tap on Other sends nothing")
+    XCTAssertTrue(try answers(cockpit).isEmpty, "a tap on Something else sends nothing")
     let field = otherWords(app)
     field.tap()
     field.typeText("Month to month")

@@ -200,7 +200,25 @@ public enum ChatDecisions {
   /// Igor's own words answer only once there are some.
   public static func canSend(words: String) -> Bool { !words.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
+  /// Why a verb may not go: an own-answer option's bare label, or an own answer with no words (Igor, 2026-11-22).
+  public enum NotSent: Error, Equatable, LocalizedError {
+    case ownAnswerLabel
+    case noWords
+
+    public var errorDescription: String? {
+      switch self {
+      case .ownAnswerLabel: return "an own-answer option goes only with Igor's words, never its label"
+      case .noWords: return "an own answer needs words"
+      }
+    }
+  }
+
   public static func request(_ verb: Verb, ask: ChatAsk, cockpit: String) throws -> URLRequest {
+    switch verb {
+    case .answer(let option) where isOther(option): throw NotSent.ownAnswerLabel
+    case .ownWords(let words) where !canSend(words: words): throw NotSent.noWords
+    default: break
+    }
     let path: String
     let body: [String: Any]
     switch verb {
@@ -362,14 +380,26 @@ public enum ChatDecisions {
 
   // MARK: Other: an answer in Igor's own words (story 1128, bead context-grabber-sm4l)
 
-  /// An option Larry labelled *Other*, in any case, with or without a trailing ellipsis or colon.
+  /// The labels that mean "my own answer", lowercased, with no punctuation around them.
+  static let ownAnswerLabels: Set<String> = [
+    "other", "something else", "type your own answer", "your own answer", "none of these", "none of the above",
+  ]
+
+  /// Larry's own-answer option: keyed `other` (whatever its label), or labelled *Other*, *Something else*, *Type your
+  /// own answer*, *Your own answer*, *None of these* or *None of the above*, in any case and with any punctuation around
+  /// it, alone or as one half of a label such as *Something else / Type your own answer* (Igor, 2026-11-22: that one went as *DECISION: Something else*).
   public static func isOther(_ option: ChatAsk.Option) -> Bool {
-    var label = option.label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-    while let last = label.last, "….:".contains(last) { label.removeLast() }
-    return label.trimmingCharacters(in: .whitespaces) == "other"
+    if option.key.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "other" { return true }
+    let halves = option.label.lowercased().components(separatedBy: CharacterSet(charactersIn: "/|()—"))
+      .flatMap { $0.components(separatedBy: " - ") }
+    return halves.contains { half in
+      let words = half.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+      return ownAnswerLabels.contains(words.joined(separator: " "))
+    }
   }
 
   /// Whether the card adds its own *Other…*: not when Larry's options already have one, which is the way in instead.
+  /// The board's popup adds none either way: its own *Your own answer* field is always under the card.
   public static func addsOther(_ ask: ChatAsk) -> Bool { !ask.options.contains(where: isOther) }
 
   /// What a tap on an option does: answer with it, or, for Larry's *Other*, open the own-words field. The bare word
@@ -381,9 +411,10 @@ public enum ChatDecisions {
 
   public static func tap(_ option: ChatAsk.Option) -> Tap { isOther(option) ? .openOther : .answer(.answer(option)) }
 
-  /// The `decision_shown` event's word on *Other*: the card's own, the ask's, or none (the board has its own field).
-  public static func otherLogName(_ ask: ChatAsk, offered: Bool) -> String {
-    guard offered else { return "none" }
-    return addsOther(ask) ? "added" : "ask"
+  /// The `decision_shown` event's word on *Other*: the ask's own (drawn everywhere, the board's popup too), the card's
+  /// added *Other…*, or none (the board's popup, whose own field is under the card).
+  public static func otherLogName(_ ask: ChatAsk, addsOwn: Bool) -> String {
+    if !addsOther(ask) { return "ask" }
+    return addsOwn ? "added" : "none"
   }
 }

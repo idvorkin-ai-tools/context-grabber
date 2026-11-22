@@ -116,6 +116,8 @@ private struct WhiteboardQuestionPopup: View {
   let logger: BugLogger
   let cardID: String
   @State private var words = ""
+  /// Story 1130: Larry's own-answer option puts the cursor here.
+  @FocusState private var wordsFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
@@ -146,9 +148,9 @@ private struct WhiteboardQuestionPopup: View {
     if let answer = card.answered, !card.needsAnswer {
       answered(card, answer)
     } else if let ask = questions.asks[card.ask] {
-      ChatDecisionCard(decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger) { verb, outcome in
-        questions.decided(card, ask: ask, verb: verb, outcome: outcome)
-      }
+      ChatDecisionCard(
+        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, ownAnswer: { wordsFocused = true },
+        done: { verb, outcome in questions.decided(card, ask: ask, verb: verb, outcome: outcome) })
       ownWords(card, ask)
     } else if questions.reading {
       ProgressView("Loading the question…")
@@ -173,6 +175,7 @@ private struct WhiteboardQuestionPopup: View {
         TextField(ask.options.isEmpty ? "Your answer" : "Your own answer", text: $words, axis: .vertical)
           .lineLimit(1...4)
           .textFieldStyle(.roundedBorder)
+          .focused($wordsFocused)
           .accessibilityIdentifier("whiteboard-question-words")
         MicButton(voice: voice, thread: thread, draft: words, identifier: "whiteboard-question-mic")
         Button {
