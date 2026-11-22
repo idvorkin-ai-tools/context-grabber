@@ -6,7 +6,7 @@ import UIKit
 
 extension PaperBoardController {
   /// A group a finger tapped: its name, its strokes' names, and whether it was already the whole selection. `kind` is
-  /// "group", or "theirs" for one thing of Larry's outside a group (story 1101, PaperBoard+TheirsTap.swift).
+  /// "group", or "theirs" for one thing of Larry's outside a group (story 1140, PaperBoard+TheirsTap.swift).
   struct TappedGroup {
     var name: String
     var names: Set<String>

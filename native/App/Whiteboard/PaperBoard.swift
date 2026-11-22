@@ -610,7 +610,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       return
     }
     // Story 947: with no marks or controls showing, a tap on a group's stroke selects all of it; with it selected, a tap
-    // on its text opens the words (story 940). Story 1101: one thing of Larry's outside a group, the same way.
+    // on its text opens the words (story 940). Story 1141: one thing of Larry's outside a group, the same way.
     if count == 0, model.overlays.list.isEmpty, reword.editing == nil,
       let group = tappedGroup(at: at) ?? tappedTheirs(at: at)
     {

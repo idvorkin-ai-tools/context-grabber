@@ -563,9 +563,10 @@ public struct BoardOutline: Sendable {
     return (tag, names(hit.members))
   }
 
-  /// #1171 (story 1101): the one thing of Larry's (or Claude's) a finger tapped at `point`, outside any group: every
-  /// stroke made at the moment of the one tapped, when `theirs` lists that moment (a mark kept with Keep or Keep all, a
-  /// text of his, a stroke he drew). Nil when his own ink is nearer, on a group's (story 947) or a header's, and off ink.
+  /// #1171 (stories 1140–1142): the one thing of Larry's (or Claude's) a finger tapped at `point`, outside any group:
+  /// every stroke made at the moment of the one tapped, when `theirs` lists that moment (a mark kept with Keep or Keep
+  /// all, a text of his, a stroke he drew). Nil when his own ink is nearer, on a group's (story 947) or a header's, and
+  /// off ink.
   public func theirs(at point: CGPoint, slop: CGFloat, moments theirs: Set<Int64>) -> (moment: Int64, names: [String])?
   {
     guard !theirs.isEmpty, let hit = nearest(at: point, slop: slop), hit.header == nil else { return nil }

@@ -254,8 +254,9 @@ final class BoardOutlineTests: XCTestCase {
     XCTAssertNil(o.group(at: CGPoint(x: 105, y: 412), slop: 22), "a bare text is no group")
   }
 
-  /// Story 1101 (#1171): a finger tap on one thing of Larry's he kept takes that one thing, every stroke made at its
-  /// moment and nothing else: not his ink under it, not Larry's other marks; his ink nearer is his; a group is the group's.
+  /// Stories 1140–1142 (#1171): a finger tap on one thing of Larry's he kept takes that one thing, every stroke made at
+  /// its moment and nothing else: not his ink under it, not Larry's other marks; his ink nearer is his; a group is the
+  /// group's.
   func testAFingerTapOnOneThingOfLarrysTakesItAlone() {
     // A box of his (one stroke) round Larry's text of three glyphs; two marks of Larry's, kept apart, of two strokes each.
     let box = BoardOps.Stroke(
