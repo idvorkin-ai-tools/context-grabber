@@ -230,7 +230,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.05, "where the ghost was")
   }
 
-  /// Stories 616, 808, 810: a tap off the ghosts changes nothing and leaves no dot; Dismiss removes the mark, and then a finger
+  /// Stories 616, 808, 810: a tap off the ghosts dismisses nothing and leaves no dot (and gives the finger its pen, story 1152); Dismiss removes the mark, and then a finger
   /// draws again.
   func testATapOffKeepsTheGhostDismissRemovesItAndAFingerDrawsAgain() throws {
     let app = try openBoard()

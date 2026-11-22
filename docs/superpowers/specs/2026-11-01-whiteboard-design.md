@@ -274,9 +274,10 @@ stay an editable object once saved. That fits the non-goals above.
 pictures reads as written above. The trial's small cross on each page and its ring are there only to test with, and never
 appear on a real board.
 
-**What a finger does on paper isn't settled.** *Who draws* above describes the old canvas. PaperKit has no mode where a finger
-only pans, and four finger drags aren't enough to go on, so the next try on the iPad has to settle it before a story can
-claim anything about fingers.
+**What a finger does on paper.** PaperKit has no mode where a finger only pans; set to select rather than draw, a finger
+drag pans the board and a tap selects, while the Pencil still draws (the iPad's log, 2026-11-22). So where a finger would
+draw, it is set to select while marks show, until a tap off them; and once the Pencil has touched a board, always
+(context-grabber-2eml; the rules are in [Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md)).
 
 ### A new board on paper, by default
 
@@ -318,8 +319,8 @@ so." New boards are on paper from now on, on every device, though the rest of th
 - **Undo and a new page.** Adding a page can count as a step of undo: one press may take back the page and not a stroke.
   The next stroke brings the page back. Whether this matters on the iPad is still to be seen.
 
-The log says which touches were the Pencil's and which a finger's, and what each did, so the next try on the iPad can settle
-what a finger does.
+The log says which touches were the Pencil's and which a finger's, what each did, and each time a finger starts or stops
+drawing and why.
 
 ### Ghosts and Larry on paper
 

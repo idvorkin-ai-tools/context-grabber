@@ -39,7 +39,7 @@ extension PaperBoardController {
     let verdict = finger.verdict
     let mode = verdict.usual ? usual.mode : .selection
     let autoDraws = verdict.usual ? usual.autoDraws : false
-    showFingerForTests(verdict)
+    defer { showFingerForTests(verdict) }
     guard mode != paper.directTouchMode || autoDraws != paper.directTouchAutomaticallyDraws else { return }
     paper.directTouchAutomaticallyDraws = autoDraws
     paper.directTouchMode = mode
@@ -51,8 +51,8 @@ extension PaperBoardController {
       ])
   }
 
-  /// `GRABBER_WHITEBOARD_FINGER_LABEL=1`: the verdict as an element a UI test reads (`whiteboard-finger`: *draws* or
-  /// *taps*, the rule as its value). XCUITest's finger draws on the simulator whatever PaperKit's touch is set to, so the
+  /// `GRABBER_WHITEBOARD_FINGER_LABEL=1`: PaperKit's touch as the board left it, as an element a UI test reads
+  /// (`whiteboard-finger`: *draws* or *taps*, the rule that decided as its value). XCUITest's finger draws on the simulator whatever PaperKit's touch is set to, so the
   /// ink alone can't show it.
   private func showFingerForTests(_ verdict: WhiteboardFinger.Verdict) {
     guard LaunchHooks.current.whiteboard.fingerLabel, isViewLoaded else { return }
@@ -67,7 +67,7 @@ extension PaperBoardController {
         view.addSubview(made)
         return made
       }()
-    label.accessibilityLabel = verdict.usual ? "draws" : "taps"
+    label.accessibilityLabel = fingersDraw ? "draws" : "taps"
     label.accessibilityValue = verdict.why.rawValue
   }
 }
