@@ -63,6 +63,8 @@ final class WhiteboardModel: ObservableObject {
   var opSources: [any BoardOpSource] = [WebBoardOpSource()]
   /// The Pencil and taps since the last turn, for Larry (story 818).
   var events = BoardEvents()
+  /// The mic, timed for the Cockpit's board debug page: spoken words wait here for the next picture (story 1155).
+  var micClock = BoardMicClock()
   /// His texts Igor kept, known by their glyphs' time (story 817).
   var texts: [BoardText]
   /// The names Larry knows moved strokes by: a move never renames a stroke (stories 814, 815); his drawn strokes go by

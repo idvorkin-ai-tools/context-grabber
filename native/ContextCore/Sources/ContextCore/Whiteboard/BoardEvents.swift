@@ -31,6 +31,10 @@ public enum BoardEvent: Equatable, Codable, Sendable {
   case undo(label: String, t: Int64)
   /// A tap on one of Larry's controls (story 846): its tap_event as he wrote it.
   case overlayTap(id: String, event: BoardMeta?, t: Int64)
+  /// The iPad's half of a picture's send, for the Cockpit's debug page (story 1155).
+  case post(BoardPostTiming)
+  /// Spoken words' mic-off-to-text timing, for the Cockpit's debug page (story 1155).
+  case mic(BoardMicTiming)
 
   public var wire: [String: Any] {
     switch self {
@@ -63,6 +67,10 @@ public enum BoardEvent: Equatable, Codable, Sendable {
       var out: [String: Any] = ["type": "overlay_tap", "target_id": id, "overlay_id": id, "t": t]
       if let his = event?.object { out["event"] = his }
       return out
+    case .post(let timing):
+      return timing.wire
+    case .mic(let timing):
+      return timing.wire
     }
   }
 }

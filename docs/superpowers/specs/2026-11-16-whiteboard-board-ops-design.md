@@ -91,6 +91,27 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 - Larry learns when Igor taps the board, and whether the tap landed on one of his marks. That is enough for him to
   offer tap-to-keep, or a tappable band where room will open.
 
+### What the board says about its own sending, for the debug page (Igor, 2026-11-22, bead context-grabber-7zmj)
+
+Igor: "prioritize any missing logging for the debug page on the whiteboard." The Cockpit's board debug page shows
+each picture's way from the iPad to Larry's reply, and lists what nothing records. The parts only the iPad knows go
+with each picture:
+
+- **Which build sent it.** Every picture the board hands to Larry (the board's own hand-off and *Send to Larry*), and
+  every batch of events sent between turns, names the app's build: its commit and branch, as a shake report names
+  them.
+- **The picture's own half of its way.** With each picture the board hands to Larry, one more event among its
+  events says when the message left the iPad (to the millisecond), how long the picture took to draw and to encode,
+  how long its strokes and its image took to go up, its size, the build, and whether it was a first send or a
+  *Retry*. A *Retry* says its own times; it never repeats the first send's.
+- **Mic off to text.** Each time words Igor spoke are taken for a turn, an event says when the mic opened, when the
+  first words were heard, when the mic closed (none if it was still open), when the words were ready, and when they
+  went with a picture, with the gaps between them in milliseconds and how many characters there were (never the
+  words). Words said while the mic stays open are timed from the words before them. They ride with the next picture
+  that goes to Larry, or the next batch of events sent between turns; words Ghosts off drops are not timed.
+- None of this changes what Igor sees on the board. A Cockpit that doesn't yet read these fields keeps them as they
+  came, and the debug page shows them once it reads them.
+
 ### Driven from the web or from the app (Igor, 2026-11-16)
 
 - The board takes changes from one place, whoever sends them. Today that is Larry over the network. Later, Larry's

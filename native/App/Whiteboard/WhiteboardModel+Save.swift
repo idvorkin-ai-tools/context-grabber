@@ -94,9 +94,12 @@ extension WhiteboardModel {
     draft.image = jpeg
     let title = store.index.board(board.id)?.title ?? board.title
     draft.text = words.map { "\(title): \($0)" } ?? title
+    // Story 1155: spoken words waiting go among this picture's events.
+    micTimingsGo()
     var sending = WhiteboardPicture(
       board: board.id, title: title, rect: shot.rect, scale: shot.scale, report: turnReport())
     sending.folds = shot.folds
+    sending.build = Self.buildLine
     draft.whiteboard = sending
     pictureTimes.record(sending.pictureID, at: Self.unixMs(), board: board.id)
     pictureFolds.record(sending.pictureID, map: shot.folds, board: board.id)

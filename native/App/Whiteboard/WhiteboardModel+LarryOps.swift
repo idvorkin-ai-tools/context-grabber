@@ -120,12 +120,14 @@ extension WhiteboardModel {
   /// Story 846: the events so far go to the Cockpit now, not with the next turn. Taken, they're gone; not taken (no
   /// route yet, or no answer), they wait for the next turn, and the log says which.
   private func sendEventsNow(why: String) {
+    // Story 1155: spoken words waiting go with these events.
+    micTimingsGo()
     let taken = events.take()
     let report = BoardTurnReport(
       rev: ops.rev, opResult: ops.lastResult, events: taken.events, eventsDropped: taken.dropped)
     let request: URLRequest
     do {
-      request = try BoardEventsSend.request(board: board.id, report: report, cockpit: cockpit)
+      request = try BoardEventsSend.request(board: board.id, report: report, cockpit: cockpit, build: Self.buildLine)
     } catch {
       events.restore(taken)
       log.event("board_events", ["action": "held", "board": board.id, "why": why, "reason": "\(error)"])

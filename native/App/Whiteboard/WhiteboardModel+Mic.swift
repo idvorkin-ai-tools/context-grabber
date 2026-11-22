@@ -16,6 +16,8 @@ extension WhiteboardModel {
       MainActor.assumeIsolated {
         self?.micOn = on
         self?.hearing(on ? "listening" : nil)
+        // Story 1155: a mic that stops by itself is closed too.
+        if !on { self?.micClock.closed(t: Self.micNowMs) }
       }
     }
     .store(in: &dictationWatches)
@@ -76,6 +78,7 @@ extension WhiteboardModel {
     }
     if problem?.context == "WhiteboardView.mic" { problem = nil }
     log.event("whiteboard", ["action": "mic_on", "board": board.id])
+    micClock.opened(t: Self.micNowMs)
     openMic(listing: true)
   }
 
@@ -137,6 +140,7 @@ extension WhiteboardModel {
     }
     silenceTask?.cancel()
     log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": "switch_mic"])
+    micClock.closed(t: Self.micNowMs)
     micOpening = true
     Task {
       await dictation.finish(why: "switch_mic")
@@ -146,6 +150,7 @@ extension WhiteboardModel {
       log.event(
         "whiteboard",
         ["action": "mic_on", "board": board.id, "why": "switch_mic", "picked": dictation.selectedMicrophoneID == id])
+      micClock.opened(t: Self.micNowMs)
       openMic(listing: false)
     }
   }
@@ -161,6 +166,7 @@ extension WhiteboardModel {
     }
     silenceTask?.cancel()
     log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": why])
+    micClock.closed(t: Self.micNowMs)
     Task {
       await dictation.finish(why: why)
       spoke()
@@ -170,6 +176,7 @@ extension WhiteboardModel {
   private func heard(_ text: String) {
     speech.heard(text)
     lastSaid.heard(text)
+    micClock.heard(t: Self.micNowMs)
     silenceTask?.cancel()
     silenceTask = Task { [weak self] in
       try? await Task.sleep(for: .seconds(1))
@@ -183,7 +190,11 @@ extension WhiteboardModel {
   private func spoke() {
     guard let words = speech.takeNew() else { return }
     let went = turns.spoke(words)
-    log.event("whiteboard", ["action": "spoke", "board": board.id, "chars": words.count, "went": went.rawValue])
+    var event: [String: Any] = ["action": "spoke", "board": board.id, "chars": words.count, "went": went.rawValue]
+    // Story 1155: the mic's timing goes with the next picture, unless Ghosts off dropped the words.
+    let timing = micClock.taken(t: Self.micNowMs, chars: words.count, kept: went != .ghostsOff)
+    event.merge(timing?.gaps ?? [:]) { $1 }
+    log.event("whiteboard", event)
     guard went == .now else { return }
     // This turn's picture has the strokes a waiting pause would ask about.
     cancelPause()

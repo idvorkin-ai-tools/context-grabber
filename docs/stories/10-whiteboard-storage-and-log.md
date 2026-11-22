@@ -344,3 +344,63 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** iCloud refused a thread earlier this launch
 - **When:** the next sync runs
 - **Then:** boards with new ink go up without their threads, a board with nothing new but its thread isn't sent again, and the next launch offers the threads again, so they go up once production has the field
+
+---
+
+### User Story 1155:
+
+- **Summary:** Each picture the board sends Larry names its build and its own timings, so the Cockpit's board debug page can show them
+- **Status:** implemented in [dbecb551](https://github.com/idvorkin/context-grabber/commit/dbecb551); verified by host tests (`BoardDebugTimingTests`: the mic clock's gaps with the mic closed and still open, dropped and hook words untimed, the cap; the message's build, `post` and `mic` events; the events batch's build; a queued picture without a build still reads), the Mac build (rung 1.5), and the same JSON run through the Cockpit's own `chat_store.clean_marks`, `whiteboard_events` and `board_debug.payload` on a scratch data dir (accepted; the turn row keeps `post` and `mic`; the page does not show them yet, the Cockpit's part). Not yet seen on the iPad (rung 3 owed: real mic timings)
+- **Issues:** bead context-grabber-7zmj (Igor, 2026-11-22: "prioritize any missing logging for the debug page on the whiteboard")
+- **Spec:** [Board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *What the board says about its own sending, for the debug page*
+
+#### Use Case:
+- **As someone** watching the Cockpit's board debug page while I write on the iPad
+- **I want to** see which build sent each picture and how long the iPad took to draw, encode and send it
+- **so that** a slow turn is pinned on the iPad or the Cockpit from the page, not guessed
+
+#### Acceptance Criteria:
+- **Scenario:** A picture handed to Larry
+- **Given:** a board whose responder is Larry
+- **When:** a picture goes to him, first or by *Retry*
+- **Then:** its message names the app's commit and branch, and its events end with one `post` event saying when it left, its draw, encode, strokes and upload times, its size and the build; a *Retry* carries its own, once
+
+---
+
+### User Story 1156:
+
+- **Summary:** Words spoken to the board carry their mic-on-to-sent timing to the Cockpit's board debug page, never the words
+- **Status:** implemented in [dbecb551](https://github.com/idvorkin/context-grabber/commit/dbecb551); verified by host tests (`BoardDebugTimingTests`: the mic clock's gaps with the mic closed and still open, dropped and hook words untimed, the cap; the message's build, `post` and `mic` events; the events batch's build; a queued picture without a build still reads), the Mac build (rung 1.5), and the same JSON run through the Cockpit's own `chat_store.clean_marks`, `whiteboard_events` and `board_debug.payload` on a scratch data dir (accepted; the turn row keeps `post` and `mic`; the page does not show them yet, the Cockpit's part). Not yet seen on the iPad (rung 3 owed: real mic timings)
+- **Issues:** bead context-grabber-7zmj (Igor, 2026-11-22: "prioritize any missing logging for the debug page on the whiteboard")
+- **Spec:** [Board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *What the board says about its own sending, for the debug page*
+
+#### Use Case:
+- **As someone** speaking to a board while watching the Cockpit's board debug page
+- **I want to** see how long my spoken words took from mic on, to first words, to mic off, to text, to going with a picture
+- **so that** a slow spoken turn is pinned on the mic, the recognizer or the send, not guessed
+
+#### Acceptance Criteria:
+- **Scenario:** Words spoken to the board
+- **Given:** the mic open on a board with Ghosts on
+- **When:** I speak, close the mic, and the words go with the next picture
+- **Then:** that picture's events carry one `mic` event with the mic on, first words, mic off, words ready and sent times and the gaps between them in milliseconds, and the count of characters, never the words
+
+---
+
+### User Story 1157:
+
+- **Summary:** Events the board sends between turns name the build and carry any spoken-word timing waiting
+- **Status:** implemented in [dbecb551](https://github.com/idvorkin/context-grabber/commit/dbecb551); verified by host tests (`BoardDebugTimingTests`: the mic clock's gaps with the mic closed and still open, dropped and hook words untimed, the cap; the message's build, `post` and `mic` events; the events batch's build; a queued picture without a build still reads), the Mac build (rung 1.5), and the same JSON run through the Cockpit's own `chat_store.clean_marks`, `whiteboard_events` and `board_debug.payload` on a scratch data dir (accepted; the turn row keeps `post` and `mic`; the page does not show them yet, the Cockpit's part). Not yet seen on the iPad (rung 3 owed: real mic timings)
+- **Issues:** bead context-grabber-7zmj (Igor, 2026-11-22: "prioritize any missing logging for the debug page on the whiteboard")
+- **Spec:** [Board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *What the board says about its own sending, for the debug page*
+
+#### Use Case:
+- **As someone** tapping Larry's controls on the board while watching the Cockpit's board debug page
+- **I want to** see which build sent each batch of events, and the mic timing of words spoken before it
+- **so that** the page never loses a build or a mic timing because it went between pictures
+
+#### Acceptance Criteria:
+- **Scenario:** Events sent between turns
+- **Given:** a tap on one of Larry's controls sends the events at once, with a `mic` event waiting
+- **When:** they go
+- **Then:** the post names the build too, and the waiting `mic` event goes with them
