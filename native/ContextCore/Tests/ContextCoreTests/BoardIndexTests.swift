@@ -381,7 +381,7 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertNil(phone.whyNotOpen("a"))
   }
 
-  /// Bead context-grabber-1jb4 (story 1074): a board from iCloud is out of the list until its first drawing has come
+  /// Bead context-grabber-1jb4 (story 1090): a board from iCloud is out of the list until its first drawing has come
   /// down, so a failed first download never opens blank; one that arrived once stays while a newer version fails.
   func testABoardIsListedOnlyOnceItsDrawingIsHere() {
     var phone = BoardIndex()
