@@ -89,10 +89,9 @@ final class WhiteboardDropRoomUITests: XCTestCase {
     let to = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y + dy))
     from.press(forDuration: 0.3, thenDragTo: to, withVelocity: 200, thenHoldForDuration: 0.5)
 
-    let dropped = PaperScreen.showing(app, within: 10, { $0.larryKept }) { abs($0.center.y - mine.center.y) < 0.03 }
-    let pushed = PaperScreen.showing(app, within: 10, { $0.ink }) { box in
-      dropped.map { box.minY > $0.maxY } ?? false
-    }
+    let dropped = PaperScreen.showing(app, within: 10, { $0.larryKept }, { abs($0.center.y - mine.center.y) < 0.03 })
+    let pushed = PaperScreen.showing(
+      app, within: 10, { $0.ink }, { box in dropped.map { box.minY > $0.maxY } ?? false })
     shot(app, "dropped on my line")
     XCTAssertNotNil(dropped, "the group stays where I let go")
     let group = try XCTUnwrap(dropped)
@@ -104,8 +103,8 @@ final class WhiteboardDropRoomUITests: XCTestCase {
     let undo = app.buttons["whiteboard-undo"]
     waitUntil(NSPredicate(format: "isEnabled == true"), undo, timeout: 5)
     undo.tap()
-    let lineBack = PaperScreen.showing(app, within: 10, { $0.ink }) { abs($0.minY - mine.minY) < 0.01 }
-    let groupBack = PaperScreen.showing(app, within: 10, { $0.larryKept }) { abs($0.minY - kept.minY) < 0.01 }
+    let lineBack = PaperScreen.showing(app, within: 10, { $0.ink }, { abs($0.minY - mine.minY) < 0.01 })
+    let groupBack = PaperScreen.showing(app, within: 10, { $0.larryKept }, { abs($0.minY - kept.minY) < 0.01 })
     shot(app, "after one undo")
     XCTAssertEqual(lineBack?.minY ?? -1, mine.minY, accuracy: 0.01, "one Undo put my line back")
     XCTAssertEqual(groupBack?.minY ?? -1, kept.minY, accuracy: 0.01, "and the group back where it was")
