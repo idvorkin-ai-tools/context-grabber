@@ -1,7 +1,8 @@
 //
 //  BoardThreadLookup.swift
-//  #1163, stories 1097, 1101: the board's chat thread from a device that never sent it, for the boards list's chat
-//  bubble and the note's tap on an iPhone. The rules are `BoardThreadFind`'s; this reads the Cockpit and logs.
+//  #1163, stories 1097, 1110: the board's chat thread from a device that never sent it, for the boards list's chat
+//  bubble and the note's tap on an iPhone: the board's own thread through iCloud first (#1161), then the chats. The
+//  rules are `BoardThreadFind`'s; this reads the Cockpit and logs.
 //
 
 import BugKit
@@ -23,10 +24,18 @@ enum BoardThreadLookup {
   private static var found: [String: String] = [:]
   private static var looking: Set<String> = []
 
-  static func find(board: String, title: String, cockpit: String, log: SessionLog, from: String) async -> Answer {
+  /// `icloud`: the thread the board's iCloud copy carries (#1161), the first source after this device's own. The look
+  /// among the chats below is a stopgap for boards the drawing device hasn't sent up since boards carried a thread.
+  static func find(
+    board: String, title: String, icloud: String?, cockpit: String, log: SessionLog, from: String
+  ) async -> Answer {
     if let key = WhiteboardThreads().thread(board: board) {
       return answered(
         .thread(key), board: board, from: from, log: log, fields: ["source": BoardThreadFind.Source.device.rawValue])
+    }
+    if let key = icloud {
+      return answered(
+        .thread(key), board: board, from: from, log: log, fields: ["source": BoardThreadFind.Source.icloud.rawValue])
     }
     if let key = found[board] {
       return answered(

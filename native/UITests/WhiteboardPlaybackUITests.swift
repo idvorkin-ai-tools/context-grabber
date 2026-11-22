@@ -59,7 +59,7 @@ final class WhiteboardPlaybackUITests: XCTestCase {
     XCTAssertFalse(send.exists, "nothing on the board's bar can be tapped while it plays")
     waitFor(status, label: "Stroke 3 of 3, paused", timeout: 30)
     keep(app, "the board played back to its end")
-    // Story 955 (#1169): all three strokes are on the screen, so no label says the ink is above or below.
+    // Story 1111 (#1169): all three strokes are on the screen, so no label says the ink is above or below.
     XCTAssertFalse(app.descendants(matching: .any)["whiteboard-playback-offscreen"].exists, app.debugDescription)
 
     // Story 956: a tap on the second stroke goes back to when it began: the first showing, the second next.

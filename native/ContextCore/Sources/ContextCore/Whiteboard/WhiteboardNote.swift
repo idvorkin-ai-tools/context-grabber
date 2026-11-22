@@ -140,25 +140,29 @@ public enum WhiteboardNote {
   public enum Tap: Equatable, Sendable {
     /// Opens or closes the panel.
     case toggle
-    /// On an iPhone, which has no panel: the board's thread in Chat.
-    case openChat(String)
+    /// On an iPhone, which has no panel: the board's thread in Chat, this device's own or the one the board carries
+    /// through iCloud (#1161).
+    case openChat(String, fromICloud: Bool = false)
     /// On an iPhone, a board with no thread on this device: the note says where its conversation is (#1161).
     case nothing
 
     /// How the thread was found, for `conversation_chat`: `this_device` (the thread this device keeps for the
-    /// board) or `none`; nil for the panel's toggle, which looks for none.
+    /// board), `icloud` (the one the board's iCloud copy carries, #1161) or `none`; nil for the panel's toggle, which
+    /// looks for none.
     public var found: String? {
       switch self {
       case .toggle: nil
-      case .openChat: "this_device"
+      case .openChat(_, let fromICloud): fromICloud ? "icloud" : "this_device"
       case .nothing: "none"
       }
     }
   }
 
-  public static func tap(onPhone: Bool, thread: String?) -> Tap {
+  /// `thread`: this device's own for the board, which wins; `icloud`: the one the board carries through iCloud.
+  public static func tap(onPhone: Bool, thread: String?, icloud: String? = nil) -> Tap {
     guard onPhone else { return .toggle }
-    return thread.map { .openChat($0) } ?? .nothing
+    if let thread { return .openChat(thread) }
+    return icloud.map { .openChat($0, fromICloud: true) } ?? .nothing
   }
 
   /// #1161 (story 769): what the note says when a tap on an iPhone finds no thread. A board's thread is known only to

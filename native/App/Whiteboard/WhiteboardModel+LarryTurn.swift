@@ -35,9 +35,11 @@ extension WhiteboardModel {
 
   /// Story 768: a tap on the note's line opens or closes the panel over the board, remembered for the next board; an
   /// iPhone has no panel, so it opens the board's thread in Chat, found among the chats when another device sent the
-  /// board (story 1101, #1163), or says where the conversation is when none is found (story 769, #1161).
+  /// board (story 1110, #1163), or says where the conversation is when none is found (story 769, #1161).
   func tapNote(onPhone: Bool, openChat: @escaping (String) -> Void) {
-    let tap = WhiteboardNote.tap(onPhone: onPhone, thread: threadKey)
+    // The board as the store has it now: a sync since the board opened may have brought its thread (#1161).
+    let icloud = store.index.board(board.id)?.thread ?? board.thread
+    let tap = WhiteboardNote.tap(onPhone: onPhone, thread: threadKey, icloud: icloud)
     switch tap {
     case .toggle:
       conversationOpen.toggle()
@@ -45,7 +47,7 @@ extension WhiteboardModel {
       log.event(
         "whiteboard",
         ["action": "conversation", "board": board.id, "open": conversationOpen, "messages": thread.count])
-    case .openChat(let key):
+    case .openChat(let key, _):
       log.event(
         "whiteboard", ["action": "conversation_chat", "board": board.id, "thread": key, "found": tap.found ?? ""])
       openChat(key)
@@ -56,7 +58,7 @@ extension WhiteboardModel {
       let drawnOn = store.editable(board) ? nil : board.deviceName
       Task { [weak self, board = self.board, cockpit = self.cockpit, log = self.log] in
         let answer = await BoardThreadLookup.find(
-          board: board.id, title: title, cockpit: cockpit, log: log, from: "note")
+          board: board.id, title: title, icloud: icloud, cockpit: cockpit, log: log, from: "note")
         switch answer {
         case .thread(let key): openChat(key)
         case .problem(let problem):
@@ -141,6 +143,8 @@ extension WhiteboardModel {
       // A reply that lands before the first look at a new thread is still his answer.
       if thread == nil { marks.threadStarted() }
       threads.set(key, board: board.id)
+      // #1161: a new thread goes up with the board, so the iPhone can open it, without waiting for the board to close.
+      if thread != key { Task { [store] in await store.sync(reason: "thread") } }
       // The Cockpit has the picture (story 775): it isn't stuck. Kept apart from the marks the thread shows, so a
       // Cockpit that marks nothing never reads *Sent* (story 773).
       if larryOut?.picture.pictureID == picture.pictureID { larryOut?.delivered = true }

@@ -196,7 +196,8 @@ struct WhiteboardListView: View {
     defer { findingChat = nil }
     chatProblem = nil
     let answer = await BoardThreadLookup.find(
-      board: board.id, title: board.title, cockpit: app.chat.cockpit, log: app.log, from: "list")
+      board: board.id, title: board.title, icloud: store.index.board(board.id)?.thread ?? board.thread,
+      cockpit: app.chat.cockpit, log: app.log, from: "list")
     switch answer {
     case .thread(let key): app.open(route: .chat(thread: key), from: "whiteboard_list")
     case .problem(let problem): chatProblem = problem
