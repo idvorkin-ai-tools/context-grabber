@@ -637,7 +637,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 099:
 
 - **Summary:** Larry hears that I arrived at a known place, within a few minutes, without a call
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too). Holding and sending to the Cockpit's `POST /context` (the shape proposed to Larry on 2026-11-20) is built in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6) and verified by host tests against a fake Cockpit (`LiveContextSendTests`); the route is not on the Cockpit yet, so events wait and the phone is not yet seen; [1e6fe81](https://github.com/idvorkin/context-grabber/commit/1e6fe81): turning Background tracking off inside the five minutes sends nothing for it, even on a later foreground, verified by host tests (`LiveContextSendTests.testWithRecordingOffTheQuietSettlesNothing`, which did not build before the fix) and the Mac build. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too). Holding and sending to the Cockpit's `POST /context` (the shape proposed to Larry on 2026-11-20) is built in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6) and verified by host tests against a fake Cockpit (`LiveContextSendTests`); the route is not on the Cockpit yet, so events wait and the phone is not yet seen. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
 
 #### Use Case:
 - **As a** Larry's client arriving at the gym
@@ -650,12 +650,27 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** the phone has been inside its circle for five minutes
 - **Then:** Larry's record shows *arrived at Kettlebility* with the time I walked in, and the session log has a `live_context` line for it
 
+- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
+
+---
+
+### User Story 1070:
+
+- **Summary:** Turning Background tracking off stops Larry hearing about an arrival or departure not yet noticed
+- **Status:** implemented in [1e6fe81](https://github.com/idvorkin/context-grabber/commit/1e6fe81); verified by host tests (`LiveContextSendTests.testWithRecordingOffTheQuietSettlesNothing`, which did not build before the fix) and the Mac build; the phone not yet. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
+
+#### Use Case:
+- **As a** Larry's client who turns Background tracking off
+- **I want to** have nothing about where I am reach Larry once recording is off
+- **so that** switching tracking off means the phone stops telling Larry where I go
+
+#### Acceptance Criteria:
 - **Scenario:** Background tracking turned off before the five minutes are up
-- **Given:** I walked into Kettlebility two minutes ago and *Tell Larry when I arrive and leave* is on
-- **When:** I turn Background tracking off, and open the app an hour later
+- **Given:** I walked into Kettlebility two minutes ago, *Tell Larry when I arrive and leave* is on, and I have just turned Background tracking off
+- **When:** I open the app an hour later
 - **Then:** nothing is sent about Kettlebility, while an arrival or departure noticed before tracking went off still goes
 
-- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84), context-grabber-1zrt (a foreground after tracking went off let a pending arrival or departure settle and be sent)
+- **Issues:** context-grabber-1zrt (a foreground after tracking went off let a pending arrival or departure settle and be sent)
 
 ---
 
