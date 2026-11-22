@@ -1,6 +1,6 @@
 # Story ID reservations and the pre-merge check
 
-Bead `context-grabber-jg3w`. Stories 791, 792 and 793 in [Building and testing](../../stories/11-building-and-testing.md).
+Bead `context-grabber-jg3w`. Stories 791 to 794 in [Building and testing](../../stories/11-building-and-testing.md).
 
 ## Summary
 
@@ -53,9 +53,10 @@ this fixes), when the journey names no row or more than one, and when the journe
 
 A recipe, run in the branch's checkout immediately before merging its PR: it fetches main and the branch as pushed
 (the pipeline adds its own commits to the PR, so the local branch can be behind it), merges the two without touching
-the checkout, and runs the story ID check on the stories of the merged result. It fails when the merge conflicts,
-when the pushed branch is not the local one, or when the merged stories fail the check, naming each problem the way
-the host rung does. It passes, and says so, otherwise.
+the checkout, and runs the story ID check on the stories of the merged result. When the checkout is behind the pushed
+branch it says so and checks the pushed one, since that is what merges; a branch not pushed yet is checked as it is
+locally. It fails when the merge conflicts or when the merged stories fail the check, naming each problem the way the
+host rung does. It passes, and says so, otherwise.
 
 ## Acceptance criteria
 
@@ -64,6 +65,6 @@ the host rung does. It passes, and says so, otherwise.
 - A reservation older than 24 hours, or whose ID has reached main, no longer holds its ID.
 - With the open PRs unreadable, it fails and prints no ID.
 - Two branches that each pass the story ID check alone, but add the same ID, fail the pre-merge check; one that
-  doesn't collide passes.
+  doesn't collide passes; one whose pushed commits add the colliding ID fails even when the checkout is behind them.
 - The agent instructions say: new stories take their IDs from the reserve command, and the pre-merge check runs
   right before every merge.

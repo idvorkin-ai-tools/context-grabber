@@ -198,9 +198,9 @@ out=$(reserve "$tmp/ledger3.json" the)
 check "a word that names two journeys fails" "$out|$?|$(grep -c 'names 2 journeys' "$tmp/reserve.err")" "|1|1"
 out=$(FAKE_GH_FAIL=1 reserve "$tmp/ledger3.json" second)
 check "with the open PRs unreadable it hands out nothing" "$out|$?|$([ -e "$tmp/ledger3.json" ] && echo written || echo untouched)" "|1|untouched"
-for k in 1 2 3 4 5 6; do reserve "$tmp/race.json" 02-b.md >"$tmp/race.$k" & done
+for k in 1 2 3 4 5 6; do STORY_IDS_HOLD=0.3 reserve "$tmp/race.json" 02-b.md >"$tmp/race.$k" & done
 wait
-check "six reservations at once get six different IDs" "$(cat "$tmp"/race.? | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
+check "six reservations at once, each holding the ledger a while, get six different IDs" "$(cat "$tmp"/race.? | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
 
 # --- pre-merge (story 1029): two branches that each pass alone but add the same ID fail once merged with main.
 g() { git -c user.name=t -c user.email=t@t -c core.hooksPath=/dev/null -c init.defaultBranch=main "$@"; }
@@ -218,6 +218,7 @@ mkdir -p "$repo/docs" && cp -R "$tmp/pm" "$repo/docs/stories"
  g checkout -q main && g checkout -q -b fine && entry 4 >>docs/stories/01-a-more.md && g commit -qam "story 4" && g push -q origin fine
  g checkout -q main && entry 2 >>docs/stories/01-a.md && g commit -qam "main: story 2" && g push -q origin main
  g checkout -q -b clash origin/main~1 && sed -i.bak 's/s1$/one/' docs/stories/01-a.md && rm -f docs/stories/01-a.md.bak && g commit -qam clash
+ g checkout -q fine && g checkout -q -b behind && entry 2 >>docs/stories/01-a-more.md && g commit -qam "pipeline: story 2" && g push -q origin behind && g reset -q --hard HEAD~1
  g checkout -q main && sed -i.bak 's/s1$/uno/' docs/stories/01-a.md && rm -f docs/stories/01-a.md.bak && g commit -qam uno && g push -q origin main) >/dev/null 2>&1
 premerge() { (cd "$repo" && g checkout -q "$1" && "$OLDPWD/scripts/native/pre-merge.sh"); }
 out=$(premerge dup 2>&1)
@@ -225,6 +226,9 @@ check "pre-merge fails a branch that collides with main once merged, naming both
   "$?|$(grep '^FAIL story' <<<"$out")" "1|FAIL story 2 is used 2 times: 01-a-more.md:7, 01-a.md:7"
 out=$(premerge fine 2>&1)
 check "pre-merge passes a branch whose IDs are still free on main" "$?|$(grep -c '^ok   pre-merge' <<<"$out")" "0|1"
+out=$(premerge behind 2>&1)
+check "pre-merge judges the branch as pushed when the checkout is behind it" \
+  "$?|$(grep -c '^note pre-merge: checking origin/behind' <<<"$out")|$(grep -c '^FAIL story 2 is used 2 times' <<<"$out")" "1|1|1"
 out=$(premerge clash 2>&1)
 check "pre-merge fails a branch that conflicts with main" "$?|$(grep -c 'conflicts with origin/main' <<<"$out")" "1|1"
 

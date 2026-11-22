@@ -718,7 +718,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 791:
 
 - **Summary:** A new story's ID is reserved, never picked from the branch alone
-- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations started at once get six different IDs; a journey named by a word from its row, a word that names two journeys, a journey with too few free IDs and unreadable open PRs each behave as below. This story's own ID, and 792 and 793, came from the command
+- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations started at once get six different IDs; six reservations held open at once inside the ledger's lock get six different IDs, and a journey is found by a word from its row. This story's own ID, and 792 to 794, came from the command
 - **Issues:** bead context-grabber-jg3w (parallel PRs each took "the next free ID" from their own branch; each passed story 789's check alone, and main took duplicates four times on 2026-11-22: 955, 1101, 1155, 1113–1115)
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 
@@ -731,7 +731,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Two agents reserve IDs in the same journey
 - **Given:** main, the branch's own stories, the story headings open PRs add, and IDs another agent on this Mac reserved in the last day
 - **When:** each runs `scripts/native/story-ids.py reserve <journey> [n]`, at the same moment
-- **Then:** each gets the lowest free IDs of that journey's ranges, one per line, none of them taken by any of those or by the other; it hands out nothing, and says why, when it can't fetch main or list the open PRs, the journey is ambiguous, or the journey has no free ID left (add the next block of twenty to its row)
+- **Then:** each gets the lowest free IDs of that journey's ranges, one per line, none of them taken by any of those or by the other
 
 ---
 
@@ -771,7 +771,27 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Main gained a story with the same ID since the branch was checked
 - **Given:** the branch's PR has passed the pipeline, and main has since merged another PR that added a story with one of its IDs
 - **When:** the agent runs `just pre-merge` immediately before `gh pr merge`
-- **Then:** it fails naming the ID and both places, from the branch as pushed (the pipeline's own commits included) merged with main without touching the checkout; a merge that conflicts fails too; with neither it passes and the agent merges; nothing is checked if the agent merges in the seconds between, which the host rung on main still catches
+- **Then:** it fails naming the ID and both places, judging the branch as pushed (the pipeline's own commits included, even when the checkout is behind them) merged with main, without touching the checkout
+
+---
+
+### User Story 794:
+
+- **Summary:** A reservation that can't see everything hands out nothing
+- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: with the fake gh failing to list the open PRs it prints no ID, exits 1 and leaves the ledger unwritten; a word that names two journeys and a journey with too few free IDs fail the same way, the last saying to add a block of twenty
+- **Issues:** bead context-grabber-jg3w
+- **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
+
+#### Use Case:
+- **As Igor,** with agents that reserve IDs from flaky networks
+- **I want to** have a reservation fail rather than guess when it can't read main or the open PRs
+- **so that** an ID chosen blind, the bug reservations exist to stop, is never handed out
+
+#### Acceptance Criteria:
+- **Scenario:** The open PRs can't be listed
+- **Given:** gh can't reach GitHub, or main can't be fetched
+- **When:** an agent runs the reserve command
+- **Then:** it prints no ID, says what it couldn't read, exits non-zero and reserves nothing; it fails the same way when the journey word names more than one journey or the journey has no free ID left, which says to add the next block of twenty to its row
 
 ---
 

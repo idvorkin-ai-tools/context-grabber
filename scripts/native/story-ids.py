@@ -20,7 +20,7 @@ and not yet on main. The ledger is read and written under a lock, so two reserva
 Fails, handing out nothing, when main can't be fetched or the open PRs can't be listed.
 Overrides, for the tests: STORY_IDS_LEDGER (default ~/tmp/agent/locks/story-ids.json), STORY_IDS_GH (the gh command),
 STORY_IDS_MAIN (a stories dir read as main instead of origin/main), STORY_IDS_NOW (epoch seconds),
-STORY_IDS_BRANCH (the branch the ledger records).
+STORY_IDS_BRANCH (the branch the ledger records), STORY_IDS_HOLD (seconds to hold the lock, so the race test overlaps).
 """
 import fcntl
 import json
@@ -205,6 +205,7 @@ def reserve(root, query, n):
     # it is replaced.
     with open(ledger + ".lock", "a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
+        time.sleep(float(os.environ.get("STORY_IDS_HOLD", "0")))  # the race test widens the window it guards
         try:
             with open(ledger, encoding="utf-8") as fh:
                 held = json.load(fh).get("reservations", [])
