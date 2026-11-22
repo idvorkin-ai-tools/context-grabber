@@ -518,12 +518,12 @@ Where that ink came from isn't known yet; the log is what will say.
   marks waiting to be kept), an ink with no name it knows comes back as the pen in that colour.
 - **The log names it**: the first stroke of each unknown kind in a session logs that kind, as the ink spells it, where it
   was met, and how many points the stroke has, so the next time it happens the log says what it was.
-- **The board it is on always opens again** (bead context-grabber-3b02). A saved board with an ink this build can't read
-  back would not open, and would be held to look at only. So before a board is saved, each unknown kind is tried: one
-  that reads back is saved as it is; one that doesn't is saved as the pen in its own colour and strength (a hidden stroke
-  stays hidden), its shape and place unchanged. On the screen it stays as drawn until the board is opened again, when it
-  is a pen stroke, and goes to Larry as *pen* from then on. Each save that holds an unknown ink logs its kinds, whether
-  they read back, and how many strokes were saved as the pen.
+- **The board it is on always opens again** (story 1092, bead context-grabber-3b02). A saved board with an ink this
+  build can't read back would not open, and would be held to look at only. So before a board is saved, each unknown
+  kind is tried: one that reads back is saved as it is; one that doesn't is saved as the pen in its own colour and
+  strength (a hidden stroke stays hidden), its shape and place unchanged. On the screen it stays as drawn until the
+  board is opened again, when it is a pen stroke, and goes to Larry as *pen* from then on. Each save that holds an
+  unknown ink logs its kinds, whether they read back, and how many strokes were saved as the pen.
 
 ### The log says which tool Igor picked (story 1064, #1078; Igor, 2026-11-21: "Switched to eraser still drew normally")
 

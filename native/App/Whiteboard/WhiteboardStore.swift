@@ -236,7 +236,7 @@ final class WhiteboardStore: ObservableObject {
       ProcessInfo.processInfo.systemUptime
     }
     defer { log.event("whiteboard", timing.fields) }
-    // Bead context-grabber-3b02 (story 1063): an ink this build can't read back is saved as the pen, so the board opens.
+    // Bead context-grabber-3b02 (story 1092): an ink this build can't read back is saved as the pen, so the board opens.
     let (saving, inks) = WhiteboardInk.savable(drawing)
     if let inks {
       log.event(
