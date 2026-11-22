@@ -57,6 +57,20 @@ final class BoardRoomDropTests: XCTestCase {
     XCTAssertNil(BoardRoom.drop(block, from: from, among: [writing(100), neighbour, writing(300)]))
   }
 
+  /// Story 929, from the iPad's log of 2026-11-22 (board ead78e80): Larry's kept text, lifted from below, dropped on
+  /// Igor's first line. His two lines go down together, clear of it, by whole lines.
+  func testAKeptTextDroppedOnHisWritingPushesItDown() {
+    let from = CGRect(x: 34, y: 223, width: 248, height: 25)
+    let block = CGRect(x: 111, y: 67, width: 248, height: 25)
+    let first = CGRect(x: 23, y: 54, width: 503, height: 41)
+    let second = CGRect(x: 23, y: 97, width: 108, height: 27)
+    let push = try? XCTUnwrap(BoardRoom.drop(block, from: from, among: [first, second]))
+    XCTAssertEqual(push?.cut, first.minY, "between lines: above his first line, not through it")
+    let dy = push?.dy ?? 0
+    XCTAssertEqual(dy.truncatingRemainder(dividingBy: line), 0, "whole lines")
+    XCTAssertGreaterThanOrEqual(first.minY + dy, block.maxY + air, "his first line now sits under it, with air")
+  }
+
   func testAWordDraggedFromItsLineOntoTheNextPushesIt() {
     let from = CGRect(x: 100, y: 202, width: 60, height: 20)
     let block = from.offsetBy(dx: 0, dy: 100)

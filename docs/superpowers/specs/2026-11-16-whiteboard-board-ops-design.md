@@ -243,6 +243,13 @@ board differs, this says why.
   dropped ink stays exactly where he let go, and from the clear line nearest its top everything below slides down,
   whole things whole, by as many whole lines as it takes to leave half a line of air under what he dropped. Ink above
   that line doesn't move.
+- **However he picked it up** (story 929; Igor, 2026-11-22: "when I drop text onto existing text, I want it to move
+  just like if I was to select text"): a lasso, a tap on a group or a kept text of Larry's, or a drag that starts
+  straight on handwriting the system picked up by itself with nothing selected. Text or ink, his or a kept one of
+  Larry's, a drop is a drop: everything he dragged moved together by the same amount while his finger or Pencil was
+  down. A change that moved ink by different amounts, or with nothing being dragged, is the system rearranging
+  handwriting, not a drop, and opens no room. A drag that moved his ink and Larry's together is put right first (one
+  owner's ink goes back, story 1145) and opens no room.
 - Dropped on clear paper, or only touching other ink at an edge, nothing else moves: the drop is an ordinary move.
 - Ink on the line the selection was lifted from is never pushed by it: a word slid along its own line, even over the
   word beside it, moves nothing else.
@@ -250,7 +257,8 @@ board differs, this says why.
   and the ink below back up. A push that needs another page adds it, and Undo takes it away.
 - An Undo or Redo of a move never opens room again; only a drag by hand does. Folded ink is no obstacle, as for a
   paste.
-- The session log says, for every drag by hand, where it landed, whether room opened, and how far the ink below moved.
+- The session log says, for every drag by hand, where it landed, how it was picked up, whether room opened and why
+  not when it didn't, and how far the ink below moved.
 
 ### Erasing part of a group dissolves it
 
