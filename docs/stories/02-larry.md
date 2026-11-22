@@ -1283,6 +1283,51 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 1122:
+
+- **Summary:** A board's thread has *Board* in its top bar, back to the board
+- **Status:** native app only: not yet implemented
+- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
+- **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who left his board for its thread with *Open in Chat*
+- **I want to** tap *Board* in the thread's top bar
+- **so that** I am back on the board as it is now, and from its *Back* on every board, without hunting for a picture to zoom
+
+#### Acceptance Criteria:
+- **Scenario:** Back to the board from its thread
+- **Given:** a thread holds a message sent from a board that iCloud or this device holds, or this device started the thread from one of its boards
+- **When:** I open the thread and tap *Board*
+- **Then:** iCloud is asked first, the board opens with what is on it now, and its *Back* shows the boards
+
+- **Scenario:** A thread with no board
+- **Given:** a thread with no message from a board, which no board of this device started
+- **When:** I open it
+- **Then:** its top bar has no *Board*
+
+---
+
+### User Story 1123:
+
+- **Summary:** *Board* on a thread whose board can't be opened says why and keeps the thread
+- **Status:** native app only: not yet implemented
+- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
+- **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man tapping *Board* on an old board's thread
+- **I want to** be told when the board can't be opened
+- **so that** I stay in the thread and never land on a blank or old board by mistake
+
+#### Acceptance Criteria:
+- **Scenario:** A board that can't be opened
+- **Given:** the thread's board was deleted, isn't on this device even after asking iCloud, or its latest drawing didn't come down
+- **When:** I tap *Board*
+- **Then:** the button reads *Looking for the board…* while it asks, then a copyable problem at the top of the thread says so, and the thread stays open
+
+---
+
 ### User Story 834:
 
 - **Summary:** Show only the chats with a reply I haven't read

@@ -632,6 +632,9 @@ struct ChatThreadView: View {
   @State private var holdHook = LaunchHooks.current.chat.hold
   /// A Cockpit thread link tapped in a bubble (story 744): that thread, pushed over this one.
   @State private var jumpTo: String?
+  /// #1091: *Board* is asking iCloud for the thread's board, and why the last tap couldn't open it.
+  @State private var lookingForBoard = false
+  @State private var boardProblem: BugProblem?
   @Environment(\.dismiss) private var dismiss
 
   init(chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger) {
@@ -734,6 +737,11 @@ struct ChatThreadView: View {
             .padding(.horizontal, 12)
             .background(Color(.systemGroupedBackground))
         }
+        if let boardProblem {
+          BugProblemView(problem: boardProblem, logger: logger)
+            .padding(.horizontal, 12)
+            .background(Color(.systemGroupedBackground))
+        }
       }
     }
     .safeAreaInset(edge: .bottom) {
@@ -747,6 +755,18 @@ struct ChatThreadView: View {
     .navigationTitle(title)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
+      if let board = threadBoard {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            openBoard(board)
+          } label: {
+            Label(lookingForBoard ? "Looking for the board…" : "Board", systemImage: "pencil.and.scribble")
+              .labelStyle(.titleAndIcon)
+          }
+          .disabled(lookingForBoard)
+          .accessibilityIdentifier("chat-thread-board")
+        }
+      }
       if let key, let action = chat.threads.first(where: { $0.key == key }).flatMap(ChatArchiveAction.menu) {
         ToolbarItem(placement: .topBarTrailing) {
           Menu {
@@ -782,6 +802,29 @@ struct ChatThreadView: View {
     // Story 744: an Inbox chip, in a bubble or the strip above, opens its thread here; any other link as ever.
     .environment(\.openURL, OpenURLAction(handler: openInApp))
     .chatTextSize()
+  }
+
+  /// #1091, story 1122: the board this thread belongs to, for *Board* in the bar.
+  private var threadBoard: ChatThreadBoard? {
+    ChatThreadBoard.find(thread: key, messages: messages, deviceThreads: WhiteboardThreads().all())
+  }
+
+  /// Stories 1122, 1123: iCloud is asked first, as for a picture's *Jump to board*; a board that can't open says why here.
+  private func openBoard(_ found: ChatThreadBoard) {
+    lookingForBoard = true
+    boardProblem = nil
+    Task {
+      let problem = await chat.findBoard(found.board, "ChatThreadView.openBoard")
+      lookingForBoard = false
+      logger(
+        "ui",
+        [
+          "action": "thread_open_board", "thread": .string(key ?? ""), "board": .string(found.board),
+          "via": .string(found.source.rawValue), "found": .string(problem == nil ? "yes" : "no"),
+        ])
+      boardProblem = problem
+      if problem == nil { chat.openBoard(found.board) }
+    }
   }
 
   /// Story 744: a Cockpit thread the list knows opens here, an unknown one on the Cockpit; any other link as before.

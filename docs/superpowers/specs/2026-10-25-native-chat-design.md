@@ -151,6 +151,23 @@ the same ladder as the Cockpit's web page (Igor, 2026-11-03, #630: *"Look at how
 everyone."*). A state this build doesn't know reads as 👀. Opening a thread marks it read here and on the laptop. The thread updates by itself every few seconds while it is open, and the list on each return to
 it.
 
+**A board's thread opens its board** (#1091; Igor, 2026-11-21, on the iPad in the thread *Board, Nov 21*: *"I should
+be able to go back to the notebook from the board and access any things on the boards"*). *Open in Chat* on a board
+leaves the board for its thread, and the only way back was a picture's *Jump to board*, behind a tap on a picture.
+Now a thread that belongs to a board has **Board** in its top bar, a word with an icon, beside the ⋯ menu, always in
+view:
+
+- A thread belongs to a board when one of its messages came from a board (the newest such message names the board),
+  or when this device started that thread from one of its boards.
+- A tap opens that board as it is now, as *Jump to board* does: iCloud is asked first, the thread is left behind as any
+  link leaves it, and *Back* on the board goes to the boards, where every board is a tap away.
+- While it looks, the button reads *Looking for the board…* and is dimmed. A board that was deleted, isn't on this
+  device even after asking iCloud, or whose latest drawing didn't come down, says so in a copyable problem at the top
+  of the thread, and the thread stays.
+- Any other thread has no *Board*, and a new chat has none until it lands in a board's thread.
+- The session log says each tap: the thread, the board, how the thread was known to be the board's, and whether it was
+  found.
+
 **A table in a message** (Igor, 2026-11-10, #817: *"Log a bug to do table renders. Look how bad they look"*). When
 Larry writes a Markdown table (a row of cells between `|`, a row of dashes under it, then its rows), the bubble shows
 it as a grid instead of pipes and dashes: the first row in bold as the heading, a thin line between rows, each column
@@ -724,6 +741,9 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - A PR chip reads *open*, *draft*, *merged* or *closed* after its number, in green, grey, purple or red, in the strip,
   *All links* and a wide list's rows; a PR the Cockpit hasn't reported reads as before. Merging a PR while its thread
   is open flips its chip to *merged* within about half a minute. Offline or with the Cockpit down, no problem shows.
+- A board's thread (a picture in it came from a board) has *Board* in its top bar; a tap opens that board as it is now,
+  and *Back* there shows the boards. A thread with no board has no *Board*.
+- *Board* on a thread whose board no device has: a copyable problem at the top of the thread, which stays open.
 
 ## Depends on the Cockpit
 

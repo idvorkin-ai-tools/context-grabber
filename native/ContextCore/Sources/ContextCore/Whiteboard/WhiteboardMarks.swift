@@ -74,6 +74,16 @@ public struct WhiteboardThreads: @unchecked Sendable {
 
   public func set(_ thread: String, board: String) { defaults.set(thread, forKey: key(board)) }
 
+  /// Every board this device has a thread for, board id to thread (#1091: a thread's *Board* finds its board).
+  public func all() -> [String: String] {
+    let prefix = key("")
+    var out: [String: String] = [:]
+    for (name, value) in defaults.dictionaryRepresentation() where name.hasPrefix(prefix) {
+      if let thread = value as? String { out[String(name.dropFirst(prefix.count))] = thread }
+    }
+    return out
+  }
+
   /// The Cockpit no longer has `thread`. A newer thread the board has moved to stays.
   public func forget(_ thread: String, board: String) {
     if self.thread(board: board) == thread { defaults.removeObject(forKey: key(board)) }
