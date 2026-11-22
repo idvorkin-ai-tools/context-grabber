@@ -1186,7 +1186,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 314:
 
 - **Summary:** Approve what Larry proposed, keeping any I choose
-- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it); bead `context-grabber-t8i`: what Review ticks and the one-tap archive are `ChatArchiverTests` (host); the taps are `sim-smoke.sh`'s `GRABBER_CHAT_SELECT` check; #1098: the unticked proposals are turned down on *Archive (N)*, implemented in [65a631d1](https://github.com/idvorkin/context-grabber/commit/65a631d1), verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build, the phone not yet
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it); bead `context-grabber-t8i`: what Review ticks and the one-tap archive are `ChatArchiverTests` (host); the taps are `sim-smoke.sh`'s `GRABBER_CHAT_SELECT` check; #1098: the unticked proposals are turned down on *Archive (N)*, implemented in [2abe843c](https://github.com/idvorkin/context-grabber/commit/2abe843c), verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build, the phone not yet
 - **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599), [#1098](https://github.com/idvorkin/context-grabber/issues/1098)
 - **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1246,7 +1246,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1100:
 
 - **Summary:** Turn down a chat Larry thinks looks done
-- **Status:** native app only: implemented in [65a631d1](https://github.com/idvorkin/context-grabber/commit/65a631d1) (#1098); verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build; the simulator and the phone not yet
+- **Status:** native app only: implemented in [2abe843c](https://github.com/idvorkin/context-grabber/commit/2abe843c) (#1098); verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build; the simulator and the phone not yet
 - **Issues:** [#1098](https://github.com/idvorkin/context-grabber/issues/1098)
 - **Spec:** [Native chat — Turning a proposal down](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1266,7 +1266,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1101:
 
 - **Summary:** A turned-down chat looks done again only when Larry proposes it again
-- **Status:** native app only: implemented in [65a631d1](https://github.com/idvorkin/context-grabber/commit/65a631d1) (#1098); verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build; the simulator and the phone not yet
+- **Status:** native app only: implemented in [2abe843c](https://github.com/idvorkin/context-grabber/commit/2abe843c) (#1098); verified on the host by `ChatLooksDoneDeclinedTests` and the Mac build; the simulator and the phone not yet
 - **Issues:** [#1098](https://github.com/idvorkin/context-grabber/issues/1098)
 - **Spec:** [Native chat — Turning a proposal down](../superpowers/specs/2026-10-25-native-chat-design.md)
 
