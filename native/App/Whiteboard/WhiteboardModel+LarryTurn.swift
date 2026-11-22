@@ -156,7 +156,11 @@ extension WhiteboardModel {
       event["status"] = status
       event["reason"] = reason
       // A thread the Cockpit no longer has: the next turn starts a new one.
-      if status == 404, let thread { threads.forget(thread, board: board.id) }
+      // context-grabber-e3vb: and the board's iCloud copy stops carrying it, now, so the iPhone never opens it.
+      if status == 404, let thread, threads.forget(thread, board: board.id) {
+        event["thread_forgotten"] = true
+        Task { [store] in await store.sync(reason: "thread_gone") }
+      }
       // Retry, Dismiss or Interrupt took this one over (stories 775–777): its words went with the retry or back in the
       // queue.
       guard larryHandOffs.speaks(attempt) else {
@@ -406,7 +410,9 @@ extension WhiteboardModel {
 
   /// The Cockpit answered and no longer has the thread: the next picture starts a new one.
   private func threadGone(_ thread: String) {
-    threads.forget(thread, board: board.id)
+    if threads.forget(thread, board: board.id) {
+      Task { [store] in await store.sync(reason: "thread_gone") }
+    }
     self.thread = []
     lookFailures = 0
     larryAway = false
