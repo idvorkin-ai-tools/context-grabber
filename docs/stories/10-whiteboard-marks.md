@@ -1230,7 +1230,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1144:
 
 - **Summary:** PaperKit's handwriting reflow never moves my ink and Larry's together
-- **Status:** in progress
+- **Status:** implemented in [c8df04bc](https://github.com/idvorkin/context-grabber/commit/c8df04bc); verified by host tests (`PaperProbeOwnersApartTests`: the iPad's 52 + 2 case, Igor's line with Larry's strokes caught, a tie, one owner, a selection, nothing known as Larry's; `just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2, `just test-ladder`: every whiteboard UI test and the PaperKit contract tests pass, and a group's drag logs `apart: selected`, moved whole); the reflow itself can't be reached on the simulator, so the split, its take-back and its Undo are still owed on the iPad (rung 3: read `paper_ink`'s `apart` and the `paper_apart` line)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (PaperKit's handwriting reflow never carries Igor's ink and Larry's together)
 - **Issues:** bead context-grabber-eg7v (the iPad, 2026-11-22, log grabber-20261122-091406: a finger tap on Larry's kept text opened PaperKit's handwriting reflow over it and two of my strokes, and a drag on it moved all 54 strokes together); Igor, 2026-11-22 12:56: keep the reflow, but never group my ink with Larry's or Claude's
 
