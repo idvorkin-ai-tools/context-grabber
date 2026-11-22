@@ -16,6 +16,8 @@ extension WhiteboardTurn {
   public static let ghostsAway = "Ghosts: the Cockpit isn't answering"
   /// The board's note when the mic would hear words and reach no one (#824).
   public static let micGhostsOff = "Ghosts are off, so the mic would reach no one: turn Ghosts on to talk to Claude"
+  /// The board's note while he writes with Ghosts off: nobody is watching (story 1152, bead context-grabber-bozm).
+  public static let writingGhostsOff = "Ghosts are off, so no one is watching: turn Ghosts on for a look"
 }
 
 public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
@@ -47,9 +49,13 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
 
   // MARK: Drawing and the pause
 
-  /// A stroke drawn or pasted. True: start Claude's pause. With Ghosts off nothing is asked.
+  /// A stroke drawn or pasted. True: start Claude's pause. With Ghosts off nothing is asked, and the note says no one
+  /// is watching until Ghosts come back on (story 1152).
   public mutating func stroked() -> Bool {
-    guard on else { return false }
+    guard on else {
+      note = WhiteboardTurn.writingGhostsOff
+      return false
+    }
     pacer.strokeAdded()
     return true
   }
@@ -87,7 +93,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public mutating func setOn(_ new: Bool) {
     on = new
     guard !new else {
-      if note == WhiteboardTurn.micGhostsOff { note = nil }
+      if note == WhiteboardTurn.micGhostsOff || note == WhiteboardTurn.writingGhostsOff { note = nil }
       return
     }
     pacer.dropped()

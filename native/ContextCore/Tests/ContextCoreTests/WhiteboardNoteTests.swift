@@ -175,6 +175,10 @@ final class WhiteboardNoteTests: XCTestCase {
       paste: nil, sent: nil, turnNote: WhiteboardTurn.micGhostsOff, marksAway: false, looking: false, lookOnly: nil)
     XCTAssertEqual(micOff?.text, WhiteboardTurn.micGhostsOff)
     XCTAssertNil(micOff?.held, "the answer to a tap on the mic passes")
+    let unwatched = WhiteboardNote.notice(
+      paste: nil, sent: nil, turnNote: WhiteboardTurn.writingGhostsOff, marksAway: false, looking: false, lookOnly: nil)
+    XCTAssertEqual(unwatched?.text, WhiteboardTurn.writingGhostsOff)
+    XCTAssertEqual(unwatched?.held, WhiteboardTurn.writingGhostsOff, "story 1152: it stays until Ghosts on")
   }
 
   // MARK: The tap

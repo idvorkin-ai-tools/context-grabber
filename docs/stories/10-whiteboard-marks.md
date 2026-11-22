@@ -49,6 +49,36 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1152:
+
+- **Summary:** Writing with Ghosts off says no one is watching
+- **Status:** implemented in COMMIT_PENDING; verified on the host (`WhiteboardGhostTurnsTests`: the first stroke with Ghosts off sets the line, Ghosts on clears it; `WhiteboardNoteTests`: the line holds the middle) and the Mac build. Not yet seen on the iPad
+- **Issues:** bead `context-grabber-bozm` (iPad, 2026-11-22: a tap meant for the mic landed on Ghosts at 13:31; 16 minutes of writing went to no one, with nothing on screen saying so)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who turned Ghosts off, maybe without meaning to
+- **I want to** be told, as I write, that nobody is looking at the board
+- **so that** I don't write for minutes waiting for Larry or Claude to answer a board neither of them can see
+
+#### Acceptance Criteria:
+- **Scenario:** Writing with Ghosts off
+- **Given:** Ghosts are off on a board
+- **When:** I draw a stroke
+- **Then:** the bar's note says *Ghosts are off, so no one is watching: turn Ghosts on for a look*, and it stays there while I keep writing, past the note's usual few seconds; nothing is asked, as before
+
+- **Scenario:** Ghosts back on
+- **Given:** the bar says no one is watching
+- **When:** I turn Ghosts on
+- **Then:** the line goes, and my next pause asks as usual
+
+- **Scenario:** The log says when it began
+- **Given:** Ghosts are off
+- **When:** I draw my first stroke since they went off
+- **Then:** the session log has one line saying a pause was skipped because Ghosts are off, not one per stroke
+
+---
+
 ### User Story 352:
 
 - **Summary:** The board still draws when ghosts can't be reached

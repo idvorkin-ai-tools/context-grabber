@@ -23,6 +23,17 @@ extension WhiteboardModel {
     cancelPause()
   }
 
+  /// A stroke landed (drawn or pasted): Claude's pause starts, or with Ghosts off the bar says no one is watching and the
+  /// log says so once, at the first unwatched stroke (story 1152).
+  func strokeLanded() {
+    let before = turns.note
+    if turns.stroked() {
+      startPause()
+    } else if turns.note == WhiteboardTurn.writingGhostsOff, before != turns.note {
+      log.event("whiteboard", ["action": "pause_skipped", "board": board.id, "why": "ghosts_off"])
+    }
+  }
+
   func endedDrawing() {
     penWent(down: false)
     vad.lifted(at: .now)
