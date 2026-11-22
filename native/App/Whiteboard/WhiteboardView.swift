@@ -79,8 +79,6 @@ final class WhiteboardModel: ObservableObject {
   private var selection: Set<String> = []
   /// Larry's controls on the board (story 845): live only while it is open.
   private(set) var overlays = BoardOverlays()
-  /// Shows Larry's controls; the canvas sets it.
-  var showOverlays: (([BoardOverlay]) -> Void)?
   /// The part of the board on screen as last told (story 850).
   private var lastViewport: (rect: CGRect, scale: CGFloat)?
   /// The Pencil (or a drawing finger) is down, and when it last lifted: a change of Larry's waits for it (story 816).
@@ -145,36 +143,12 @@ final class WhiteboardModel: ObservableObject {
   private let pictureTimes = WhiteboardPictureTimes()
   /// #1013: each picture's map through the folds it drew open, for the marks Larry draws on it.
   private let pictureFolds = WhiteboardPictureFolds()
-  /// What's on screen in board points, for a turn on an empty board or a paste, and the zoom; the canvas sets them.
-  var visibleRect: (() -> CGRect)?
-  var zoom: (() -> CGFloat)?
+  /// The canvas the board is shown on, once it has loaded: where the view is, and the changes to the ink only it can make.
+  weak var canvas: (any BoardCanvas)?
   /// Where a paste may land, in board points; a board on paper sets its own.
   var pasteReach = WhiteboardPaste.wholeBoard
-  /// Puts a kept ghost or a paste on the canvas (undoably), given the whole drawing and what's new in it; the canvas sets
-  /// it.
-  /// The third is the step's name for Undo and Redo (#966).
-  var draw: ((PKDrawing, [PKStroke], String) -> Void)?
-  /// Plans a batch of Larry's changes on the canvas and applies it as one undo named for it; nil with no canvas yet.
-  /// The canvas sets it.
-  /// The canvas applies a batch of Larry's and says what came of it (#1040); nil while there is no canvas.
-  var applyOps: ((BoardOps.Batch) -> BoardCanvasOutcome)?
-  /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
-  /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
-  var landPaste: (([PKStroke]) -> Bool)?
-  /// #938 (story 992), #894 (stories 1004–1006): kept marks of Larry's and the room they open, one undo named *Keep*,
-  /// logged as `why`. False when the canvas didn't take it, and the keep inks as ever.
-  var keepMakingRoom: (([PKStroke], BoardRoom.Push, String) -> Bool)?
-  /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
-  /// as one undo named for it; false when nothing changed. The canvas sets it.
-  var changeOutline: ((String, (inout BoardOutline) -> Bool) -> Bool)?
-  /// Story 896: the strokes at these places in the drawing moved down so far, one undo.
-  var move: (([Int: CGFloat]) -> Void)?
-  /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
-  var menuChose: (() -> Void)?
   /// #965 (stories 1008, 1009): the bar's Undo and Redo, as the board's undo stack stands; the canvas keeps it current.
   @Published var undoButtons = BoardUndoButtons.none
-  /// The bar's Undo (false) or Redo (true) pressed; the canvas sets it.
-  var pressUndo: ((_ redo: Bool) -> Void)?
   private let callLive: @MainActor () -> Bool
   private lazy var dictation = makeDictation()
   private var dictationWatches: Set<AnyCancellable> = []
@@ -380,7 +354,8 @@ final class WhiteboardModel: ObservableObject {
       "whiteboard",
       [
         "action": "ink_moved", "board": board.id, "strokes": new.strokes.count, "moved": moved.count,
-        "dx": Double(moved.dx), "dy": Double(moved.dy), "top_moved_y": Double(moved.topY), "zoom": Double(zoom?() ?? 1),
+        "dx": Double(moved.dx), "dy": Double(moved.dy), "top_moved_y": Double(moved.topY),
+        "zoom": Double(canvas?.zoom ?? 1),
       ])
   }
 
@@ -422,7 +397,7 @@ final class WhiteboardModel: ObservableObject {
   /// Larry's picture, for Send and his turn: the pages on screen (story 433). Claude's own turns frame theirs as they
   /// always have.
   private func pictureFrame() -> (rect: CGRect, scale: CGFloat)? {
-    BoardPages().picture(visible: visibleRect?() ?? .null, ink: inkBoxes + labelBoxes())
+    BoardPages().picture(visible: canvas?.visibleRect ?? .null, ink: inkBoxes + labelBoxes())
   }
 
   /// The header markers' boxes, kept until the ink or the headers change: the picture's frame is asked for on every
@@ -1236,7 +1211,7 @@ final class WhiteboardModel: ObservableObject {
     // An empty board has no drawing to frame: a spoken turn sees the part on screen, and any other isn't asked.
     let framed =
       WhiteboardGhostTurns<Ghost>.framesScreen(said: said, boardEmpty: drawing.strokes.isEmpty)
-      ? visibleRect?() ?? .null : labelBoxes().reduce(drawing.bounds) { $0.union($1) }
+      ? canvas?.visibleRect ?? .null : labelBoxes().reduce(drawing.bounds) { $0.union($1) }
     guard editable, let (rect, scale) = WhiteboardFrame.export(framed) else { return }
     let asked = turns.asked(who)
     defer { if turns.turnOver(who) { startPause() } }
@@ -1484,7 +1459,7 @@ final class WhiteboardModel: ObservableObject {
     }
     var strokes: [Int: CGFloat] = [:]
     for (label, dy) in moves { for i in members[label] ?? [] { strokes[i] = dy } }
-    move?(strokes)
+    _ = canvas?.moveStrokes(strokes)
   }
 
   private var labelsKey: String { "whiteboard_labels_\(board.id)" }
@@ -1561,7 +1536,7 @@ final class WhiteboardModel: ObservableObject {
     ]
     event.merge(Self.lateFields(late, marks)) { $1 }
     log.event("whiteboard", event)
-    if let push = late?.push, keepMakingRoom?(strokes, push, "keep_group") == true { return }
+    if let push = late?.push, canvas?.keepMakingRoom(strokes, push: push, why: "keep_group") == true { return }
     add(strokes, named: Self.keepGroupUndoName)
   }
 
@@ -1609,12 +1584,12 @@ final class WhiteboardModel: ObservableObject {
     var event: [String: Any] = [
       "action": "keep", "board": board.id, "who": ghost.who.rawValue, "strokes": strokes.count,
       "kind": ghost.kind.rawValue, "width": Double(ghost.width),
-      "color": Self.lightHex(ghost.color), "zoom": Double(zoom?() ?? 1),
+      "color": Self.lightHex(ghost.color), "zoom": Double(canvas?.zoom ?? 1),
     ]
     if let hand = penInHand { event["pen_in_hand"] = Double(hand) }
     if let letters = ghost.letters { event["letters"] = Double(letters) }
     if let text = ghost.text { event["text_id"] = text.id }
-    if let visible = visibleRect?(), !visible.isNull, !ink.isNull { event["in_view"] = visible.intersects(ink) }
+    if let visible = canvas?.visibleRect, !visible.isNull, !ink.isNull { event["in_view"] = visible.intersects(ink) }
     if let push = room.push {
       event["room_cut"] = Double(push.cut)
       event["room_dy"] = Double(push.dy)
@@ -1622,8 +1597,8 @@ final class WhiteboardModel: ObservableObject {
     if room.dy != 0 { event["landed_dy"] = Double(room.dy) }
     if ghost.text == nil { event.merge(Self.lateFields(late, [ghost])) { $1 } }
     log.event("whiteboard", event)
-    if let push = room.push, keepMakingRoom?(strokes, push, "keep_text") == true { return }
-    if let push = late?.push, keepMakingRoom?(strokes, push, "keep_late") == true { return }
+    if let push = room.push, canvas?.keepMakingRoom(strokes, push: push, why: "keep_text") == true { return }
+    if let push = late?.push, canvas?.keepMakingRoom(strokes, push: push, why: "keep_late") == true { return }
     add(strokes, named: Self.keepUndoName)
   }
 
@@ -1701,7 +1676,7 @@ final class WhiteboardModel: ObservableObject {
     kept.strokes += strokes
     drawing = kept
     drawingMoved()
-    draw?(kept, strokes, name)
+    _ = canvas?.draw(strokes, named: name)
   }
 
   /// #966: what Undo and Redo call each keep, and Tidy overlaps.
@@ -1716,7 +1691,8 @@ final class WhiteboardModel: ObservableObject {
   /// letters: a ghost's 3.7 fills a 24-point letter in, and PencilKit draws nothing under about 2 (seen on the
   /// simulator, on the canvas and in the picture alike), which is why zooming in never shrinks them on the board.
   func paste(_ text: String) {
-    guard editable, let visible = visibleRect?(), !visible.isNull, let zoom = zoom?() else { return }
+    guard editable, let canvas, case let visible = canvas.visibleRect, !visible.isNull else { return }
+    let zoom = canvas.zoom
     let height = Self.pasteLetters / min(zoom, 1)
     let layout = WhiteboardPaste.layout(
       text, visible: visible, height: height, board: pasteReach, lettering: lettering)
@@ -1739,7 +1715,7 @@ final class WhiteboardModel: ObservableObject {
   }
 
   private func land(_ strokes: [PKStroke]) {
-    if landPaste?(strokes) != true { add(strokes, named: Self.pasteUndoName) }
+    if canvas?.landPaste(strokes) != true { add(strokes, named: Self.pasteUndoName) }
   }
 
   /// Copied strokes the canvas didn't place itself: one undo, and a change like a drawn stroke, as a paste of text is.
@@ -1993,7 +1969,7 @@ extension WhiteboardModel {
     guard editable else { return }
     var what = "nothing"
     let changed =
-      changeOutline?("Fold") { outline in
+      canvas?.changeOutline(named: "Fold") { outline in
         if let header = outline.header(at: y) {
           what = outline.isFolded(header) ? "unfold" : "fold"
           return outline.toggle(header.id)
@@ -2213,7 +2189,7 @@ extension WhiteboardModel {
     event["held"] = held
     // #1040: what the canvas made of it decides what is reported, once: no canvas laid out yet or PaperKit refusing the
     // move is refused as `not_applied`; an answer for a batch no longer being applied changes nothing.
-    let outcome = applyOps?(batch) ?? .unavailable
+    let outcome = canvas?.apply(batch) ?? .unavailable
     let result: BoardOps.Result
     let plan: BoardOps.Plan
     switch (ops.report(batch, outcome), outcome) {
@@ -2234,7 +2210,7 @@ extension WhiteboardModel {
     if blocked.applied() { log.event("board_blocked", ["action": "cleared", "board": board.id, "why": "applied"]) }
     if !plan.overlays.isEmpty {
       overlays.apply(plan.overlays)
-      showOverlays?(overlays.list)
+      canvas?.showOverlays(overlays.list)
     }
     if !plan.metas.isEmpty || !plan.forgetMetas.isEmpty {
       plan.forgetMetas.forEach { strokeMeta.remove($0) }
@@ -2633,7 +2609,7 @@ struct WhiteboardView: View {
   private func undoButton(redo: Bool) -> some View {
     let state = redo ? model.undoButtons.redo : model.undoButtons.undo
     return Button {
-      model.pressUndo?(redo)
+      model.canvas?.pressedUndo(redo: redo)
     } label: {
       Label(redo ? "Redo" : "Undo", systemImage: redo ? "arrow.uturn.forward" : "arrow.uturn.backward")
         .labelStyle(.iconOnly)
@@ -2741,7 +2717,7 @@ struct WhiteboardView: View {
                     get: { model.paper == paper },
                     set: { _ in
                       model.setPaper(paper)
-                      model.menuChose?()
+                      model.canvas?.menuChose()
                     }))
               }
             }
@@ -2752,7 +2728,7 @@ struct WhiteboardView: View {
                   get: { model.gridOn },
                   set: {
                     model.setGrid($0)
-                    model.menuChose?()
+                    model.canvas?.menuChose()
                   }))
               Toggle(
                 "Ruled lines",
@@ -2760,14 +2736,14 @@ struct WhiteboardView: View {
                   get: { model.ruledOn },
                   set: {
                     model.setRuled($0)
-                    model.menuChose?()
+                    model.canvas?.menuChose()
                   }))
             }
             // Story 896: kept labels moved off ink. One row, as the Board menu has room for no more (#848); Keep all is in
             // the note's line, beside the count of marks to keep (story 895).
             Button("Tidy overlaps") {
               model.tidyOverlaps()
-              model.menuChose?()
+              model.canvas?.menuChose()
             }
             .accessibilityIdentifier("whiteboard-tidy")
             // #950 (stories 1056, 1057): how the board letters its text. One row, a switch, as the menu has room for no
@@ -2778,7 +2754,7 @@ struct WhiteboardView: View {
                 get: { model.lettering == .font },
                 set: {
                   model.setLettering($0 ? .font : .single)
-                  model.menuChose?()
+                  model.canvas?.menuChose()
                 })
             )
             .accessibilityIdentifier("whiteboard-lettering")
@@ -2792,7 +2768,7 @@ struct WhiteboardView: View {
                     get: { model.responder.shown == responder },
                     set: { _ in
                       model.setResponder(responder)
-                      model.menuChose?()
+                      model.canvas?.menuChose()
                     }))
               }
             } label: {
@@ -2909,7 +2885,7 @@ struct WhiteboardView: View {
       guard model.editable, let hook = LaunchHooks.current.whiteboard.barUndo else { return }
       try? await Task.sleep(for: .seconds(hook.delay))
       for press in hook.presses {
-        model.pressUndo?(press == "redo")
+        model.canvas?.pressedUndo(redo: press == "redo")
         try? await Task.sleep(for: .seconds(3))
       }
     }
