@@ -171,7 +171,7 @@ says "whiteboard code: the smoke's whiteboard section" "rung 2 smoke, on the sam
 never "whiteboard code: no chat" "Chat"
 
 # The whiteboard's rules run only the classes that show them; its views still run them all.
-# Story 1020: a file that drives PaperKit runs the contract tests beside its own classes; the contracts' own files run
+# Story 1021: a file that drives PaperKit runs the contract tests beside its own classes; the contracts' own files run
 # them alone, with no smoke; a whiteboard file that doesn't import PaperKit doesn't run them.
 contracts_line="rung 2 contract tests (real PaperKit, on the iPad, no retry): GrabberNativeContractTests PaperKitTouchContractUITests"
 dry --changed native/App/Whiteboard/PaperBoard.swift

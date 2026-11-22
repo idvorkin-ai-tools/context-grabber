@@ -83,7 +83,7 @@ replay=native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift
 classes=()
 unknown=()
 host_only=()
-# Story 1020 (bead 8o93): the contract tests on real PaperKit (story 1019's bundle and its touch class), on the iPad.
+# Story 1021 (bead 8o93): the contract tests on real PaperKit (story 1019's bundle and its touch class), on the iPad.
 contracts=0
 contract_tests="GrabberNativeContractTests PaperKitTouchContractUITests"
 # What drives PaperKit, or is pinned by a contract: a file that imports PaperKit (the board's split files too, whatever
@@ -125,7 +125,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
   case $f in
     *.md | scripts/lead-times.py) ;;
     native/App/Assets.xcassets/*) ;;  # the host rung's tile-art check
-    # Story 1020: the contracts' own stage, its hook and its tests run the contract tests alone (below).
+    # Story 1021: the contracts' own stage, its hook and its tests run the contract tests alone (below).
     native/UITests/PaperKitTouchContractUITests.swift | native/App/Whiteboard/PaperTouchStage.swift | \
       native/ContextCore/Sources/ContextCore/Whiteboard/PaperStageHook.swift | native/ContractTests/*) ;;
     "$replay" | native/ContextCore/Sources/BoardOpsHarness/*) ;;  # #1036: the host's replay fixtures, above
@@ -211,7 +211,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
       native/Shared/* | native/Widgets/* | native/Share/* | native/project.yml)
       unknown+=("$f") ;;
   esac
-  # Story 1020: beside its own classes, a file that drives PaperKit runs the contract tests.
+  # Story 1021: beside its own classes, a file that drives PaperKit runs the contract tests.
   if drives_paperkit "$f"; then contracts=1; sim_build=1; fi
   # What rung 0 formats: the paths the justfile's native_swift names, if the file is still there.
   case $f in
@@ -234,7 +234,7 @@ if [ "${#classes[@]}" -gt 0 ]; then
     case $c in
       Chat*) chat+=("$c") ;;
       Whiteboard*) whiteboard+=("$c") ;;
-      PaperKit*) contracts=1 ;;  # the contract tests' own step, on the iPad (story 1020)
+      PaperKit*) contracts=1 ;;  # the contract tests' own step, on the iPad (story 1021)
       Place*) places+=("$c") ;;
       IPad*) tablet+=("$c") ;;
       *) other+=("$c") ;;
@@ -464,7 +464,7 @@ places_classes() {
   xcodebuild_sim places "TEST EXECUTE SUCCEEDED" $(only_testing "${places[@]}") test-without-building
 }
 
-# Story 1020: the contract tests, hosted and touched, on the iPad. No retry: a contract that fails once has moved.
+# Story 1021: the contract tests, hosted and touched, on the iPad. No retry: a contract that fails once has moved.
 contract_classes() {
   UI_TEST_RETRY=0 xcodebuild_sim contracts "TEST EXECUTE SUCCEEDED" -only-testing:GrabberNativeContractTests \
     -only-testing:GrabberNativeUITests/PaperKitTouchContractUITests test-without-building

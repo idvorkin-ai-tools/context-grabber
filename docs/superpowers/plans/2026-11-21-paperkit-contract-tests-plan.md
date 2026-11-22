@@ -50,6 +50,6 @@ touch, which UIKit answers with `touchesCancelled`.
 
 `just native-test-contracts` runs both bundles' tests, no retry. The ladder (`scripts/native/test-ladder.sh`) runs them as a
 step of their own on the iPad when a changed file drives PaperKit (imports it, or is the board's tool, ink kinds or files,
-or the contracts' own), checked by `scripts/native/test-ladder-map.sh`.
+or the contracts' own), checked by `scripts/native/test-ladder-map.sh` (story 1021).
 
 Not here: a pick made with a finger in the tool picker (#1078 on a real tap), another agent's under the same bead.
