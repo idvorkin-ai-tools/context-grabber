@@ -224,6 +224,9 @@ public struct ChatListSelection: Equatable, Sendable {
   public private(set) var selecting = false
   public private(set) var picked: Set<String> = []
   public private(set) var filter: Filter = .all
+  /// What *Review* offered: only these can be turned down by leaving them unticked (#1098, story 314). Empty after
+  /// *Select*, and a proposal that arrives mid-Review was never offered.
+  public private(set) var offered: Set<String> = []
 
   public init() {}
 
@@ -252,6 +255,7 @@ public struct ChatListSelection: Equatable, Sendable {
   public mutating func toggle() -> Bool {
     picked = []
     filter = .all
+    offered = []
     selecting.toggle()
     return selecting
   }
@@ -260,6 +264,7 @@ public struct ChatListSelection: Equatable, Sendable {
   @discardableResult
   public mutating func review(_ threads: [ChatSummary]) -> Int {
     picked = Set(Self.looksDone(threads).map(\.key))
+    offered = picked
     selecting = true
     filter = .recommendations
     return picked.count
@@ -305,12 +310,20 @@ public struct ChatListSelection: Equatable, Sendable {
 
   public func canArchive(_ threads: [ChatSummary]) -> Bool { !pickedLive(threads).isEmpty }
 
-  /// *Archive (N)*: what goes, and Select ends.
+  /// *Archive (N)*: what goes, and Select ends. Read `declined` first.
   public mutating func archivePicked(_ threads: [ChatSummary]) -> [String] {
     let keys = pickedLive(threads)
     picked = []
     selecting = false
     filter = .all
+    offered = []
     return keys
+  }
+
+  /// What *Archive (N)* turns down (#1098, story 314): the proposals Review offered that are still proposed and were
+  /// left unticked. Nothing after *Select*.
+  public func declined(_ threads: [ChatSummary]) -> [String] {
+    guard selecting else { return [] }
+    return Self.looksDone(threads).map(\.key).filter { offered.contains($0) && !picked.contains($0) }
   }
 }

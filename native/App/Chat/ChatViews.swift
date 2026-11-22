@@ -261,6 +261,8 @@ struct ChatListView: View {
   }
 
   private func archivePicked() {
+    // #1098, story 314: a Review's proposals left unticked are turned down, so the next Review doesn't offer them again.
+    chat.declineLooksDone(selection.declined(chat.threads), from: "review")
     let keys = selection.archivePicked(chat.threads)
     Task { await chat.archiveSelected(keys) }
   }
@@ -305,6 +307,12 @@ struct ChatListView: View {
       case .archive:
         Button("Archive") { Task { await chat.setArchived(thread.key, true, from: "swipe") } }.tint(.indigo)
       case nil: EmptyView()
+      }
+    }
+    // #1098, story 1120: a swipe from the leading edge turns Larry's *Looks done* down; the thread stays live.
+    .swipeActions(edge: .leading) {
+      if ChatLooksDoneSwipe.offers(thread) {
+        Button("Not done") { chat.declineLooksDone([thread.key], from: "swipe") }.tint(.orange)
       }
     }
   }

@@ -54,6 +54,8 @@ final class ChatModel: ObservableObject {
   static let notifiedKey = "chat_notified"
   static let askedKey = "chat_asked_notifications"
   static let foldedLinksKey = "chat_links_folded"
+  /// Larry's *Looks done* proposals turned down on this phone (#1098), remembered across launches.
+  private var declined = ChatLooksDoneDeclined()
   /// How often an open thread is read again.
   static let pollSeconds = 4.0
   /// How soon iOS may run the next background check (it decides when).
@@ -80,7 +82,33 @@ final class ChatModel: ObservableObject {
     foldedLinks =
       database.setting(Self.foldedLinksKey)
       .flatMap { try? JSONDecoder().decode(Set<String>.self, from: Data($0.utf8)) } ?? []
+    declined = .restored(database.setting(ChatLooksDoneDeclined.settingKey))
   }
+
+  // MARK: Turning down Larry's proposals (#1098)
+
+  /// A swipe's *Not done*, or a Review's unticked proposals on *Archive (N)*: the mark goes at once and stays gone
+  /// until the Cockpit drops that proposal.
+  func declineLooksDone(_ keys: [String], from: String) {
+    let new = declined.decline(keys)
+    guard !new.isEmpty else { return }
+    saveDeclined()
+    threads = declined.masked(threads)
+    for key in new { log.event("chat", ["action": "looks_done_declined", "thread": key, "from": from]) }
+  }
+
+  /// A list the Cockpit answered, with what this phone turned down taken off it.
+  private func shown(_ rows: [ChatSummary]) -> [ChatSummary] {
+    let before = declined
+    let shown = declined.fresh(rows)
+    if declined != before {
+      saveDeclined()
+      log.event("chat", ["action": "looks_done_forgotten", "threads": before.keys.subtracting(declined.keys).count])
+    }
+    return shown
+  }
+
+  private func saveDeclined() { database.setSetting(ChatLooksDoneDeclined.settingKey, declined.saved) }
 
   // MARK: Links in a thread (#736)
 
@@ -205,7 +233,7 @@ final class ChatModel: ObservableObject {
       guard let rows = read else {
         return listFailed("the Cockpit answered HTTP \(status)", reason: reason)
       }
-      threads = rows
+      threads = shown(rows)
       listProblem = nil
       if reason == "pull" { archiveProblem = nil }
       // #878: the rows' *Decision waiting* and the Decisions row come from the open asks.
@@ -573,7 +601,7 @@ final class ChatModel: ObservableObject {
         return false
       }
       // A newer list already shown stays (exg6); what is due is still worked out from this read.
-      if listOrder.mayShow(ticket) { threads = rows }
+      if listOrder.mayShow(ticket) { threads = shown(rows) }
       let due = ChatNotify.due(rows, notified: notified)
       for summary in due { await notify(summary) }
       notified = ChatNotify.record(rows, into: notified)
