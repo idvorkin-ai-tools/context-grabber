@@ -24,7 +24,7 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
   public let pictureID: String
   public let frame: Frame
   /// The board's name when the picture was taken: the thread's title when this picture starts it, and `board_title` on
-  /// every picture, so a renamed board renames its chat (story 1119, bead context-grabber-8rei).
+  /// every picture, so a renamed board renames its chat (story 1118, bead context-grabber-8rei).
   public let title: String
   /// The board's half of the turn (story 818): its revision, what came of Larry's last change, the Pencil and taps. On
   /// the chat message only, never on the strokes.
