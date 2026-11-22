@@ -24,18 +24,16 @@ enum BoardThreadLookup {
   private static var found: [String: String] = [:]
   private static var looking: Set<String> = []
 
-  /// `icloud`: the thread the board's iCloud copy carries (#1161), the first source after this device's own. The look
-  /// among the chats below is a stopgap for boards the drawing device hasn't sent up since boards carried a thread.
+  /// `icloud`: the thread the board's iCloud copy carries (#1161), which on a board another device drew wins over this
+  /// device's own (story 1158). The look among the chats below is a stopgap for boards the drawing device hasn't sent
+  /// up since boards carried a thread.
   static func find(
-    board: String, title: String, icloud: String?, cockpit: String, log: SessionLog, from: String
+    board: String, title: String, icloud: String?, drawnHere: Bool, cockpit: String, log: SessionLog, from: String
   ) async -> Answer {
-    if let key = WhiteboardThreads().thread(board: board) {
-      return answered(
-        .thread(key), board: board, from: from, log: log, fields: ["source": BoardThreadFind.Source.device.rawValue])
-    }
-    if let key = icloud {
-      return answered(
-        .thread(key), board: board, from: from, log: log, fields: ["source": BoardThreadFind.Source.icloud.rawValue])
+    let threads = WhiteboardThreads()
+    if let key = threads.board(board, carried: icloud, drawnHere: drawnHere) {
+      let source: BoardThreadFind.Source = key == icloud ? .icloud : .device
+      return answered(.thread(key), board: board, from: from, log: log, fields: ["source": source.rawValue])
     }
     if let key = found[board] {
       return answered(

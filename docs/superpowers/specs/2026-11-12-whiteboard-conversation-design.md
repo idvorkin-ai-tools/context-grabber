@@ -248,8 +248,16 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
   goes up as before), the iPhone treats the board as one carrying no thread and looks among the chats. Only a thread
   the Cockpit said is gone is cleared: a reinstalled iPad, which starts out knowing no threads, never clears the one
   a board carries. The session log says when a forgotten thread was cleared from the board's iCloud copy.
-- **This device's own thread wins.** A board this iPhone itself sent to Larry (a *Send to Larry* from the phone)
-  opens the thread the phone started, as before, even when the board carries the drawing device's.
+- **A Send from any device goes to the board's one conversation** (Igor, 2026-11-22, on the design board; bead
+  context-grabber-da1, story 1158). A *Send to Larry* on a device that didn't draw the board (an iPhone looking at an
+  iPad's board) goes to the thread the board carries through iCloud, and that device keeps it as the board's thread
+  from then on, so its note and bubble open the same conversation. Only a board that carries no thread starts one
+  from such a device. On the drawing device its own thread is the board's, the one it sends up; a reinstalled one that
+  knows none of its own yet uses the thread its board carries, so its next picture doesn't start a second
+  conversation either. A thread the Cockpit said is gone is never used again, on any device.
+- **The board's thread wins over an older one of this device's.** A board an iPhone sent to Larry before this, from
+  the phone, opens and sends to the thread the board carries when it carries one, not the second one the phone
+  started then; with none carried, the phone's own is used, as before.
 - **While it looks** the bubble turns into a small spinner, and a second tap does nothing.
 - **A board with no chat says so.** The list shows *No chat with Larry for this board yet*, which can be copied with
   the board, its name and how many chats were checked. It is not a bug, so it files no report.
@@ -270,8 +278,10 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
   send its board up again and again; the next launch offers the threads again, and once production has the piece
   they go up on their own. Until then the other devices find the board's conversation among Larry's chats, as for a
   board from before.
-- **Not here:** starting a chat from the iPhone for a board that has none. The iPhone only looks at boards (story
-  746); a board's first picture goes from the device that draws it.
+- **A board with no thread, sent from the iPhone first.** The phone's Send starts the conversation and the phone keeps
+  it. The board's iCloud copy is written only by the device that drew it, so until that device learns the thread the
+  board carries none, and the iPad's next picture would start its own: a rare order (the iPad draws, so it sends
+  first), left for later (bead context-grabber-2ezr).
 
 ## Under discussion (not built; on #879)
 

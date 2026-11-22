@@ -64,8 +64,8 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
   }
 }
 
-/// Each board's one chat thread on this device, by board id. ponytail: UserDefaults on this device; it moves to the
-/// board's index if boards ever change hands.
+/// Each board's one chat thread on this device, by board id. ponytail: UserDefaults on this device; the board's iCloud
+/// copy carries the drawing device's (#1161), and `board(_:carried:drawnHere:)` picks between them (story 1158).
 public struct WhiteboardThreads: @unchecked Sendable {
   private let defaults: UserDefaults
 
@@ -76,6 +76,16 @@ public struct WhiteboardThreads: @unchecked Sendable {
   private func key(_ board: String) -> String { "whiteboard_thread_\(board)" }
 
   public func thread(board: String) -> String? { defaults.string(forKey: key(board)) }
+
+  /// Story 1158 (bead context-grabber-da1): the board's one conversation, which every picture of it goes to and the note
+  /// opens. On the device that drew the board its own thread, which is what its iCloud copy carries, else the carried
+  /// one (a reinstall); on any other device the carried one, else its own. A thread the Cockpit said is gone is never
+  /// used. `carried`: the thread the board's iCloud copy carries (#1161).
+  public func board(_ board: String, carried: String?, drawnHere: Bool) -> String? {
+    let carried = carried.flatMap { $0 == defaults.string(forKey: goneKey(board)) ? nil : $0 }
+    let own = thread(board: board)
+    return drawnHere ? own ?? carried : carried ?? own
+  }
 
   /// A thread the Cockpit said is gone, kept until a new one starts (context-grabber-e3vb): the board's iCloud copy
   /// still carries it, and the next sync clears it there. Its own prefix, so `all()` never reads it as a board.
@@ -97,10 +107,12 @@ public struct WhiteboardThreads: @unchecked Sendable {
   }
 
   /// The Cockpit no longer has `thread`. A newer thread the board has moved to stays. True when this forgot it, which
-  /// also remembers it as gone, so the board's iCloud copy stops carrying it (context-grabber-e3vb).
+  /// also remembers it as gone, so the board's iCloud copy stops carrying it (context-grabber-e3vb). With no thread of
+  /// its own the board's carried one was used (story 1158), so it is remembered as gone too.
   @discardableResult
   public func forget(_ thread: String, board: String) -> Bool {
-    guard self.thread(board: board) == thread else { return false }
+    let own = self.thread(board: board)
+    guard own == thread || own == nil else { return false }
     defaults.removeObject(forKey: key(board))
     defaults.set(thread, forKey: goneKey(board))
     return true

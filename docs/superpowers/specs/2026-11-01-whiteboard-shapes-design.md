@@ -406,7 +406,7 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   board*, and the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) as soon as the picture is taken, until he answers (story 662). No spinner: Igor keeps drawing, and can
   hand him a newer picture once that one has gone. If it can't be delivered, the line goes and the problem below shows.
 - **Each board has one thread**, named after the board. The board's first *Larry's turn* or *Send to Larry* starts it,
-  and later ones of either kind go to it, on this device, even when the first *Send* lands with the board closed. The
+  and later ones of either kind go to it, on every device (a Send from the iPhone goes to the thread the board carries through iCloud: [the conversation design](2026-11-12-whiteboard-conversation-design.md), story 1158), even when the first *Send* lands with the board closed. The
   two don't race to start it: *Larry's turn* is off while the board's first *Send* waits in the outbox, and *Send* is
   off while a turn is on its way. If the Cockpit says it no longer has the thread, the next picture starts a new one.
   Claude's ghost turns have no thread.
