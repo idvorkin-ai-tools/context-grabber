@@ -26,6 +26,8 @@ lacks() { if grep -qF -- "$3" "$2" 2>/dev/null; then echo "     unwanted in ${2#
 fakes=$tmp/bin
 mkdir -p "$fakes"
 export MARKS=$tmp/marks STATE=$tmp/state
+# Story 1022: sim-boot waits while the Mac's screen is locked; unlocked here, whatever this Mac's own screen is doing.
+export SMOKE_LOCK_PROBE="echo unlocked"
 # lockf -k -t <seconds> <file> <command…>: a lock named in FAKE_HELD is another job's, so it times out (75).
 cat >"$fakes/lockf" <<'F'
 #!/usr/bin/env bash
@@ -274,6 +276,16 @@ devices "$PHONE:Shutdown:iPhone 17" "$PAD:Booted:iPad Pro 11-inch (M5)" "$L2PHON
 TARGET="iPhone 17" boot BUILD_LANES=1 BUILD_LANE=1 FAKE_HELD=build-2.lock
 is "one lane: only the target is booted" "$(grep '|Booted|' "$STATE/devices" | cut -d'|' -f1)" "$PHONE"
 [ ! -e "$MARKS/lockf" ] && ok "one lane: sim-boot asks no lock" || bad "one lane: sim-boot asks no lock"
+
+# Story 1022: on a locked screen sim-boot waits for an unlock, then boots and shuts down nothing, and exits 75.
+printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionScreenIsLocked\\"=Yes"\n' >"$fakes/locked-screen"
+chmod +x "$fakes/locked-screen"
+devices "$PHONE:Shutdown:iPhone 17" "$PAD:Booted:iPad Pro 11-inch (M5)"
+TARGET="iPhone 17" boot BUILD_LANES=1 BUILD_LANE=1 SMOKE_LOCK_PROBE="$fakes/locked-screen" SIM_LOCK_WAIT=1 SIM_LOCK_POLL=1
+is "a locked screen: sim-boot exits 75" "$?" 75
+is "a locked screen: the target isn't booted" "$(state_of "$PHONE")" Shutdown
+is "a locked screen: nothing is shut down" "$(state_of "$PAD")" Booted
+has "a locked screen: says why" "$out" "so booting a simulator for a test run didn't start (waited 1 s)"
 
 # The wait for other xcodebuilds.
 idle() { with XCODEBUILD_IDLE_WAIT=0 XCODEBUILD_IDLE_POLL=1 "$@" scripts/native/xcodebuild-idle.sh >"$out" 2>&1; }

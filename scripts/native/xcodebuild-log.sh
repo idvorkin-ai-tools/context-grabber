@@ -9,6 +9,8 @@
 # kept, is native/Build/logs/<name>.xcresult unless the command names its own (story 790). A test run that would pass
 # fails with exit 65 when a case passed only on its retry, unless scripts/native/ui-quarantine.txt names it (story 1017).
 # A test run that fails after the Mac's screen was seen locked during it exits 75, asking for a rerun unlocked (story 1018).
+# A test run on a simulator doesn't start while the screen is locked (it waits up to 2 minutes, then exits 75), and one
+# whose tests are still running when the screen locks is stopped, the app ended on the simulator, and exits 75 (stories 1022, 1023).
 # Usage: xcodebuild-log.sh <name> <done> <command...>
 set -uo pipefail
 name=$1 done=$2
@@ -74,13 +76,45 @@ if [ "${1##*/}" = xcodebuild ]; then
       ;;
   esac
 fi
-stopped=$(mktemp -u) unstarted=$(mktemp -u) unfinished=$(mktemp -u) locked_at=$(mktemp -u)
+# Story 1022 (bead context-grabber-208e): a test run on a simulator, and the simulator's id from its destination.
+sim_test=0 sim_udid=
+if [ "$is_test" -eq 1 ]; then
+  prev=
+  for a in "$@"; do
+    if [ "$prev" = -destination ]; then
+      case $a in *"iOS Simulator"*) sim_test=1 sim_udid=$(sed -nE 's/^(.*,)?id=([^,]+).*$/\2/p' <<<"$a") ;; esac
+    fi
+    prev=$a
+  done
+fi
+# The app and its UI test runner, ended on the simulator when a lock stops the run, before a test can open the mic.
+sim_apps=${SIM_TEST_BUNDLES:-com.idvorkin.grabbernative com.idvorkin.grabbernative.uitests.xctrunner}
+end_sim_apps() {
+  [ -n "$sim_udid" ] || return 0
+  for b in $sim_apps; do xcrun simctl terminate "$sim_udid" "$b" >/dev/null 2>&1; done
+  return 0
+}
+# A locked Mac starves the simulator's audio server, and opening the mic then aborts the app about ten seconds on, a
+# crash dialog on the Mac each time: so a locked screen doesn't start a simulator test run.
+if [ "$sim_test" -eq 1 ]; then
+  wait_unlocked "the simulator test run $name" || exit 75
+fi
+stopped=$(mktemp -u) unstarted=$(mktemp -u) unfinished=$(mktemp -u) locked_at=$(mktemp -u) lock_stopped=$(mktemp -u)
 # Written in full: xcodebuild writes Info.plist and drops Staging last. No bundle to wait for (a build) counts as written.
 bundle_written() { [ -z "$bundle" ] || { [ -e "$bundle/Info.plist" ] && [ ! -e "$bundle/Staging" ]; }; }
 stop_xcodebuild() {
   pkill -TERM -P $$ -f '/xcodebuild '
   sleep 5 || return
   pkill -KILL -P $$ -f '/xcodebuild '
+}
+# Story 1022: at once, not after stop_xcodebuild's 5 s: the app is ended with xcodebuild, and again after, in case a
+# retry had launched it again meanwhile.
+stop_for_lock() {
+  pkill -TERM -P $$ -f '/xcodebuild '
+  end_sim_apps
+  sleep 2
+  pkill -KILL -P $$ -f '/xcodebuild '
+  end_sim_apps
 }
 : >"$log"
 if [ "$watch_start" -eq 1 ] && [ "$start_limit" -gt 0 ]; then
@@ -125,6 +159,13 @@ if [ "$is_test" -eq 1 ]; then
       # When it was first seen locked, and how many cases had failed by then: those failed on an unlocked Mac.
       if [ ! -e "$locked_at" ] && mac_locked; then
         echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
+        # Story 1022: on a simulator, a run whose tests are still running stops here. Once the last suite has closed,
+        # no test can open the mic any more, and the result stands (story 1018 reads it).
+        if [ "$sim_test" -eq 1 ] && ! grep -qE "^Test Suite '(All|Selected) tests' (passed|failed)" "$log"; then
+          touch "$lock_stopped"
+          stop_for_lock
+          exit
+        fi
       fi
       sleep "$lock_poll" || exit
     done
@@ -140,6 +181,21 @@ for w in "$watchdog" ${start_watchdog:+"$start_watchdog"} ${lock_watch:+"$lock_w
   kill "$w" 2>/dev/null
   wait "$w" 2>/dev/null
 done
+if [ -e "$lock_stopped" ]; then
+  rm -f "$lock_stopped"
+  end_sim_apps  # the watcher may have been ended before its second go
+  read -r at before <"$locked_at"
+  rm -f "$locked_at" "$unstarted"
+  if [ "${before:-0}" -gt 0 ]; then
+    echo "the Mac's screen locked at $at, so the simulator test run was stopped there, but $before case(s) had already" \
+      "failed before that, so it counts as a failure; the whole log: $log" >&2
+    exit 65
+  fi
+  echo "the Mac's screen locked at $at, so the simulator test run was stopped there and the app ended on the simulator," \
+    "before a test could open the mic: a locked Mac starves the simulator's audio and the app can crash (story 1023)." \
+    "Not run, not failed; unlock the Mac and rerun. The whole log: $log" >&2
+  exit 75
+fi
 if [ -e "$unstarted" ]; then
   rm -f "$unstarted" "$locked_at"
   if mac_locked; then now="it is locked now"; else now="it isn't locked now, so look for a display that was asleep"; fi

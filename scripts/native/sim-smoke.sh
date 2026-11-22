@@ -3,7 +3,9 @@
 # Usage: sim-smoke.sh <simulator name or udid> <bundle id> <app path>
 set -euo pipefail
 SMOKE_UDID=$("$(dirname "$0")/sim-udid.sh" "$1"); BUNDLE=$2; APP=$3  # one device, whatever runtimes share the name
-"$(dirname "$0")/sim-boot.sh" "$SMOKE_UDID"  # the one booted simulator, left booted after (story 980)
+# The one booted simulator, left booted after (story 980). On a locked Mac it waits up to 2 minutes for an unlock, then
+# exits 75, and so does the smoke, having started nothing (story 1022).
+"$(dirname "$0")/sim-boot.sh" "$SMOKE_UDID"
 xcrun simctl install "$SMOKE_UDID" "$APP"
 # BugKit's smoke-lib: launch freshness (wait only for a log newer than the launch), a timeout that fails the run,
 # error events, the stash; this script keeps CG's checks, fixtures and hooks. From the checkout SwiftPM pinned, else

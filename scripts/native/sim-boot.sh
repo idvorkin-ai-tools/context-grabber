@@ -7,9 +7,13 @@
 # busy lane's simulator never is (a name of no lane counts as lane 1's), and an idle lane's only to keep the booted
 # count at or under the lane count.
 # Run it inside a build lane (build-lane.sh run).
+# Story 1022: it boots nothing while the Mac's screen is locked: it waits up to 2 minutes for an unlock, then exits 75.
 # Usage: sim-boot.sh <simulator name or udid>
 set -uo pipefail
 here=$(dirname "$0")
+# shellcheck source=scripts/native/smoke-lock.sh
+. "$here/smoke-lock.sh"
+wait_unlocked "booting a simulator for a test run" || exit 75
 udid=$("$here/sim-udid.sh" "${1:?simulator name or udid}") || exit
 lanes=$("$here/build-lane.sh" count)
 if [ "$lanes" -le 1 ]; then
