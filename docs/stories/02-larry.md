@@ -3116,7 +3116,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1128:
 
 - **Summary:** Answer a decision in my own words with *Other*
-- **Status:** native app: in progress (bead context-grabber-sm4l)
+- **Status:** native app: implemented in [f779b0fb](https://github.com/idvorkin/context-grabber/commit/f779b0fb); verified on the host (`just native-test`: `ChatDecisionsTests`, which labels are Larry's *Other*, when the card adds its own, a tap on his opening the field and never answering, the words sent as *DECISION: \<words\>*), the Mac build (`just native-build-mac`) and the simulator (`just test-ladder --rung 2`, 2026-11-22): `ChatDecisionUITests.testOtherAnswersInIgorsOwnWords` and `testLarrysOwnOtherOpensTheFieldAndNeverSendsTheBareWord` on the iPhone 17 simulator against the fake Cockpit, the class green, and `WhiteboardQuestionUITests` on the iPad simulator (no *Other* in the popup); dictating into the field and the real Cockpit are the phone's to show
 - **Issues:** bead context-grabber-sm4l (Igor, 2026-11-22, Cockpit thread igor2-88g.1620: *"When we have a decision card it always needs to have an other so I can add another option. In this case I didn't understand what finger draw was about."*); bead context-grabber-1zyc (the same request, closed as its duplicate)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Other*, *Answering in his own words*
 
