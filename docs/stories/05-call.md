@@ -637,7 +637,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 099:
 
 - **Summary:** Larry hears that I arrived at a known place, within a few minutes, without a call
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too). Holding and sending to the Cockpit's `POST /context` (the shape proposed to Larry on 2026-11-20) is built in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6) and verified by host tests against a fake Cockpit (`LiveContextSendTests`); the route is not on the Cockpit yet, so events wait and the phone is not yet seen. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
+- **Status:** implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Verified on the phone on 2026-11-21 (main [a666883](https://github.com/idvorkin/context-grabber/commit/a666883), the Cockpit taking `POST /context` since idvorkin-ai-tools/cockpit 2b2bb45): the pulled session log has eight `live_context` events, each `detected` and then `sent`, 0 to 6 s after it settled (arrived at Flow fitness at 11:34 and 13:57, at home at 11:57 and 15:55). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too). Holding and sending to the Cockpit's `POST /context` (the shape proposed to Larry on 2026-11-20) is built in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6) and verified by host tests against a fake Cockpit (`LiveContextSendTests`). Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
 
 #### Use Case:
 - **As a** Larry's client arriving at the gym
@@ -677,7 +677,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 335:
 
 - **Summary:** Larry hears that I left a known place, timed when I walked out
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes outside, the time of the first position outside, how long I stayed) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`); sending it, with the minutes stayed, in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6), verified by `LiveContextSendTests` against a fake Cockpit; the Cockpit's route and the phone not yet seen
+- **Status:** implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Verified on the phone on 2026-11-21 (main [a666883](https://github.com/idvorkin/context-grabber/commit/a666883), the Cockpit taking `POST /context` since idvorkin-ai-tools/cockpit 2b2bb45): the pulled session log has eight `live_context` events, each `detected` and then `sent`, 0 to 6 s after it settled (left Flow fitness after 6 and 106 minutes, home after 78 and 26, each with its minutes stayed). The detection (five minutes outside, the time of the first position outside, how long I stayed) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`); sending it, with the minutes stayed, in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6), verified by `LiveContextSendTests` against a fake Cockpit
 
 #### Use Case:
 - **As a** Larry's client leaving the gym
@@ -697,7 +697,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 336:
 
 - **Summary:** Passing a known place, or a position the phone itself reports as imprecise, tells Larry nothing
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19); verified by host tests (`LiveContextDetectorTests`: driving past, stepping out and back, a 1.4 km fix at home on the real trail sending no departure)
+- **Status:** implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19); verified by host tests (`LiveContextDetectorTests`: driving past, stepping out and back, a 1.4 km fix at home on the real trail sending no departure)
 
 #### Use Case:
 - **As a** Larry's client who drives past the gym on the way to work
@@ -717,7 +717,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 337:
 
 - **Summary:** An arrival made off the tailnet waits, and reaches Larry with the time it happened
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Held, retried oldest first with the same id, refused ones not retried, dropped after a day: built in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6), verified by host tests against a fake Cockpit (`LiveContextSendTests`). Nothing on the Cockpit takes these yet (cockpit#63 item 1), so the phone is not yet seen
+- **Status:** implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Held, retried oldest first with the same id, refused ones not retried, dropped after a day: built in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6), verified by host tests against a fake Cockpit (`LiveContextSendTests`). The Cockpit takes them since 2026-11-20 (idvorkin-ai-tools/cockpit 2b2bb45); on the phone every event so far went at once (2026-11-21), so a wait off the tailnet is not yet seen there
 
 #### Use Case:
 - **As a** Larry's client whose phone is sometimes off the tailnet
@@ -737,7 +737,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 338:
 
 - **Summary:** One switch in Places stops Larry hearing where I go, and says what it last sent
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Built in [a795fca](https://github.com/idvorkin/context-grabber/commit/a795fca), [dc4fcfe](https://github.com/idvorkin/context-grabber/commit/dc4fcfe), [acf9c86](https://github.com/idvorkin/context-grabber/commit/acf9c86), [aa6e613](https://github.com/idvorkin/context-grabber/commit/aa6e613) (the switch and its line; the send's background time ended when iOS says it is up; the UI test; switching off cancels the send under way, and the line's wording with tracking off), [0839f56](https://github.com/idvorkin/context-grabber/commit/0839f56) (a send cancelled by switching off sends nothing more and logs `cancelled`, not a stale `waiting`: `LiveContextSendTests`, host). The line's wording is verified by host tests (`LiveContextStatusTests`); the switch turning off and saying so on the simulator (`LiveContextSwitchUITests`, iPhone 17, 2026-11-20); the phone not yet seen
+- **Status:** implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Built in [a795fca](https://github.com/idvorkin/context-grabber/commit/a795fca), [dc4fcfe](https://github.com/idvorkin/context-grabber/commit/dc4fcfe), [acf9c86](https://github.com/idvorkin/context-grabber/commit/acf9c86), [aa6e613](https://github.com/idvorkin/context-grabber/commit/aa6e613) (the switch and its line; the send's background time ended when iOS says it is up; the UI test; switching off cancels the send under way, and the line's wording with tracking off), [0839f56](https://github.com/idvorkin/context-grabber/commit/0839f56) (a send cancelled by switching off sends nothing more and logs `cancelled`, not a stale `waiting`: `LiveContextSendTests`, host). The line's wording is verified by host tests (`LiveContextStatusTests`); the switch turning off and saying so on the simulator (`LiveContextSwitchUITests`, iPhone 17, 2026-11-20); the phone not yet seen
 
 #### Use Case:
 - **As a** Larry's client who wants a day to himself

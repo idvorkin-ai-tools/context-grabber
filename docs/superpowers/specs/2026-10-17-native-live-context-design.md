@@ -89,8 +89,8 @@ Cockpit is next reachable, with the time it happened.
 
 ## Depends on
 
-The Cockpit accepting these events, Larry's side of #84 (igor2 bead igor2-88g.263). Nothing on the Cockpit takes them
-yet (cockpit#63, item 1). The wire shape is the one proposed to Larry on 2026-11-20, modelled on the Inbox's
+The Cockpit accepting these events, Larry's side of #84 (igor2 bead igor2-88g.263). The Cockpit takes them since
+2026-11-20 (cockpit#63, item 1), and the phone's first day of them, 2026-11-21, sent all eight it noticed. The wire shape is the one proposed to Larry on 2026-11-20, modelled on the Inbox's
 ([#305](https://github.com/idvorkin/context-grabber/issues/305)): one event per request, carrying the event's own id (so a resend counts once), arrived or left, the
 place's name and when it happened — never a position. The Cockpit answers ok (or ok, already had it), a refusal with
 a reason (not retried), or a server error (retried). Until the Cockpit takes it, events wait and then drop after a
