@@ -177,6 +177,22 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
+  # Contract tests on real PaperKit and PencilKit (bead 0u3k): what the whiteboard relies on the platform doing, run
+  # inside the app on the simulator so they fail on the iOS that changes it (docs/TESTING.md).
+  GrabberNativeContractTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - ContractTests
+    dependencies:
+      - target: GrabberNative
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.idvorkin.grabbernative.contracttests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/GrabberNative.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GrabberNative"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        CODE_SIGN_STYLE: Automatic
   # Simulator only: grants Health access through Health's own sheet, the one tap a script cannot make
   # (`just native-sim-health`; docs/TESTING.md).
   GrabberNativeUITests:
@@ -200,5 +216,6 @@ schemes:
     test:
       targets:
         - GrabberNativeUITests
+        - GrabberNativeContractTests
     run:
       config: Debug

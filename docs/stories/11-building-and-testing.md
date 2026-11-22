@@ -1074,3 +1074,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a UI test run where one case fails and then passes on its retry, another does the same but is quarantined with the bead that tracks it, and a third is asked to run three times and passes each time
 - **When:** the run ends and I run `just ladder-report`
 - **Then:** the run fails, naming the first case as a flake; the quarantined case is named as quarantined with its bead and doesn't fail the run; the repeats are counted as repeats, not retries; a quarantine line with no bead or issue quarantines nothing; and the report calls a climb that failed on flakes alone flaky, counts it as a failed attempt, and shows each class's passes on retry apart from its repeats
+
+---
+
+### User Story 1019:
+
+- **Summary:** What PaperKit itself does, that the whiteboard relies on, is checked on the simulator before it reaches the iPad
+- **Status:** implemented on branch `native/paperkit-contracts-0u3k`; verified on the simulator rung (iOS 27.2, 2026-11-21: `just native-test-contracts` on lane 1's *iPad Pro 11-inch (M5)*, 12 of 12 on each of two runs, after a run on lane 3's iPad failed two checks because the picker kept a pick from an earlier launch, so each run now starts it on the pen). Writing them found two things nobody knew: a set built from an older markup than the held one is refused and takes the held one's newer ink with it (the shape of #999 and #1015), and a pick made in code moves the picker but not the paper's tool (the shape of #1078)
+- **Issues:** bead `context-grabber-0u3k`
+
+#### Use Case:
+- **As Igor,** drawing on the iPad on a new iOS
+- **I want to** have what the board relies on PaperKit and PencilKit doing checked on the simulator, by tests that fail when the platform changes it
+- **so that** the next surprise of the platform is a red test on the Mac, not ink that comes back or an eraser that draws on my board
+
+#### Acceptance Criteria:
+- **Scenario:** The platform changes something the board relies on
+- **Given:** an Xcode or iOS update, or a change to how the board drives PaperKit
+- **When:** `just native-test-contracts` runs
+- **Then:** each behaviour the board relies on (the picker's tool against the paper's, which markup sets are held and which refused, the undo names, the kinds of ink) is checked on real PaperKit on an iPad simulator, a change in any of them fails its test naming the board's code that rests on it, and a failure is never retried into a pass
