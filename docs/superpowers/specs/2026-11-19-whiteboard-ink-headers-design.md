@@ -127,7 +127,8 @@ Igor, 2026-11-20 (decision O2): "Keep [the #967 ink header design]; build ## and
   Undo takes that stroke away and the line is no longer a header (its ▾ goes). Redo brings the stroke and the header back.
 - **Erasing the mark** (the underline, or any stroke of the #) also makes the line plain again, the header's words
   left as they were. A folded header keeps its fold until it is unfolded: erasing its underline never springs or loses
-  a fold.
+  a fold, nor takes the folded section with it. The eraser across a folded header's underline or # takes only that
+  stroke; only its words or its "▸ N lines folded" take the section (the board ops spec, *Headers fold their sections*).
 - ***Not a header*** (the hold menu beside a header, as today) keeps the underline or # as ink and makes the line
   plain. The board never makes it a header again on its own: only a newly drawn underline or # makes one.
 - A wrong rule is erased or undone like any stroke, and the section runs on as before.

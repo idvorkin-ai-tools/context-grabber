@@ -301,6 +301,16 @@ board differs, this says why.
   there it is two Undos.) A scratch-out over the marker or the folded header line does the same, with one Undo, and what it took stays gone, on the sheet and to Larry, as he writes on (#1015). An eraser stroke the iPad calls off before it lifts (a palm, a system gesture taking the
   touch) takes no fold by its marker; across the header's own ink it takes the fold only if that ink is gone from the
   board, so folded lines are never left hidden under no header.
+- **A header's own ink is its words, not its underline or #** (context-grabber-bov; Igor: "a fold is erased only by
+  its words or its marker"). The eraser or a scratch-out across a folded header's underline, or across a stroke of
+  its # (## and ### included), takes that stroke as any ink and leaves the header's words, the fold, its "▸ N lines
+  folded" and every folded line as they were (the ink headers spec, *Undoing a wrong guess*). Across the words or the
+  marker it takes the section as above. By the words, the section goes when the eraser takes some of them, not when
+  it only passes near them, as along an underline drawn just under the words.
+- **The pixel eraser takes a fold by its words only once they are rubbed through.** Across the marker it takes the
+  section as the eraser does. Across a folded header's words it takes the section only when every stroke of the words
+  has been rubbed, as a called-off stroke does; a rub on the corner of one letter takes that corner and leaves the
+  section folded under what is left of its header.
 - **Fold all and Unfold all**, and **collapse to a level**: from the hold menu on a header's mark, Fold all, 1, 2, 3
   and Unfold all. A header's level is how deep it nests with everything open. A ## or ### written at a header's start nests it under the # above it (the ink headers spec, *Header levels*). Collapsing to level *n* shows the
   headers down to level *n* and nothing deeper: every header at level *n* folds, and so does a shallower one with no
@@ -485,6 +495,11 @@ what a change would do except to send it to Igor's real board, and paused his ch
   header was, and one Undo brings the section back folded with the ink below where it was.
 - An eraser stroke across that marker that the iPad calls off (a palm landing, a system gesture) leaves the fold, its
   header and the ink below as they were.
+- The eraser across a folded header's underline (or a stroke of its #) takes only that stroke: the header's words,
+  "▸ N lines folded" and the folded lines stay, and the ink below stays where it was. Across its words it takes the
+  section.
+- The pixel eraser rubbed on a corner of one letter of a folded header leaves the section folded; rubbed through every
+  stroke of the words, it takes the section.
 - A line written big or underlined shows a faint H; a margin tap there makes it a header.
 - A finger held in the margin and dragged down two lines opens two lines; held and lifted, or held on the page, it
   shows the menu. The Pencil held on a word for under half a second and dragged moves that word, and nothing else.

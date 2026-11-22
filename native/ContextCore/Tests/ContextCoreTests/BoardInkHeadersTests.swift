@@ -208,6 +208,80 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertTrue(gone.isFolded(gone.headers[0]))
   }
 
+  /// Stories 934, 955 (context-grabber-bov): a fold is taken by its header's words or its marker, never by the
+  /// underline or # that made the header, through the eraser's own path: the strokes it crossed, then what PaperKit took.
+  func testTheEraserAcrossAFoldedHeadersUnderlineLeavesTheFold() throws {
+    var strokes = word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("c", x: 100, y: 180)
+    strokes.append(line("under", from: CGPoint(x: 96, y: 128), to: CGPoint(x: 172, y: 129)))
+    var o = BoardOutline(strokes: strokes, headers: [])
+    o.inkHeader(newest: place(o, "under"), id: "x")
+    XCTAssertTrue(o.fold("x"))
+    XCTAssertEqual(try XCTUnwrap(o.header("x")).words, ["h0", "h1", "h2"])
+    // Along the underline, a few points under the words: near them, but PaperKit takes only the underline.
+    let along = [CGPoint(x: 96, y: 129), CGPoint(x: 172, y: 130)]
+    let hits = o.foldHits(along: along, onHeader: true)
+    let live = o.liveNames.subtracting(["under"])
+    XCTAssertTrue(o.foldsTaken(hits, by: .lifted, live: live).isEmpty, "the underline is no part of its words")
+    XCTAssertTrue(o.foldsTaken(hits, by: .rubbed, live: live).isEmpty)
+    var after = o
+    XCTAssertFalse(after.eraseFolds(o.foldsTaken(hits, by: .lifted, live: live)))
+    // The board PaperKit leaves: the header's words, its fold and its folded lines, with the ink below where it was.
+    let left = BoardOutline(strokes: o.strokes.filter { $0.ids != ["under"] }, headers: o.headers)
+    let header = try XCTUnwrap(left.header("x"))
+    XCTAssertTrue(left.isFolded(header))
+    XCTAssertEqual(header.words, ["h0", "h1", "h2"])
+    XCTAssertEqual(left.markers.map(\.header), ["x"])
+    XCTAssertEqual(Set(header.fold?.ids ?? []), ["a0", "a1", "a2"])
+    XCTAssertEqual(left.liveNames, o.liveNames.subtracting(["under"]))
+    // Across the words it takes the section, and by the marker as ever.
+    let across = [CGPoint(x: 100, y: 112), CGPoint(x: 170, y: 112)]
+    let words = o.foldsTaken(
+      o.foldHits(along: across, onHeader: true), by: .lifted, live: o.liveNames.subtracting(["h0", "h1", "h2"]))
+    XCTAssertEqual(words.map(\.header), ["x"])
+    XCTAssertTrue(after.eraseFolds(words))
+    XCTAssertTrue(after.headers.isEmpty)
+    XCTAssertFalse(after.liveNames.contains("a0"), "its folded lines go with it")
+    let marker = try XCTUnwrap(o.markers.first).box
+    let byMarker = o.foldHits(along: [CGPoint(x: marker.midX, y: marker.midY)], onHeader: true)
+    XCTAssertEqual(o.foldsTaken(byMarker, by: .lifted, live: o.liveNames).map(\.header), ["x"])
+    XCTAssertEqual(o.foldsTaken(byMarker, by: .rubbed, live: o.liveNames).map(\.header), ["x"])
+  }
+
+  func testTheEraserAcrossAFoldedHeadersHashLeavesTheFold() throws {
+    var o = BoardOutline(strokes: hash("#", x: 20, y: 100), headers: [])
+    XCTAssertNotNil(o.inkHeader(newest: place(o, "#l2"), id: "x"))
+    for s in word("w", x: 60, y: 101) {
+      o.strokes.append(s)
+      o.inkHeader(newest: o.strokes.count - 1, id: "n")
+    }
+    o.strokes += word("a", x: 100, y: 140)
+    XCTAssertTrue(o.fold("x"))
+    XCTAssertEqual(try XCTUnwrap(o.header("x")).words, ["w0", "w1", "w2"])
+    // Down the #'s upright bar: PaperKit takes that stroke and nothing of the words.
+    let hits = o.foldHits(along: [CGPoint(x: 30, y: 98), CGPoint(x: 26, y: 128)], onHeader: true)
+    XCTAssertTrue(o.foldsTaken(hits, by: .lifted, live: o.liveNames.subtracting(["#u1"])).isEmpty)
+    let left = BoardOutline(strokes: o.strokes.filter { $0.ids != ["#u1"] }, headers: o.headers)
+    XCTAssertTrue(left.isFolded(try XCTUnwrap(left.header("x"))), "the fold stays with a bar of its # gone")
+  }
+
+  /// Story 955: the pixel eraser takes a fold by its words only once it has rubbed through every stroke of them (a
+  /// rubbed stroke comes back under new names); a rub on one letter leaves the section folded.
+  func testThePixelEraserTakesAFoldOnlyWhenItRubsThroughTheWords() {
+    var strokes = word("h", x: 100, y: 100) + word("a", x: 140, y: 140)
+    strokes.append(line("under", from: CGPoint(x: 96, y: 128), to: CGPoint(x: 172, y: 129)))
+    var o = BoardOutline(strokes: strokes, headers: [])
+    o.inkHeader(newest: place(o, "under"), id: "x")
+    XCTAssertTrue(o.fold("x"))
+    let corner = o.foldHits(along: [CGPoint(x: 102, y: 122)], onHeader: true)
+    XCTAssertEqual(corner.map(\.header), ["x"], "the rub crossed the header's first letter")
+    let rubbed = o.liveNames.subtracting(["h0"]).union(["h0-rubbed"])
+    XCTAssertTrue(o.foldsTaken(corner, by: .rubbed, live: rubbed).isEmpty, "a corner of one letter: the fold stays")
+    XCTAssertEqual(o.foldsTaken(corner, by: .lifted, live: rubbed).map(\.header), ["x"], "the eraser took a letter")
+    let through = o.liveNames.subtracting(["h0", "h1", "h2"])
+    XCTAssertEqual(o.foldsTaken(corner, by: .rubbed, live: through).map(\.header), ["x"])
+    XCTAssertTrue(o.foldsTaken(corner, by: .rubbed, live: nil).isEmpty, "no board to read: nothing by its words")
+  }
+
   func testOldHeadersDecodeWithNoMark() throws {
     let old = Data(#"[{"id":"h","ids":["a"]}]"#.utf8)
     let headers = try JSONDecoder().decode([BoardHeader].self, from: old)

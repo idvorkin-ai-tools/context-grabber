@@ -14,6 +14,8 @@ struct FoldErasing {
   var touch: ObjectIdentifier
   var outline: BoardOutline
   var path: [CGPoint]
+  /// The pixel eraser: across the header's words it takes the fold only once they are rubbed through.
+  var rub = false
 }
 
 extension PaperBoardController {
@@ -25,7 +27,8 @@ extension PaperBoardController {
     let outline = model.outline(of: model.opStrokes(markup.inkDrawing.strokes).strokes)
     guard !outline.markers.isEmpty else { return }
     foldErasing = FoldErasing(
-      touch: ObjectIdentifier(touch), outline: outline, path: [lines.columnPoint(of: touch.location(in: lines))])
+      touch: ObjectIdentifier(touch), outline: outline, path: [lines.columnPoint(of: touch.location(in: lines))],
+      rub: touchTool.rubs)
   }
 
   func foldEraserMoved(_ touch: UITouch) {
@@ -34,7 +37,8 @@ extension PaperBoardController {
   }
 
   /// The eraser touch coming up, or called off (context-grabber-0m2d): a called-off stroke takes a fold only where
-  /// PaperKit's eraser took the header's ink anyway.
+  /// PaperKit's eraser took the header's words anyway. The pixel eraser takes one by its marker, and by the header's
+  /// words only once it has rubbed through every stroke of them (context-grabber-bov).
   func foldEraserLifted(_ touch: UITouch) {
     let cancelled = touch.phase == .cancelled
     if !cancelled { foldEraserMoved(touch) }
@@ -45,21 +49,21 @@ extension PaperBoardController {
     // A turn later: PaperKit's own erase of the header's ink is on the markup by then.
     Task { @MainActor [weak self] in
       guard let self else { return }
-      guard cancelled else {
-        self.eraseFolds(hits, via: "eraser", path: erasing.path.count)
-        return
-      }
       let live = self.paper.markup.map { self.model.outline(of: self.model.opStrokes($0.inkDrawing.strokes).strokes) }
-      // No markup to read: the header's ink can't be seen gone, so nothing is taken.
-      let taken = live.map { erasing.outline.foldsTakenByCancelledStroke(hits, live: $0.liveNames) } ?? []
-      // What a called-off eraser stroke did to the header's ink, so the iPad's log says whether PaperKit keeps it.
+      // No markup to read: the header's words can't be seen gone, so none is taken by them.
+      let how: BoardOutline.EraserStroke = cancelled ? .cancelled : erasing.rub ? .rubbed : .lifted
+      let taken = erasing.outline.foldsTaken(hits, by: how, live: live?.liveNames)
+      // What the eraser stroke did to the header's words, so the iPad's log says why a fold went or stayed.
+      let via = cancelled ? "eraser_cancelled" : erasing.rub ? "eraser_rub" : "eraser"
       self.log.event(
         "board_outline",
         [
-          "action": "erase_fold_cancelled", "board": self.model.board.id, "folds": hits.count, "taken": taken.count,
-          "path": erasing.path.count, "markup": live != nil,
+          "action": cancelled ? "erase_fold_cancelled" : "erase_fold_check", "board": self.model.board.id, "via": via,
+          "folds": hits.count,
+          "taken": taken.count, "by_marker": hits.filter(\.byMarker).count, "path": erasing.path.count,
+          "markup": live != nil,
         ])
-      if !taken.isEmpty { self.eraseFolds(taken, via: "eraser_cancelled", path: erasing.path.count) }
+      if !taken.isEmpty { self.eraseFolds(taken, via: via, path: erasing.path.count) }
     }
   }
 
