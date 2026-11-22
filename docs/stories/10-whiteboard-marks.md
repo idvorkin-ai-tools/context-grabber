@@ -924,8 +924,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 896:
 
 - **Summary:** Tidy overlaps moves kept labels off my writing
-- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `tidy`, without moving my ink); verified on the host (`WhiteboardTidyTests.testTidyMovesOnlyTheLabelsThatSitOnInk`, `testTidySeparatesTwoLabelsOnEachOther`, `testTidyTwiceChangesNothing`); `just native-test`. Not yet seen on the simulator or the iPad
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `tidy`, without moving my ink); verified on the host (`WhiteboardTidyTests.testTidyMovesOnlyTheLabelsThatSitOnInk`, `testTidySeparatesTwoLabelsOnEachOther`, `testTidyTwiceChangesNothing`); `just native-test`. Not yet seen on the simulator or the iPad. A grouped label stays with its group: implemented in COMMIT_CG3; verified on the host (`WhiteboardTidyGroupTests`, rung 1) and the Mac build (rung 1.5); not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
+- **Issues:** bead context-grabber-cg3
 
 #### Use Case:
 - **As someone** who kept labels that landed on my own writing
@@ -937,6 +938,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a label I kept sits on a line I wrote, and another sits on bare paper
 - **When:** I choose Board → Tidy overlaps
 - **Then:** the label on my words moves down to the first clear space under them, the other stays, my ink doesn't move, and one undo puts it back
+
+- **Scenario:** A label Larry grouped with his box, over my words
+- **Given:** Larry drew a box and its label grouped in one change, and the label sits on a line I wrote
+- **When:** I choose Board → Tidy overlaps
+- **Then:** neither the box nor its label moves: Tidy never pulls a group apart, and other labels still move clear of it
 
 ---
 

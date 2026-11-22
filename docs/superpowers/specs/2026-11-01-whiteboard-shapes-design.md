@@ -248,6 +248,8 @@ pushes the writing below down to make room, the iPad moves the label down to the
   ink, his or another label above it: each moves down under what it sits on, as above. Ink that only touches a label's
   edge isn't under it. His own strokes and kept shapes stay where they are. **One undo takes the tidy back.** With
   nothing to move the bar says *Nothing overlaps* until the board next changes, and tidying a tidy board changes nothing.
+  A label Larry grouped with his box (or any group of his) stays where it is with its group: Tidy never pulls a
+  group apart, so a grouped label on ink is left on it, and the labels around it still clear it.
 - Labels are known by how they were made: the strokes of one kept label or one paste are made in the same moment, and the
   board remembers those moments, on this device. A label kept on another device, or before this build, is ink like
   any other and is never moved.
