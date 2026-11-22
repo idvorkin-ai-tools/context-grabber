@@ -196,6 +196,28 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1143:
+
+- **Summary:** The log says what a moving touch began on and held, what the board changed under it, and whose ink moved
+- **Status:** implemented (the logging alone) in [0fda3903](https://github.com/idvorkin/context-grabber/commit/0fda3903) and [47e93e64](https://github.com/idvorkin/context-grabber/commit/47e93e64); verified by host tests (`PaperProbeMoveAuditTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2: `WhiteboardGroupTapUITests` and `WhiteboardTheirsTapUITests` pass, and their log shows a group drag beginning on PaperKit's `CanvasElementResizeView` with all 3 moved strokes held, Larry's, and moved alike; the reflow view sits idle at the sheet's size, without the focus); the iPad's own reflow drag is still owed
+- **Issues:** bead context-grabber-eg7v (2026-11-22, the iPad log behind #1171: a finger drag moved 54 strokes, Larry's 52-stroke text and two of Igor's, with nothing selected, as a Larry turn landed; the drag began on PaperKit's handwriting reflow view, a popover of its own over exactly those strokes)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The log says what a moving touch held and what moved*
+
+#### Use Case:
+- **As someone** whose drag moved ink I never picked
+- **I want to** have the log say what my touch landed on, what was selected then, whose ink moved and what the board or Larry changed while my finger was down
+- **so that** the fix settles the cause instead of guessing at it
+
+#### Acceptance Criteria:
+- **Scenario:** A drag moves ink
+- **Given:** a board with a kept text of Larry's and my writing under it
+- **When:** a finger drag moves strokes
+- **Then:** the change's line says how many of the moved strokes were selected when the touch began and how many weren't, how many are Larry's or Claude's and how many mine, their box, and the least and most each moved
+- **And:** the touch's line says the kind of view it began on, how many strokes were selected then, whether PaperKit's handwriting tools were showing at its start and its end, each change the board put on the ink while it was down, by name, and how many turns came back meanwhile
+- **And:** nothing I see changes
+
+---
+
 ### User Story 1104:
 
 - **Summary:** The log keeps each pen touch's path, and the stroke each gesture's verdict judged

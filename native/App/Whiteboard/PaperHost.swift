@@ -29,6 +29,13 @@ class PaperHost: UIViewController {
     var frames = 0
     var maxGap: Double = 0
     var pageAdded = false
+    /// Story 1143: the strokes selected as it went down, the view it began on, and PaperKit's handwriting tools showing.
+    var heldAtStart: Set<String> = []
+    var startView = ""
+    var handwritingAtStart: [String] = []
+    /// Story 1143: each change the board put on the ink while it was down, by name, and the turns logged as it began.
+    var boardSets: [String] = []
+    var turnsAtStart = 0
 
     var kind: String { "\(type)_down" }
   }
@@ -217,6 +224,9 @@ class PaperHost: UIViewController {
       type: Self.name(touch.type), began: CACurrentMediaTime(), start: at, visibleAtStart: visible,
       zoomAtStart: paper.scrollConfiguration.zoomScale, tool: toolName, ink: toolText(paper.drawingTool),
       picker: pickerText)
+    run?.heldAtStart = Set(paper.selection.map(Self.key))
+    run?.startView = touch.view.map { String(describing: type(of: $0)) } ?? ""
+    run?.handwritingAtStart = handwritingTools()
   }
 
   /// The view closing: a touch still being watched goes in the log now.

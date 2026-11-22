@@ -101,6 +101,9 @@ final class WhiteboardModel: ObservableObject {
   /// board.
   var larryHandOffs = WhiteboardLarryHandOffs()
   var larryWaitHook = LaunchHooks.current.whiteboard.larryWait
+  /// Story 1143: the `whiteboard_turn` lines so far, Claude's and Larry's, so a touch's line says how many came while
+  /// it was down.
+  var turnsLogged = 0
   /// On paper: ink on the board, none of it on screen, so Send and Larry's turn have nothing to show him (story 522).
   @Published var nothingOnScreen = false
   /// Looking at Larry's thread has failed for a while (story 383).

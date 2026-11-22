@@ -102,6 +102,7 @@ extension WhiteboardModel {
       }
     }
     log.event("whiteboard_turn", event)
+    turnsLogged += 1
     // The turn holds the next pause until the picture has gone.
     if case .some(let words) = toLarry { await handToLarry(larry.state, said: words, from: "responder") }
   }

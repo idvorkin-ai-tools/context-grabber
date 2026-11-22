@@ -128,6 +128,7 @@ extension WhiteboardModel {
     defer {
       event["ms"] = Int(Date().timeIntervalSince(started) * 1000)
       log.event("whiteboard_turn", event)
+      turnsLogged += 1
     }
     // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
     event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, folds: folds, picture: picture))) { $1 }
