@@ -7,6 +7,14 @@ import PaperKit
 import UIKit
 
 extension PaperBoardController {
+  struct TapDot {
+    let at: CGPoint
+    let beganAt: Date
+    var time = CACurrentMediaTime()
+    var within = PaperProbe.tapDotSeconds
+    var selection: (until: Double, isGroup: Bool)?
+  }
+
   /// The ghosts on the sheet, and a finger that taps while they show.
   func show(_ ghosts: [Ghost]) {
     Task { @MainActor [weak self] in self?.showChoice() }
@@ -79,34 +87,37 @@ extension PaperBoardController {
   /// one's Keep and Dismiss away.
   /// ponytail: the dot is undone once it has landed, which leaves it as Redo until the next step; stopping PaperKit
   /// drawing it is the upgrade, should a setting ever do that.
-  func takesBackTapDot(_ change: PaperProbe.InkChange, frames: [String: CGRect]) -> Bool {
-    guard let tap = ghostTap, change.removed.isEmpty, change.moved.isEmpty else { return false }
+  func takesBackTapDot(_ change: PaperProbe.InkChange, markup: PaperMarkup, frames: [String: CGRect]) -> Bool {
+    let undo = paper.undoManager
+    guard let tap = ghostTap, change.added.count == 1, let key = change.added.first, let box = frames[key],
+      change.removed.isEmpty, change.moved.isEmpty, undo?.isUndoing != true, undo?.isRedoing != true
+    else { return false }
     let since = CACurrentMediaTime() - tap.time
-    let added = change.added.compactMap { frames[$0] }
-    guard PaperProbe.isTapDot(added: added, tap: tap.at, secondsSince: since, zoom: screenScale, within: tap.within)
+    let isGroup = tap.selection?.isGroup == true
+    let lookUntil = isGroup ? tap.within + 1 : tap.within
+    guard PaperProbe.isTapDot(added: [box], tap: tap.at, secondsSince: since, zoom: screenScale, within: lookUntil)
+    else { return false }
+    let stroke = markup.subelements.strokes.first { Self.key($0.elementID) == key }
+    let ownsTouch = stroke.map { $0.path.creationDate >= tap.beganAt } == true
+    guard ownsTouch, since < tap.within
     else {
-      // Bead context-grabber-z93g: ink a tap's window kept, near enough in time to have been its dot.
-      if !change.added.isEmpty, since < tap.within + 1 {
-        let box = added.first ?? .null
+      if isGroup {
         log.event(
           "whiteboard",
           [
-            "action": "paper_tap_dot_kept", "board": model.board.id, "at": point(tap.at), "added": change.added.count,
-            "framed": added.count, "dot": rect(box), "ms": ms(since), "within_ms": ms(tap.within),
-            "away": box.isNull ? -1 : Double(hypot(box.midX - tap.at.x, box.midY - tap.at.y)),
-            "zoom": Double(screenScale),
+            "action": "paper_tap_dot_kept", "board": model.board.id, "at": point(tap.at), "dot": rect(box),
+            "ms": ms(since), "within_ms": ms(tap.within), "owns_touch": ownsTouch, "zoom": Double(screenScale),
           ])
       }
       return false
     }
     ghostTap = nil
-    let dot = change.added
     Task { @MainActor [weak self] in
       guard let self else { return }
       let undo = self.paper.undoManager
       let before = self.paper.markup?.strokeFrames ?? [:]
-      let could = self.takeBackPaperKitsStep(why: "tap_dot")
-      let wanted = before.filter { !dot.contains($0.key) }
+      let could = before == frames && self.takeBackPaperKitsStep(why: "tap_dot")
+      let wanted = before.filter { $0.key != key }
       let gone = could && PaperProbe.inkChange(before: wanted, after: self.paper.markup?.strokeFrames ?? [:]).isEmpty
       if !gone {
         if could { undo?.redo() }
@@ -116,11 +127,11 @@ extension PaperBoardController {
         "whiteboard",
         [
           "action": "paper_tap_dot", "board": self.model.board.id, "at": self.point(tap.at),
-          "dot": self.rect(added.first ?? .null), "ms": self.ms(since), "could_undo": could, "gone": gone,
+          "dot": self.rect(box), "ms": self.ms(since), "could_undo": could, "gone": gone,
           "strokes": self.inkFrames.count,
         ])
       // Story 947: the dot of a tap that selected a group took the selection with it.
-      self.reselectGroupTap(why: "tap_dot")
+      if let selection = tap.selection { self.reselectGroupTap(until: selection.until, why: "tap_dot") }
     }
     return true
   }

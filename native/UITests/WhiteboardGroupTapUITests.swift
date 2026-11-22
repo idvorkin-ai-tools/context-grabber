@@ -36,9 +36,8 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     add(picture)
   }
 
-  /// Larry's three circles kept as one group on a new board, Ghosts off, nothing left showing; the Send button's label
-  /// once they are ink.
-  private func keptGroup(_ app: XCUIApplication) throws -> String {
+  /// Larry's three circles kept as one group on a new board, Ghosts off, and the original ghost bounds.
+  private func keptGroup(_ app: XCUIApplication) throws -> PaperScreen.Box {
     let cockpit = try cockpit()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
@@ -69,16 +68,37 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     let group = app.buttons["whiteboard-mark-keep-group"]
     XCTAssertTrue(group.appears(within: 5), app.debugDescription)
     group.tap()
-    waitUntil(NSPredicate(format: "label != %@", "Send to Larry, 1 strokes"), send, timeout: 10)
+    waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 4 strokes"), send, timeout: 10)
     XCTAssertTrue(toKeep(app, 1).waitForNonExistence(timeout: 5) || !toKeep(app, 1).exists)
-    return send.label
+    return marks
+  }
+
+  private func visibleGroup(
+    _ app: XCUIApplication, at expected: PaperScreen.Box, dy: CGFloat = 0, yTolerance: CGFloat = 0.01
+  ) -> PaperScreen.Box? {
+    PaperScreen.settled(app, within: 10) { screen in
+      guard let bounds = screen.larryKept,
+        abs(bounds.minX - expected.minX) < 0.01, abs(bounds.maxX - expected.maxX) < 0.01,
+        abs(bounds.minY - expected.minY - dy) < yTolerance, abs(bounds.maxY - expected.maxY - dy) < yTolerance
+      else { return nil }
+      let width = expected.width / 3
+      for circle in 0..<3 {
+        let center = expected.minX + (CGFloat(circle) + 0.5) * width
+        let strip = PaperScreen.Box(
+          minX: center - width / 4, minY: bounds.minY, maxX: center + width / 4, maxY: bounds.maxY)
+        guard let ink = screen.larryKept(in: strip),
+          abs(ink.minY - bounds.minY) < 0.01, abs(ink.maxY - bounds.maxY) < 0.01
+        else { return nil }
+      }
+      return bounds
+    }
   }
 
   func testAFingerTapOnAGroupsStrokeSelectsItAllAndItDragsAsOne() throws {
     let app = XCUIApplication.forTests(animated: true)
-    let label = try keptGroup(app)
+    let marks = try keptGroup(app)
     let send = app.buttons["whiteboard-send"]
-    let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his reply in his purple")
+    let kept = try XCTUnwrap(visibleGroup(app, at: marks), "all three circles kept at their ghost positions")
     let toText = app.buttons["whiteboard-to-text"]
     XCTAssertFalse(toText.exists, "nothing selected yet")
     shot(app, "kept group")
@@ -91,7 +111,7 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     let window = app.windows.firstMatch.frame
     let selected = toText.frame
     shot(app, "the group selected by a tap")
-    XCTAssertEqual(send.label, label, "no dot drawn for the tap")
+    XCTAssertEqual(send.label, "Send to Larry, 4 strokes", "no dot drawn for the tap")
     // To text sits beside the selection, so it spans the whole group, not one circle.
     XCTAssertGreaterThan(selected.maxX / window.width, kept.maxX - 0.05, "the whole group selected: \(selected)")
 
@@ -101,28 +121,17 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     // Slow, and held before the lift: on a busy simulator a quick drag reached PaperKit as one late jump and the lift,
     // and the selection moved 2 points or not at all (bead context-grabber-z93g).
     from.press(forDuration: 0.3, thenDragTo: to, withVelocity: 200, thenHoldForDuration: 0.5)
-    let moved = PaperScreen.showing(
-      app, { $0.larryKept },
-      {
-        abs($0.minY - kept.minY - 0.1) < 0.03 && abs($0.width - kept.width) < 0.01  // all of it, drawn there
-      })
+    let moved = visibleGroup(app, at: kept, dy: 0.1, yTolerance: 0.03)
     shot(app, "dragged")
-    let after = try XCTUnwrap(moved, "his group, after the drag")
-    XCTAssertEqual(after.minY, kept.minY + 0.1, accuracy: 0.03, "moved down: \(kept) to \(after)")
-    XCTAssertEqual(after.width, kept.width, accuracy: 0.01, "all of it moved, together")
-    XCTAssertEqual(send.label, label, "moved, not drawn")
+    XCTAssertNotNil(moved, "all three circles moved down together from \(kept)")
+    XCTAssertEqual(send.label, "Send to Larry, 4 strokes", "moved, not drawn")
 
     let undo = app.buttons["whiteboard-undo"]
     waitUntil(NSPredicate(format: "isEnabled == true"), undo, timeout: 5)
     undo.tap()
-    let back = PaperScreen.showing(
-      app, { $0.larryKept },
-      {
-        abs($0.minY - kept.minY) < 0.01 && abs($0.width - kept.width) < 0.01
-      })
+    let back = visibleGroup(app, at: kept)
     shot(app, "after one undo")
-    XCTAssertEqual(try XCTUnwrap(back).minY, kept.minY, accuracy: 0.01, "one Undo put it back")
-    XCTAssertEqual(back?.width ?? 0, kept.width, accuracy: 0.01)
+    XCTAssertNotNil(back, "one Undo put all three circles back at \(kept)")
   }
 
   /// Off every group the tap does what it did: nothing is selected.

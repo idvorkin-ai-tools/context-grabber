@@ -1108,11 +1108,6 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap one of its strokes with a finger
 - **Then:** every stroke of the group is selected, no dot is left where I tapped, and the Pencil still draws
 
-- **Scenario:** A busy moment after the tap
-- **Given:** a reply of Larry's I kept as a group, and the iPad slow to answer my tap (its dot landing a second or more after I lift)
-- **When:** I tap one of its strokes with a finger
-- **Then:** no dot is left and the whole group stays selected, until my next touch or a few seconds later; a stroke I begin after the tap is kept
-
 - **Scenario:** Dragged and put back
 - **Given:** the group selected by a tap
 - **When:** I drag it with a finger, then press Undo once
@@ -1187,6 +1182,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a stroke of mine nearer the tap than any of Larry's
 - **When:** I tap there
 - **Then:** the tap does what it did before, and a text I typed or made with To text still opens at the first tap
+
+---
+
+### User Story 1144:
+
+- **Summary:** A delayed tap dot leaves the group selected
+- **Status:** implemented in [05cf2db3](https://github.com/idvorkin/context-grabber/commit/05cf2db3). The original change held selection in 64 of 64 iPad simulator runs under load (rung 2, 2026-11-22). `PaperProbeTests` covers a dot delivered 1.17 s after the tap.
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
+- **Issues:** bead context-grabber-z93g
+
+#### Use Case:
+- **As someone** moving a group on a busy iPad
+- **I want** the whole group to stay selected when the tap is slow to register
+- **so that** I can drag it as one and keep the ink I draw afterwards
+
+#### Acceptance Criteria:
+- **Scenario:** A busy moment after the tap
+- **Given:** a kept group and an iPad slow to draw the tap's dot
+- **When:** I tap a stroke of the group
+- **Then:** for up to three seconds or until my next touch, that tap's dot is removed and the whole group stays selected. A second tap has its own window, and new or restored ink stays on the board.
 
 ---
 
