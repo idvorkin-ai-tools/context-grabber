@@ -61,7 +61,7 @@ extension PaperBoardController {
   }
 
   /// The element keys of Larry's and Claude's strokes: every stroke made at a moment the ledger names as theirs.
-  private func theirKeys(_ markup: PaperMarkup) -> Set<String> {
+  func theirKeys(_ markup: PaperMarkup) -> Set<String> {
     let moments = model.opLedger.theirs(board: model.board.id)
     guard !moments.isEmpty else { return [] }
     let strokes = opStrokes(markup).strokes

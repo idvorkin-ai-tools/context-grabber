@@ -80,6 +80,23 @@ suggest changes the board until Igor keeps it.
     - Not yet (non-goal): a mark still showing, not kept, is never dragged; it is kept first, then picked up.
     - The session log says, for each such tap, that it was one thing of Larry's rather than a group, how many strokes
       it selected, and whether it was still selected a beat later.
+  - **PaperKit's handwriting reflow never carries Igor's ink and Larry's together** (bead context-grabber-eg7v; Igor,
+    2026-11-22: keep the reflow, but it must never group his ink with Larry's or Claude's). On the iPad a finger tap on
+    a text of Larry's can open the system's handwriting reflow over it, which takes Larry's text and Igor's strokes
+    written beside it for one line of handwriting; a drag there moved all of them together. The reflow stays, and
+    whenever it (or any move of the system's own that Igor didn't select) moves both his ink and Larry's or Claude's at
+    once, only one owner's ink stays moved:
+    - **The owner with more of the moved strokes keeps the move**; the other owner's strokes go back exactly where they
+      were. On a tie Igor's ink keeps it. So the iPad's case (Larry's 52-stroke text and two strokes of Igor's) moves
+      Larry's text and leaves Igor's two strokes in place; Igor reflowing his own line with a few of Larry's strokes
+      caught in it moves his line and leaves Larry's strokes in place.
+    - The move and the put-back are **one Undo**, which puts everything where it was before the reflow.
+    - A move of only Igor's ink or only Larry's is left as the reflow made it. A drag of what Igor selected (a lasso, a
+      group's tap, a tap on one thing of Larry's) is never split: a lasso round both owners' ink still moves both.
+    - Undo and Redo are never split either.
+    - The session log says, for every move the rule looked at, whether it split it and why not when it didn't (one
+      owner, all selected, Larry's strokes unknown), how many strokes went back and whose, and whether the system's
+      own step was taken back cleanly or the strokes were moved back by hand.
   - The buttons stay together, beside the mark and wholly on screen as before, and never under the board's top-right
     corner (? and Feedback, and *Larry's edit blocked* when it shows): placed there, they move below that corner. Each
     of the three takes at least 36 points each way, and a tap on any of them, or between them, never reaches the paper.
