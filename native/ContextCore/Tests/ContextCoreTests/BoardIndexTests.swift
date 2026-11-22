@@ -141,6 +141,47 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.deleted, [])
   }
 
+  // #1161 (story 769): the board's chat thread rides on its iCloud record.
+
+  func testAThreadIcloudLacksSendsTheBoardUpWithoutNewInk() {
+    var ipad = ipadList()
+    XCTAssertEqual(ipad.pendingUploads(device: "ipad", threads: [:]), [], "nothing changed, no thread")
+    XCTAssertEqual(
+      ipad.pendingUploads(device: "ipad", threads: ["a": "t1"]).map(\.id), ["a"],
+      "a board from before, with a thread on this device, goes up on the next sync")
+    ipad.uploaded("a", at: 10, thread: "t1")
+    XCTAssertEqual(ipad.board("a")?.thread, "t1")
+    XCTAssertEqual(ipad.pendingUploads(device: "ipad", threads: ["a": "t1"]), [], "iCloud has it now")
+    XCTAssertEqual(ipad.pendingUploads(device: "ipad", threads: ["a": "t2"]).map(\.id), ["a"], "a new thread goes up")
+    XCTAssertEqual(ipad.pendingUploads(device: "ipad", threads: [:]), [], "a thread forgotten here doesn't resend")
+    XCTAssertEqual(ipad.pendingUploads(device: "phone", threads: ["a": "t3"]), [], "never another device's board")
+  }
+
+  func testAThreadSentUpWithoutInkReachesThePhoneWithNoDownload() {
+    var phone = BoardIndex()
+    _ = phone.merge(cloud: [ipadBoard()], device: "phone")
+    phone.fetched("a", at: 10)
+    XCTAssertNil(phone.board("a")?.thread)
+    var withThread = ipadBoard()
+    withThread.thread = "igor2-88g.1609"
+    let merged = phone.merge(cloud: [withThread], device: "phone")
+    XCTAssertEqual(phone.board("a")?.thread, "igor2-88g.1609", "same updated, so only the thread is taken")
+    XCTAssertEqual(merged.fetch, [], "the drawing it has is still current")
+    var newer = ipadBoard(updated: 11)
+    newer.thread = "igor2-88g.1700"
+    _ = phone.merge(cloud: [newer], device: "phone")
+    XCTAssertEqual(phone.board("a")?.thread, "igor2-88g.1700")
+    _ = phone.merge(cloud: [ipadBoard(updated: 11)], device: "phone")
+    XCTAssertEqual(phone.board("a")?.thread, "igor2-88g.1700", "a record without one never clears it")
+  }
+
+  func testAnOldListWithoutThreadsStillReads() throws {
+    let board = #"{"id":"a","title":"A","created":1,"updated":2,"strokes":1,"device":"ipad","deviceName":"iPad"}"#
+    let json = #"{"boards":["# + board + #"],"deleted":[]}"#
+    let index = try JSONDecoder().decode(BoardIndex.self, from: Data(json.utf8))
+    XCTAssertNil(index.board("a")?.thread)
+  }
+
   // Story 396, #613: any device deletes any board.
   private func ipadBoard(updated: Int64 = 10) -> BoardEntry {
     BoardEntry(id: "a", title: "A", created: 1, updated: updated, strokes: 1, device: "ipad", deviceName: "iPad")

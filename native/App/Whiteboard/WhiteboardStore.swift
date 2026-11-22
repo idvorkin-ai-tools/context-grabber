@@ -384,7 +384,10 @@ final class WhiteboardStore: ObservableObject {
     // Where a failure happened and what was in hand, for its log line (#1002); the sync itself doesn't read them.
     let firstOfLaunch = !syncedThisLaunch
     syncedThisLaunch = true
-    let pending = index.pendingUploads(device: device).count
+    // #1161: this device's board threads, which go up on the board's record.
+    let threads = WhiteboardThreads().all()
+    let pending = index.pendingUploads(device: device, threads: threads).count
+    var threadsUp = 0
     var step = BoardSyncStep.zone
     var stepBoard: String?
     var stepStrokes: Int?
@@ -398,13 +401,15 @@ final class WhiteboardStore: ObservableObject {
         index.deletedInCloud(id)
       }
       step = .upload
-      for board in index.pendingUploads(device: device) {
+      for board in index.pendingUploads(device: device, threads: threads) {
         guard let drawing = drawingURL(board.id), FileManager.default.fileExists(atPath: drawing.path) else { continue }
         let picture = pictureURL(board.id).flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil }
         stepBoard = board.id
         stepStrokes = board.strokes
-        try await cloud.upload(board, drawing: drawing, picture: picture)
-        index.uploaded(board.id, at: board.updated)
+        let thread = threads[board.id] ?? board.thread
+        try await cloud.upload(board, thread: thread, drawing: drawing, picture: picture)
+        index.uploaded(board.id, at: board.updated, thread: thread)
+        if thread != nil { threadsUp += 1 }
       }
       step = .list
       let listed = try await cloud.boards()
@@ -443,6 +448,9 @@ final class WhiteboardStore: ObservableObject {
       var fields: [String: Any] = [
         "ok": true, "why": reason, "boards": index.boards.count, "fetched": merged.fetch.count,
         "dropped": merged.dropped.count, "tombstones": listed.tombstones.count, "resend": merged.resend,
+        // #1161: uploads that carried a thread, and other devices' boards that came with one.
+        "threads_up": threadsUp,
+        "threads_in": listed.boards.filter { $0.device != device && $0.thread != nil }.count,
       ]
       if let zoneError { fields["zone_error"] = CloudErrorFields.item(zoneError) }
       if retry.failures > 0 { fields["after_failures"] = retry.failures }
@@ -556,7 +564,9 @@ struct BoardCloud {
     var errorDescription: String? { error.localizedDescription }
   }
 
-  func upload(_ board: BoardEntry, drawing: URL, picture: URL?) async throws {
+  /// `thread`: the board's chat thread with Larry (#1161), so another device opens its conversation. Left off the
+  /// record when there is none, so a board that never talked with Larry carries no field production may lack.
+  func upload(_ board: BoardEntry, thread: String?, drawing: URL, picture: URL?) async throws {
     let record = CKRecord(recordType: Self.recordType, recordID: id(board.id))
     record["title"] = board.title
     record["created"] = board.created
@@ -567,6 +577,7 @@ struct BoardCloud {
     record["paper"] = board.paperID
     // So a reinstall on the device that draws it reopens it on paper. A board from before has no value here.
     record["onPages"] = board.onPages == true ? 1 : nil
+    if let thread { record["thread"] = thread }
     record["drawing"] = CKAsset(fileURL: drawing)
     record["picture"] = picture.map(CKAsset.init(fileURL:))
     // This device is the board's only writer, so its copy replaces iCloud's whatever iCloud holds. Ink beats a delete
@@ -621,7 +632,7 @@ struct BoardCloud {
     while more {
       let changes = try await database.recordZoneChanges(
         inZoneWith: zone.zoneID, since: token,
-        desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName", "paper", "onPages"])
+        desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName", "paper", "onPages", "thread"])
       for (id, result) in changes.modificationResultsByID {
         if let board = BoardIndex.tombstoned(by: id.recordName) {
           if let record = try? result.get().record { tombstones[board] = (record["updated"] as? Int64) ?? .max }
@@ -658,6 +669,6 @@ struct BoardCloud {
       id: record.recordID.recordName, title: title, created: created, updated: updated,
       strokes: (record["strokes"] as? Int) ?? 0, device: device,
       deviceName: (record["deviceName"] as? String) ?? "another device", paperID: record["paper"] as? String,
-      onPages: (record["onPages"] as? Int) == 1 ? true : nil)
+      onPages: (record["onPages"] as? Int) == 1 ? true : nil, thread: record["thread"] as? String)
   }
 }

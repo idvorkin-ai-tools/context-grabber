@@ -88,6 +88,11 @@ they are on a cable install launched from the home screen.
 4. TestFlight → Internal Testing: a group with Igor in it, so each processed build is offered to him.
 5. Optional, for reports from TestFlight builds to reach the Mac: deploy the BugKit report schema to production and
    set up the production reader, as BugKit's guide says.
+6. Before boards can sync from a TestFlight build: deploy the whiteboard's board records to production in the
+   CloudKit Console (the container, Schema, *Deploy Schema Changes…*), after a cable build has sent up a board that
+   talked with Larry, so the board's thread (#1161) is part of what is deployed. Check first whether the board record
+   type is in production at all: if not, no TestFlight build syncs boards today. A board carrying a piece production
+   lacks is refused whole, ink included.
 
 ## Acceptance criteria
 

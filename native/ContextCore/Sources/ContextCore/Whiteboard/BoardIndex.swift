@@ -24,6 +24,10 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   public var paperID: String?
   /// Made as a board on paper (stories 590, 591, 593). Set once when it's made; nil is every board from before.
   public var onPages: Bool?
+  /// The board's chat thread with Larry as iCloud carries it (#1161, story 769): on the drawing device, the one iCloud
+  /// last took; on any other, the one iCloud brought. nil for a board that never talked with Larry, or one last sent
+  /// up before boards carried their thread.
+  public var thread: String?
 
   public var paper: BoardPaper { paperID.flatMap(BoardPaper.init(rawValue:)) ?? .plain }
 
@@ -36,7 +40,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
 
   public init(
     id: String, title: String, created: Int64, updated: Int64, strokes: Int, device: String, deviceName: String,
-    uploaded: Int64? = nil, fetched: Int64? = nil, paperID: String? = nil, onPages: Bool? = nil
+    uploaded: Int64? = nil, fetched: Int64? = nil, paperID: String? = nil, onPages: Bool? = nil, thread: String? = nil
   ) {
     self.id = id
     self.title = title
@@ -49,6 +53,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
     self.fetched = fetched
     self.paperID = paperID
     self.onPages = onPages
+    self.thread = thread
   }
 }
 
@@ -183,10 +188,11 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     boards.remove(at: i)
   }
 
-  /// iCloud took this board at `updated`.
-  public mutating func uploaded(_ id: String, at updated: Int64) {
+  /// iCloud took this board at `updated`, carrying `thread` (#1161): nil leaves the thread it knew.
+  public mutating func uploaded(_ id: String, at updated: Int64, thread: String? = nil) {
     guard let i = boards.firstIndex(where: { $0.id == id }) else { return }
     boards[i].uploaded = updated
+    if let thread { boards[i].thread = thread }
   }
 
   public mutating func deletedInCloud(_ id: String) {
@@ -200,9 +206,14 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     boards[i].fetched = updated
   }
 
-  /// This device's boards iCloud does not have as they are now.
-  public func pendingUploads(device: String) -> [BoardEntry] {
-    boards.filter { $0.device == device && $0.uploaded != $0.updated }
+  /// This device's boards iCloud does not have as they are now: a change iCloud hasn't taken, or a chat thread with
+  /// Larry (`threads`, board id to thread, this device's) iCloud doesn't carry yet (#1161), so a board that talked
+  /// with Larry, even one from before boards carried their thread, goes up without new ink.
+  public func pendingUploads(device: String, threads: [String: String] = [:]) -> [BoardEntry] {
+    boards.filter { board in
+      board.device == device
+        && (board.uploaded != board.updated || threads[board.id].map { $0 != board.thread } ?? false)
+    }
   }
 
   /// The iCloud record that says a board was deleted (#613). The device that drew a board keeps it through an empty
@@ -239,6 +250,9 @@ public struct BoardIndex: Codable, Equatable, Sendable {
           var taken = remote
           taken.fetched = boards[i].fetched
           boards[i] = taken
+        } else if remote.device != device, let thread = remote.thread {
+          // #1161: the drawing device sends a thread up without new ink; it needs no drawing fetched.
+          boards[i].thread = thread
         }
       } else {
         var taken = remote

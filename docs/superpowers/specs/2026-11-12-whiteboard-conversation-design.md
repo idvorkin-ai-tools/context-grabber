@@ -214,8 +214,8 @@ of the screen is just under the panel.
   iPhone looking at an iPad's board finds none. The note's middle then says, for its few seconds, where the
   conversation is: *Larry's conversation is on the iPad* (the name of the device that drew the board). On a board
   drawn on this device that has never gone to Larry, it says *No conversation with Larry yet*. The iPhone first
-  looks for that thread among Larry's chats (*The board's chat from the iPhone*, below, #1163); these words are for
-  when it finds none.
+  opens the thread the board carries through iCloud, then looks among Larry's chats (*The board's chat from the
+  iPhone*, below, #1161, #1163); these words are for when neither finds one.
 - **Not here:** how each picture was sent, how much ink was new, how long each answer took. That is for a page on
   the Cockpit.
 
@@ -229,15 +229,31 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
   44 points to tap. A tap on it opens that board's thread in Chat. A tap anywhere else on the row opens the board, as
   before. The iPad and the Mac have no bubble: there the board's panel holds its conversation.
 - **The board's thread is found wherever it was started.** The one this device started is used at once. Otherwise
-  the iPhone looks among Larry's chats for one titled with the board's name and opens it only if one of its messages
-  came from this very board, so a chat that only shares a name is never opened. A thread found once is remembered
-  until the app closes.
+  **the board carries its thread through iCloud** (Igor, 2026-11-22, #1161, option B): the device that sends a
+  board's pictures to Larry puts the board's thread on the board's iCloud copy, so every other device that has the
+  board knows its thread, and the bubble and the note open it with no looking and no wait. The drawing device sends
+  the thread up on its next sync after the thread starts or changes, even with no new ink, and a board that already
+  had a thread before this goes up on the drawing device's next sync too. Only when the board carries no thread
+  (its drawing device hasn't synced since this came, or it never went to Larry) does the iPhone look among Larry's
+  chats for one titled with the board's name, and open it only if one of its messages came from this very board, so a
+  chat that only shares a name is never opened. That look is a stopgap for boards from before, to be dropped once
+  they all carry their thread. A thread found once is remembered until the app closes.
+- **This device's own thread wins.** A board this iPhone itself sent to Larry (a *Send to Larry* from the phone)
+  opens the thread the phone started, as before, even when the board carries the drawing device's.
 - **While it looks** the bubble turns into a small spinner, and a second tap does nothing.
 - **A board with no chat says so.** The list shows *No chat with Larry for this board yet*, which can be copied with
   the board, its name and how many chats were checked. It is not a bug, so it files no report.
 - **A Cockpit that can't be reached says so**, copyably, with the reason, as Chat itself does.
-- **The note's line on an iPhone** looks the same way: a tap on it, on a board this device never sent, finds the
-  board's thread and opens it, or the note says where the conversation is, as above, for a few seconds.
+- **The note's line on an iPhone** looks the same way: a tap on it, on a board this device never sent, opens the
+  thread the board carries, else looks among the chats, or the note says where the conversation is, as above, for a
+  few seconds. The session log says where each thread was found: this device, the board's iCloud copy, earlier this
+  launch, or the chats.
+- **TestFlight builds need one step from Igor first.** The board's thread is a new piece of the board's iCloud copy.
+  Builds from the cable save to iCloud's development side, which takes it on its own; TestFlight builds save to the
+  production side, which refuses a board that carries a piece it hasn't been given, ink and all. So before the first
+  TestFlight build with this: a cable build sends a board with a thread up, then the development schema is deployed
+  to production in the CloudKit Console (the same step as the whiteboard spec's, *TestFlight builds need one step
+  from Igor first*). A board that never talked to Larry carries no thread and is unaffected.
 - **Not here:** starting a chat from the iPhone for a board that has none. The iPhone only looks at boards (story
   746); a board's first picture goes from the device that draws it.
 
@@ -297,6 +313,10 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
 - On an iPhone, tap the bubble on a board that never went to Larry: *No chat with Larry for this board yet* shows in
   the list and can be copied; no report is filed.
 - On an iPhone, open a board drawn on the iPad and tap its note: Chat opens on the board's thread.
+- Send a board to Larry from the iPad, close it, and on the iPhone (after its boards sync) tap the board's bubble or
+  its note: Chat opens on that thread at once, and the session log says it came from iCloud.
+- A board that talked with Larry before this change: once the iPad has synced with this build, the iPhone opens its
+  thread from iCloud too.
 - Send Larry a picture, the Cockpit takes it and he hasn't picked it up: the note begins *Sent · 0:00* and counts.
 - He picks it up: the state changes to *Larry ·* and the clock doesn't restart.
 - Twenty seconds pass with the picture not picked up: the state adds *not picked up yet* and *Interrupt* shows.

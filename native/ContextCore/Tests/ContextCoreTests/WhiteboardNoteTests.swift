@@ -195,6 +195,16 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(WhiteboardNote.noThread(drawnOn: nil), "No conversation with Larry yet")
   }
 
+  /// #1161 (story 769): the thread the board carries through iCloud opens Chat, and says so; this phone's own wins.
+  func testATapOnAPhoneOpensTheThreadTheBoardCarriesThroughICloud() {
+    let fromICloud = WhiteboardNote.tap(onPhone: true, thread: nil, icloud: "igor2-88g.1609")
+    XCTAssertEqual(fromICloud, .openChat("igor2-88g.1609", fromICloud: true))
+    XCTAssertEqual(fromICloud.found, "icloud")
+    XCTAssertEqual(WhiteboardNote.tap(onPhone: true, thread: "mine", icloud: "ipads"), .openChat("mine"))
+    XCTAssertEqual(WhiteboardNote.tap(onPhone: true, thread: "mine", icloud: "ipads").found, "this_device")
+    XCTAssertEqual(WhiteboardNote.tap(onPhone: false, thread: nil, icloud: "ipads"), .toggle, "the iPad has its panel")
+  }
+
   // MARK: Open: the conversation
 
   /// #1003 (story 1047): Larry's words, and Igor's own; his wordless pictures are the chip, not rows.

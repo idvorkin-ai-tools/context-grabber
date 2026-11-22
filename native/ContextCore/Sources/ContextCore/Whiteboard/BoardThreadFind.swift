@@ -1,6 +1,6 @@
 //
 //  BoardThreadFind.swift
-//  #1163, stories 1097, 1101: the chat thread of a board this device never sent. Only the device that sent a board's
+//  #1163, stories 1097, 1110: the chat thread of a board this device never sent. Only the device that sent a board's
 //  picture records its thread, so an iPhone looks among Larry's chats: those titled with the board's name, and opens
 //  one only when a message on it came from this very board.
 //
@@ -18,6 +18,8 @@ public enum BoardThreadFind {
   public enum Source: String, Sendable {
     /// This device sent the board and recorded its thread.
     case device
+    /// The board's iCloud copy carries it: the drawing device put it there (#1161).
+    case icloud
     /// Found among the chats earlier this launch.
     case remembered
     /// Found among the chats now.
