@@ -456,11 +456,6 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** his next reply brings a label, and the one after a question card
 - **Then:** the diagram's twelve marks stay, the label shows beside them, and the count to keep is thirteen
 
-- **Scenario:** Closed and opened again
-- **Given:** marks from two of his replies are showing
-- **When:** I close the board and open it again
-- **Then:** both replies' marks are there, less any I kept or dismissed
-
 ---
 
 ### User Story 388:

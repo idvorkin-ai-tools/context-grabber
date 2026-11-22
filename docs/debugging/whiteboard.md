@@ -75,7 +75,7 @@ to that event's own bullet; never join two events on one line.
   - what became of the strokes: strokes_ok: true with strokes, strokes_new and strokes_erased, or strokes_ok: false with strokes_reason and, for a refusal, strokes_status; ok with thread, or ok: false with reason and, for a refusal, status)
 - `whiteboard_log` (#883, story 771: the boards' log lines since the last the archive took, after each picture for Larry — why: larry_turn or send; board, records, launch, and ok with inserted and duplicate, or ok: false with reason and, for a refusal, status; lines not taken go with the next picture; on the box they are the `whiteboard.log` stream of cockpit-data's archive.sqlite3, one record a line with guid `<launch>:<seq>`, launch, seq, t and line, after a header record, guid `<launch>:000000`, with the build: app, sha, branch, system, device)
 - `whiteboard_marks` (action:
-  - shown with board, row, shapes and picture — a row of Larry's marks now on the board
+  - shown with board, row, shapes and picture — a row of Larry's marks now on the board, from a new reply or a row remembered on this device restored when the board opens or while the thread can't be read (story 383); with earlier_stayed — his unkept marks from other replies still showing beside it — and earlier_replies — how many replies those came from (story 1159, bead context-grabber-n8ab)
   - unplaced with board and row — a row of marks with no usable frame, not drawn
   - back with board and after — the thread answering again after that many failed looks
   - thread_gone with board and thread — the Cockpit answered 404, so the board's next picture starts a new thread)
