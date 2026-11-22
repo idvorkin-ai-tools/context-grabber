@@ -1547,7 +1547,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A jump to a board drawn on this device is quick
 - **Status:** native app only: implemented in [4933b0ba](https://github.com/idvorkin/context-grabber/commit/4933b0ba) (#1137); verified on the host by `BoardFindTests` (this device's board here opens without asking, another device's or one not here asks, a jump asks once), the Mac build, and the simulator (rung 2, iPhone 17 and iPad Pro 11-inch (M5), 2026-11-22) by `ChatImageUITests.testAPictureFromABoardJumpsToIt`, whose session log shows `find` icloud: own_here in 1 ms, then just_asked as the boards came up, and the picture's cover down in 29 ms (577 ms on the iPad before); another device's board through a real iCloud, and the iPad, not yet
-- **Issues:** [#1137](https://github.com/idvorkin/context-grabber/issues/1137)
+- **Issues:** [#1137](https://github.com/idvorkin/context-grabber/issues/1137), bead context-grabber-mzdf (the fixed 0.7 s pause after the thread closed was most of what was left)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1559,7 +1559,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Jumping to a board
 - **Given:** a thread holds a picture of a board, drawn on this device with its drawing here, or drawn on another device
 - **When:** I tap the picture, then *Jump to board* (or *Board* in the thread's bar)
-- **Then:** a board drawn here opens at once from what is here, with no *Looking for the board…* wait and no slide as the picture goes down, and iCloud isn't asked on the way (a delete made elsewhere that hasn't reached this device lands once the board is closed, unless I drew on it); another device's board opens after iCloud is asked once, so its newest ink is there, and never a second time as the board comes up
+- **Then:** a board drawn here opens at once from what is here, with no *Looking for the board…* wait and no slide as the picture goes down, and iCloud isn't asked on the way (a delete made elsewhere that hasn't reached this device lands once the board is closed, unless I drew on it); another device's board opens after iCloud is asked once, so its newest ink is there, and never a second time as the board comes up; either way the board comes up as soon as the thread has finished going, not after a fixed pause
 
 ---
 

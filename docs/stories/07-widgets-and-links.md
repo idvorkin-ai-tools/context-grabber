@@ -624,7 +624,7 @@ apart."*
 
 - **Summary:** A link and a Shortcuts action for every screen of Grabber Native
 - **Status:** implemented in [5c1f4ad](https://github.com/idvorkin/context-grabber/commit/5c1f4ad), *Open Grabber Native* in [68229b3](https://github.com/idvorkin/context-grabber/commit/68229b3) (simulator build; Shortcuts on the phone not yet); verified by `AppLinkTests` (host) and `LinksUITests` on the simulator (real links through iOS, cold and warm: `timer?preset=10,10,2` counting down, `breathe?breath=5&minutes=2` begun over the running timer, `nowhere` on home, `timer?preset=9min` ready; Copy on the Links screen; since [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed) the warm half is `HomeStackTests`, with the screen stack one reducer: a second link inside the wait replaces the first (#818), a link home leaves home in front and named, verified on the Linux rung (host tests); the train's simulator pass on native/larry-train-1110 (iPhone 17, 2026-11-10: the Mac build and the UI tests green); the phone pending), with `just native-test-sim` passing; the Shortcuts actions, Siri and the Action Button on the phone not yet
-- **Issues:** [#167](https://github.com/idvorkin/context-grabber/issues/167), [#808](https://github.com/idvorkin/context-grabber/issues/808) (which screen is up as one tested model; no visible change), [#818](https://github.com/idvorkin/context-grabber/issues/818) (two links inside the wait each presented)
+- **Issues:** [#167](https://github.com/idvorkin/context-grabber/issues/167), [#808](https://github.com/idvorkin/context-grabber/issues/808) (which screen is up as one tested model; no visible change), [#818](https://github.com/idvorkin/context-grabber/issues/818) (two links inside the wait each presented), bead context-grabber-mzdf (the wait is for what closed to go, not a fixed 0.7 s)
 
 #### Use Case:
 - **As a** man wiring the Action Button and a few Shortcuts to the native app
@@ -641,6 +641,11 @@ apart."*
 - **Given:** the timer is up, or Chat is open
 - **When:** two links arrive a tenth of a second apart (`places`, then `cockpit`), or `grabbernative://home` arrives from Chat, and then I shake to report
 - **Then:** only the Cockpit comes up, once, and Places never shows; from Chat the home screen is in front, and the report names *home*
+
+- **Scenario:** A link over another screen comes up as soon as that screen has gone
+- **Given:** the timer, or Chat, is on screen
+- **When:** a link to another screen arrives
+- **Then:** the timer or Chat goes, and the link's screen comes up as soon as it has finished going, not after a fixed pause; if a closing screen never says it has gone, the link's screen still comes up within about 0.7 s
 
 - **Scenario:** Shortcuts and the Links screen
 - **Given:** the Shortcuts app lists *Open Grabber Native*, *Open Today*, *Start Gym Timer*, *Start Box Breathing*, *Open Places*, *Open Cockpit* and *Call Larry* under Grabber Native
