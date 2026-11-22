@@ -82,6 +82,8 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// `GRABBER_WHITEBOARD_PENCIL=seen`: the board acts as if the Pencil had touched a board this launch, for the simulator,
   /// which has no Pencil (story 1153).
   public var pencilSeen: Bool
+  /// `GRABBER_WHITEBOARD_FINGER_LABEL=1`: whether a finger draws, as an element a UI test reads (stories 1152, 1153).
+  public var fingerLabel: Bool
 
   public init(_ env: [String: String] = [:]) {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
@@ -110,5 +112,6 @@ public struct WhiteboardHooks: Equatable, Sendable {
     feedbackSeconds = env["GRABBER_WHITEBOARD_FEEDBACK_SECONDS"].flatMap { Double($0) }
     listChat = env["GRABBER_WHITEBOARD_LIST_CHAT"].flatMap { $0.isEmpty ? nil : $0 }
     pencilSeen = env["GRABBER_WHITEBOARD_PENCIL"] == "seen"
+    fingerLabel = env["GRABBER_WHITEBOARD_FINGER_LABEL"] == "1"
   }
 }

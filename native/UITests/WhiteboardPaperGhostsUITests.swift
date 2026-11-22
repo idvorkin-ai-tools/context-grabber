@@ -250,37 +250,45 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     wait(send(app), label: strokes(2))
   }
 
-  /// Story 1152 (context-grabber-2eml): with marks showing a finger drag pans; a tap on empty paper gives the finger its
-  /// pen back, the mark still showing, and a tap on the mark still brings its Keep with no dot.
+  /// The board's verdict on a finger (`GRABBER_WHITEBOARD_FINGER_LABEL`): XCUITest's finger draws on the simulator whatever
+  /// PaperKit's touch is set to, so whether a real finger would pan is read from here, and the ink only where it draws.
+  private func finger(_ app: XCUIApplication) -> XCUIElement { app.staticTexts["whiteboard-finger"] }
+
+  /// Story 1152 (context-grabber-2eml): with marks showing a finger taps and pans; a tap on empty paper gives it its pen
+  /// back, the mark still showing, and a tap on the mark still brings its Keep with no dot.
   func testATapOffLetsAFingerDrawWithTheMarksShowingAndATapOnOneStillChoosesIt() throws {
-    let app = try openBoard()
-    XCTAssertNotNil(strokeBringsAGhost(app))
-    stroke(app, atHeight: 0.4)
-    sleep(1)
-    XCTAssertEqual(send(app).label, strokes(1), "while marks show a finger pans")
+    let app = try openBoard(["GRABBER_WHITEBOARD_FINGER_LABEL": "1"])
+    let ghost = try XCTUnwrap(strokeBringsAGhost(app))
+    wait(finger(app), label: "taps")
+    XCTAssertEqual(finger(app).value as? String, "marks")
     PaperScreen.tap(app, CGPoint(x: 0.1, y: 0.72))
+    wait(finger(app), label: "draws")
+    XCTAssertEqual(finger(app).value as? String, "tap_off")
     sleep(1)
     XCTAssertEqual(send(app).label, strokes(1), "the tap off leaves no dot")
     stroke(app, atHeight: 0.4)
     wait(send(app), label: strokes(2))
     XCTAssertEqual(ghosts(app).label, "Ghosts on, 1 showing", "the mark still shows")
     shot(app, "drew with the mark showing")
-    let ghost = try XCTUnwrap(PaperScreen.settled(app) { $0.ghost }, "the ghost, wherever the pan left it")
     PaperScreen.tap(app, ghost.center)
     XCTAssertTrue(app.buttons["whiteboard-mark-keep"].appears(within: 5), app.debugDescription)
     sleep(1)
     XCTAssertEqual(send(app).label, strokes(2), "a tap on the mark leaves no dot")
+    XCTAssertEqual(finger(app).label, "draws", "choosing a mark leaves the pen")
   }
 
-  /// Story 1153: once the Pencil has touched a board (the hook stands in, the simulator has none), a finger never draws.
-  func testOnceThePencilHasTouchedAFingerDragDrawsNothing() throws {
-    let app = try openBoard(["GRABBER_WHITEBOARD_PENCIL": "seen"])
-    let before = send(app).label
-    stroke(app, atHeight: 0.5)
+  /// Story 1153: once the Pencil has touched a board (the hook stands in, the simulator has none), a finger never draws,
+  /// with marks or without, and a tap off them doesn't give it a pen.
+  func testOnceThePencilHasTouchedAFingerNeverDraws() throws {
+    let app = try openBoard(["GRABBER_WHITEBOARD_PENCIL": "seen", "GRABBER_WHITEBOARD_FINGER_LABEL": "1"])
+    wait(finger(app), label: "taps")
+    XCTAssertEqual(finger(app).value as? String, "pencil")
+    // XCUITest's drag draws here all the same, which brings a mark to tap off.
+    XCTAssertNotNil(strokeBringsAGhost(app))
     PaperScreen.tap(app, CGPoint(x: 0.1, y: 0.72))
-    stroke(app, atHeight: 0.4)
-    sleep(2)
-    XCTAssertEqual(send(app).label, before, "a finger pans, and a tap gives it no pen")
+    sleep(1)
+    XCTAssertEqual(finger(app).label, "taps", "a tap off gives a finger no pen with the Pencil in use")
+    XCTAssertEqual(finger(app).value as? String, "pencil")
   }
 
   /// Story 614: pinched and moved, the ghost stays beside the ink, by the screen's own pixels. The same check on a sheet

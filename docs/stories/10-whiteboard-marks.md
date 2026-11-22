@@ -132,7 +132,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1153:
 
 - **Summary:** With the Pencil in use, a finger never draws
-- **Status:** implemented on branch `native/finger-draws-2eml`; host (`WhiteboardFingerTests`) and the Mac build; simulator `WhiteboardPaperGhostsUITests.testOnceThePencilHasTouchedAFingerDragDrawsNothing` (a launch hook stands in for the Pencil); the iPad not yet tried
+- **Status:** implemented on branch `native/finger-draws-2eml`; host (`WhiteboardFingerTests`) and the Mac build; simulator `WhiteboardPaperGhostsUITests.testOnceThePencilHasTouchedAFingerNeverDraws` (a launch hook stands in for the Pencil); the iPad not yet tried
 - **Issues:** context-grabber-2eml (Igor, 2026-11-22: "I should never have finger drawn if I'm using the pencil"; the iPad log has Pencil and finger strokes on one board)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 

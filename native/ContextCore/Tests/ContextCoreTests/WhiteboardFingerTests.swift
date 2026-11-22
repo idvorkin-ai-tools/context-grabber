@@ -72,5 +72,7 @@ final class WhiteboardFingerTests: XCTestCase {
   func testThePencilHookParses() {
     XCTAssertTrue(WhiteboardHooks(["GRABBER_WHITEBOARD_PENCIL": "seen"]).pencilSeen)
     XCTAssertFalse(WhiteboardHooks([:]).pencilSeen)
+    XCTAssertTrue(WhiteboardHooks(["GRABBER_WHITEBOARD_FINGER_LABEL": "1"]).fingerLabel)
+    XCTAssertFalse(WhiteboardHooks([:]).fingerLabel)
   }
 }

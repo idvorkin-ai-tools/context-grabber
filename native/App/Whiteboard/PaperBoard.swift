@@ -221,6 +221,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     super.viewDidAppear(animated)
     paper.becomeFirstResponder()
     showUndoSoon()
+    // Story 1153: PaperKit may set its own touch as it first appears; the board's rule goes back over it.
+    settleFinger()
   }
 
   /// The whole window in light mode while a board on paper is up, whatever the device's. In dark mode PaperKit draws new
