@@ -713,7 +713,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1153:
+### User Story 1115:
 
 - **Summary:** A Send's message and its picture share one id
 - **Status:** implemented in [4afecf5f](https://github.com/idvorkin/context-grabber/commit/4afecf5f); verified by the Mac build. A Send from the iPad against the Cockpit not yet seen

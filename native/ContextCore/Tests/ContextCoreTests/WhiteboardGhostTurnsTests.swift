@@ -318,7 +318,7 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertEqual(turns.spoke("draw a square"), .ghostsOff, "the last words aren't asked")
   }
 
-  /// Story 1152 (bead context-grabber-bozm): writing with Ghosts off asks nothing, and the bar says no one is watching
+  /// Story 1114 (bead context-grabber-bozm): writing with Ghosts off asks nothing, and the bar says no one is watching
   /// until Ghosts come back on.
   func testWritingWithGhostsOffSaysNoOneIsWatchingUntilGhostsComeBack() {
     var turns = turns()

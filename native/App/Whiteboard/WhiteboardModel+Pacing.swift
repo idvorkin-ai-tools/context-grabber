@@ -24,7 +24,7 @@ extension WhiteboardModel {
   }
 
   /// A stroke landed (drawn or pasted): Claude's pause starts, or with Ghosts off the bar says no one is watching and the
-  /// log says so once, at the first unwatched stroke (story 1152).
+  /// log says so once, at the first unwatched stroke (story 1114).
   func strokeLanded() {
     let before = turns.note
     if turns.stroked() {

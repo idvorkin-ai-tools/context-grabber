@@ -117,7 +117,7 @@ public enum WhiteboardNote {
   /// The note's other messages, in one: nil when there are none. `turnNote` counts only when it isn't Larry's line,
   /// which is said, not a notice; `marksAway` only with no turn out, as his state says it while he is looking. `held`
   /// is the part that stays while it is true: the Cockpit not answering, for ghosts or for Larry's marks, or writing with
-  /// Ghosts off (story 1152).
+  /// Ghosts off (story 1114).
   public static func notice(
     paste: String?, sent: String?, turnNote: String?, marksAway: Bool, looking: Bool, lookOnly: String?
   ) -> (text: String, held: String?)? {

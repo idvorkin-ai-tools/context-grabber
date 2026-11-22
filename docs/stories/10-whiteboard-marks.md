@@ -49,7 +49,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1152:
+### User Story 1114:
 
 - **Summary:** Writing with Ghosts off says no one is watching
 - **Status:** implemented in [4afecf5f](https://github.com/idvorkin/context-grabber/commit/4afecf5f); verified on the host (`WhiteboardGhostTurnsTests`: the first stroke with Ghosts off sets the line, Ghosts on clears it; `WhiteboardNoteTests`: the line holds the middle) and the Mac build. Not yet seen on the iPad
