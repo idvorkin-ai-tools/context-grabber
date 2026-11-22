@@ -24,6 +24,8 @@ final class InboxModel: ObservableObject {
   let store: InboxStore?
   /// After a send that delivered something: chat reads the threads again, so a new one appears under its key.
   var didSend: (() -> Void)?
+  /// After a send that started, moved or forgot a board's thread: the boards sync, so its iCloud copy carries it now.
+  var boardThreadsChanged: (() -> Void)?
   /// Something new is on its way to Larry (a compose or a share found): chat asks for notifications once.
   var didAdd: (() -> Void)?
   private let log: SessionLog
@@ -50,6 +52,7 @@ final class InboxModel: ObservableObject {
       objectWillChange.send()
       reload()
       if !report.sent.isEmpty { didSend?() }
+      if !report.boardThreads.isEmpty { boardThreadsChanged?() }
     }
     pathMonitor.pathUpdateHandler = { [weak self] path in
       // .requiresConnection (an on-demand VPN such as Tailscale's) comes up when a connection is tried, so it counts.

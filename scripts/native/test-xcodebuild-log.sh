@@ -75,7 +75,7 @@ if [ -n "$bundle" ]; then  # like xcodebuild: Staging while it writes, quietly, 
   rm -rf "$bundle/Staging"
 fi
 if [ -n "${FAKE_RETRY:-}" ]; then  # the retry runs on, printing, well past the idle limit, then passes
-  for _ in $(seq 16); do echo "    t = 0.00s Retrying"; sleep 0.5; done
+  for _ in $(seq 32); do echo "    t = 0.00s Retrying"; sleep 0.25; done  # 8 s, printing well inside the idle limit
   echo "Test Suite 'Selected tests' passed at now."
 fi
 [ -n "${FAKE_EXIT:-}" ] && exit "$FAKE_EXIT"  # a failed run that ends by itself, as xcodebuild's does
@@ -105,7 +105,7 @@ status=$?
 [ "$status" -eq 0 ] && ok "and the log's passed decides" || bad "a passed suite that hung exited $status"
 FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1 run xcodebuild -scheme X test
 [ $? -eq 65 ] && ok "a failed suite that hung exits 65" || bad "a failed suite that hung didn't exit 65"
-FAKE_HANG=1 FAKE_RESULT=failed FAKE_RETRY=1 XCODEBUILD_IDLE_SECONDS=1 run xcodebuild -scheme X test
+FAKE_HANG=1 FAKE_RESULT=failed FAKE_RETRY=1 XCODEBUILD_IDLE_SECONDS=2 run xcodebuild -scheme X test
 status=$?
 [ "$status" -eq 0 ] && ok "a retry still printing isn't stopped, and its passed decides" || bad "a retry that passed exited $status"
 

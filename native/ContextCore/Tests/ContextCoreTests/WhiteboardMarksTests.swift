@@ -223,6 +223,7 @@ final class WhiteboardMarksTests: XCTestCase {
     XCTAssertEqual(threads.thread(board: "b2"), "other")
     XCTAssertEqual(store.item("m2")?.chatThread, "t9")
     XCTAssertFalse(threads.firstSendWaiting(board: "b1", in: store.items().items))
+    XCTAssertEqual(report.boardThreads, ["b1"], "it started once, so the boards sync once (context-grabber-e3vb)")
   }
 
   /// The Cockpit no longer has the thread: that picture is refused and the board's next one starts a new thread.
@@ -240,6 +241,9 @@ final class WhiteboardMarksTests: XCTestCase {
     let report = await sender.sendWaiting { _, _ in }
     XCTAssertEqual(report.refused, ["m1"])
     XCTAssertNil(threads.thread(board: "b1"))
+    // context-grabber-e3vb: remembered as gone, so the board's iCloud copy stops carrying it, on a sync now.
+    XCTAssertEqual(threads.gone(), ["b1": "gone"])
+    XCTAssertEqual(report.boardThreads, ["b1"])
   }
 
   /// A failed send keeps its place in the outbox, so a turn stays held back; a share isn't a board's picture.
@@ -257,8 +261,21 @@ final class WhiteboardMarksTests: XCTestCase {
   func testForgettingAnOldThreadLeavesANewerOne() throws {
     let threads = try makeThreads()
     threads.set("new", board: "b1")
-    threads.forget("old", board: "b1")
+    XCTAssertFalse(threads.forget("old", board: "b1"))
     XCTAssertEqual(threads.thread(board: "b1"), "new")
+    XCTAssertEqual(threads.gone(), [:], "nothing forgotten, nothing to clear from iCloud")
+  }
+
+  /// context-grabber-e3vb: a forgotten thread is remembered as gone until the board's next thread starts.
+  func testAForgottenThreadIsGoneUntilANewOneStarts() throws {
+    let threads = try makeThreads()
+    threads.set("t1", board: "b1")
+    XCTAssertTrue(threads.forget("t1", board: "b1"))
+    XCTAssertEqual(threads.gone(), ["b1": "t1"])
+    XCTAssertEqual(threads.all(), [:], "a gone thread is never read as the board's")
+    threads.set("t2", board: "b1")
+    XCTAssertEqual(threads.gone(), [:])
+    XCTAssertEqual(threads.all(), ["b1": "t2"])
   }
 
   /// The board's turn opened the thread and his answer was on it before the first look: it is still his answer, said

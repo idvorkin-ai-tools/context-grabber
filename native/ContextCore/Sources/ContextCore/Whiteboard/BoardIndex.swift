@@ -188,11 +188,22 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     boards.remove(at: i)
   }
 
-  /// iCloud took this board at `updated`, carrying `thread` (#1161): nil leaves the thread it knew.
+  /// iCloud took this board at `updated`, carrying `thread` (#1161), or none: what `thread(sending:)` gave.
   public mutating func uploaded(_ id: String, at updated: Int64, thread: String? = nil) {
     guard let i = boards.firstIndex(where: { $0.id == id }) else { return }
     boards[i].uploaded = updated
-    if let thread { boards[i].thread = thread }
+    boards[i].thread = thread
+  }
+
+  /// The thread this device sends up with its own `board` (#1161): its own (`threads`), else none when the one the
+  /// board carries is one the Cockpit said is gone (`gone`, context-grabber-e3vb), else the one the board carries. So
+  /// a reinstall, which knows no threads of its own yet, never clears one.
+  public static func thread(
+    sending board: BoardEntry, threads: [String: String], gone: [String: String] = [:]
+  ) -> String? {
+    if let mine = threads[board.id] { return mine }
+    if let carried = board.thread, gone[board.id] == carried { return nil }
+    return board.thread
   }
 
   public mutating func deletedInCloud(_ id: String) {
@@ -208,11 +219,15 @@ public struct BoardIndex: Codable, Equatable, Sendable {
 
   /// This device's boards iCloud does not have as they are now: a change iCloud hasn't taken, or a chat thread with
   /// Larry (`threads`, board id to thread, this device's) iCloud doesn't carry yet (#1161), so a board that talked
-  /// with Larry, even one from before boards carried their thread, goes up without new ink.
-  public func pendingUploads(device: String, threads: [String: String] = [:]) -> [BoardEntry] {
+  /// with Larry, even one from before boards carried their thread, goes up without new ink. A thread the Cockpit said
+  /// is gone (`gone`) that the board still carries sends it up too, to clear it (context-grabber-e3vb).
+  public func pendingUploads(device: String, threads: [String: String] = [:], gone: [String: String] = [:])
+    -> [BoardEntry]
+  {
     boards.filter { board in
       board.device == device
-        && (board.uploaded != board.updated || threads[board.id].map { $0 != board.thread } ?? false)
+        && (board.uploaded != board.updated
+          || Self.thread(sending: board, threads: threads, gone: gone) != board.thread)
     }
   }
 
@@ -250,9 +265,10 @@ public struct BoardIndex: Codable, Equatable, Sendable {
           var taken = remote
           taken.fetched = boards[i].fetched
           boards[i] = taken
-        } else if remote.device != device, let thread = remote.thread {
-          // #1161: the drawing device sends a thread up without new ink; it needs no drawing fetched.
-          boards[i].thread = thread
+        } else if remote.device != device {
+          // #1161: the drawing device sends a thread up without new ink; it needs no drawing fetched. None at the same
+          // `updated` is a thread it cleared because the Cockpit lost it (context-grabber-e3vb).
+          boards[i].thread = remote.thread
         }
       } else {
         var taken = remote
