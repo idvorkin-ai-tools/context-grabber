@@ -1093,3 +1093,30 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** an Xcode or iOS update, or a change to how the board drives PaperKit
 - **When:** `just native-test-contracts` runs
 - **Then:** each behaviour the board relies on (the picker's tool against the paper's, which markup sets are held and which refused, the undo names, the kinds of ink) is checked on real PaperKit on an iPad simulator, a change in any of them fails its test naming the board's code that rests on it, and a failure is never retried into a pass
+
+---
+
+### User Story 1020:
+
+- **Summary:** What PaperKit does with a real touch, that the whiteboard relies on, is checked on the simulator, and the ladder runs the contract tests when a change touches how the board drives PaperKit
+- **Status:** implemented on branch `native/paperkit-touch-contracts-8o93`; verified on the simulator rung (iOS 27.2, 2026-11-21: `just native-test-contracts` on lane 2's *iPad Pro 11-inch (M5)*, the 12 hosted contracts and the 3 touch contracts passing), `just native-test` (the ladder's map: a file that imports PaperKit runs the contract tests beside its own classes, the contracts' own files run them alone, a board file that doesn't drive PaperKit doesn't) and the Mac build
+- **Issues:** bead `context-grabber-8o93` (follow-up of story 1019's bead `context-grabber-0u3k`); the contracts pin what #883, #965 and #1105 rest on. The eraser picked with a finger in the tool picker (#1078) is another agent's, under the same bead
+
+#### Use Case:
+- **As Igor,** drawing on the iPad on a new iOS
+- **I want to** have what PaperKit does with my finger checked on the simulator, and checked whenever a change touches how the board drives PaperKit
+- **so that** a tap that leaves a dot, an Undo that reads wrong, or an eraser that takes a fold it shouldn't is a red test on the Mac, not a surprise on my board
+
+#### Acceptance Criteria:
+- **Scenario:** The platform changes what a touch does
+- **Given:** a bare PaperKit paper set up as the board sets it up, with the board's own touch watcher and none of its handling, opened by a launch hook
+- **When:** `just native-test-contracts` runs and a UI test touches it with a finger
+- **Then:** a finger's stroke is one step on PaperKit's undo stack named *Add Strokes* (the name the bar's Undo reads as plain *Undo*), and its lift reaches the watcher as ended; a touch called off while it is down reaches the watcher as cancelled and never also as ended (the fold erase takes no fold by its marker on that); and with the finger set to select, as the board sets it while marks show, a tap still leaves a dot that PaperKit's own undo takes back (what the board's tap-dot take-back rests on)
+- **And:** each test names the board's behaviour that rests on it, and a failure is never retried into a pass
+
+- **Scenario:** A change touches how the board drives PaperKit
+- **Given:** a change to a file that imports PaperKit (the board's canvas and any file it is split into), the tool it reads, its ink kinds or its board files, or to the contract tests themselves
+- **When:** the test ladder climbs to the simulator
+- **Then:** it runs the contract tests on the iPad simulator, beside the classes the file has of its own, with no retry
+- **And:** a change to the contract tests, their stage or its hook runs them alone, with no whiteboard class and no smoke, and a whiteboard file that doesn't drive PaperKit doesn't run them
+

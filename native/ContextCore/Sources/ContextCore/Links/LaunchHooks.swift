@@ -25,6 +25,8 @@ public enum LaunchHook: Equatable, Sendable {
   case boardFixture(BoardFixtureHook)
   /// `GRABBER_WHITEBOARD=open`.
   case whiteboard
+  /// `GRABBER_PAPER_STAGE=<draw|select>[,cancel]` (story 1020).
+  case paperStage(PaperStageHook)
   /// `GRABBER_WHATS_NEW=open`.
   case whatsNew
   /// `GRABBER_HOME=settings`.
@@ -116,6 +118,7 @@ public struct LaunchHooks: Equatable, Sendable {
     if env["GRABBER_COCKPIT"] == "open" || env["GRABBER_COCKPIT"] == "browser" { add(.cockpit) }
     add(BoardFixtureHook(env).map(LaunchHook.boardFixture))
     if env["GRABBER_WHITEBOARD"] == "open" { add(.whiteboard) }
+    add(PaperStageHook(env).map(LaunchHook.paperStage))
     if env["GRABBER_WHATS_NEW"] == "open" { add(.whatsNew) }
     if env["GRABBER_HOME"] == "settings" { add(.homeSettings) }
     add(env["GRABBER_SUPERMIX"].flatMap(WorkoutSupermix.Mix.init(rawValue:)).map(LaunchHook.supermix))

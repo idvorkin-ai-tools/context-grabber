@@ -83,6 +83,22 @@ replay=native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift
 classes=()
 unknown=()
 host_only=()
+# Story 1020 (bead 8o93): the contract tests on real PaperKit (story 1019's bundle and its touch class), on the iPad.
+contracts=0
+contract_tests="GrabberNativeContractTests PaperKitTouchContractUITests"
+# What drives PaperKit, or is pinned by a contract: a file that imports PaperKit (the board's split files too, whatever
+# they come to be called), the board's ink kinds and files, the tool it reads, and the contracts' own tests and stage.
+drives_paperkit() {
+  case $1 in
+    native/ContractTests/* | native/UITests/PaperKitTouchContractUITests.swift | native/App/Whiteboard/PaperTouchStage.swift | \
+      native/ContextCore/Sources/ContextCore/Whiteboard/PaperStageHook.swift | native/App/Whiteboard/PaperBoard*.swift | \
+      native/App/Whiteboard/PaperPickedTool.swift | native/App/Whiteboard/WhiteboardStore.swift | \
+      native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardInk.swift)
+      return 0 ;;
+    native/App/*.swift) [ -e "$1" ] && grep -qx 'import PaperKit' "$1" ;;
+    *) return 1 ;;
+  esac
+}
 swift=()
 sim_build=0
 mac_build=0
@@ -102,13 +118,16 @@ for f in ${changed[@]+"${changed[@]}"}; do
     # package; the harness is in no app build at all.
     "$replay") mac_build=1; host_only+=("$f") ;;
     native/ContextCore/Sources/BoardOpsHarness/*) host_only+=("$f") ;;
-    native/UITests/*) sim_build=1 ;;
+    native/UITests/* | native/ContractTests/*) sim_build=1 ;;
     *) sim_build=1 mac_build=1 ;;
   esac
   # Which UI test classes can see it.
   case $f in
     *.md | scripts/lead-times.py) ;;
     native/App/Assets.xcassets/*) ;;  # the host rung's tile-art check
+    # Story 1020: the contracts' own stage, its hook and its tests run the contract tests alone (below).
+    native/UITests/PaperKitTouchContractUITests.swift | native/App/Whiteboard/PaperTouchStage.swift | \
+      native/ContextCore/Sources/ContextCore/Whiteboard/PaperStageHook.swift | native/ContractTests/*) ;;
     "$replay" | native/ContextCore/Sources/BoardOpsHarness/*) ;;  # #1036: the host's replay fixtures, above
     native/App/Chat/* | native/App/Inbox/* | native/ContextCore/Sources/ContextCore/Chat/* | \
       native/ContextCore/Sources/ContextCore/Inbox/* | scripts/native/test-chat-ui.sh | scripts/native/fake-bridge.py)
@@ -192,6 +211,8 @@ for f in ${changed[@]+"${changed[@]}"}; do
       native/Shared/* | native/Widgets/* | native/Share/* | native/project.yml)
       unknown+=("$f") ;;
   esac
+  # Story 1020: beside its own classes, a file that drives PaperKit runs the contract tests.
+  if drives_paperkit "$f"; then contracts=1; sim_build=1; fi
   # What rung 0 formats: the paths the justfile's native_swift names, if the file is still there.
   case $f in
     native/App/*.swift | native/ContextCore/Package.swift | native/ContextCore/Sources/*.swift | native/ContextCore/Tests/*.swift | \
@@ -213,6 +234,7 @@ if [ "${#classes[@]}" -gt 0 ]; then
     case $c in
       Chat*) chat+=("$c") ;;
       Whiteboard*) whiteboard+=("$c") ;;
+      PaperKit*) contracts=1 ;;  # the contract tests' own step, on the iPad (story 1020)
       Place*) places+=("$c") ;;
       IPad*) tablet+=("$c") ;;
       *) other+=("$c") ;;
@@ -220,7 +242,7 @@ if [ "${#classes[@]}" -gt 0 ]; then
   done < <(printf '%s\n' "${classes[@]}" | sort -u)
   sim_build=1
 fi
-[ "$all" -eq 1 ] && sim_build=1
+[ "$all" -eq 1 ] && sim_build=1 contracts=1
 
 n_chat=${#chat[@]} n_whiteboard=${#whiteboard[@]} n_places=${#places[@]} n_tablet=${#tablet[@]} n_other=${#other[@]}
 run_chat_classes=$n_chat run_whiteboard_classes=$n_whiteboard
@@ -257,9 +279,10 @@ plan() {
     [ "$run_whiteboard_classes" -gt 0 ] && echo "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): ${whiteboard[*]}"
     [ "$n_places" -gt 0 ] && echo "rung 2 UI tests (places, the real export in Documents): ${places[*]}"
     [ "$n_tablet" -gt 0 ] && echo "rung 2 UI tests (on the iPad, which they need): ${tablet[*]}"
+    [ "$contracts" -eq 1 ] && echo "rung 2 contract tests (real PaperKit, on the iPad, no retry): $contract_tests"
     [ "$n_other" -gt 0 ] && echo "rung 2 UI tests: ${other[*]}"
     if [ "$n_chat" -eq 0 ] && [ "$n_whiteboard" -eq 0 ] && [ "$n_places" -eq 0 ] && [ "$n_tablet" -eq 0 ] && [ "$n_other" -eq 0 ] &&
-      [ "${#unknown[@]}" -eq 0 ]; then
+      [ "$contracts" -eq 0 ] && [ "${#unknown[@]}" -eq 0 ]; then
       echo "rung 2 UI tests: none, no app UI change"
     fi
     if [ "$sim_build" -eq 1 ] && [ "${LADDER_SMOKE:-1}" = 1 ]; then
@@ -441,6 +464,12 @@ places_classes() {
   xcodebuild_sim places "TEST EXECUTE SUCCEEDED" $(only_testing "${places[@]}") test-without-building
 }
 
+# Story 1020: the contract tests, hosted and touched, on the iPad. No retry: a contract that fails once has moved.
+contract_classes() {
+  UI_TEST_RETRY=0 xcodebuild_sim contracts "TEST EXECUTE SUCCEEDED" -only-testing:GrabberNativeContractTests \
+    -only-testing:GrabberNativeUITests/PaperKitTouchContractUITests test-without-building
+}
+
 other_classes() { xcodebuild_sim ui-tests "TEST EXECUTE SUCCEEDED" $(only_testing "${other[@]}") test-without-building; }
 
 # #1037: the iPad's own classes, on the iPad. A test of theirs that skips there skipped for its destination (they skip
@@ -505,9 +534,13 @@ ipad_steps() {
     step "iPad simulator" use_device "$ipad" || return
     step "iPad classes" tablet_classes || return
   fi
+  if [ "$contracts" -eq 1 ]; then
+    step "iPad simulator" use_device "$ipad" || return
+    step "contract tests" contract_classes || return
+  fi
   return 0
 }
-ipad_needed() { [ "$n_whiteboard" -gt 0 ] || [ "$n_tablet" -gt 0 ]; }
+ipad_needed() { [ "$n_whiteboard" -gt 0 ] || [ "$n_tablet" -gt 0 ] || [ "$contracts" -eq 1 ]; }
 
 simulator_steps() {
   # A fresh worktree has no project until it is generated, and a new test file needs it regenerated.
@@ -619,6 +652,7 @@ if [ "$ledger" != off ] && command -v jq >/dev/null; then
     --argjson destinations "$(jq -cn --arg phone "${SIM:-iPhone 17}" --arg ipad "${WHITEBOARD_SIM:-iPad Pro 11-inch (M5)}" '$ARGS.named')" \
     --argjson host_only "$(json_list ${host_only[@]+"${host_only[@]}"})" --argjson unknown "$(json_list ${unknown[@]+"${unknown[@]}"})" \
     --argjson flags "$(jq -cn --argjson full "$full" --argjson all "$all" --arg rung "$only" --argjson mac_build "$mac_build" \
+      --argjson contracts "$contracts" \
       --argjson sim_build "$sim_build" '$ARGS.named')"
   echo "ladder run id: $LADDER_RUN_ID (the run ledger: $ledger)"
 fi

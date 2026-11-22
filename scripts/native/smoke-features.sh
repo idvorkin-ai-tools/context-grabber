@@ -21,6 +21,8 @@ for f in $files; do
     scripts/native/ladder-report.py | scripts/native/record-deploy.sh | scripts/native/fixtures/ladder-report/*) ;;  # #1038's ledgers
     native/ContextCore/Tests/*) ;;            # host tests, the host rung's
     native/UITests/*) ;;                      # UI tests, which the ladder runs as their own classes (story 755)
+    # Story 1020: the contract tests, their stage and its hook, which the ladder runs as their own step.
+    native/ContractTests/* | native/App/Whiteboard/PaperTouchStage.swift | native/ContextCore/Sources/ContextCore/Whiteboard/PaperStageHook.swift) ;;
     # #1036: the replay of Larry's board changes and its harness, which the app never runs: the host's replay fixtures.
     native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift | native/ContextCore/Sources/BoardOpsHarness/*) ;;
     native/App/Gym/* | native/ContextCore/Sources/ContextCore/Gym/* | assets/audio/timer*) add timer ;;

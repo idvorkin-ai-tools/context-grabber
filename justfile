@@ -134,12 +134,13 @@ native-test-sim: native-build-sim
     scripts/native/xcodebuild-idle.sh && SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{native_sim}}" {{native_bundle}} {{native_sim_app}}
 
 # Story 1019 (bead 0u3k): the contract tests on real PaperKit and PencilKit (native/ContractTests), hosted in the app on
-# an iPad simulator in a build lane: what the whiteboard relies on the platform doing. Run it after every Xcode or iOS
+# an iPad simulator in a build lane: what the whiteboard relies on the platform doing. Story 1020 (bead 8o93): with the
+# touch contracts, a UI test class that touches a bare PaperKit stage. Run it after every Xcode or iOS
 # update, and with a change to how the board drives PaperKit. No retry: a contract that fails once has moved.
 native-test-contracts: native-project
     #!/usr/bin/env bash
     set -uo pipefail
-    scripts/native/build-lane.sh run bash -c 'name=$(scripts/native/build-lane.sh sim "${CONTRACT_SIM:-iPad Pro 11-inch (M5)}") && udid=$(scripts/native/sim-udid.sh "$name") && scripts/native/sim-boot.sh "$udid" && UI_TEST_RETRY=0 scripts/native/xcodebuild-log.sh contracts "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" -only-testing:GrabberNativeContractTests test'
+    scripts/native/build-lane.sh run bash -c 'name=$(scripts/native/build-lane.sh sim "${CONTRACT_SIM:-iPad Pro 11-inch (M5)}") && udid=$(scripts/native/sim-udid.sh "$name") && scripts/native/sim-boot.sh "$udid" && UI_TEST_RETRY=0 scripts/native/xcodebuild-log.sh contracts "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" -only-testing:GrabberNativeContractTests -only-testing:GrabberNativeUITests/PaperKitTouchContractUITests test'
 
 # Stops a phone recipe with how to name the phone when it has no id
 _phone:

@@ -216,6 +216,18 @@ final class LaunchHooksTests: XCTestCase {
 
   // MARK: Whiteboard
 
+  /// Story 1020: the bare PaperKit stage's finger, and whether it calls off a held touch.
+  func testPaperStage() {
+    XCTAssertEqual(steps(["GRABBER_PAPER_STAGE": "draw"]), [.paperStage(PaperStageHook(finger: .draw))])
+    XCTAssertEqual(
+      steps(["GRABBER_PAPER_STAGE": "select, cancel"]),
+      [.paperStage(PaperStageHook(finger: .select, cancelsHeldTouch: true))])
+    XCTAssertEqual(PaperStageHook(["GRABBER_PAPER_STAGE": "draw,later"]), PaperStageHook(finger: .draw))
+    XCTAssertNil(PaperStageHook(["GRABBER_PAPER_STAGE": ""]))
+    XCTAssertNil(PaperStageHook(["GRABBER_PAPER_STAGE": "erase"]))
+    XCTAssertNil(PaperStageHook([:]))
+  }
+
   func testBoardFixture() {
     let alone = BoardFixtureHook(["GRABBER_BOARD_FIXTURE": "board-1"])
     XCTAssertEqual(alone?.board, "board-1")
