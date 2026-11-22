@@ -25,7 +25,8 @@ he sees, he does not have time to report, so they are never fixed.
 - **Errors that are expected file nothing.** They still show, with Copy error, exactly as before:
   - every error shown while the phone has no network: offline, a failed send or load is expected, not a bug;
   - *Health is not available on this device*: the device has no Health, which no fix can change.
-- **The share sheet.** An error on the share card (its dictation's, say) files too. The share sheet is its own small
+- **The share sheet.** An error on the share card files too (the first was its mic's, #1135, before the mic was taken
+  off the card). The share sheet is its own small
   program with no network of its own, so it keeps the report in the space it shares with the app; the next time the
   app opens or comes to the front, the app takes the report and sends it to the Mac through iCloud like its own. The
   share sheet keeps its own session log there too, so the report carries what the share card did.

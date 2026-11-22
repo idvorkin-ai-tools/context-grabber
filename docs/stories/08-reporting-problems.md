@@ -578,22 +578,22 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 157:
 
 - **Summary:** An error on the share card reaches the Mac through the app
-- **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876)
-- **Status:** implemented in [d269610c](https://github.com/idvorkin/context-grabber/commit/d269610c) with BugKit 0.3.14 (idvorkin/bug-kit#119, #122); verified by the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; the phone is not yet verified (an error filing itself there and from the share sheet)
+- **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876), [#1135](https://github.com/idvorkin/context-grabber/issues/1135)
+- **Status:** implemented in [d269610c](https://github.com/idvorkin/context-grabber/commit/d269610c) with BugKit 0.3.14 (idvorkin/bug-kit#119, #122); verified by the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; the phone is not yet verified (an error filing itself there and from the share sheet); on the iPad 2026-11-22 the card's mic error reached the Mac this way and was filed as [#1135](https://github.com/idvorkin/context-grabber/issues/1135) (*Automatic report: ShareCard.dictation*, the share extension in its context). Since COMMIT_1135 the card has no mic, and its two older error lines do not file yet (spec: Not in this change), so the card has no error that files until they become Copy error problems
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
 
 #### Use Case:
-- **As** the person sharing from another app, whose share card's mic failed
+- **As** the person sharing from another app, whose share card showed an error
 - **I want to** have that error reach the Mac without copying it
 - **so that** a failure in the share sheet is fixed like one in the app (#876)
 
 #### Acceptance Criteria:
-- **Scenario:** The share card's dictation fails
-- **Given:** the share card shows *Voice input could not start* with Copy error
+- **Scenario:** An error on the share card
+- **Given:** the share card shows an error with Copy error (the first was its mic's *Voice input could not start*, #1135)
 - **When:** I close the card, and later open Grabber Native or bring it to the front
 - **Then:** the share card saved the report, with its own session log, in the space it shares with the app; the app
   takes it into its own reports, logs `bug_report_adopted` and queues it for iCloud; the Mac files it under Grabber
-  Native as *Automatic report: ShareCard.dictation*, its context naming the share extension
+  Native as *Automatic report: <the error's context>*, its context naming the share extension
 
 ---
 

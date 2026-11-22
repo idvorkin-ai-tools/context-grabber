@@ -478,30 +478,21 @@ on the phone and once it has gone.
 - A title the other app offers beside a link shows on the card and does not go in the message.
 
 **Speaking on the card** (#673; #793, Igor 2026-11-09: *"Share sheet should have a microphone button just like we
-have in bug kit"*). The *Message* field has a mic button at its trailing edge, the one the problem report's note has,
-and it is the same dictation: Apple's speech recognizer, on the phone when it can be.
+have in bug kit"*; #1135). The card is spoken into with the keyboard's own dictation key, which works in the *Message*
+field as in any other field. The card has no mic button of its own.
 
-- **A tap starts it.** The button turns into a red stop button while it listens, and the words appear in the *Message*
-  field as he speaks, after anything already typed there. A second tap stops it and the last words settle. A quiet
-  line under the field says when voice input is starting or finishing.
-- **No typing while it listens.** The field is dimmed and takes no typing from the tap until the last words
-  have settled: each new word rewrites the field from what was there at the tap, so anything typed meanwhile would
-  be lost. Stop, then edit.
-- **Nothing is sent by speaking.** The words only fill the field; the share goes when he taps *Start a chat* or *Send*.
-- **Sending mid-recording** sends what is in the field, the words heard so far, and stops the recording, as a Send
-  from a thread's bar does (#546). *Cancel*, or swiping the card away, stops it and keeps nothing.
-- **Permissions.** The first tap asks for speech recognition and the microphone, the two the chat mic asks for.
-  Declined, a copyable line under the field says which is off and that the phone's Settings turns it on.
-- **Failures** (a permission off, the recognizer stopping, a microphone that will not start, an interruption) are a
-  copyable line under the field, and the copy carries where it stopped and what the phone says of both permissions.
-  The words heard so far stay in the field, and typing still works.
-- **Smaller than the chat mic.** The card has no microphone picker, no input level and no five-minute limit: it
-  listens on whichever microphone the phone routes, until he stops it or the card closes.
-- **Not yet known.** Apple's guidance is that an app extension, which is what the card is, cannot use the microphone
-  (an iMessage app excepted). The button is there so the phone can answer: if iOS refuses, the tap ends in the
-  copyable line above, and that copy is the evidence for what to do next. The card also cannot tell that a call with
-  Larry is live in the app; what a tap does to that call is still to be seen on the phone. The keyboard's own
-  dictation key works in the *Message* field as in any other field, whatever the button does.
+- **Why there is no button.** The card had one from #793 to #1135: the problem report's dictation, Apple's speech
+  recognizer, on a mic button at the *Message* field's trailing edge. Apple's guidance is that an app extension, which
+  is what the card is, cannot use the microphone (an iMessage app excepted), and the button was there so the iPad could
+  answer. It answered no. Every tap on it failed with *Voice input could not start* (an unspecified audio error from
+  iOS), on 2026-11-11 and twice on 2026-11-22, with the microphone and speech recognition both allowed, while the same
+  dictation listened in the app on the same iPad. It never once started. A button that cannot work is gone rather
+  than left to fail.
+- **What is kept.** The keyboard's dictation key fills the field; nothing is sent by speaking, and the share goes when
+  he taps *Start a chat* or *Send*. The card asks for no microphone or speech permission.
+- **Not in this change.** Speaking on the card through the app (the card handing the share over to a new chat with the
+  chat's mic already listening) would bring back the chat mic's picker and level; it is an idea to discuss, not a
+  promise.
 
 **Sharing into a chat that is already going** (#587, Igor 2026-11-01: *"let's allow me to select some of the previous
 chats as well"*). Under the message field the card lists *New chat*, ticked, and the five most recent chats that are still

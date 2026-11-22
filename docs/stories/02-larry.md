@@ -2481,20 +2481,25 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 546:
 
 - **Summary:** Speaking a message on the share card
-- **Status:** native app only: a mic button on the card's *Message* field, the problem report's dictation, implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet: Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted), so the first tap on the phone settles whether it can. Stopping, sending, cancelling and a refusal are stories 555–558
-- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673), [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Status:** changed 2026-11-22 (#1135): the card's own mic button is gone, since iOS refused the share extension the microphone on every tap (the iPad, 2026-11-11 and twice on 2026-11-22, both permissions allowed), and the keyboard's dictation key speaks the message, in COMMIT_1135; verified by the host rung (`just native-test`: format and lint, the card is not compiled there) and the simulator rung's Xcode build of the share extension; speaking with the keyboard's key on the phone not yet. Before: native app only: a mic button on the card's *Message* field, the problem report's dictation, implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet: Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted), so the first tap on the phone settles whether it can. Stopping, sending, cancelling and a refusal are stories 555–558
+- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673), [#793](https://github.com/idvorkin/context-grabber/issues/793), [#1135](https://github.com/idvorkin/context-grabber/issues/1135) (the card's mic: *Voice input could not start*, avfaudio error 2003329396, on every tap)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client sharing a page with my hands full
-- **I want to** say my message on the card with a mic button, as I do in a problem report
+- **I want to** say my message on the card instead of typing it
 - **so that** what I think about the page goes with it without typing
 
 #### Acceptance Criteria:
 - **Scenario:** Saying the message
 - **Given:** the share card is open on a page from Safari
-- **When:** I tap the mic button on the *Message* field and speak
-- **Then:** the button becomes a red stop button, my words appear in the *Message* field after anything I typed, the field takes no typing while it listens, and nothing is sent until I tap *Start a chat* or *Send*
+- **When:** I tap the keyboard's dictation key in the *Message* field and speak
+- **Then:** my words appear in the *Message* field after anything I typed, and nothing is sent until I tap *Start a chat* or *Send*
+
+- **Scenario:** No mic button that cannot work
+- **Given:** the share card is open
+- **When:** I look at the *Message* field
+- **Then:** it has no mic button of its own, and the card never asks for the microphone or speech recognition
 
 ---
 
@@ -2666,8 +2671,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 555:
 
 - **Summary:** Stopping the share card's dictation
-- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
-- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Status:** removed 2026-11-22 with the card's mic button (#1135: iOS refused the share extension the microphone on every tap, so it never listened), in COMMIT_1135; the keyboard's dictation key speaks the message (story 546). Before: native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793), [#1135](https://github.com/idvorkin/context-grabber/issues/1135)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -2686,8 +2691,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 556:
 
 - **Summary:** Sending from the share card while it listens
-- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
-- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Status:** removed 2026-11-22 with the card's mic button (#1135: iOS refused the share extension the microphone on every tap, so it never listened), in COMMIT_1135; the keyboard's dictation key speaks the message (story 546). Before: native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793), [#1135](https://github.com/idvorkin/context-grabber/issues/1135)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -2706,8 +2711,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 557:
 
 - **Summary:** Closing the share card while it listens
-- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
-- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Status:** removed 2026-11-22 with the card's mic button (#1135: iOS refused the share extension the microphone on every tap, so it never listened), in COMMIT_1135; the keyboard's dictation key speaks the message (story 546). Before: native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793), [#1135](https://github.com/idvorkin/context-grabber/issues/1135)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -2726,8 +2731,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 558:
 
 - **Summary:** The share card says why it cannot listen
-- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
-- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Status:** removed 2026-11-22 with the card's mic button (#1135: iOS refused the share extension the microphone on every tap, so it never listened), in COMMIT_1135; the keyboard's dictation key speaks the message (story 546). Before: native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793), [#1135](https://github.com/idvorkin/context-grabber/issues/1135)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
