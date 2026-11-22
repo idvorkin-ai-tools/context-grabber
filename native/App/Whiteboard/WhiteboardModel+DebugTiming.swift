@@ -1,4 +1,4 @@
-//  What the board says about its own sending, for the Cockpit's board debug page (story 1155, bead context-grabber-7zmj):
+//  What the board says about its own sending, for the Cockpit's board debug page (story 1112, bead context-grabber-7zmj):
 //  the build on every picture and events batch, and the mic's timings going out among the events.
 
 import ContextCore

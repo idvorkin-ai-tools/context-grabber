@@ -48,7 +48,7 @@ public enum BoardEventsSend {
 
   public static let timeout: TimeInterval = 5
 
-  /// `build`: the app's `<sha> <branch>`, for the Cockpit's board debug page (story 1155).
+  /// `build`: the app's `<sha> <branch>`, for the Cockpit's board debug page (story 1112).
   public static func request(board: String, report: BoardTurnReport, cockpit: String, build: String? = nil) throws
     -> URLRequest
   {

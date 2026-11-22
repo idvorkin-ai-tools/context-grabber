@@ -347,10 +347,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1155:
+### User Story 1112:
 
 - **Summary:** Each picture the board sends Larry names its build and its own timings, so the Cockpit's board debug page can show them
-- **Status:** implemented in [dbecb551](https://github.com/idvorkin/context-grabber/commit/dbecb551); verified by host tests (`BoardDebugTimingTests`: the mic clock's gaps with the mic closed and still open, dropped and hook words untimed, the cap; the message's build, `post` and `mic` events; the events batch's build; a queued picture without a build still reads), the Mac build (rung 1.5), and the same JSON run through the Cockpit's own `chat_store.clean_marks`, `whiteboard_events` and `board_debug.payload` on a scratch data dir (accepted; the turn row keeps `post` and `mic`; the page does not show them yet, the Cockpit's part). Not yet seen on the iPad (rung 3 owed: real mic timings)
+- **Status:** implemented in [dbecb551](https://github.com/idvorkin/context-grabber/commit/dbecb551); verified by host tests (`BoardDebugTimingTests`: the mic clock's gaps with the mic closed and still open, dropped and hook words untimed, the cap; the message's build, `post` and `mic` events; the events batch's build; a queued picture without a build still reads), the Mac build (rung 1.5), and the same JSON run through the Cockpit's own `chat_store.clean_marks`, `whiteboard_events` and `board_debug.payload` on a scratch data dir (accepted; the turn row keeps `post` and `mic`; the page does not show them yet, the Cockpit's part). Not yet seen on the iPad (rung 3 owed: real mic timings). Numbered 1155 when it landed; renumbered to 1112 because story 1155 (bead `context-grabber-n8ab`) took that ID first, so commit dbecb551 names it 1155
 - **Issues:** bead context-grabber-7zmj (Igor, 2026-11-22: "prioritize any missing logging for the debug page on the whiteboard")
 - **Spec:** [Board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *What the board says about its own sending, for the debug page*
 

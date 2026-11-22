@@ -31,9 +31,9 @@ public enum BoardEvent: Equatable, Codable, Sendable {
   case undo(label: String, t: Int64)
   /// A tap on one of Larry's controls (story 846): its tap_event as he wrote it.
   case overlayTap(id: String, event: BoardMeta?, t: Int64)
-  /// The iPad's half of a picture's send, for the Cockpit's debug page (story 1155).
+  /// The iPad's half of a picture's send, for the Cockpit's debug page (story 1112).
   case post(BoardPostTiming)
-  /// Spoken words' mic-off-to-text timing, for the Cockpit's debug page (story 1155).
+  /// Spoken words' mic-off-to-text timing, for the Cockpit's debug page (story 1112).
   case mic(BoardMicTiming)
 
   public var wire: [String: Any] {

@@ -16,7 +16,7 @@ extension WhiteboardModel {
       MainActor.assumeIsolated {
         self?.micOn = on
         self?.hearing(on ? "listening" : nil)
-        // Story 1155: a mic that stops by itself is closed too.
+        // Story 1112: a mic that stops by itself is closed too.
         if !on { self?.micClock.closed(t: Self.micNowMs) }
       }
     }
@@ -191,7 +191,7 @@ extension WhiteboardModel {
     guard let words = speech.takeNew() else { return }
     let went = turns.spoke(words)
     var event: [String: Any] = ["action": "spoke", "board": board.id, "chars": words.count, "went": went.rawValue]
-    // Story 1155: the mic's timing goes with the next picture, unless Ghosts off dropped the words.
+    // Story 1112: the mic's timing goes with the next picture, unless Ghosts off dropped the words.
     let timing = micClock.taken(t: Self.micNowMs, chars: words.count, kept: went != .ghostsOff)
     event.merge(timing?.gaps ?? [:]) { $1 }
     log.event("whiteboard", event)

@@ -43,7 +43,7 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
 
   /// #1013: the folded sections the picture draws open, and how its places map onto the folded board.
   public var folds: BoardFoldMap?
-  /// The app's `<sha> <branch>`, on the chat message for the Cockpit's board debug page (story 1155).
+  /// The app's `<sha> <branch>`, on the chat message for the Cockpit's board debug page (story 1112).
   public var build: String?
 
   enum CodingKeys: String, CodingKey {

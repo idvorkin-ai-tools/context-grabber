@@ -11,7 +11,7 @@ import XCTest
   import FoundationNetworking
 #endif
 
-/// Story 1155 (bead context-grabber-7zmj): the build, the picture's own timings and the mic's, for the Cockpit's board
+/// Story 1112 (bead context-grabber-7zmj): the build, the picture's own timings and the mic's, for the Cockpit's board
 /// debug page.
 final class BoardDebugTimingTests: XCTestCase {
   // MARK: The mic's clock
