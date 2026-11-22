@@ -8,6 +8,7 @@
 # screen gets the error and result lines instead. A test run's result bundle, with the screenshots its failed tests
 # kept, is native/Build/logs/<name>.xcresult unless the command names its own (story 790). A test run that would pass
 # fails with exit 65 when a case passed only on its retry, unless scripts/native/ui-quarantine.txt names it (story 1017).
+# A test run that fails after the Mac's screen was seen locked during it exits 75, asking for a rerun unlocked (story 1018).
 # Usage: xcodebuild-log.sh <name> <done> <command...>
 set -uo pipefail
 name=$1 done=$2
@@ -31,7 +32,13 @@ idle=${XCODEBUILD_IDLE_SECONDS:-10}
 # boot included, is under a minute, so one with no suite started by this time is stopped and said to be. Only runs of
 # built tests: a plain `test` compiles first, for as long as it takes.
 start_limit=${XCODEBUILD_START_SECONDS:-180}
-watch_start=0 start_watchdog= bundle=
+# Story 1018 (bead context-grabber-2v63): a locked Mac starves the simulator's audio, and opening the mic can then
+# abort the app inside Apple's audio toolbox. The screen is looked at this often during a test run; a lock of a few
+# seconds is enough to do it, so a check only at the start or the end would miss it.
+lock_poll=${XCODEBUILD_LOCK_POLL:-2}
+# shellcheck source=scripts/native/smoke-lock.sh
+. "$(dirname "$0")/smoke-lock.sh"
+watch_start=0 start_watchdog= lock_watch= is_test=0 bundle=
 # Story 790: after its last suite closes, xcodebuild writes the result bundle, quietly: about 5 s on a good run, 30 s or
 # more with failures and their screenshots. Stopped before it finishes, the bundle can't be opened (no Info.plist, only
 # Staging) and the screenshots are lost, so the hang stop waits for it, up to this long after the suite closed.
@@ -51,6 +58,7 @@ if [ "${1##*/}" = xcodebuild ]; then
   case " $* " in *" test-without-building "*) watch_start=1 ;; esac
   case " $* " in
     *" test "* | *" test-without-building "*)
+      is_test=1
       # Story 790: the bundle at a known path, so the hang stop below can wait for xcodebuild to finish writing it. It
       # takes this run's name; the last run of that name replaces it, so bundles don't pile up.
       prev=
@@ -66,7 +74,7 @@ if [ "${1##*/}" = xcodebuild ]; then
       ;;
   esac
 fi
-stopped=$(mktemp -u) unstarted=$(mktemp -u) unfinished=$(mktemp -u)
+stopped=$(mktemp -u) unstarted=$(mktemp -u) unfinished=$(mktemp -u) locked_at=$(mktemp -u)
 # Written in full: xcodebuild writes Info.plist and drops Staging last. No bundle to wait for (a build) counts as written.
 bundle_written() { [ -z "$bundle" ] || { [ -e "$bundle/Info.plist" ] && [ ! -e "$bundle/Staging" ]; }; }
 stop_xcodebuild() {
@@ -111,19 +119,29 @@ fi
   stop_xcodebuild
 ) >/dev/null 2>&1 &
 watchdog=$!
+if [ "$is_test" -eq 1 ]; then
+  (
+    while kill -0 $$ 2>/dev/null; do
+      # When it was first seen locked, and how many cases had failed by then: those failed on an unlocked Mac.
+      if [ ! -e "$locked_at" ] && mac_locked; then
+        echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
+      fi
+      sleep "$lock_poll" || exit
+    done
+  ) >/dev/null 2>&1 &
+  lock_watch=$!
+fi
 # Xcode's account tokens never reach the log or the screen.
 "$@" 2>&1 | sed -u -E 's/(X-Apple-GS-Token|DSESSIONID)([:=] *)[^ ;]+/\1\2<filtered>/g' | tee "$log" | "${show[@]}"
 # A wrapper may fail a build that printed its done line: BugKit's signing guard exits 78 on "No Accounts".
 status=${PIPESTATUS[0]}
-for w in "$watchdog" ${start_watchdog:+"$start_watchdog"}; do
+for w in "$watchdog" ${start_watchdog:+"$start_watchdog"} ${lock_watch:+"$lock_watch"}; do
   pkill -P "$w" 2>/dev/null
   kill "$w" 2>/dev/null
   wait "$w" 2>/dev/null
 done
 if [ -e "$unstarted" ]; then
-  rm -f "$unstarted"
-  # shellcheck source=scripts/native/smoke-lock.sh
-  . "$(dirname "$0")/smoke-lock.sh"
+  rm -f "$unstarted" "$locked_at"
   if mac_locked; then now="it is locked now"; else now="it isn't locked now, so look for a display that was asleep"; fi
   echo "no test started within $start_limit s, so xcodebuild was stopped: UI tests don't start while the Mac's display is" \
     "asleep or its screen is locked ($now); wake and unlock it, then rerun. The whole log: $log" >&2
@@ -132,7 +150,26 @@ fi
 # Where a test run's time went, per case, on screen and as JSON lines to compare runs (ui-timings.py), and the cases that
 # passed only on their retry and aren't quarantined (story 1017).
 flaky=$(mktemp "${TMPDIR:-/tmp}/ui-flaky.XXXXXX")
-trap 'rm -f "$flaky"' EXIT
+trap 'rm -f "$flaky" "$locked_at"' EXIT
+# Story 1018: a test that failed after the screen was seen locked isn't a test's failure: the run could not run as it
+# should. Only when every failed case failed after the lock was first seen; a build that failed, or a case that failed
+# while the screen was still unlocked, fails as before, with the lock named.
+locked_failure() {
+  [ -s "$locked_at" ] || return 0
+  local at before failed
+  read -r at before <"$locked_at"
+  failed=$(grep -cE "^Test Case '.+' failed" "$log")
+  if [ "$failed" -eq 0 ] || [ "${before:-0}" -gt 0 ]; then
+    echo "the Mac's screen locked during the run (first seen locked at $at), but what failed failed before that or" \
+      "wasn't a test, so it counts as a failure" >&2
+    return 0
+  fi
+  [ -n "$bundle" ] && bundle_written && echo "the failed tests' screenshots: $bundle" >&2
+  echo "the Mac's screen locked during the run (first seen locked at $at), and a test failed after that: a locked Mac" \
+    "starves the simulator's audio and stalls UI tests (opening the mic can crash the app), so this run counts as not" \
+    "run, not failed; unlock the Mac and rerun. The whole log: $log" >&2
+  exit 75
+}
 if grep -q "^Test Case '" "$log"; then
   "$(dirname "$0")/ui-timings.py" "$log" --run "$name" --jsonl "${UI_TIMINGS_JSONL:-${log%/*}/ui-timings.jsonl}" \
     --flaky-out "$flaky" || echo "ui-timings could not read $log" >&2
@@ -141,11 +178,13 @@ fi
 # pass to forget. A known one, chased under its bead, goes in the quarantine file instead.
 pass() {
   if [ -s "$flaky" ]; then
+    locked_failure
     echo "passed only on its retry, so the run fails (a flake: fix the race, or quarantine it with its bead in" \
       "scripts/native/ui-quarantine.txt): $(paste -sd' ' "$flaky"); the whole log: $log" >&2
     [ -n "$bundle" ] && bundle_written && echo "the failed tries' screenshots: $bundle" >&2
     exit 65
   fi
+  [ -s "$locked_at" ] && echo "the Mac's screen locked during the run (first seen locked at $(cut -d' ' -f1 "$locked_at")); it passed anyway" >&2
   exit 0
 }
 if [ -e "$stopped" ]; then
@@ -159,16 +198,19 @@ if [ -e "$stopped" ]; then
   case $last in
     *" passed"*) pass ;;
     *)
+      locked_failure
       [ -n "$bundle" ] && bundle_written && echo "the failed tests' screenshots: $bundle" >&2
       exit 65
       ;;
   esac
 fi
 if [ "$status" -ne 0 ]; then
+  locked_failure
   [ -n "$bundle" ] && bundle_written && echo "the failed tests' screenshots: $bundle" >&2
   echo "the build exited $status; the whole log: $log" >&2
   exit "$status"
 fi
 grep -q "$done" "$log" && pass
+locked_failure
 echo "no \"$done\" in the output; the whole log: $log" >&2
 exit 1

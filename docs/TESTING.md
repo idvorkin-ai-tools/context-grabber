@@ -224,8 +224,8 @@ The simulator cannot be shaken or tapped from a script, so the app reads **launc
 sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim-smoke.sh`](../scripts/native/sim-smoke.sh)).
 
 **A locked Mac seems to starve the simulator's audio** (and with the display off, the UI tests don't start at all:
-story 782 above) (#419: inferred from comparing locked and unlocked runs of the
-same code, not traced into CoreAudio). Timer cues come late or empty, the keepalive fails, breathing is silent and the
+story 782 above) (#419: first inferred from comparing locked and unlocked runs of the
+same code; on 2026-11-21 one case was traced, below). Timer cues come late or empty, the keepalive fails, breathing is silent and the
 real-audio call can hear only zeros, on code that passes unlocked. Zeros for the whole call make the app re-arm the
 mic, find no sound after it and file an automatic report, which is right for a real call (#364: unlocked on
 2026-11-19 the same call heard the mic from its first buffer and filed none). The eulogy song failed the same way (#692; whether the Mac was locked then isn't known): on 2026-11-05 the song took 15 s to load and the system's player would not start it, nor a fresh one, and on 2026-11-19, unlocked, the same tests passed with a 0.2 s load. So `EulogyUITests` names the problem the sheet shows when the song doesn't play, and that is the sign to unlock and rerun. Since story 827 the smoke skips those checks while the
@@ -233,6 +233,20 @@ Mac's screen is locked (the timer and its voice, breathing, the real-audio call)
 locked*, the run's last lines count them as skipped, not passed, and a rerun unlocked is what checks them. A screen
 that locks during one of them can still fail it; the line at the end says so. `scripts/native/test-smoke-lock.sh`
 checks the skip with the lock probe faked (`SMOKE_LOCK_PROBE`), in `just native-test`.
+
+A locked Mac can crash the app, too (bead `context-grabber-2v63`). Opening the mic asks the simulator's audio server
+for the input, and on a locked Mac that call can go unanswered: after about ten seconds Apple's audio toolbox aborts
+the app (the crash report's top frames are `_ReportRPCTimeout` under `AVAudioEngine.inputNode`). That is how
+`ChatNewThreadUITests.testTheVoiceButtonOpensANewChatWithItsMicTapped` failed on two runs of 2026-11-21, its retry
+crashing too, each while the screen was locked, and how it failed again when rerun on purpose locked; that morning,
+unlocked, it passed twice. So **a test that fails after the screen has locked is not read as broken** (story 1018): the
+wrapper every test run goes through looks at the lock every two seconds, and when every case that failed (or passed
+only on its retry) failed after the screen was first seen locked, the run stops with exit 75, saying when it was first
+seen locked and to unlock and rerun. A case that failed before the lock, or a failure that wasn't a test's (a build),
+fails the run as before, naming the lock; a pass stands, with a line that the screen locked.
+`scripts/native/test-xcodebuild-log.sh` checks it with the lock probe faked. The crash reports are
+`~/Library/Logs/DiagnosticReports/GrabberNative-*.ips` on the Mac; the screen's lock and unlock times are in the system
+log (`/usr/bin/log show --predicate 'process == "loginwindow" AND eventMessage CONTAINS "setScreenIsLocked"'`).
 
 **Only what the branch touched, and quietly** (Igor, 2026-11-01). The smoke runs only the sections for the features
 this branch changed since `origin/main`: cockpit, whiteboard, timer, breathe, places, call, mirror, drill or
