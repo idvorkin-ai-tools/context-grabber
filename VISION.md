@@ -31,14 +31,12 @@ Coaching comes from Larry: the app carries his reminders to the front door and d
 
 ## Thinking on paper with Larry
 
-The whiteboard is the line to Larry in ink: Igor thinks with the Pencil on the iPad, Larry sees the board and draws back.
-A board is a column of pages with always another blank one below, and what is drawn on it is ink: pasted text, Larry's labels and snapped shapes land as ink, with no shapes palette, text boxes or layers.
-A mark Larry or Claude suggests joins the board only when Igor keeps it, and a stray tap never keeps or loses one; a change Larry makes to the board directly is one Undo away from gone.
-Larry answers a board unless Igor picks someone else, and he waits until Igor has stopped writing.
-One device draws a board and every other device only looks; the iPhone looks and talks, and never draws.
-Every gesture shows what it did, and a wrong guess by the board costs one Undo.
-It is not a notes app: a board has a name and a picture, with no folders, tags or search.
-When a rule is needed by more than one gesture (what a tap picks up, whose ink yields when Larry's meets Igor's, what counts as one thing that moves whole), it is decided once and written as one story that the special cases cite.
+The whiteboard is the line to Larry in ink, and five principles hold it together.
+Nothing joins the board without Igor's say: what Larry or Claude draws is a suggestion until he keeps it, and a stray touch never keeps or loses anything.
+Igor's ink is his: nothing lands on top of his writing, it moves only to make room, and an erase takes only what he touched.
+One touch has one meaning: a tap picks up one thing, and he can tell beforehand what that thing is.
+He always knows who he is talking to and where: Larry answers a board unless he picks someone else, with one conversation per board.
+It is paper and ink: a board is pages of ink that the iPad draws and the phone only looks at, with no text boxes or layers, and it is not a notes app.
 
 ## Practice that reports back
 
