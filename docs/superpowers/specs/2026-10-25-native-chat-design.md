@@ -531,6 +531,14 @@ answering — your messages are kept and go when it does*, still copyable, with 
 waiting message reads *Not sent yet · the Cockpit isn't answering*. This is distinct from the *No network* line, which
 is the phone being offline. Other failures (the Cockpit answering with an error) keep their plain reason.
 
+**A read that was stopped, or overtaken, says nothing** (bead `context-grabber-exg6`, the codex review of 2026-11-21:
+the Mac's log held `refresh_failed: cancelled` each time the list was left while it was still reading). Leaving the
+list or a thread before its read is answered, or iOS cutting a read short, is not a failure: no problem appears, and
+whatever the screen showed stays. The list is read from several places at once (opening it, the app coming to the
+front, closing a thread, a send), and so is an open thread (its poll, a send, an answered card): what shows is the
+newest read that finished. An older read that finishes after a newer one has shown its answer, or its problem, never
+puts its own back over it.
+
 While the app is open and a message waits after a send that did not get through (the Cockpit away, or answering
 with a server error), it is tried again on its own: after 30 seconds,
 then a minute, two, four, and every five minutes after that. The wait starts over after a send that gets through, and
@@ -596,6 +604,9 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - `chat` events in the session log: sent / refused / failed (thread, message id, the Cockpit's answer; never the
   text; a new thread's sent line names where it landed), offline_skipped and network_back as the Inbox logs them,
   refreshed (count of unread), and background_check (when iOS ran it, what it found, notifications raised).
+- `chat` refresh_cancelled (why the list was read) when a list read was stopped, and refresh_stale (why) when a list
+  read finished after a newer one had already shown; thread_read_dropped (thread, cancelled or stale) for a thread's
+  read. None of them shows a problem.
 - `chat` reply_failed (thread, message id, the skill; once per failure on screen, never the text); opening a thread
   names its skill.
 - `chat_voice` events: record_start (thread), record_stop (thread, seconds), capped (at the five-minute limit),

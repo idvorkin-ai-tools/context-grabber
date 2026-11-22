@@ -787,6 +787,26 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 839:
+
+- **Summary:** A Chat read I stopped or that was overtaken shows nothing
+- **Status:** native app only: implemented in [f3190178](https://github.com/idvorkin/context-grabber/commit/f3190178); verified by `ChatReadOrderTests` (host) and the Mac build; on the phone not yet
+- **Issues:** bead `context-grabber-exg6`
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client moving in and out of Chat while it reads
+- **I want to** see only the newest answer, and no problem for a read I walked away from
+- **so that** a red line means the Cockpit really failed, and the list and the thread never step back in time
+
+#### Acceptance Criteria:
+- **Scenario:** A read stopped or overtaken
+- **Given:** the chat list or an open thread is being read, and the app coming to the front, a closed thread, a send, the poll or an answered card reads it again
+- **When:** I leave the list or the thread before its read is answered, or an older read finishes after a newer one
+- **Then:** no problem appears for the read that was stopped, and the list or the thread shows the newest read that finished; an older answer or problem never replaces it
+
+---
+
 ### User Story 300:
 
 - **Summary:** A message sent offline goes once when the network returns; a refused one says why
