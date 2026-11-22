@@ -1479,7 +1479,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 633:
 
 - **Summary:** Larry's marks come back when a board on paper opens
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: the newest set on reopening, a dismissed set staying gone). Since bead `context-grabber-y8r`, `WhiteboardTurnUITests` on the old canvas (the same marks on either) and `WhiteboardMarksTests` on the host; since story 770 the newest set coming back on reopening is `WhiteboardMarksTests` alone, and the UI test keeps a dismissed set staying gone
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`). Extended to earlier replies in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4), verified by host tests (`WhiteboardMarksTests`). `WhiteboardTurnUITests` covers a dismissed set staying gone
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1492,7 +1492,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Reopened
 - **Given:** his marks showing
 - **When:** I close and open the board
-- **Then:** his newest set is there, and a set I dismissed stays gone
+- **Then:** his newest set is there, with any earlier set still showing when I closed it (story 1155), and a set I
+  dismissed stays gone
 
 ---
 

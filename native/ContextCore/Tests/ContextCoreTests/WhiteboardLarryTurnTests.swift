@@ -199,9 +199,9 @@ final class WhiteboardLarryTurnTests: XCTestCase {
   func testOnlyNewRowsAreAnAnswer() {
     var marks = WhiteboardMarks()
     let old = WhiteboardMarks.Row(id: "a", text: "earlier")
-    XCTAssertFalse(marks.take([old], settled: nil).replied, "the first look's rows were there before")
-    XCTAssertFalse(marks.take([old], settled: nil).replied)
-    XCTAssertTrue(marks.take([old, .init(id: "b", text: "ok")], settled: nil).replied)
+    XCTAssertFalse(marks.take([old], settled: []).replied, "the first look's rows were there before")
+    XCTAssertFalse(marks.take([old], settled: []).replied)
+    XCTAssertTrue(marks.take([old, .init(id: "b", text: "ok")], settled: []).replied)
   }
 
   // MARK: #913: he closes the turn with nothing to say

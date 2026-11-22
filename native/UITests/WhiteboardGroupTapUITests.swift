@@ -59,8 +59,9 @@ final class WhiteboardGroupTapUITests: XCTestCase {
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)))
     let send = app.buttons["whiteboard-send"]
     waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 1 strokes"), send, timeout: 10)
+    try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
     app.buttons["whiteboard-larry"].tap()
-    XCTAssertTrue(toKeep(app, 2).appears(within: 15), app.debugDescription)
+    XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
     let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")

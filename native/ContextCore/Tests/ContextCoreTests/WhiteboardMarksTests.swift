@@ -104,58 +104,159 @@ final class WhiteboardMarksTests: XCTestCase {
   func testOpeningShowsOnlyTheNewestRowOfMarks() {
     var marks = WhiteboardMarks()
     let update = marks.take(
-      [row("a", text: "old"), row("b", text: "newest"), row("c", text: "words", marks: false)], settled: nil)
-    XCTAssertEqual(update.marks?.id, "b")
+      [row("a", text: "old"), row("b", text: "newest"), row("c", text: "words", marks: false)], settled: [])
+    XCTAssertEqual(update.marks.map(\.id), ["b"])
     XCTAssertEqual(update.say, "newest")
-    XCTAssertEqual(marks.take([row("a"), row("b"), row("c")], settled: nil), .init())
+    XCTAssertEqual(marks.take([row("a"), row("b"), row("c")], settled: []), .init())
   }
 
   func testOpeningOnASettledRowShowsNothingAndNeverAnOlderOne() {
     var marks = WhiteboardMarks()
-    XCTAssertEqual(marks.take([row("a", text: "old"), row("b", text: "new")], settled: "b"), .init())
-    XCTAssertEqual(marks.take([row("a"), row("b")], settled: "b"), .init())
-    XCTAssertEqual(marks.take([row("a"), row("b"), row("c")], settled: "b").marks?.id, "c")
+    XCTAssertEqual(marks.take([row("a", text: "old"), row("b", text: "new")], settled: ["b"]), .init())
+    XCTAssertEqual(marks.take([row("a"), row("b")], settled: ["b"]), .init())
+    _ = marks.take([row("a")], settled: ["b"])
+    XCTAssertEqual(marks.take([row("a"), row("b")], settled: ["b"]).marks, [])
+    XCTAssertEqual(marks.take([row("a"), row("b"), row("c")], settled: ["b"]).marks.map(\.id), ["c"])
   }
 
-  /// Story 808: a kept or dismissed mark is remembered alone, so the rest of its row still comes back on opening; a
-  /// newer row's first one forgets the older row's.
-  func testSettlingRemembersOnlyThatRowsKeptOrDismissedMarks() {
-    let (a0, a2) = (WhiteboardMarks.mark(0, of: "a"), WhiteboardMarks.mark(2, of: "a"))
-    XCTAssertNotEqual(a0, WhiteboardMarks.mark(0, of: "b"))
-    XCTAssertNotEqual(WhiteboardMarks.mark(1, of: "a"), WhiteboardMarks.mark(0, of: "a1"))
-    var settled = WhiteboardMarks.settling(a0, of: "a", after: [])
-    XCTAssertEqual(settled, [a0])
-    settled = WhiteboardMarks.settling(a2, of: "a", after: settled)
-    XCTAssertEqual(settled, [a0, a2])
-    XCTAssertEqual(WhiteboardMarks.settling(a2, of: "a", after: settled), [a0, a2])
-    let b1 = WhiteboardMarks.mark(1, of: "b")
-    XCTAssertEqual(WhiteboardMarks.settling(b1, of: "b", after: settled), [b1])
+  func testSettlingRemembersOnlyTheKeptOrDismissedMarksOfRowsStillShowing() throws {
+    var history = WhiteboardMarks.History()
+    let a = try XCTUnwrap(row("a").drawing)
+    let b = try XCTUnwrap(row("b").drawing)
+    history.place(a, shown: ["a#0", "a#1", "a#2"])
+    history.place(b, shown: ["b#0", "b#1"])
+    history.settle("a#0", left: ["a#1", "a#2"])
+    history.settle("a#2", left: ["a#1"])
+    history.settle("a#2", left: ["a#1"])
+    history.settle("b#1", left: ["b#0"])
+    XCTAssertEqual(history.settled, ["a#0", "a#2", "b#1"])
+    history.settle("a#1", left: ["b#0"])
+    XCTAssertEqual(history.settled, ["b#1"])
+  }
+
+  // MARK: Story 1155 (bead context-grabber-n8ab): a new reply adds his marks, never clears them
+
+  /// Board 8f986938, 2026-11-22: his twelve-mark diagram showing, then a label with a question card. Both show, and on
+  /// opening again so do both, less what was kept or dismissed.
+  func testANewReplyAddsAndBothComeBackOnOpening() {
+    var marks = WhiteboardMarks()
+    XCTAssertEqual(marks.take([row("diagram")], settled: []).marks.map(\.id), ["diagram"])
+    let update = marks.take([row("diagram"), row("label", text: "which one?")], settled: [])
+    XCTAssertEqual(update.marks.map(\.id), ["label"], "the new row's marks, to join the diagram's")
+
+    var opened = WhiteboardMarks()
+    let rows = [row("older"), row("diagram"), row("label", text: "which one?"), row("words", text: "hm", marks: false)]
+    let again = opened.take(rows, settled: [], showing: ["diagram", "label"])
+    XCTAssertEqual(again.marks.map(\.id), ["diagram", "label"], "a row this device never showed stays in Chat")
+    XCTAssertEqual(again.say, "which one?")
+    var later = WhiteboardMarks()
+    XCTAssertEqual(
+      later.take(rows, settled: ["label"], showing: ["diagram"]).marks.map(\.id), ["diagram"],
+      "the newest done with, the earlier one still to deal with")
+    var none = WhiteboardMarks()
+    XCTAssertEqual(none.take(rows, settled: ["label"], showing: []), .init(), "done with, and nothing else showing")
+  }
+
+  func testSeveralRowsLandingBetweenTwoLooksAllShow() {
+    var marks = WhiteboardMarks()
+    _ = marks.take([row("a")], settled: [])
+    XCTAssertEqual(marks.take([row("a"), row("b"), row("c")], settled: []).marks.map(\.id), ["b", "c"])
+  }
+
+  func testShowingRemembersTheLatestTwentyVisibleReplies() throws {
+    var history = WhiteboardMarks.History()
+    for index in 0..<25 {
+      let id = "r\(index)"
+      history.place(try XCTUnwrap(row(id).drawing), shown: ["\(id)#0"])
+    }
+    let expected = (5..<25).map { "r\($0)" }
+    XCTAssertEqual(history.showing.map(\.id), expected)
+    history.place(try XCTUnwrap(row("r10").drawing), shown: ["r10#0"])
+    XCTAssertEqual(history.showing.map(\.id), expected, "reopening a retained reply preserves its place")
+    history.place(try XCTUnwrap(row("unresolved").drawing), shown: [], nowhere: ["unresolved#0"])
+    XCTAssertEqual(history.showing.map(\.id), expected, "an invisible row takes no slot")
+    XCTAssertEqual(history.done, ["unresolved"])
+  }
+
+  func testSettlingTwentyOlderRepliesPreservesTheNewestOnReopen() throws {
+    let rows = (0...20).map { row("r\($0)") }
+    var history = WhiteboardMarks.History()
+    history.newest = "r20"
+    for reply in rows { history.place(try XCTUnwrap(reply.drawing), shown: ["\(reply.id)#0"]) }
+    history.settle("r20#0", left: [])
+    for reply in rows.dropLast() { history.settle("\(reply.id)#0", left: []) }
+    XCTAssertEqual(history.done.count, 20)
+    XCTAssertEqual(history.showing.map(\.id), [])
+    var opened = WhiteboardMarks()
+    XCTAssertEqual(opened.take(rows, settled: Set(history.done)).marks, [])
+  }
+
+  func testSettlingTheLastMarkOfARowIsDoneWithItAlone() throws {
+    var history = WhiteboardMarks.History()
+    history.place(try XCTUnwrap(row("a").drawing), shown: ["a#0", "a#1"])
+    history.place(try XCTUnwrap(row("b").drawing), shown: ["b#0"])
+    history.settle("a#0", left: ["a#1", "b#0"])
+    XCTAssertEqual(history.showing.map(\.id), ["a", "b"])
+    XCTAssertEqual(history.settled, ["a#0"])
+    XCTAssertEqual(history.done, [])
+    history.settle("b#0", left: ["a#1"])
+    XCTAssertEqual(history.showing.map(\.id), ["a"])
+    XCTAssertEqual(history.settled, ["a#0"])
+    XCTAssertEqual(history.done, ["b"])
+    history.settle("a#1", left: [])
+    XCTAssertEqual(history.showing.map(\.id), [])
+    XCTAssertEqual(history.settled, [])
+    XCTAssertEqual(history.done, ["b", "a"])
+  }
+
+  func testReplacedThreadLeavesItsDrawingsAvailableAfterReopen() throws {
+    let old = WhiteboardMarks.Row(
+      id: "old",
+      shapes: [
+        .init(kind: .connector, points: [], from: "left", to: "right"),
+        .init(kind: .text, points: [CGPoint(x: 20, y: 40)], text: "Look", color: 0xaabbcc, lettering: .font),
+      ], pictureID: "picture", frame: frame, scale: 2)
+    let replacement = row("replacement")
+    var history = WhiteboardMarks.History()
+    history.place(try XCTUnwrap(old.drawing), shown: ["old#1"], nowhere: ["old#0"])
+    history.place(try XCTUnwrap(replacement.drawing), shown: ["replacement#0"])
+
+    let saved = try PropertyListEncoder().encode(history)
+    let reopened = try PropertyListDecoder().decode(WhiteboardMarks.History.self, from: saved)
+    let drawing = try XCTUnwrap(reopened.restore(excluding: ["replacement"]).first)
+    XCTAssertEqual(drawing.id, "old")
+    XCTAssertEqual(drawing.shapes, old.shapes)
+    XCTAssertEqual(drawing.frame, CGRect(x: 1000, y: 2000, width: 300, height: 200))
+    XCTAssertEqual(drawing.scale, 2)
+    XCTAssertEqual(drawing.pictureID, "picture")
+    XCTAssertEqual(reopened.settled, ["old#0"])
+    XCTAssertEqual(reopened.restore(excluding: []).map(\.id), ["old", "replacement"])
   }
 
   func testEachNewRowShowsAndASeenOneNeverComesBack() {
     var marks = WhiteboardMarks()
-    XCTAssertEqual(marks.take([], settled: nil), .init())
-    let first = marks.take([row("a", text: "here")], settled: nil)
-    XCTAssertEqual(first.marks?.id, "a")
+    XCTAssertEqual(marks.take([], settled: []), .init())
+    let first = marks.take([row("a", text: "here")], settled: [])
+    XCTAssertEqual(first.marks.map(\.id), ["a"])
     XCTAssertEqual(first.say, "here")
     // Dismissed between looks: nothing settled needed, it has been seen.
-    XCTAssertEqual(marks.take([row("a", text: "here")], settled: nil), .init())
-    let words = marks.take([row("a"), row("w", text: "just words", marks: false)], settled: nil)
-    XCTAssertNil(words.marks)
+    XCTAssertEqual(marks.take([row("a", text: "here")], settled: []), .init())
+    let words = marks.take([row("a"), row("w", text: "just words", marks: false)], settled: [])
+    XCTAssertEqual(words.marks, [])
     XCTAssertEqual(words.say, "just words")
     let both = marks.take(
-      [row("a"), row("w", marks: false), row("b"), row("c")], settled: nil)
-    XCTAssertEqual(both.marks?.id, "c")
+      [row("a"), row("w", marks: false), row("b"), row("c")], settled: [])
+    XCTAssertEqual(both.marks.map(\.id), ["b", "c"], "every new row of marks shows (story 1155)")
     XCTAssertNil(both.say)
   }
 
   func testARowWithNowhereToPutItsMarksIsNamedAndReplacesNothing() {
     var marks = WhiteboardMarks()
-    _ = marks.take([row("a")], settled: nil)
+    _ = marks.take([row("a")], settled: [])
     let lost = WhiteboardMarks.Row(
       id: "b", text: "see", shapes: [.init(kind: .line, points: [.zero, CGPoint(x: 1, y: 1)])])
-    let update = marks.take([row("a"), lost], settled: nil)
-    XCTAssertNil(update.marks)
+    let update = marks.take([row("a"), lost], settled: [])
+    XCTAssertEqual(update.marks, [])
     XCTAssertEqual(update.unplaced, ["b"])
     XCTAssertEqual(update.say, "see")
   }
@@ -165,11 +266,11 @@ final class WhiteboardMarksTests: XCTestCase {
     var marks = WhiteboardMarks()
     let lost = WhiteboardMarks.Row(
       id: "b", text: "see", shapes: [.init(kind: .line, points: [.zero, CGPoint(x: 1, y: 1)])])
-    let update = marks.take([row("a", text: "old"), lost, row("c", text: "words", marks: false)], settled: nil)
-    XCTAssertNil(update.marks)
+    let update = marks.take([row("a", text: "old"), lost, row("c", text: "words", marks: false)], settled: [])
+    XCTAssertEqual(update.marks, [])
     XCTAssertNil(update.say)
     XCTAssertEqual(update.unplaced, ["b"])
-    XCTAssertEqual(marks.take([row("a"), lost], settled: nil), .init())
+    XCTAssertEqual(marks.take([row("a"), lost], settled: []), .init())
   }
 
   // MARK: The board's one thread (story 385)
@@ -283,14 +384,14 @@ final class WhiteboardMarksTests: XCTestCase {
   func testAnAnswerOnANewThreadBeforeTheFirstLookIsStillAnAnswer() {
     var marks = WhiteboardMarks()
     marks.threadStarted()
-    let update = marks.take([row("a", text: "made room", marks: false)], settled: nil)
+    let update = marks.take([row("a", text: "made room", marks: false)], settled: [])
     XCTAssertTrue(update.replied)
     XCTAssertEqual(update.say, "made room")
   }
 
   func testWithoutThreadStartedTheFirstLookStillTakesNothingAsAReply() {
     var marks = WhiteboardMarks()
-    let update = marks.take([row("a", text: "made room", marks: false)], settled: nil)
+    let update = marks.take([row("a", text: "made room", marks: false)], settled: [])
     XCTAssertFalse(update.replied, "rows already on a thread the board opened earlier aren't answers")
   }
 }

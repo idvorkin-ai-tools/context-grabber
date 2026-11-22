@@ -162,6 +162,11 @@ public struct WhiteboardMarks: Sendable {
 
     public var drawable: Bool { frame != nil && !shapes.isEmpty }
 
+    public var drawing: Drawing? {
+      guard let frame, !shapes.isEmpty else { return nil }
+      return Drawing(id: id, shapes: shapes, pictureID: pictureID, frame: frame, scale: scale)
+    }
+
     public init(
       id: String, text: String = "", shapes: [WhiteboardTurn.Shape] = [], pictureID: String? = nil,
       frame: CGRect? = nil, scale: CGFloat = 1, ops: BoardOps.Batch? = nil
@@ -176,10 +181,65 @@ public struct WhiteboardMarks: Sendable {
     }
   }
 
+  public struct Drawing: Codable, Equatable, Sendable {
+    public let id: String
+    public let shapes: [WhiteboardTurn.Shape]
+    public let pictureID: String?
+    public let frame: CGRect
+    public let scale: CGFloat
+  }
+
+  public struct History: Codable, Sendable {
+    public private(set) var showing: [Drawing] = []
+    public private(set) var settled: [String]
+    public private(set) var done: [String]
+    public var newest: String?
+
+    public init(settled: [String] = [], done: [String] = []) {
+      self.settled = settled
+      self.done = done
+    }
+
+    public func restore(excluding present: Set<String>) -> [Drawing] {
+      showing.filter { !present.contains($0.id) }
+    }
+
+    public mutating func place(_ drawing: Drawing, shown: [String], nowhere: [String] = []) {
+      if !shown.isEmpty {
+        if let existing = showing.firstIndex(where: { $0.id == drawing.id }) {
+          showing[existing] = drawing
+        } else {
+          showing = Array((showing + [drawing]).suffix(WhiteboardMarks.rowsKept))
+          pruneSettled()
+        }
+      }
+      for mark in nowhere { settle(mark, left: shown) }
+    }
+
+    public mutating func settle(_ mark: String, left: [String]) {
+      guard let row = WhiteboardMarks.reply(of: mark) else { return }
+      if left.contains(where: { WhiteboardMarks.reply(of: $0) == row }) {
+        if showing.contains(where: { $0.id == row }), !settled.contains(mark) { settled.append(mark) }
+      } else {
+        showing.removeAll { $0.id == row }
+        pruneSettled()
+        let recent = done.filter { $0 != row } + [row]
+        let pinned = newest.flatMap { recent.contains($0) ? $0 : nil }
+        let others = recent.filter { $0 != pinned }
+        done = Array(others.suffix(WhiteboardMarks.rowsKept - (pinned == nil ? 0 : 1))) + (pinned.map { [$0] } ?? [])
+      }
+    }
+
+    private mutating func pruneSettled() {
+      let rows = Set(showing.map(\.id))
+      settled.removeAll { WhiteboardMarks.reply(of: $0).map(rows.contains) != true }
+    }
+  }
+
   /// What a look at the thread changes.
   public struct Update: Equatable, Sendable {
-    /// The row whose marks now show, replacing his unkept ones.
-    public var marks: Row?
+    /// The rows whose marks now show, oldest first, joining his unkept ones (bead context-grabber-n8ab, story 1155).
+    public var marks: [Row] = []
     /// His newest words.
     public var say: String?
     /// New rows whose shapes have nowhere to go.
@@ -197,21 +257,26 @@ public struct WhiteboardMarks: Sendable {
   /// however soon it came.
   public mutating func threadStarted() { seen = [] }
 
-  /// `rows`: Larry's, oldest first. `settled`: the row Igor already kept or dismissed from. The first look shows only
-  /// the newest row of marks, unless that one is settled or has nowhere to go; after that, each new one.
-  public mutating func take(_ rows: [Row], settled: String?) -> Update {
+  /// `rows`: Larry's, oldest first. `settled`: the rows Igor kept or dismissed every mark of. `showing`: the rows
+  /// still showing on this device when the board last closed. The first look shows those and the
+  /// newest row of marks, unless that one is settled or has nowhere to go; after that, every new one (story 1155).
+  public mutating func take(_ rows: [Row], settled: Set<String>, showing: [String] = []) -> Update {
     var update = Update()
     if let seen {
       let new = rows.filter { !seen.contains($0.id) }
       update.replied = !new.isEmpty
-      update.marks = new.last(where: \.drawable)
+      update.marks = new.filter { $0.drawable && !settled.contains($0.id) }
       update.say = new.last { !$0.text.isEmpty }?.text
       update.unplaced = new.filter { !$0.drawable && !$0.shapes.isEmpty }.map(\.id)
-    } else if let newest = rows.last(where: { !$0.shapes.isEmpty }), newest.id != settled {
-      if newest.drawable {
-        update.marks = newest
+    } else {
+      let newest = rows.last(where: { !$0.shapes.isEmpty }).flatMap { settled.contains($0.id) ? nil : $0 }
+      update.marks = rows.filter {
+        $0.drawable && !settled.contains($0.id) && $0.id != newest?.id && showing.contains($0.id)
+      }
+      if let newest, newest.drawable {
+        update.marks.append(newest)
         update.say = newest.text.isEmpty ? nil : newest.text
-      } else {
+      } else if let newest {
         update.unplaced = [newest.id]
       }
     }
@@ -238,11 +303,8 @@ public struct WhiteboardMarks: Sendable {
     return Dictionary(names.map { ($0, meta) }, uniquingKeysWith: { a, _ in a })
   }
 
-  /// The marks remembered once `mark` of `row` is kept or dismissed: the ones already remembered from that row, and it.
-  /// Another row's are forgotten: only the newest row ever comes back.
-  public static func settling(_ mark: String, of row: String, after settled: [String]) -> [String] {
-    settled.filter { $0.hasPrefix("\(row)#") && $0 != mark } + [mark]
-  }
+  /// How many rows a board remembers as showing on this device (story 1155); an older one stays in Chat.
+  private static let rowsKept = 20
 
   /// Larry's rows from `GET /chat/<key>`, or nil for an answer that is not a thread.
   public static func rows(_ data: Data) -> [Row]? {

@@ -358,6 +358,8 @@ that drift when he makes room."
   there).
 - It shows as a ghost like his other marks, drawn as the arrow it would be: from one thing's facing side to the
   other's, around anything in its way, as a connector routes.
+- If several replies arrive between looks, a connector sees the ready changes from earlier replies, including a named
+  stroke one of those replies added.
 - Keep, or Keep all, makes it a real connector, joined to its two things and following them from then on. With Keep
   all it is part of the one Undo.
 - An end on bare paper keeps as a plain arrow where he drew it, as the web board keeps it. A mark naming something the

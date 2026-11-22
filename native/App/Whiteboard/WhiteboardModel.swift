@@ -185,8 +185,6 @@ final class WhiteboardModel: ObservableObject {
   var sentFrame: CGRect?
   /// The part of the board in the picture Larry's turn last took: a tap with another part on screen sends (story 765).
   var larryFrame: CGRect?
-  /// The row his showing marks came from.
-  var shownRow: String?
   var watchTask: Task<Void, Never>?
   var lookFailures = 0
 

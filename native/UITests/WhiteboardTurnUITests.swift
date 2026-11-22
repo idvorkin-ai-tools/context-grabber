@@ -88,8 +88,9 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(for: [done], timeout: 5)
   }
 
-  /// Stories 382, 383, 386, 388 and 810, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept
-  /// ones with no tap, and a stray tap off them dismisses none of them (#883). That a dismissed or kept mark alone stays
+  /// Stories 382, 383, 386, 388, 810 and 1155, with Ghosts off so only Larry's marks show. His second reply, unprompted,
+  /// joins his unkept marks from the first with no tap, rather than replacing them (bead context-grabber-n8ab), and a
+  /// stray tap off them dismisses none of them (#883). That a dismissed or kept mark alone stays
   /// gone, that the newest set comes back on opening, and that a seen set never comes back between looks, are
   /// `WhiteboardMarksTests`, on the host.
   func testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem() throws {
@@ -107,11 +108,12 @@ final class WhiteboardTurnUITests: XCTestCase {
 
     try larryDraws(3, on: cockpit)
     XCTAssertTrue(
-      app.staticTexts.matching(marks(3)).firstMatch.appears(within: 10), app.debugDescription)
+      app.staticTexts.matching(marks(5)).firstMatch.appears(within: 10),
+      "the first reply's two stay: \(app.debugDescription)")
 
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.8)).tap()
     sleep(2)
-    XCTAssertTrue(app.staticTexts.matching(marks(3)).firstMatch.exists, "a stray tap dismisses nothing")
+    XCTAssertTrue(app.staticTexts.matching(marks(5)).firstMatch.exists, "a stray tap dismisses nothing")
     XCTAssertFalse(app.buttons["whiteboard-mark-dismiss"].exists, "and shows no buttons")
   }
 

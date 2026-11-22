@@ -499,8 +499,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     ghosts(app).tap()  // Ghosts off: only Larry's marks show.
     stroke(app)
     wait(send(app), label: strokes(1))
+    try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
     app.buttons["whiteboard-larry"].tap()
-    XCTAssertTrue(toKeep(app, 2).appears(within: 15), app.debugDescription)
+    XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
     let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
@@ -552,8 +553,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     wait(send(app), label: strokes(1))
     shot(app, "his stroke back by Redo")
 
+    try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
     app.buttons["whiteboard-larry"].tap()
-    XCTAssertTrue(toKeep(app, 2).appears(within: 15), app.debugDescription)
+    XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
     let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
@@ -577,8 +579,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     ghosts(app).tap()  // Ghosts off: only Larry's marks show.
     stroke(app, atHeight: 0.3)
     wait(send(app), label: strokes(1))
+    try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
     app.buttons["whiteboard-larry"].tap()
-    XCTAssertTrue(toKeep(app, 2).appears(within: 15), app.debugDescription)
+    XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
     let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
