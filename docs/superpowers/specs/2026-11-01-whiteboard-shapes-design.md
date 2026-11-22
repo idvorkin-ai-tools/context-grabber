@@ -461,7 +461,22 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 ## Talking while drawing (Igor, 2026-11-02: "an interactive session so I can tell him to do stuff and he can add stuff"; stories 345, 360–368, #604, #605)
 
 - A **microphone** in the board's bar stays open while he draws, until he taps it again or leaves the board.
-- About a second after he stops talking, what he said goes with a picture of the board, without waiting for a stroke:
+- Once he has finished speaking, what he said goes with a picture of the board, without waiting for a stroke
+  (Igor, 2026-11-22, bead `context-grabber-u1yy`: turns went to Larry cut mid-sentence at short pauses, "I see a chip
+  that says", "OK when I drop text"). Finished means silence after his last new words, and how long depends on how the
+  phrase ends:
+  - one that ends like a sentence (a full stop, question or exclamation mark) goes after about 1.5 s of silence;
+  - one that doesn't (dictation on the device rarely punctuates, so this is the usual case) waits about 3 s;
+  - one whose last word leaves it hanging ("says", "that", "the", "and", "when", "to", …) waits about 5 s, the bound:
+    nothing waits longer, so a turn still goes if he trails off.
+  - The recognizer re-sending words it already gave (a revision that adds nothing) doesn't restart the silence; only
+    new words do.
+  - The 2026-11-22 cuts, from the iPad's log: the words went on after about 1.2 s, 2.4 s and 4.5 s of silence (the
+    last after "that says"). All three now stay one turn.
+  - A Pencil pause still asks its turn as before, with whatever finished phrases it has; words still being spoken
+    wait for their own end and go with the next turn, never dropped. Closing the mic, switching microphones or
+    leaving the board sends what was heard at once.
+  - The session log's `spoke` line says which wait it used and why, so the iPad can confirm the timing.
   "draw a box around this" brings faint orange ghosts about 4 s later, kept or dismissed like any others. They are
   still suggestions: nothing becomes ink without a Keep.
 - It works on an empty board: "draw a circle" shows ghosts in the part of the board on screen.

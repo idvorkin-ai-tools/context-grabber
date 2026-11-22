@@ -205,24 +205,34 @@ extension WhiteboardModel {
     }
   }
 
+  /// Story 1119: the words go once the silence after his last new words fits how the phrase ends (a sentence 1.5 s, an
+  /// open phrase 3 s, a hanging one 5 s). A callback that only repeats them doesn't restart the silence.
   private func heard(_ text: String) {
-    speech.heard(text)
+    let changed = speech.heard(text)
     lastSaid.heard(text)
+    guard changed else { return }
     micClock.heard(t: Self.micNowMs)
     silenceTask?.cancel()
+    guard let words = speech.pending else { return }
+    let end = BoardSpeechEnd.wait(after: words)
     silenceTask = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(1))
+      try? await Task.sleep(for: .milliseconds(end.ms))
       guard !Task.isCancelled else { return }
-      self?.spoke()
+      self?.spoke(end: end)
     }
   }
 
   /// He stopped talking: the new words go now, or with the next turn if one is on its way. With Ghosts off nothing is
   /// asked, and they aren't kept for later.
-  private func spoke() {
+  /// `end`: the silence that finished the phrase (story 1119); nil when the mic closed or switched.
+  private func spoke(end: (ms: Int, why: BoardSpeechEnd.Why)? = nil) {
     guard let words = speech.takeNew() else { return }
     let went = turns.spoke(words)
-    var event: [String: Any] = ["action": "spoke", "board": board.id, "chars": words.count, "went": went.rawValue]
+    var event: [String: Any] = [
+      "action": "spoke", "board": board.id, "chars": words.count, "went": went.rawValue,
+      "end": end?.why.rawValue ?? "closed",
+    ]
+    if let end { event["wait_ms"] = end.ms }
     // Story 1112: the mic's timing goes with the next picture, unless Ghosts off dropped the words.
     let timing = micClock.taken(t: Self.micNowMs, chars: words.count, kept: went != .ghostsOff)
     event.merge(timing?.gaps ?? [:]) { $1 }

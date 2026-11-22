@@ -7,11 +7,20 @@ public struct WhiteboardSpeech: Sendable {
 
   public init() {}
 
-  public mutating func heard(_ text: String) {
+  /// True when the words changed: a callback that only repeats them doesn't restart the silence (story 1119).
+  @discardableResult
+  public mutating func heard(_ text: String) -> Bool {
+    let before = words
     words = text.split(whereSeparator: \.isWhitespace)
     // ponytail: counted in words, so a revision of words already sent isn't sent again; one that changes how many there
     // are shifts the cut by that many. A longest-common-prefix would resend everything after the first changed word.
     sent = min(sent, words.count)
+    return words != before
+  }
+
+  /// The words not yet taken, left in place: what the end-of-phrase wait reads (story 1119).
+  public var pending: String? {
+    sent < words.count ? words[sent...].joined(separator: " ") : nil
   }
 
   /// The words since the last call, once; nil when there are none.

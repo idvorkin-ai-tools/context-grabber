@@ -85,7 +85,47 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Spoken direction
 - **Given:** the mic is open on the board, and I drew a curve
 - **When:** I say "this is my energy over the week, mark the dip"
-- **Then:** within about 5 s of my stopping, faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point, without my lifting or drawing anything more
+- **Then:** within about 5 s of my finishing (story 1119: the board waits for the end of a sentence), faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point, without my lifting or drawing anything more
+
+---
+
+### User Story 1119:
+
+- **Summary:** A spoken turn waits until I have finished my sentence
+- **Status:** implemented in (this PR); the rule verified on the host by `BoardSpeechEndTests` with the 2026-11-22 iPad log's timings, the app by `just native-build-mac`; real dictation on the iPad not yet
+- **Issues:** bead `context-grabber-u1yy`
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who pauses to think mid-sentence while drawing
+- **I want to** have the board wait for the end of what I'm saying
+- **so that** Larry gets my whole thought, not "I see a chip that says"
+
+#### Acceptance Criteria:
+- **Scenario:** A pause mid-sentence
+- **Given:** the mic is open on the board
+- **When:** I say "I see a chip that says", stop for about 4 s, and go on "your board, what does that mean"
+- **Then:** one turn goes, with the whole sentence, about 5 s after I finish
+
+- **Scenario:** A short pause after a plain phrase
+- **Given:** the mic is open on the board
+- **When:** I say "OK when I drop text", stop for about 2.4 s, and go on
+- **Then:** the two parts go as one turn
+
+- **Scenario:** A finished sentence
+- **Given:** the mic is open and the dictation ended my words with a full stop or question mark
+- **When:** I stop talking
+- **Then:** the turn goes after about 1.5 s of silence
+
+- **Scenario:** The recognizer repeats itself
+- **Given:** I stopped talking
+- **When:** the recognizer sends my words again with nothing new
+- **Then:** the silence is not restarted, and the turn goes on time
+
+- **Scenario:** The Pencil pauses while I'm still talking
+- **Given:** I'm mid-sentence and lift the Pencil
+- **When:** the board's pause passes
+- **Then:** the drawing's turn goes as before, and my sentence goes with the next turn once I finish
 
 ---
 
