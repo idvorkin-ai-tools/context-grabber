@@ -52,6 +52,9 @@ suggest changes the board until Igor keeps it.
     reach of its line (a fingertip, about 22 screen points, whatever the zoom), not merely inside the group's box. All
     of the group is then selected, as a lasso round it would select it, and a finger drags it as one; one Undo puts it
     back where it was. The Pencil keeps drawing over it as before, and drawing fingers leave no dot for the tap.
+    - For up to three seconds after the tap or until the next touch, a dot from that tap is taken back and the whole
+      group stays selected, even when the iPad is slow to answer. A second tap gets its own window. New ink and ink
+      restored by Undo or Redo are kept.
     - Only on a board he can draw on, with no marks of Claude's or Larry's showing and none of Larry's controls (with
       them showing a tap chooses a mark, as above), and never in the margin (the outline's).
     - A tap off every group, on his own writing or blank paper, does what it did.

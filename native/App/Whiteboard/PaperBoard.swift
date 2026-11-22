@@ -116,7 +116,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// A tap's selection comes after the lift: until this time one is put straight back.
   private var noSelectionUntil: Double = 0
   /// The last finger tap while marks showed, in board points, and when: the dot PaperKit draws there is taken back.
-  var ghostTap: (at: CGPoint, time: Double, within: Double)?
+  var ghostTap: TapDot?
   /// Story 947: the group a finger tap selected, by its strokes' names, and until when a selection PaperKit makes of the
   /// same tap is put back to it. Gone at the next touch.
   var groupTap: (names: Set<String>, until: Double)?
@@ -375,7 +375,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
     let consumed =
-      takesBackTapDot(change, frames: frames) || marginHeld(change, markup: markup)
+      takesBackTapDot(change, markup: markup, frames: frames) || marginHeld(change, markup: markup)
       || pickedUp(change, markup: markup, before: previous) || scratchesOut(change, markup)
     snapNoticed(change, consumed: consumed)
     if consumed { return }
@@ -526,7 +526,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     run?.facts.selectionChanges += 1
     run?.selected = controller.selection.count
     // Story 947: PaperKit's own selection for a tap on a group goes back to the whole group.
-    holdGroupTap(controller)
+    if let tap = groupTap { reselectGroupTap(until: tap.until, why: "selection") }
     let putBack = !controller.selection.isEmpty && CACurrentMediaTime() < noSelectionUntil
     logSelection(controller.selection, putBack: putBack)
     if putBack { controller.selection = [] }
@@ -599,14 +599,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.fingerLifted(from: column(start), to: column(end), seconds: seconds)
   }
 
-  override func fingerTapped(at spot: CGPoint) {
+  override func fingerTapped(at spot: CGPoint, beganAt: Date) {
     let at = lines.columnPoint(of: view.convert(spot, to: lines))
     // Story 818: Larry hears every tap, marks showing or not.
     model.tapped(at: at, zoom: screenScale)
     let count = model.ghosts.count
     // Story 855: a margin tap is the outline's; a dot a drawing finger leaves there is taken back.
     if at.x < BoardMargin.width {
-      ghostTap = (at, CACurrentMediaTime(), PaperProbe.tapDotSeconds)
+      ghostTap = TapDot(at: at, beganAt: beganAt)
       noSelectionUntil = CACurrentMediaTime() + 0.8
       return
     }
@@ -617,21 +617,21 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     {
       if group.selected, rewordTapped(at: at) {
         noSelectionUntil = CACurrentMediaTime() + 0.8
-        ghostTap = (at, CACurrentMediaTime(), PaperProbe.rewordDotSeconds)
+        ghostTap = TapDot(at: at, beganAt: beganAt, within: PaperProbe.rewordDotSeconds)
       } else {
-        select(group, tappedAt: at)
+        select(group, tappedAt: at, beganAt: beganAt)
       }
       return
     }
     // Story 940: with no marks to choose, a tap on a kept text opens its words (or, with them open, is done).
     if count == 0, rewordTapped(at: at) {
       noSelectionUntil = CACurrentMediaTime() + 0.8
-      ghostTap = (at, CACurrentMediaTime(), PaperProbe.rewordDotSeconds)
+      ghostTap = TapDot(at: at, beganAt: beganAt, within: PaperProbe.rewordDotSeconds)
       return
     }
     // With his controls showing a finger taps too (story 846): no dot, no selection.
     guard count > 0 || !model.overlays.list.isEmpty else { return }
-    ghostTap = (at, CACurrentMediaTime(), PaperProbe.tapDotSeconds)
+    ghostTap = TapDot(at: at, beganAt: beganAt)
     let selected = paper.selection.count
     // Story 967 (#1170): a tap on his selection that reaches no mark is his, so PaperKit's menu (Delete) shows.
     let box = paper.selection.map(Self.key).compactMap { inkFrames[$0] }.reduce(CGRect.null) { $0.union($1) }
@@ -656,6 +656,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   override func touchWentDown(_ touch: UITouch) {
+    if ghostTap?.selection?.isGroup == true { ghostTap = nil }
     groupTap = nil
     // Story 1143: the turns logged as the touch began, so its line says how many came while it was down.
     if touchesDown == 0 { run?.turnsAtStart = model.turnsLogged }

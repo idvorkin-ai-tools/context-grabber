@@ -83,7 +83,8 @@ struct PaperScreen {
   /// One of Larry's controls in the tests' green (the fake Cockpit's button).
   var green: Box? { box { r, g, b in r < 60 && g > 140 && b < 60 } }
   /// A kept mark of Larry's, at full strength.
-  var larryKept: Box? { box { r, g, b in r > 150 && r < 215 && g < 110 && b > 190 } }
+  var larryKept: Box? { larryKept(in: nil) }
+  func larryKept(in region: Box?) -> Box? { box(in: region) { r, g, b in r > 150 && r < 215 && g < 110 && b > 190 } }
 
   static func tap(_ app: XCUIApplication, _ at: CGPoint) {
     app.coordinate(withNormalizedOffset: CGVector(dx: at.x, dy: at.y)).tap()

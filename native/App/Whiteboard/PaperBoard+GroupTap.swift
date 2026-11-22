@@ -36,14 +36,20 @@ extension PaperBoardController {
   }
 
   /// The group selected, as a lasso round it would select it. PaperKit makes its own selection for the same tap after
-  /// the lift, which goes back to the group (`holdsGroupTap`); a finger that draws leaves a dot, taken back as a
+  /// the lift, which goes back to the group (`reselectGroupTap`); a finger that draws leaves a dot, taken back as a
   /// ghost tap's is. A beat later the log says whether it held.
-  func select(_ group: TappedGroup, tappedAt at: CGPoint) {
+  func select(_ group: TappedGroup, tappedAt at: CGPoint, beganAt: Date) {
     guard let markup = paper.markup else { return }
     let now = CACurrentMediaTime()
-    let until = now + 1.0
+    let isGroup = group.kind == "group"
+    let hold = isGroup ? PaperProbe.groupTapSeconds : 1.0
+    let until = now + hold
     groupTap = (group.names, until)
-    if fingersDraw { ghostTap = (at, now, PaperProbe.tapDotSeconds) }
+    if fingersDraw {
+      ghostTap = TapDot(
+        at: at, beganAt: beganAt, time: now, within: isGroup ? hold : PaperProbe.tapDotSeconds,
+        selection: (until, isGroup))
+    }
     let ids = groupElements(group.names, in: markup)
     paper.selection = ids
     // As PaperKit's own selection callback would: Larry hears what is selected, and To text shows beside it.
@@ -56,7 +62,7 @@ extension PaperBoardController {
     ]
     log.event("whiteboard", event)
     Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(1.2))
+      try? await Task.sleep(for: .seconds(hold + 0.2))
       guard let self else { return }
       let wanted = self.paper.markup.map { self.groupElements(group.names, in: $0) } ?? []
       let held = !wanted.isEmpty && self.paper.selection == wanted
@@ -72,17 +78,12 @@ extension PaperBoardController {
     }
   }
 
-  /// Story 947: inside a group tap's window, a selection other than the group's is put back to the group, and the
-  /// callback goes on with it.
-  func holdGroupTap(_ controller: PaperMarkupViewController) {
-    guard let tap = groupTap, CACurrentMediaTime() < tap.until else { return }
-    reselectGroupTap(why: "selection")
-  }
-
   /// Story 947: the group a tap selected, selected again with no touch since. Taking back the tap's dot left nothing
   /// selected on the simulator, with no selection callback (2026-11-22: `group_tap_held` held false, selected 0).
-  func reselectGroupTap(why: String) {
-    guard let tap = groupTap, let markup = paper.markup else { return }
+  func reselectGroupTap(until: Double, why: String) {
+    guard let tap = groupTap, tap.until == until, CACurrentMediaTime() < until, let markup = paper.markup,
+      paper.undoManager?.isUndoing != true, paper.undoManager?.isRedoing != true
+    else { return }
     let wanted = groupElements(tap.names, in: markup)
     guard !wanted.isEmpty, paper.selection != wanted else { return }
     log.event(

@@ -118,7 +118,8 @@ public enum PaperProbe {
   /// Stories 616, 825 (#883): the dot PaperKit draws where a finger tapped, even with a finger set not to draw, a few
   /// tenths of a second after the lift. One stroke, a few screen points across, at the tap (in board points, `zoom`
   /// screen points to one), within `tapDotSeconds` of it; anything bigger, elsewhere or later is drawing.
-  /// `within`: how long it may take to land (`tapDotSeconds`, or `rewordDotSeconds` for a tap that opened a text).
+  /// `within`: how long it may take to land (`tapDotSeconds`, `rewordDotSeconds` for a tap that opened a text, or
+  /// `groupTapSeconds` for a tap that selected a group).
   public static func isTapDot(
     added: [CGRect], tap: CGPoint, secondsSince: Double, zoom: CGFloat, within: Double = tapDotSeconds
   ) -> Bool {
@@ -132,4 +133,8 @@ public enum PaperProbe {
   /// Story 941: a tap that opens a kept text's field, and the keyboard with it, holds PaperKit's dot back: 0.68 and 1.3 s on
   /// the iPad simulator (2026-11-17), where the plain window let it stay as a stroke.
   public static let rewordDotSeconds = 2.0
+  /// Story 947 (bead context-grabber-z93g): a tap that selected a group holds its dot and its selection this long, or until
+  /// the next touch goes down. A busy iPad simulator held the dot back 0.86 to 1.17 s (2026-11-22), past `tapDotSeconds`,
+  /// and the dot that stayed took the group's selection with it.
+  public static let groupTapSeconds = 3.0
 }

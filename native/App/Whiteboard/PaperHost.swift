@@ -57,7 +57,7 @@ class PaperHost: UIViewController {
   /// the run, as PaperKit's word on the stroke comes after the lift.
   private(set) lazy var touchTool = decidingTool
   private var runEnding: Task<Void, Never>?
-  private var touchStarts: [ObjectIdentifier: (at: CGPoint, began: Double, farthest: CGFloat)] = [:]
+  private var touchStarts: [ObjectIdentifier: (at: CGPoint, began: Double, timestamp: Double, farthest: CGFloat)] = [:]
   /// Fingers on the glass now, and together since the last time there were none. A Pencil beside one doesn't count.
   private var fingersDown = 0
   private var fingersTogether = 0
@@ -161,7 +161,7 @@ class PaperHost: UIViewController {
         endRun()
         startRun(touch, at: at)
       }
-      touchStarts[id] = (at, CACurrentMediaTime(), 0)
+      touchStarts[id] = (at, CACurrentMediaTime(), touch.timestamp, 0)
       run?.tally.down(id.hashValue, Self.name(touch.type), radius: touch.majorRadius)
       if touch.type == .pencil { pencilDown = true }
       if touch.type == .direct {
@@ -185,7 +185,7 @@ class PaperHost: UIViewController {
           seconds: CACurrentMediaTime() - start.began,
           fingers: fingersTogether)
       {
-        fingerTapped(at: start.at)
+        fingerTapped(at: start.at, beganAt: Date().addingTimeInterval(start.timestamp - CACurrentMediaTime()))
       }
       if phase == .ended, touch.type == .direct, fingersTogether == 1, let start = touchStarts[id] {
         fingerLifted(from: start.at, to: at, seconds: CACurrentMediaTime() - start.began)
@@ -255,7 +255,7 @@ class PaperHost: UIViewController {
   func toolChanged() {}
   /// One finger, short and staying put, at this spot in `view`, Pencil or no Pencil. PaperKit may do its own thing with the
   /// same touch.
-  func fingerTapped(at spot: CGPoint) {}
+  func fingerTapped(at spot: CGPoint, beganAt: Date) {}
   /// A lone finger came up, from where it went down, in this view's points (story 849).
   func fingerLifted(from start: CGPoint, to end: CGPoint, seconds: Double) {}
 

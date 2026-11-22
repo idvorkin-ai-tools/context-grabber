@@ -1093,9 +1093,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 947:
 
 - **Summary:** A finger tap on any stroke of a group selects the whole group, ready to drag
-- **Status:** implemented in [3175c799](https://github.com/idvorkin/context-grabber/commit/3175c799); verified by host tests (`BoardOutlineTests`: `testAFingerTapOnAGroupsStrokeTakesTheWholeGroup`, `testATextInsideAGroupIsTheGroupsAndABareTextIsNot`; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardGroupTapUITests`, rung 2, 2026-11-22: the tap selects all three kept marks and they stay selected past the tap's dot, a finger drag moves them whole, one Undo puts them back, a tap beside them selects nothing); a second tap opening a grouped text's words, and the tap with the Pencil paired (fingers not drawing), not yet seen on the iPad
+- **Status:** implemented in [3175c799](https://github.com/idvorkin/context-grabber/commit/3175c799); verified by host tests (`BoardOutlineTests`: `testAFingerTapOnAGroupsStrokeTakesTheWholeGroup`, `testATextInsideAGroupIsTheGroupsAndABareTextIsNot`; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardGroupTapUITests`, rung 2, 2026-11-22: the tap selects all three kept marks and they stay selected past the tap's dot, a finger drag moves them whole, one Undo puts them back, a tap beside them selects nothing); a second tap opening a grouped text's words, and the tap with the Pencil paired (fingers not drawing), not yet seen on the iPad. A busy moment after the tap (bead context-grabber-z93g): [05cf2db3](https://github.com/idvorkin/context-grabber/commit/05cf2db3); verified by a host test (`PaperProbeTests`: a dot 1.17 s late is a group tap's) and on four iPad simulator lanes at once (rung 2, 2026-11-22, 32 runs at a time, no retries: the tap's selection held in every run, 64 of 64, against 4 of 32 lost before; every drag that started inside the group moved it whole; the 4 failures left in each 32 are the kept ink drawn cut, bead context-grabber-dell)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on a group)
-- **Issues:** [#947](https://github.com/idvorkin/context-grabber/issues/947): Igor, 2026-11-18 about 05:42, via Larry: "when I click select-all, I want some notion of fixed object on finger-click to move"
+- **Issues:** [#947](https://github.com/idvorkin/context-grabber/issues/947): Igor, 2026-11-18 about 05:42, via Larry: "when I click select-all, I want some notion of fixed object on finger-click to move"; bead context-grabber-z93g: `WhiteboardGroupTapUITests` passed only on its retry; under load the tap's dot landed 0.86 to 1.17 s after the tap, past the 0.6 s window, stayed as a stroke and took the group's selection with it
 
 #### Use Case:
 - **As someone** with a reply of Larry's kept as a group on the board
@@ -1182,6 +1182,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a stroke of mine nearer the tap than any of Larry's
 - **When:** I tap there
 - **Then:** the tap does what it did before, and a text I typed or made with To text still opens at the first tap
+
+---
+
+### User Story 1144:
+
+- **Summary:** A delayed tap dot leaves the group selected
+- **Status:** implemented in [05cf2db3](https://github.com/idvorkin/context-grabber/commit/05cf2db3). The original change held selection in 64 of 64 iPad simulator runs under load (rung 2, 2026-11-22). `PaperProbeTests` covers a dot delivered 1.17 s after the tap.
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
+- **Issues:** bead context-grabber-z93g
+
+#### Use Case:
+- **As someone** moving a group on a busy iPad
+- **I want** the whole group to stay selected when the tap is slow to register
+- **so that** I can drag it as one and keep the ink I draw afterwards
+
+#### Acceptance Criteria:
+- **Scenario:** A busy moment after the tap
+- **Given:** a kept group and an iPad slow to draw the tap's dot
+- **When:** I tap a stroke of the group
+- **Then:** for up to three seconds or until my next touch, that tap's dot is removed and the whole group stays selected. A second tap has its own window, and new or restored ink stays on the board.
 
 ---
 

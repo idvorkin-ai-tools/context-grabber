@@ -81,6 +81,9 @@ final class PaperProbeTests: XCTestCase {
       "a dot somewhere else")
     XCTAssertFalse(PaperProbe.isTapDot(added: [dot], tap: tap, secondsSince: 1.5, zoom: 1), "long after the tap")
     XCTAssertFalse(PaperProbe.isTapDot(added: [dot, dot], tap: tap, secondsSince: 0.1, zoom: 1), "more than a dot")
+    // Story 947 (bead context-grabber-z93g): a group tap's dot, held back 1.17 s by a busy simulator, is still its dot.
+    XCTAssertTrue(
+      PaperProbe.isTapDot(added: [dot], tap: tap, secondsSince: 1.17, zoom: 1.02, within: PaperProbe.groupTapSeconds))
   }
 
   func testALongStillTouchIsAPress() {
