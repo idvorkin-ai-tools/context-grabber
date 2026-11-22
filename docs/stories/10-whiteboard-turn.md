@@ -1915,7 +1915,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1113:
 
 - **Summary:** Hold the mic to pick the microphone, even with the mic closed
-- **Status:** in progress (bead context-grabber-h5c0)
+- **Status:** implemented in [c1c67a80](https://github.com/idvorkin/context-grabber/commit/c1c67a80); verified by the lint and host rungs (`BoardMicMenuTests`: the rows, the tick, a pick kept from before a relaunch, when *Find microphones* shows), the Mac build, and the iPad simulator (`WhiteboardTurnUITests.testHoldingTheMicPicksTheMicrophone`: holding the closed mic shows *Talk to Claude*, *Automatic* and *Find microphones*, and the row still talks; the rest of WhiteboardTurnUITests green, and the whole whiteboard suite green apart from this test before its fix). The simulator has no microphone to pick: the pocket mic in the list, *Find microphones* on a paired one, and what reading them does to music playing are the iPad's to show
 - **Issues:** bead `context-grabber-h5c0`
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Which microphone, and what it hears*
 
