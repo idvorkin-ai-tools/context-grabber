@@ -103,7 +103,7 @@ final class BoardDebugTimingTests: XCTestCase {
       ] as NSDictionary)
   }
 
-  /// Story 1158: every picture's message names the board, on a thread already started as on the first, from the outbox.
+  /// Story 1119: every picture's message names the board, on a thread already started as on the first, from the outbox.
   func testEveryPicturesMessageCarriesTheBoardsName() throws {
     let picture = WhiteboardPicture(
       board: "b1", title: "Ink lab", rect: CGRect(x: 0, y: 0, width: 10, height: 10), scale: 1, pictureID: "p1")
