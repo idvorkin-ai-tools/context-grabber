@@ -277,3 +277,28 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board drawn on the iPad with a folded header, a question card and a kept text of Larry's
 - **When:** the iPhone syncs and I open the board there
 - **Then:** the header is folded, the card and the text are there, and Larry's text keeps its name
+
+---
+
+### User Story 1117:
+
+- **Summary:** A TestFlight build syncs every board's ink even before iCloud's production side knows a board's Larry thread
+- **Status:** implemented; verified by host tests (`BoardThreadRefusalTests`: a refusal for invalid arguments on a board carrying a thread is retried without it, any other failure throws as before, and a board waiting only on its thread isn't sent again that launch; `just native-test`) and the Mac build (`just native-build-mac`); the simulator (rung 2) is owed (no iCloud account there, and it was wedged on 2026-11-22), and the refusal itself is seen only on a TestFlight build before the production schema is deployed. Whether listing boards with the thread asked for is refused there too is unobserved: a failed list logs its step and iCloud's words
+- **Issues:** bead context-grabber-irm0 (after #1161: one board with a thread stopped the whole board sync on a TestFlight device, since iCloud's production side refuses a field it hasn't been given)
+- **Spec:** [The conversation with Larry](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *TestFlight builds need one step from Igor first*
+
+#### Use Case:
+- **As someone** drawing on a TestFlight build of the iPad before Igor has deployed the board's thread to iCloud's production side
+- **I want to** have my boards' ink still reach my other devices, threads or not
+- **so that** one board that talked to Larry never stops every board from syncing
+
+#### Acceptance Criteria:
+- **Scenario:** iCloud refuses a board for its thread
+- **Given:** a TestFlight build whose iCloud doesn't know the board's thread yet, and a board that talked to Larry
+- **When:** the board syncs
+- **Then:** it goes up once more without its thread, its ink and the boards after it reach the other devices, and the session log says the thread was left off, with what iCloud said
+
+- **Scenario:** The rest of the launch
+- **Given:** iCloud refused a thread earlier this launch
+- **When:** the next sync runs
+- **Then:** boards with new ink go up without their threads, a board with nothing new but its thread isn't sent again, and the next launch offers the threads again, so they go up once production has the field
