@@ -95,6 +95,57 @@ F
 story column 01-a.md 1
 expect "an IDs column it can't read fails" column 1 "FAIL README.md:1: 01-a.md: can't read 'soon' in its IDs column"
 
+# A journey of several files (story 796): A spans 01-a.md and 01-a-more.md, sharing its IDs column.
+split() {
+  mkdir -p "$tmp/$1"
+  cat >"$tmp/$1/README.md" <<'F'
+| Journey | What it covers | IDs |
+|---|---|---|
+| A: [one](01-a.md), [more](01-a-more.md) | the first | 001–009, 020 |
+| [B](02-b.md) | the second | 010–019 |
+F
+}
+
+split parts
+story parts 01-a.md 1 2
+story parts 01-a-more.md 3 20
+story parts 02-b.md 10
+expect "a journey's IDs hold across all its files" parts 0 ""
+
+split partdup
+story partdup 01-a.md 1 2
+story partdup 01-a-more.md 2
+story partdup 02-b.md 10
+expect "an ID used in two files of one journey is named with both places" partdup 1 "FAIL story 2 is used 2 times: 01-a-more.md:1, 01-a.md:7"
+
+split partout
+story partout 01-a.md 1
+story partout 01-a-more.md 3 15
+story partout 02-b.md 10
+expect "an ID outside its journey's ranges in its second file fails" partout 1 "FAIL 01-a-more.md:7: story 15 is outside its journey's IDs (1–9, 20)"
+
+split partunlisted
+story partunlisted 01-a.md 1
+story partunlisted 01-a-more.md 3
+story partunlisted 01-a-extra.md 4
+story partunlisted 02-b.md 10
+expect "a part file the row doesn't link fails" partunlisted 1 "FAIL 01-a-extra.md: not in README.md's journey table"
+
+split partmissing
+story partmissing 01-a.md 1
+story partmissing 02-b.md 10
+expect "a linked part that is missing fails" partmissing 1 "FAIL README.md:3: 01-a-more.md is listed but not there"
+
+mkdir -p "$tmp/tworows"
+cat >"$tmp/tworows/README.md" <<'F'
+| A: [one](01-a.md), [shared](01-x.md) | the first | 001–009 |
+| B: [one](02-b.md), [shared](01-x.md) | the second | 010–019 |
+F
+story tworows 01-a.md 1
+story tworows 02-b.md 10
+story tworows 01-x.md 2
+expect "a file linked by two journeys fails" tworows 1 "FAIL README.md:2: 01-x.md is listed twice"
+
 if out=$(scripts/native/story-ids.py docs/stories); then
   echo "ok   docs/stories: ${out#ok   story-ids: }"
 else

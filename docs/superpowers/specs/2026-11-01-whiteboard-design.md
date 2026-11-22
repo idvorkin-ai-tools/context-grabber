@@ -3,8 +3,8 @@
 Igor, 2026-11-01: "can we do an ipad whiteboard app (on phone it should be viewable), and I want the interface with
 draw with the pen (and eraser) … minimum you take input … but I think you extend my drawing like we both draw
 together and maybe you get voice input, and need a back link to larry too while doing this." The brainstorm ran on a
-Lavish page with a working board: four rounds of drawing, and Igor's answers to the open questions. Stories:
-[10-whiteboard.md](../../stories/10-whiteboard.md).
+Lavish page with a working board: four rounds of drawing, and Igor's answers to the open questions. Stories: the whiteboard journey's files, listed in the
+[journey table](../../stories/README.md), from [the board and the list](../../stories/10-whiteboard-boards.md).
 
 ## Goals
 

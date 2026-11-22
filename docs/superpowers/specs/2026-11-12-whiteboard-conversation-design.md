@@ -4,7 +4,7 @@ Issue [#879](https://github.com/idvorkin/context-grabber/issues/879) (Igor, from
 Larry has been thinking and if my requests are going simultaneously", "some kind of collapse expand conversation", and,
 written on the board itself, "This seems very slow, are we crashing/hung?" Extends
 [Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md) (*Who answers the pause*, *Larry's turn*).
-Stories: [10-whiteboard.md](../../stories/10-whiteboard.md).
+Stories: [Larry's turn and the conversation](../../stories/10-whiteboard-turn.md).
 
 ## What happened
 
