@@ -1346,7 +1346,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1125:
 
 - **Summary:** A file delivered to a chat shows as a row that opens it
-- **Status:** native app only: implemented in [94ddb4f2](https://github.com/idvorkin/context-grabber/commit/94ddb4f2) (#633); the row's kind and name verified on the host by `ChatTests`; `ChatFileUITests` (rung 2, iPhone 17 against the fake Cockpit, 2026-11-21) sees the row read *Lease.pdf, PDF* and the tap open the system preview; against the real Cockpit on the phone, not yet
+- **Status:** native app only: implemented in [28ae5154](https://github.com/idvorkin/context-grabber/commit/28ae5154) (#633); the row's kind and name verified on the host by `ChatTests`; `ChatFileUITests` (rung 2, iPhone 17 against the fake Cockpit, 2026-11-21) sees the row read *Lease.pdf, PDF* and the tap open the system preview; against the real Cockpit on the phone, not yet
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — A delivered file in the thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1366,7 +1366,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1126:
 
 - **Summary:** A delivered file that can't be fetched says why
-- **Status:** native app only: implemented in [94ddb4f2](https://github.com/idvorkin/context-grabber/commit/94ddb4f2) (#633); the problem's words verified on the host by `ChatTests`; on screen, on the simulator or the phone, not yet
+- **Status:** native app only: implemented in [28ae5154](https://github.com/idvorkin/context-grabber/commit/28ae5154) (#633); the problem's words verified on the host by `ChatTests`; on screen, on the simulator or the phone, not yet
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — A delivered file in the thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1686,7 +1686,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 487:
 
 - **Summary:** A file the Cockpit won't take says why and stays on the phone
-- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the refusal and the kept file verified on the host by `ChatFileTests`; the problem seen on the simulator against the fake Cockpit, and the refusal checked by the smoke until context-grabber-gp7; since then the refusal with no message after it is `InboxOutboxTests` (host) and the smoke no longer relaunches for it
+- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the refusal and the kept file verified on the host by `ChatFileTests`; the problem seen on the simulator against the fake Cockpit, and the refusal checked by the smoke until context-grabber-gp7; since then the refusal with no message after it is `InboxOutboxTests` (host) and the smoke no longer relaunches for it; #633, the refusal now for a kind of file the Cockpit doesn't take (since Cockpit story 167 it takes PDFs, plain text and Office files) in [28ae5154](https://github.com/idvorkin/context-grabber/commit/28ae5154)
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1726,7 +1726,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 489:
 
 - **Summary:** Sending a file again too soon changes nothing
-- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the store and the second refusal verified on the host by `ChatFileTests`; `GRABBER_CHAT_SEND_AGAIN` and its smoke check written, not yet run on the simulator; the tap itself on the phone, not yet; since context-grabber-gp7 the kept file uploading again, refused again with no message, is `InboxOutboxTests` (host) and the smoke check is gone
+- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the store and the second refusal verified on the host by `ChatFileTests`; `GRABBER_CHAT_SEND_AGAIN` and its smoke check written, not yet run on the simulator; the tap itself on the phone, not yet; since context-grabber-gp7 the kept file uploading again, refused again with no message, is `InboxOutboxTests` (host) and the smoke check is gone; #633, the criteria now for a kind of file the Cockpit still doesn't take in [28ae5154](https://github.com/idvorkin/context-grabber/commit/28ae5154)
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
