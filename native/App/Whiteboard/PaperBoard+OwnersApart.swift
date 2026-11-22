@@ -73,7 +73,8 @@ extension PaperBoardController {
     noteInk(held, since: framesBefore, report: true)
     let went = back.filter { key in
       guard let was = previous[key], let now = inkFrames[key] else { return false }
-      return abs(was.minX - now.minX) + abs(was.minY - now.minY) < 0.5
+      return abs(was.minX - now.minX) + abs(was.minY - now.minY) + abs(was.width - now.width)
+        + abs(was.height - now.height) < 0.5
     }
     event["back_in_place"] = went.count
     event["can_undo"] = paper.undoManager?.canUndo ?? false
