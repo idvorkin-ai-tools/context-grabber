@@ -400,8 +400,7 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 - **The pick is kept** for the next opening, on any board, and after a relaunch. It is the same pick as Chat's and the
   problem report's microphone. A picked microphone that is no longer connected falls back to *Automatic* when the
   list is next read.
-- **Nothing moves for it**: the name and the bar sit in the note's line, which keeps its height, and the Pencil
-  doesn't act on them.
+- **Nothing moves for it**: the name and the bar sit in the note's line, which keeps its height.
 - **The session log says** how many microphones each opening listed and which one the mic hears, and each pick:
   whether it was *Automatic* and whether the mic was open.
 - **Not here: replaying a board with its sound**, as Notability plays a recording back with the ink (#1139's second
