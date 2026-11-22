@@ -1299,7 +1299,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Back to the board from its thread
 - **Given:** a thread holds a message sent from a board that iCloud or this device holds, or this device started the thread from one of its boards
 - **When:** I open the thread and tap *Board*
-- **Then:** iCloud is asked first, the board opens with what is on it now, and its *Back* shows the boards
+- **Then:** a board drawn on this device opens at once, another device's after iCloud is asked, with what is on it now, and its *Back* shows the boards
 
 ---
 
@@ -1499,7 +1499,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A picture from a board
 - **Given:** a thread holds a picture sent from a whiteboard that iCloud or this device holds
 - **When:** I tap the picture, then *Jump to board*
-- **Then:** iCloud is asked first, the full-size view goes down and the board opens with what is on it now; *Done* on the boards takes me home, and no full-size view is left in the way
+- **Then:** the full-size view goes down and the board opens with what is on it now (at once for a board drawn on this device, after asking iCloud for another device's); *Done* on the boards takes me home, and no full-size view is left in the way
 
 ---
 
@@ -1540,6 +1540,31 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the picture's board was deleted, isn't on this device even after asking iCloud, or its latest drawing didn't come down
 - **When:** I tap *Jump to board*
 - **Then:** a copyable problem says so over the picture, which stays open until I close it
+
+---
+
+### User Story 1137:
+
+- **Summary:** A jump to a board drawn on this device is quick
+- **Status:** native app only: implemented (commit pending)
+- **Issues:** [#1137](https://github.com/idvorkin/context-grabber/issues/1137)
+- **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** a man on the iPad who left his board for its thread and wants to get back to it
+- **I want to** tap *Jump to board* on a picture, or *Board* in the thread's bar, and be on the board straight away
+- **so that** going back to the board feels like a link, not a wait on iCloud (it took nearly three seconds, half of it asking iCloud twice)
+
+#### Acceptance Criteria:
+- **Scenario:** A board this device draws
+- **Given:** a thread holds a picture of a board drawn on this device, whose drawing is here
+- **When:** I tap the picture, then *Jump to board* (or *Board* in the thread's bar)
+- **Then:** the board opens at once from what is here, with no *Looking for the board…* wait and no slide as the picture goes down, and iCloud isn't asked on the way
+
+- **Scenario:** Another device's board
+- **Given:** the picture's board was drawn on another device
+- **When:** I tap *Jump to board*
+- **Then:** iCloud is asked once, so that device's newest ink is there, and the board opens; it isn't asked a second time as the board comes up
 
 ---
 

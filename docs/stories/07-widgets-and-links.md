@@ -899,7 +899,7 @@ apart."*
 - **Scenario:** A link to a board
 - **Given:** I have a `grabbernative://whiteboard?board=<id>` link
 - **When:** I open it
-- **Then:** iCloud is asked first and that board opens as it is now; a board that can't be opened leaves me on the boards with a copyable problem saying why
+- **Then:** that board opens as it is now, at once when it is drawn on this device and after asking iCloud when it is another device's (#1137); a board that can't be opened leaves me on the boards with a copyable problem saying why
 
 ---
 
