@@ -560,7 +560,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 385:
 
 - **Summary:** One board, one thread
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b) on the device that started the thread, and on every device (a Send goes to the thread the board carries through iCloud) in COMMIT (story 1158, bead context-grabber-da1), and a Send recording the thread as it lands, closed board or not, in the review fixes on this branch; verified by host tests (`WhiteboardMarksTests`: pictures queued with no thread share the one the first starts, a lost thread frees the board); the buttons holding each other back, and a Send's thread on the iPad, not yet tried
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b) on the device that started the thread, and on every device (a Send goes to the thread the board carries through iCloud) in [530442d2](https://github.com/idvorkin/context-grabber/commit/530442d2) (story 1158, bead context-grabber-da1), and a Send recording the thread as it lands, closed board or not, in the review fixes on this branch; verified by host tests (`WhiteboardMarksTests`: pictures queued with no thread share the one the first starts, a lost thread frees the board); the buttons holding each other back, and a Send's thread on the iPad, not yet tried
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -579,7 +579,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1158:
 
 - **Summary:** A Send from any device goes to the board's one conversation
-- **Status:** implemented in COMMIT (bead context-grabber-da1); verified by host tests (`WhiteboardMarksTests`: `testASendWithNoThreadOfItsOwnUsesTheOneTheBoardCarries`, `testASendWithNeitherStartsOneAndRecordsIt`, `testTheBoardsThreadIsTheCarriedOneExceptOnTheDrawingDevice`, `testACarriedThreadTheCockpitLostIsNeverUsed`; `just native-test`) and the Mac build (`just native-build-mac`); the phone's Send on an iPad-drawn board is owed on the devices (iCloud carries the thread only between real devices, and no iPhone runs while the whiteboard work is in progress); a board with no thread sent from the iPhone first is bead context-grabber-2ezr
+- **Status:** implemented in [530442d2](https://github.com/idvorkin/context-grabber/commit/530442d2) (bead context-grabber-da1); verified by host tests (`WhiteboardMarksTests`: `testASendWithNoThreadOfItsOwnUsesTheOneTheBoardCarries`, `testASendWithNeitherStartsOneAndRecordsIt`, `testTheBoardsThreadIsTheCarriedOneExceptOnTheDrawingDevice`, `testACarriedThreadTheCockpitLostIsNeverUsed`; `just native-test`) and the Mac build (`just native-build-mac`); the phone's Send on an iPad-drawn board is owed on the devices (iCloud carries the thread only between real devices, and no iPhone runs while the whiteboard work is in progress); a board with no thread sent from the iPhone first is bead context-grabber-2ezr
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The board's chat from the iPhone*
 - **Issues:** bead context-grabber-da1 (Igor's pick on the design board, 2026-11-22: "a Send from any device goes to the board's one conversation"; read from the code: a Send used the thread this device started, so an iPhone's Send on an iPad's board started a second one)
 
