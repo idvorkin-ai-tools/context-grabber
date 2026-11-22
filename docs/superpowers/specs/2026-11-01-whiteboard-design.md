@@ -503,6 +503,24 @@ what Igor picked. Before anything changes how the tools behave, the log has to s
   and what the board now holds.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.
 
+### The board acts on the tool Igor picked (story 1091, #1078)
+
+What the board does around PaperKit's own ink, it decides from the tool the picker shows selected when the touch went
+down, never from the tool the board says it holds (the log above shows those two disagree on the iPad):
+
+- **The eraser** across a fold takes the fold, and across an answered question card takes the card, when the picker
+  shows the eraser.
+- **A pen** in the picker is what makes a stroke a candidate for a shape snap (the preview in that pen's colour and
+  width), a hold in the margin (the room band and its menu), a word pickup, or an ink header; and its width is the
+  width Larry's labels take.
+- **One touch, one tool**: a pick made while the Pencil is down changes nothing about that touch; the next touch takes
+  it.
+- **A kept mark never changes the pen**: when Larry's ink lands and the board's tool changes under it, the tool goes
+  back to the one Igor picked, not to one the picker no longer shows.
+- PaperKit's own drawing and erasing are not changed here: if the board still draws with the eraser picked, the log
+  says so, with both tools on the touch.
+- The log goes on naming both tools on every touch and every pick, so the iPad shows whether they agree.
+
 ## Trial on paper (removed 2026-11-07)
 
 The trial (#635, #636) settled what it was for: Igor made paper the default on 2026-11-03 and the only canvas on 2026-11-07.

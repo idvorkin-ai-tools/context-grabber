@@ -71,6 +71,9 @@ class PaperHost: UIViewController {
   private(set) var touchesDown = 0
   private(set) var pencilDown = false
   var run: TouchRun?
+  /// Story 1091: the picker's tool when the latest touch went down, which every choice about that touch reads. Kept past
+  /// the run, as PaperKit's word on the stroke comes after the lift.
+  private(set) lazy var touchTool = decidingTool
   private var runEnding: Task<Void, Never>?
   private var touchStarts: [ObjectIdentifier: (at: CGPoint, began: Double, farthest: CGFloat)] = [:]
   /// Fingers on the glass now, and together since the last time there were none. A Pencil beside one doesn't count.
@@ -230,6 +233,7 @@ class PaperHost: UIViewController {
     let visible = paper.contentVisibleFrame
     let scale = visible.width / max(view.bounds.width, 1)
     lastTouchBoardPoint = CGPoint(x: visible.minX + at.x * scale, y: visible.minY + at.y * scale)
+    touchTool = decidingTool
     run = TouchRun(
       type: Self.name(touch.type), began: CACurrentMediaTime(), start: at, visibleAtStart: visible,
       zoomAtStart: paper.scrollConfiguration.zoomScale, tool: toolName, ink: toolText(paper.drawingTool),
@@ -327,6 +331,10 @@ class PaperHost: UIViewController {
   /// #1078 (story 1064): the tool the picker shows selected, as `toolText` says an ink; the eraser, the lasso, or the
   /// item's own identifier for anything else. Every iPad touch logged `drawingTool` as a black pen, even ones that
   /// erased or drew blue, so the log carries the picker's word beside it.
+  /// Story 1091: the one tool the board decides on, the picker's. `PickedTool(paper.drawingTool)` here goes back to the
+  /// board's own.
+  var decidingTool: PickedTool { PickedTool(picker.selectedToolItem) }
+
   var pickerText: String {
     let item = picker.selectedToolItem
     switch item {
@@ -1495,7 +1503,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// moved or lifted sooner draws. Each verdict is in the log (story 933). True when it was a hold.
   private func marginHeld(_ change: PaperProbe.InkChange, markup: PaperMarkup) -> Bool {
     guard model.editable, lastDown == .pencil, change.added.count == 1, change.removed.isEmpty,
-      change.moved.isEmpty, paper.drawingTool is PKInkingTool,
+      change.moved.isEmpty, touchTool.ink != nil,
       let element = markup.subelements.strokes.first(where: { Self.key($0.elementID) == change.added[0] }),
       let drawn = markup.subelements[element.elementID] as? PKStroke
     else { return false }
@@ -1534,7 +1542,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Story 859, as the web board: the Pencil held still on ink for 400 ms picks up the word, and the same stroke drags
   /// it. On paper the word lands when the Pencil lifts, and the Pencil's own stroke goes. True when it did.
   private func pickedUp(_ change: PaperProbe.InkChange, markup: PaperMarkup, before: [String: CGRect]) -> Bool {
-    guard change.added.count == 1, change.removed.isEmpty, change.moved.isEmpty, paper.drawingTool is PKInkingTool,
+    guard change.added.count == 1, change.removed.isEmpty, change.moved.isEmpty, touchTool.ink != nil,
       let element = markup.subelements.strokes.first(where: { Self.key($0.elementID) == change.added[0] }),
       let drawn = markup.subelements[element.elementID] as? PKStroke
     else { return false }
@@ -1744,7 +1752,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let undo = paper.undoManager
     let (couldUndo, couldRedo) = (undo?.canUndo ?? false, undo?.canRedo ?? false)
-    // context-grabber-a3w: a keep leaves the pen in hand as it was; if setting the markup ever changed it, it goes back.
+    // context-grabber-a3w: a keep leaves the pen in hand as it was; if setting the markup ever changed it, it goes back,
+    // to the tool the picker shows rather than one the board held and Igor may no longer (story 1091).
     let tool = paper.drawingTool
     let toolBefore = toolText(tool)
     let wanted = board.pages(after: pages, inkMaxY: model.drawing.bounds.maxY, redoWaiting: false)
@@ -1756,7 +1765,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     paper.markup = markup
     quiet = false
     let toolAfter = toolText(paper.drawingTool)
-    if toolAfter != toolBefore { paper.drawingTool = tool }
+    let restore = decidingTool.tool ?? tool
+    if toolAfter != toolBefore { paper.drawingTool = restore }
     let pagesBefore = pages
     pages = wanted
     run?.pageAdded = wanted > pagesBefore
@@ -1789,6 +1799,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "in_view": paper.contentVisibleFrame.intersects(made.bounds), "screen_scale": Double(screenScale),
         "width_back": widthBack,
         "tool_before": toolBefore, "tool_after": toolAfter, "tool_restored": toolAfter != toolBefore,
+        "tool_restored_to": toolText(restore), "picker_tool": pickerText,
         "sheet": rect(lines.bounds), "markup": rect(held.bounds),
         "drift": round(hypot(made.bounds.minX - back.bounds.minX, made.bounds.minY - back.bounds.minY)),
         "could_undo": couldUndo, "could_redo": couldRedo, "can_undo": undo?.canUndo ?? false,
@@ -2273,6 +2284,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func touchWentDown(_ touch: UITouch) {
     if touch.type == .pencil { toolWentDown() }
     lastDown = pencilDown ? .pencil : touch.type
+    toolInHand(touchTool)
     snapTouch(touch, .down, draws: touch.type == .pencil || fingersDraw)
     foldEraserDown(touch)
     // Story 858: any touch but the hold's own puts the menu away.
@@ -2319,7 +2331,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
     foldEraserMoved(touch)
     roomBandPencilMoved(touch, at: lines.columnPoint(of: touch.location(in: lines)))
-    guard place.erasing, touch.type == .pencil || fingersDraw,
+    guard touchTool.erases, touch.type == .pencil || fingersDraw,
       model.questions.board.cards.contains(where: { $0.answered != nil })
     else { return }
     model.questions.erase(crossing: [lines.columnPoint(of: touch.location(in: lines))])
@@ -2333,10 +2345,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func toolChanged() {
     Task { @MainActor [weak self] in
       guard let self else { return }
-      let erasing = self.paper.drawingTool is PKEraserTool
-      if self.place.erasing != erasing { self.place.erasing = erasing }
-      // #949: the pen Igor holds is the width Larry's labels take; the eraser or lasso leaves the last pen's.
-      if let ink = self.paper.drawingTool as? PKInkingTool { self.model.penInHand = ink.width }
+      self.toolInHand(self.decidingTool)
       // #1078 (story 1064): what the picker shows beside what the board holds, as each pick lands.
       self.log.event(
         "whiteboard",
@@ -2345,6 +2354,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
           "tool": self.toolName, "tool_ink": self.toolText(self.paper.drawingTool),
         ])
     }
+  }
+
+  /// Story 1091: what the picked tool means beyond the touch, set at each pick and again at each touch-down, so a pick the
+  /// observer never heard still lands: answered cards stand aside for the eraser, and Larry's labels take the pen's width
+  /// (#949; the eraser or lasso leaves the last pen's).
+  private func toolInHand(_ tool: PickedTool) {
+    if place.erasing != tool.erases { place.erasing = tool.erases }
+    if let ink = tool.ink, model.penInHand != ink.width { model.penInHand = ink.width }
   }
 
   /// PaperKit says when drawing begins and not when it ends: this is the touch going. A palm left down doesn't hold it.

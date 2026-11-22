@@ -19,7 +19,7 @@ struct FoldErasing {
 extension PaperBoardController {
   /// A touch that erases (the Pencil, or a finger while fingers draw) going down with the eraser on a folded board.
   func foldEraserDown(_ touch: UITouch) {
-    guard paper.drawingTool is PKEraserTool, touch.type == .pencil || fingersDraw else { return }
+    guard touchTool.erases, touch.type == .pencil || fingersDraw else { return }
     foldErasing = nil
     guard model.editable, model.headers.contains(where: { $0.fold != nil }), let markup = paper.markup else { return }
     let outline = model.outline(of: model.opStrokes(markup.inkDrawing.strokes).strokes)
