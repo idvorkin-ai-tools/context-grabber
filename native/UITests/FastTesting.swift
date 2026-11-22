@@ -53,10 +53,14 @@ extension XCUIApplication {
   /// the canvas. Turn them off there once #850's responder fight is settled, and measure again.
   /// A new board starts bare, as before #915, so a board's pixels are read against plain paper; the grid a new board
   /// really opens with is `WhiteboardPaperLinesUITests.testANewBoardOpensWithTheGrid`, which drops this (story 410).
+  /// A call a test places dials TEST-NET-1 (RFC 5737), never Igor's bridge (context-grabber-0mn): routed nowhere, the
+  /// socket waits out its ten seconds rather than failing at once and filing an automatic report. A test that wants a
+  /// bridge names its fake one with `GRABBER_CALL`, which wins.
   static func forTests(animated: Bool = false) -> XCUIApplication {
     let app = XCUIApplication()
     if !animated { app.launchEnvironment["GRABBER_NO_ANIMATIONS"] = "1" }
     app.launchEnvironment["GRABBER_WHITEBOARD_GRID"] = "off"
+    app.launchEnvironment["GRABBER_CALL_BRIDGE"] = "ws://192.0.2.1:8780"
     return app
   }
 }

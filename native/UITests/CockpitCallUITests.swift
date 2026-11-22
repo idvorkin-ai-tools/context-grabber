@@ -13,5 +13,11 @@ final class CockpitCallUITests: XCTestCase {
     phone.tap()
     XCTAssertTrue(app.staticTexts["call-status"].appears(within: 10), app.debugDescription)
     XCTAssertEqual(app.state, .runningForeground)
+    // The call dials forTests()' bridge, which never answers (context-grabber-0mn). Hung up while it still rings, it
+    // ends cleanly and files no automatic report.
+    let hangUp = app.buttons["Hang up"]
+    XCTAssertTrue(hangUp.appears(within: 5), app.debugDescription)
+    hangUp.tap()
+    XCTAssertTrue(app.buttons["call-larry"].appears(within: 5), app.debugDescription)
   }
 }

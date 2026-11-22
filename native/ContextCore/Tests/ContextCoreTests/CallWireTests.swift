@@ -88,6 +88,22 @@ final class CallProtocolTests: XCTestCase {
     XCTAssertNil(CallProtocol.bridgeURL(cockpit: "not a url"))
   }
 
+  /// context-grabber-0mn: a UI test's launch names a bridge, so its call never reaches the Cockpit's.
+  func testALaunchsBridgeIsGrabberCallThenGrabberCallBridgeThenTheCockpits() {
+    let cockpit = "https://cockpit.example.ts.net"
+    let test = "ws://192.0.2.1:8780"
+    let fake = "ws://localhost:8799"
+    XCTAssertEqual(
+      CallProtocol.bridgeURL(environment: [:], cockpit: cockpit), "wss://cockpit.example.ts.net/bridge")
+    XCTAssertEqual(CallProtocol.bridgeURL(environment: ["GRABBER_CALL_BRIDGE": test], cockpit: cockpit), test)
+    XCTAssertEqual(
+      CallProtocol.bridgeURL(environment: ["GRABBER_CALL": fake, "GRABBER_CALL_BRIDGE": test], cockpit: cockpit), fake)
+    XCTAssertEqual(
+      CallProtocol.bridgeURL(environment: ["GRABBER_CALL": "", "GRABBER_CALL_BRIDGE": ""], cockpit: cockpit),
+      "wss://cockpit.example.ts.net/bridge", "empty counts as unset")
+    XCTAssertNil(CallProtocol.bridgeURL(environment: [:], cockpit: "not a url"))
+  }
+
   func testOffersTheFiveBackendsElevenLabsFirstAndByDefault() {
     XCTAssertEqual(CallBackend.allCases.map(\.rawValue), ["eleven", "gemini", "openai", "drill", "direct"])
     XCTAssertEqual(CallBackend.allCases.map(\.label), ["ElevenLabs", "Gemini", "OpenAI", "Drill", "Direct"])
