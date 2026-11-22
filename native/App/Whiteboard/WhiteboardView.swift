@@ -176,16 +176,7 @@ struct WhiteboardView: View {
         // #1005 (story 1054): the board's own things are a group of their own, like Undo and Redo.
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
         ToolbarItem(placement: .topBarTrailing) {
-          named(
-            "Talk", does: model.micOn ? "Stop listening" : "Talk to Claude", action: { model.tapMic() },
-            label: {
-              Label(model.micOn ? "Stop listening" : "Talk to Claude", systemImage: model.micOn ? "mic.fill" : "mic")
-            }
-          )
-          .disabled(model.micStarting || model.micFinishing)
-          .tint(model.micOn ? .red : nil)
-          .accessibilityLabel(model.micOn ? "Stop listening" : "Talk to Claude")
-          .accessibilityIdentifier("whiteboard-mic")
+          WhiteboardMicButton(model: model, dictation: model.dictation)
         }
         ToolbarItem(placement: .topBarTrailing) {
           named(

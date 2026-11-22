@@ -502,7 +502,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Long press the sparkle
 - **Given:** a board open with Ghosts on
 - **When:** I press and hold the sparkle
-- **Then:** a small menu headed *Ghosts* shows one row, *Hide Claude's suggestions*, which does it if I tap it; Talk, Larry and Send name themselves the same way, and a plain tap on any of them does what it always did
+- **Then:** a small menu headed *Ghosts* shows one row, *Hide Claude's suggestions*, which does it if I tap it; Talk, Larry and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 1113), and a plain tap on any of them does what it always did
 
 ---
 

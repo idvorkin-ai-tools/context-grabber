@@ -3,6 +3,7 @@
 //  through the action it is handed.
 
 import BugKit
+import ContextCore
 import SwiftUI
 
 struct WhiteboardMicChip: View {
@@ -20,18 +21,8 @@ struct WhiteboardMicChip: View {
   var body: some View {
     HStack(spacing: 6) {
       Menu {
-        Button {
-          pick(nil)
-        } label: {
-          ticked("Automatic", dictation.selectedMicrophoneID == nil)
-        }
-        ForEach(dictation.microphones) { mic in
-          Button {
-            pick(mic.id)
-          } label: {
-            ticked(mic.name, dictation.selectedMicrophoneID == mic.id)
-          }
-        }
+        // Story 1113: the same rows as Talk's long press lists.
+        WhiteboardMicRows(menu: dictation.boardMicMenu(micOpen: true, busy: false), pick: pick)
       } label: {
         HStack(spacing: 3) {
           Image(systemName: "mic.fill")
@@ -50,9 +41,5 @@ struct WhiteboardMicChip: View {
     }
     .font(.footnote).foregroundStyle(Color(WhiteboardNoteInk.quiet))
     .padding(.trailing)
-  }
-
-  @ViewBuilder private func ticked(_ title: String, _ on: Bool) -> some View {
-    if on { Label(title, systemImage: "checkmark") } else { Text(title) }
   }
 }
