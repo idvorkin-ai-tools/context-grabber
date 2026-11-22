@@ -213,10 +213,33 @@ of the screen is just under the panel.
   tap did nothing, silently). A board's thread is known only to the device that sent its pictures to Larry, so the
   iPhone looking at an iPad's board finds none. The note's middle then says, for its few seconds, where the
   conversation is: *Larry's conversation is on the iPad* (the name of the device that drew the board). On a board
-  drawn on this device that has never gone to Larry, it says *No conversation with Larry yet*. Finding the other
-  device's thread from the phone is not built yet; it waits on a choice on #1161.
+  drawn on this device that has never gone to Larry, it says *No conversation with Larry yet*. The iPhone first
+  looks for that thread among Larry's chats (*The board's chat from the iPhone*, below, #1163); these words are for
+  when it finds none.
 - **Not here:** how each picture was sent, how much ink was new, how long each answer took. That is for a page on
   the Cockpit.
+
+## The board's chat from the iPhone (Igor, 2026-11-22, #1163)
+
+Igor, on the iPhone, in the boards list: "Maybe I should have a chat button on every board when I'm in this view on
+the iPhone. Not sure, maybe something subtle." Just before, a tap on the note of a board drawn on the iPad did
+nothing: that board had a thread with Larry, but only the iPad knew which one.
+
+- **Every row of the boards list on an iPhone ends in a small chat bubble**, quiet, in the secondary colour, at least
+  44 points to tap. A tap on it opens that board's thread in Chat. A tap anywhere else on the row opens the board, as
+  before. The iPad and the Mac have no bubble: there the board's panel holds its conversation.
+- **The board's thread is found wherever it was started.** The one this device started is used at once. Otherwise
+  the iPhone looks among Larry's chats for one titled with the board's name and opens it only if one of its messages
+  came from this very board, so a chat that only shares a name is never opened. A thread found once is remembered
+  until the app closes.
+- **While it looks** the bubble turns into a small spinner, and a second tap does nothing.
+- **A board with no chat says so.** The list shows *No chat with Larry for this board yet*, which can be copied with
+  the board, its name and how many chats were checked. It is not a bug, so it files no report.
+- **A Cockpit that can't be reached says so**, copyably, with the reason, as Chat itself does.
+- **The note's line on an iPhone** looks the same way: a tap on it, on a board this device never sent, finds the
+  board's thread and opens it, or the note says where the conversation is, as above, for a few seconds.
+- **Not here:** starting a chat from the iPhone for a board that has none. The iPhone only looks at boards (story
+  746); a board's first picture goes from the device that draws it.
 
 ## Under discussion (not built; on #879)
 
@@ -267,8 +290,13 @@ of the screen is just under the panel.
 - Draw with the Pencil below the open panel: the stroke lands and the panel stays open.
 - Close the board with the panel open and open another: the panel is open there.
 - On an iPhone, tap the line on a board with a thread: Chat opens on that thread.
-- On an iPhone, tap the line on an iPad's board: Chat doesn't open, and the note says *Larry's conversation is on the
+- On an iPhone, tap the line on an iPad's board with no chat with Larry: Chat doesn't open, and the note says *Larry's conversation is on the
   iPad*.
+- On an iPhone, in the boards list, tap the bubble on a board drawn on the iPad that has talked with Larry: Chat
+  opens on that board's thread. Tap the row beside it: the board opens.
+- On an iPhone, tap the bubble on a board that never went to Larry: *No chat with Larry for this board yet* shows in
+  the list and can be copied; no report is filed.
+- On an iPhone, open a board drawn on the iPad and tap its note: Chat opens on the board's thread.
 - Send Larry a picture, the Cockpit takes it and he hasn't picked it up: the note begins *Sent · 0:00* and counts.
 - He picks it up: the state changes to *Larry ·* and the clock doesn't restart.
 - Twenty seconds pass with the picture not picked up: the state adds *not picked up yet* and *Interrupt* shows.

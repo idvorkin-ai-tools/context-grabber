@@ -1527,8 +1527,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 769:
 
 - **Summary:** On an iPhone a tap on the note opens the board's thread in Chat
-- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); a tap that finds no thread says where the conversation is, and `conversation_chat` logs found, in [f5453423](https://github.com/idvorkin/context-grabber/commit/f5453423) (#1161); verified by host tests (`WhiteboardNoteTests`: the tap on an iPhone with a thread and with none, `testATapWithNoThreadOnThisPhoneSaysWhereTheConversationIs`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPhone
-- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#1161](https://github.com/idvorkin/context-grabber/issues/1161) ("on the iPhone I should be able to interact with the chat": a tap on an iPad's board did nothing)
+- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); a tap that finds no thread says where the conversation is, and `conversation_chat` logs found, in [f5453423](https://github.com/idvorkin/context-grabber/commit/f5453423) (#1161), and it finds an iPad's board's thread among Larry's chats in [HASH](https://github.com/idvorkin/context-grabber/commit/HASHFULL) (#1163, story 1101); verified by host tests (`WhiteboardNoteTests`, `BoardThreadFindTests`: the tap on an iPhone with a thread and with none, `testATapWithNoThreadOnThisPhoneSaysWhereTheConversationIs`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPhone
+- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#1161](https://github.com/idvorkin/context-grabber/issues/1161) ("on the iPhone I should be able to interact with the chat": a tap on an iPad's board did nothing); [#1163](https://github.com/idvorkin/context-grabber/issues/1163), a board drawn on the iPad (story 1101)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *One line that opens*
 
 #### Use Case:
@@ -1543,7 +1543,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Then:** Chat opens on the board's thread
 
 - **Scenario:** No thread on this phone
-- **Given:** a board drawn on the iPad, on an iPhone that never sent it to Larry
+- **Given:** a board drawn on the iPad, on an iPhone that never sent it to Larry, and no chat among Larry's that came from it (story 1101)
 - **When:** I tap the note's line
 - **Then:** Chat doesn't open, and the note says *Larry's conversation is on the iPad* for a few seconds
 
@@ -1551,6 +1551,46 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board drawn on this iPhone that has no thread
 - **When:** I tap the note's line
 - **Then:** the note says *No conversation with Larry yet*
+
+---
+
+### User Story 1097:
+
+- **Summary:** On an iPhone every board in the list has a chat bubble that opens its thread
+- **Status:** STATUS_1097
+- **Issues:** [#1163](https://github.com/idvorkin/context-grabber/issues/1163) ("Maybe I should have a chat button on every board when I'm in this view on the iPhone … maybe something subtle")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The board's chat from the iPhone*
+
+#### Use Case:
+- **As someone** looking through boards on the iPhone
+- **I want to** get from a board in the list straight to what Larry and I said about it
+- **so that** I can read the conversation without opening the board first
+
+#### Acceptance Criteria:
+- **Scenario:** A board drawn on the iPad
+- **Given:** the boards list on an iPhone, with a board drawn on the iPad that has a thread with Larry
+- **When:** I tap the quiet chat bubble at the end of its row
+- **Then:** Chat opens on that board's thread; a tap elsewhere on the row still opens the board, and a board with no thread says *No chat with Larry for this board yet*, copyably, filing no report
+
+---
+
+### User Story 1101:
+
+- **Summary:** On an iPhone the note finds the thread of a board drawn on another device
+- **Status:** STATUS_1101
+- **Issues:** [#1163](https://github.com/idvorkin/context-grabber/issues/1163) (the session log: a tap on the note of a board drawn on the iPad logged no thread and did nothing)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The board's chat from the iPhone*
+
+#### Use Case:
+- **As someone** looking at a board on the iPhone that I drew on the iPad
+- **I want to** have the note's tap open the board's conversation, as it does for a board this phone sent
+- **so that** a tap is never silently ignored
+
+#### Acceptance Criteria:
+- **Scenario:** A board the iPhone never sent
+- **Given:** a board drawn on the iPad, with a thread with Larry, open on an iPhone that never sent it
+- **When:** I tap the note's line
+- **Then:** Chat opens on the board's thread, found among Larry's chats by a message that came from this board; with none, the note says *Larry's conversation is on the iPad* for a few seconds (story 769)
 
 ---
 
