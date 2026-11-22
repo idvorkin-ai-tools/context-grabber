@@ -1326,8 +1326,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1123:
 
 - **Summary:** *Board* on a thread whose board can't be opened says why and keeps the thread
-- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testBoardOnAThreadWhoseBoardIsMissingSaysSoAndTheThreadStays` against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet
-- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
+- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testBoardOnAThreadWhoseBoardIsMissingSaysSoAndTheThreadStays` against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet; a missing board's problem within about five seconds however slowly iCloud answers in [ce9c111a](https://github.com/idvorkin/context-grabber/commit/ce9c111a) (context-grabber-4qel), verified on the host by `BoardFindTests` (the wait cut short while the sync runs on) and the Mac build; the simulator (rung 2: `ChatImageUITests` on the iPhone and iPad, `WhiteboardRowDeleteUITests`, and a session log with a forced `icloud: no_answer`) owed once the simulators work
+- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091), bead context-grabber-4qel
 - **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1339,7 +1339,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A board that can't be opened
 - **Given:** the thread's board was deleted, isn't on this device even after asking iCloud, or its latest drawing didn't come down
 - **When:** I tap *Board*
-- **Then:** the button reads *Looking for the board…* while it asks, then a copyable problem at the top of the thread says so, and the thread stays open
+- **Then:** the button reads *Looking for the board…* while it asks, for no more than about five seconds however slowly iCloud answers, then a copyable problem at the top of the thread says so (and that iCloud hadn't answered, when it hadn't), and the thread stays open
 
 ---
 
@@ -1526,8 +1526,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 319:
 
 - **Summary:** A jump to a board that can't be opened says why and keeps the picture
-- **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet; since story 770 why a board can't open is `BoardIndexTests.testABoardThatCantOpenSaysWhy` on the host, and a link to a board no device has is checked on the simulator by `WhiteboardRowDeleteUITests` (the chat suite's own copy of that check was removed)
-- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
+- **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet; since story 770 why a board can't open is `BoardIndexTests.testABoardThatCantOpenSaysWhy` on the host, and a link to a board no device has is checked on the simulator by `WhiteboardRowDeleteUITests` (the chat suite's own copy of that check was removed); a missing board's problem within about five seconds however slowly iCloud answers in [ce9c111a](https://github.com/idvorkin/context-grabber/commit/ce9c111a) (context-grabber-4qel), verified on the host by `BoardFindTests` (the wait cut short while the sync runs on) and the Mac build; the simulator (rung 2: `ChatImageUITests` on the iPhone and iPad, `WhiteboardRowDeleteUITests`, and a session log with a forced `icloud: no_answer`) owed once the simulators work
+- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603), bead context-grabber-4qel
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1539,7 +1539,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A board that can't be opened
 - **Given:** the picture's board was deleted, isn't on this device even after asking iCloud, or its latest drawing didn't come down
 - **When:** I tap *Jump to board*
-- **Then:** a copyable problem says so over the picture, which stays open until I close it
+- **Then:** within about five seconds however slowly iCloud answers, a copyable problem says so over the picture (and that iCloud hadn't answered, when it hadn't), which stays open until I close it
 
 ---
 

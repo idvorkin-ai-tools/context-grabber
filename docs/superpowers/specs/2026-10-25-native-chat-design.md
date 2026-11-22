@@ -151,7 +151,11 @@ implementation"*; the jump took nearly three seconds, half of it asking iCloud t
 once rather than sliding away, and the board comes up as soon as the thread has finished going, not after a fixed
 pause (bead context-grabber-mzdf). **Another device's board**, or one whose latest drawing isn't here yet, asks iCloud
 first, so newer ink from that device is there when the board opens; out of iCloud's reach, it opens the last drawing
-this device knew of. iCloud is asked at most once for a jump, never again as the board comes up. A board that was deleted (on another device's board, or once the delete has reached this device), that isn't on this device even
+this device knew of. iCloud is asked at most once for a jump, never again as the board comes up, and is given about five
+seconds to answer (an answer usually takes under one): past that the jump goes by what this device has, as it does out
+of iCloud's reach, and the sync carries on behind it, so a board it brings is there on the next tap (bead
+context-grabber-4qel: a missing board's jump waited on iCloud's first answer of the launch for 11 to 19 seconds on the
+simulator, and never gave its problem within 20). A board that was deleted (on another device's board, or once the delete has reached this device), that isn't on this device even
 after asking iCloud, or whose latest drawing didn't come down, says so in a copyable problem and the picture stays open. A picture from anywhere else has no button. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
 sent, 👀 when the Cockpit has received it, 🫡 when it is with Larry, 🏆 when the thing is done (with Larry's note),
 the same ladder as the Cockpit's web page (Igor, 2026-11-03, #630: *"Look at how we do Telegram. Copy that for
@@ -168,7 +172,8 @@ view:
   or when this device started that thread from one of its boards.
 - A tap opens that board as it is now, as *Jump to board* does: a board drawn on this device at once, another device's
   after asking iCloud (#1137), the thread is left behind as any link leaves it, and *Back* on the board goes to the boards, where every board is a tap away.
-- While it looks, the button reads *Looking for the board…* and is dimmed. A board that was deleted, isn't on this
+- While it looks, the button reads *Looking for the board…* and is dimmed, for no more than about five seconds however
+  slowly iCloud answers, as for *Jump to board*. A board that was deleted, isn't on this
   device even after asking iCloud, or whose latest drawing didn't come down, says so in a copyable problem at the top
   of the thread, and the thread stays.
 - Any other thread has no *Board*, and a new chat has none until it lands in a board's thread.
@@ -768,6 +773,9 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - *Jump to board*, or *Board*, on a board drawn on this device opens it at once, with no *Looking for the board…* wait,
   and the full-size picture is gone without sliding; on another device's board it asks iCloud once, then opens it. The
   session log says, for each jump, whether iCloud was asked and how long the jump took (#1137).
+- A jump, or *Board*, to a board that isn't here waits on iCloud no more than about five seconds: when iCloud is slow to
+  answer, the copyable problem shows by then and says iCloud hadn't answered, and the session log's find says so
+  (context-grabber-4qel).
 
 ## Depends on the Cockpit
 

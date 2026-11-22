@@ -205,10 +205,16 @@ final class WhiteboardStore: ObservableObject {
   /// reach, the last drawing this device knew of is as new as can be told. The id is only looked up, never made into a
   /// path: it came from a link or the Cockpit.
   /// #1137: a board this device draws, here, opens without the wait; a jump asks iCloud at most once.
+  /// context-grabber-4qel: iCloud gets `BoardFind.answerSeconds` to answer; past that the sync goes on behind the find.
   func find(_ id: String, context: String) async -> BugProblem? {
     let started = ProcessInfo.processInfo.systemUptime
-    let ask = finding.ask(id, index: index, device: device, now: started)
-    if ask == .asked { await sync(reason: "find_board") }
+    var ask = finding.ask(id, index: index, device: device, now: started)
+    if ask == .asked {
+      let answered = await BoardFind.finishes(within: BoardFind.answerSeconds) { [weak self] in
+        await self?.sync(reason: "find_board")
+      }
+      if !answered { ask = .noAnswer }
+    }
     let why = index.whyNotOpen(id)
     let now = ProcessInfo.processInfo.systemUptime
     log.event(
@@ -221,10 +227,13 @@ final class WhiteboardStore: ObservableObject {
       finding.opens(id, now: now)
       return nil
     }
+    let sync =
+      ask == .noAnswer
+      ? "iCloud hadn't answered within \(Int(BoardFind.answerSeconds)) seconds, so this is what this device has."
+      : syncNote ?? "ok"
     log.event(
-      "whiteboard",
-      ["action": "board_missing", "board": id, "listed": index.board(id) != nil, "sync": syncNote ?? "ok"])
-    return .grabber(why, context: context, extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
+      "whiteboard", ["action": "board_missing", "board": id, "listed": index.board(id) != nil, "sync": sync])
+    return .grabber(why, context: context, extra: ["board": .string(id), "sync": .string(sync)])
   }
 
   /// A board's drawing; one that cannot be read is moved aside before the error goes up, or, when it can't be moved,
