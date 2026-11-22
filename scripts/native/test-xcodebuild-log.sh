@@ -4,7 +4,8 @@
 # built tests whose first suite never starts is stopped and fails with exit 75 (story 783), and the hang stop waits for
 # the result bundle to be written in full, so a failed test's screenshots can still be opened (story 790), and a case
 # that passed only on its retry fails the run unless it is quarantined with its bead (story 1017), and a failed run
-# during which the Mac's screen locked exits 75, asking for a rerun unlocked, while a passed one stands (story 1018).
+# during which the Mac's screen locked exits 75, asking for a rerun unlocked, while a passed one stands (story 1018), and
+# a simulator test run doesn't start on a locked screen, and one is stopped, its app ended, when the screen locks (story 1022).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 dir=$(mktemp -d)
@@ -30,7 +31,7 @@ if [ -n "${FAKE_EARLY_FAIL:-}" ]; then  # a case fails while the screen is still
 fi
 if [ -n "${FAKE_LOCK:-}" ]; then  # the screen locks during the run, for long enough to be seen, then unlocks
   echo '"CGSSessionScreenIsLocked"=Yes' >"$FAKE_LOCK"
-  sleep 3
+  for _ in $(seq "${FAKE_LOCK_HOLD:-3}"); do sleep 1; done  # short sleeps: a stop isn't held up by a long one
   echo '"CGSSessionScreenIsLocked"=No' >"$FAKE_LOCK"
 fi
 if [ -n "${FAKE_LATE_FAIL:-}" ]; then  # a case fails after the lock
@@ -42,6 +43,10 @@ if [ -n "${FAKE_FLAKY:-}" ]; then  # Class.test: fails, then passes on its retry
   printf '%s\n' "$c started." "$c failed (1.000 seconds)." "$c started." "$c passed (1.000 seconds)."
 fi
 echo "Test Suite 'Selected tests' ${FAKE_RESULT:-passed} at now."
+if [ -n "${FAKE_LOCK_AFTER:-}" ]; then  # the screen locks once the tests are done
+  echo '"CGSSessionScreenIsLocked"=Yes' >"$FAKE_LOCK_AFTER"
+  sleep 3
+fi
 bundle= prev=
 for a in "$@"; do [ "$prev" = -resultBundlePath ] && bundle=$a; prev=$a; done
 if [ -n "$bundle" ]; then  # like xcodebuild: Staging while it writes, quietly, then Info.plist, and Staging goes
@@ -59,6 +64,9 @@ fi
 echo "** TEST SUCCEEDED **"
 FAKE
 chmod +x "$dir/bin/xcodebuild"
+# Story 1022: simctl, to see which apps a lock ends on which simulator.
+printf '#!/usr/bin/env bash\necho "$*" >>"%s"\n' "$dir/xcrun" >"$dir/bin/xcrun"
+chmod +x "$dir/bin/xcrun"
 run() { PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
   scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" "$@" >/dev/null 2>&1; }
 
@@ -184,4 +192,58 @@ status=$?
 [ "$status" -ne 75 ] && [ "$status" -ne 0 ] && ok "a failed run with the screen never locked fails as before ($status)" ||
   bad "a failed unlocked run exited $status"
 case $out in *"screen locked"*) bad "an unlocked run blamed the lock: $out";; *) ok "and doesn't blame the lock";; esac
+# Story 1022: a simulator test run and a locked screen. The destination names a simulator and its id.
+sim=(-destination "platform=iOS Simulator,id=SIM-UDID-1022")
+simrun() {  # simrun [VAR=value...] -- <command...>
+  local vars=()
+  while [ "$1" != -- ]; do vars+=("$1"); shift; done
+  shift
+  rm -f "$dir/args" "$dir/xcrun"
+  env ${vars[@]+"${vars[@]}"} PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
+    SMOKE_LOCK_PROBE="cat $dir/lock" XCODEBUILD_LOCK_POLL=1 SIM_LOCK_POLL=1 scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" \
+    "$@" 2>&1 >/dev/null
+}
+echo '"CGSSessionScreenIsLocked" = Yes' >"$dir/lock"
+start=$SECONDS
+out=$(simrun SIM_LOCK_WAIT=2 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+[ "$status" -eq 75 ] && ok "a simulator test run on a locked screen exits 75" || bad "a locked start exited $status: $out"
+[ ! -e "$dir/args" ] && ok "and xcodebuild never started" || bad "a locked start ran xcodebuild: $(cat "$dir/args")"
+[ $((SECONDS - start)) -ge 2 ] && [ $((SECONDS - start)) -lt 20 ] && ok "after waiting its 2 s for an unlock" ||
+  bad "the locked start waited $((SECONDS - start)) s"
+case $out in *"waiting up to 2 s"*"so the simulator test run fake didn't start"*"unlock it and rerun"*) ok "and says it waited and why";;
+  *) bad "a locked start said: $out";; esac
+( sleep 1; echo unlocked >"$dir/lock" ) &
+out=$(simrun SIM_LOCK_WAIT=20 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+[ "$status" -eq 0 ] && [ -e "$dir/args" ] && ok "unlocked while it waits, the run starts and passes" || bad "an unlock in the wait: $status $out"
+case $out in *"is unlocked: starting the simulator test run fake"*) ok "and says it started";; *) bad "the unlock said: $out";; esac
+echo '"CGSSessionScreenIsLocked"=Yes' >"$dir/lock"
+simrun SIM_LOCK_WAIT=60 -- xcodebuild -scheme X "${sim[@]}" build >/dev/null
+[ $? -eq 0 ] && [ -e "$dir/args" ] && ok "a simulator build on a locked screen starts as before" || bad "a locked build was held"
+simrun SIM_LOCK_WAIT=60 -- xcodebuild -scheme X test >/dev/null
+[ $? -eq 0 ] && [ -e "$dir/args" ] && ok "and so does a test run that isn't on a simulator" || bad "a locked test off the simulator was held"
+: >"$dir/lock"
+start=$SECONDS
+out=$(simrun FAKE_LOCK="$dir/lock" FAKE_LOCK_HOLD=30 FAKE_LATE_FAIL=1 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+took=$((SECONDS - start))
+[ "$status" -eq 75 ] && ok "a lock during a simulator run stops it with exit 75" || bad "a lock mid-run exited $status: $out"
+[ "$took" -lt 15 ] && ok "within seconds of the lock (${took} s), not when the run ends" || bad "the stop took $took s"
+grep -q "testLate" "$dir/logs/fake.log" && bad "a test ran after the lock" || ok "and no test ran after it"
+grep -qxF "simctl terminate SIM-UDID-1022 com.idvorkin.grabbernative" "$dir/xcrun" &&
+  grep -qxF "simctl terminate SIM-UDID-1022 com.idvorkin.grabbernative.uitests.xctrunner" "$dir/xcrun" &&
+  ok "and the app and its test runner are ended on that simulator" || bad "the apps ended: $(cat "$dir/xcrun" 2>/dev/null)"
+case $out in *"screen locked at "*"simulator test run was stopped there"*"unlock the Mac and rerun"*) ok "and it says so";;
+  *) bad "a lock mid-run said: $out";; esac
+: >"$dir/lock"
+out=$(simrun FAKE_LOCK="$dir/lock" FAKE_LOCK_HOLD=30 FAKE_EARLY_FAIL=1 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+[ "$status" -eq 65 ] && ok "stopped by a lock after a case had failed, the run fails (65)" || bad "an early failure then a lock: $status $out"
+case $out in *"1 case(s) had already failed before that"*) ok "and says a case failed first";; *) bad "an early failure then a lock said: $out";; esac
+: >"$dir/lock"
+out=$(simrun FAKE_LOCK_AFTER="$dir/lock" -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+[ "$status" -eq 0 ] && ok "a lock once the tests are done doesn't stop the run, and its pass stands" || bad "a lock after the tests: $status $out"
+[ ! -s "$dir/xcrun" ] && ok "and ends no app" || bad "a lock after the tests ended apps: $(cat "$dir/xcrun")"
 exit $fail

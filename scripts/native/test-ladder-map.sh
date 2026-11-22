@@ -500,7 +500,7 @@ if grep -qxF "caffeinate -u -t 5" "$MARKS/caffeinate"; then ok "rung 2 wakes the
 run -- --rung 1.5 --changed native/App/Chat/ChatViews.swift
 if grep -qxF "caffeinate -i" "$MARKS/caffeinate" && ! grep -q -- "-d" "$MARKS/caffeinate"; then ok "the Mac rung keeps the Mac awake, not the display"
 else bad "the Mac rung's caffeinate: $(cat "$MARKS/caffeinate")"; fi
-run SMOKE_LOCK_PROBE="$fakes/locked" -- --changed native/UITests/CardUITests.swift
+run SMOKE_LOCK_PROBE="$fakes/locked" SIM_LOCK_WAIT=0 -- --changed native/UITests/CardUITests.swift
 status=$?
 if [ "$status" -eq 75 ]; then ok "a locked screen: rung 2 refuses"; else bad "a locked screen: refuses, exit $status"; fi
 says "a locked screen: says why" "the Mac's screen is locked: UI tests don't start on a locked screen, so rung 2 didn't start; unlock it and rerun"
@@ -669,7 +669,7 @@ run FAKE_JUST_FAILS=native-test-host -- --changed native/App/Chat/ChatViews.swif
 ledger_says "the ledger: a failure, and the rung it first failed on" \
   'f = by["finish"][-1]; assert f["outcome"] == "fail" and f["status"] == 7 and f["first_failure"] == {"rung": "1"}, f
 assert "lane" not in kinds'
-run SMOKE_LOCK_PROBE="$fakes/locked" -- --changed native/UITests/CardUITests.swift
+run SMOKE_LOCK_PROBE="$fakes/locked" SIM_LOCK_WAIT=0 -- --changed native/UITests/CardUITests.swift
 ledger_says "the ledger: a climb that could not start is unavailable, not failed" \
   'f = by["finish"][-1]; assert f["outcome"] == "unavailable" and f["status"] == 75, f'
 run FAKE_SKIPS=IPadUITests -- --changed native/UITests/IPadUITests.swift

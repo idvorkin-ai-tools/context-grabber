@@ -140,6 +140,8 @@ native-test-sim: native-build-sim
 native-test-contracts: native-project
     #!/usr/bin/env bash
     set -uo pipefail
+    # Story 1022: not on a locked Mac; wait for an unlock before taking a lane (sim-boot and the wrapper look again in it).
+    . scripts/native/smoke-lock.sh && { wait_unlocked "the contract tests" || exit 75; }
     scripts/native/build-lane.sh run bash -c 'name=$(scripts/native/build-lane.sh sim "${CONTRACT_SIM:-iPad Pro 11-inch (M5)}") && udid=$(scripts/native/sim-udid.sh "$name") && scripts/native/sim-boot.sh "$udid" && UI_TEST_RETRY=0 scripts/native/xcodebuild-log.sh contracts "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" -only-testing:GrabberNativeContractTests -only-testing:GrabberNativeUITests/PaperKitTouchContractUITests test'
 
 # Stops a phone recipe with how to name the phone when it has no id

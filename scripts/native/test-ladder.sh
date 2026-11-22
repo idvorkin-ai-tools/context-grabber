@@ -560,18 +560,20 @@ simulator_steps() {
 }
 
 rung_simulator() {
-  [ "$in_lane" -eq 1 ] || { lane 2 $(($full == 1 ? 130 : 60)); return; }
-  trap leave_simulator EXIT
   # Story 782: UI tests don't start while the Mac's display is off or its screen is locked, and running ones stall (the
   # 915 run of 2026-11-16 sat 17 minutes before its first test). Light the display (the rung holds it on from here,
-  # `caffeinate -d` below), then refuse a locked screen now rather than hold the build lock for an hour of nothing.
+  # `caffeinate -d` below), then refuse a locked screen rather than hold the build lock for an hour of nothing. Story
+  # 1022: a locked Mac also crashes the app when a test opens the mic, so the rung waits up to 2 minutes for an unlock
+  # first, outside the lane, and looks again inside it.
   caffeinate -u -t 5 >/dev/null 2>&1 &
   # shellcheck source=scripts/native/smoke-lock.sh
   . scripts/native/smoke-lock.sh
-  if mac_locked; then
+  if ! wait_unlocked "rung 2"; then
     echo "the Mac's screen is locked: UI tests don't start on a locked screen, so rung 2 didn't start; unlock it and rerun" >&2
     return 75
   fi
+  [ "$in_lane" -eq 1 ] || { lane 2 $(($full == 1 ? 130 : 60)); return; }
+  trap leave_simulator EXIT
   phone=$(scripts/native/sim-udid.sh "${SIM:-iPhone 17}") || return
   udid=$phone  # the build's destination
   # Our own xcodebuild is one, and each other lane may run one; more than the lanes is contention, and device builds
