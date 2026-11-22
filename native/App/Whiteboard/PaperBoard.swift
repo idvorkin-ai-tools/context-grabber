@@ -166,6 +166,7 @@ class PaperHost: UIViewController {
     let id = ObjectIdentifier(touch)
     switch phase {
     case .began:
+      touchTool = decidingTool
       if touchesDown == 0 {
         // A menu leaves nothing the first responder when it closes, and with that PaperKit drew no stroke and showed no tool
         // picker (3 of 3 on the simulator, iOS 27).
@@ -233,7 +234,6 @@ class PaperHost: UIViewController {
     let visible = paper.contentVisibleFrame
     let scale = visible.width / max(view.bounds.width, 1)
     lastTouchBoardPoint = CGPoint(x: visible.minX + at.x * scale, y: visible.minY + at.y * scale)
-    touchTool = decidingTool
     run = TouchRun(
       type: Self.name(touch.type), began: CACurrentMediaTime(), start: at, visibleAtStart: visible,
       zoomAtStart: paper.scrollConfiguration.zoomScale, tool: toolName, ink: toolText(paper.drawingTool),

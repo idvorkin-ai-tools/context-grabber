@@ -13,7 +13,7 @@ drawn blue (#1078). Ten places decided behaviour from it. The picker's `selected
 - `PickedTool` (`native/App/Whiteboard/PaperPickedTool.swift`): ink (with its `PKInkingTool`), eraser, lasso, other;
   built from a `PKToolPickerItem`, or from a `PKTool` for reverting.
 - `PaperHost.decidingTool` is the one source (`PickedTool(picker.selectedToolItem)`). `PaperHost.touchTool` is its
-  snapshot, taken in `startRun` (first touch down), and kept after the run ends, since PaperKit's stroke callback
+  snapshot, taken at every touch down (a Pencil beside a resting palm included), and kept after the run ends, since PaperKit's stroke callback
   (margin hold, word pickup, ink headers) lands after the lift.
 - Readers of the snapshot: fold erase (`foldEraserDown`), the answered-card erase in `touchMoved`, shape snap and its
   preview's colour and width, the room band's Pencil hold, `marginHeld`, `pickedUp`, `inkHeaderSoon`.
