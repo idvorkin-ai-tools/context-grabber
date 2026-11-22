@@ -7054,6 +7054,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I draw the eraser across "▸ N lines folded"
 - **Then:** the header, its folded lines and any folds folded inside it are erased, and the ink below closes up to where the header was, in whole lines
 
+- **Scenario:** An eraser stroke called off takes no fold
+- **Given:** a folded header with a line of ink below the fold
+- **When:** I draw the eraser across "▸ N lines folded" and the iPad calls the touch off before it lifts (a palm landing, a system gesture taking it)
+- **Then:** the header stays folded with its "▸ N lines folded", and the ink below stays where it was
+
 ---
 
 ### User Story 904:
@@ -7091,6 +7096,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a folded header
 - **When:** I draw the eraser across the header's own ink
 - **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's)
+
+- **Scenario:** An eraser stroke across the header called off
+- **Given:** a folded header
+- **When:** I draw the eraser across the header's own ink and the iPad calls the touch off before it lifts
+- **Then:** if the header's ink stayed, the section stays folded as it was; if the eraser took it anyway, the whole section goes with it, so no folded lines are left hidden under no header
 
 ---
 
