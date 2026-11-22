@@ -200,6 +200,18 @@ if [ "$pressed" = "false true Paste, true true Paste" ] && [ -z "$errors" ]; the
   ok "whiteboard: the bar's Undo took the paste back and its Redo brought it again, no error events"
 else bad "whiteboard: the bar's Undo and Redo pressed '$pressed', wanted 'false true Paste, true true Paste', errors: $errors"; fi
 fi
+# #1163, story 1097: on an iPhone the list's chat bubble looks for the board's thread, logged with how it ended. Which
+# thread is the board's is BoardThreadFindTests', on the host; Chat opening on a found one is the phone's.
+if [ "$device" = iPhone ]; then
+SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-chat SIMCTL_CHILD_GRABBER_WHITEBOARD=open \
+  SIMCTL_CHILD_GRABBER_WHITEBOARD_LIST_CHAT=smoke-chat relaunch
+wait_jq 'select(.type=="whiteboard" and .action=="chat_lookup")' 30 || echo "      (timed out waiting for chat_lookup)"
+f=$(newest_log)
+looked=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="chat_lookup")][0]
+  | "\(.board) \(.from) \(.source // .outcome // "")"' "$f")
+if [[ "$looked" =~ ^smoke-chat\ list\ [a-z_]+$ ]]; then ok "whiteboard: the list's chat bubble looked for the board's thread: $looked"
+else bad "whiteboard: chat_lookup '$looked', wanted smoke-chat list <source or outcome>"; fi
+fi
 # Story 658: a board drawn on the old canvas opens on paper to look at only, its 40 strokes moved onto the first page
 # (the ink's box starts at the page's margin).
 SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-old-canvas SIMCTL_CHILD_GRABBER_BOARD_FIXTURE_OLD_INK=40 \

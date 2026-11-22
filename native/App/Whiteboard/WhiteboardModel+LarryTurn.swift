@@ -34,9 +34,9 @@ extension WhiteboardModel {
   }
 
   /// Story 768: a tap on the note's line opens or closes the panel over the board, remembered for the next board; an
-  /// iPhone has no panel, so it opens the board's thread in Chat, or says where the conversation is when this device
-  /// has none for the board (story 769, #1161).
-  func tapNote(onPhone: Bool, openChat: (String) -> Void) {
+  /// iPhone has no panel, so it opens the board's thread in Chat, found among the chats when another device sent the
+  /// board (story 1101, #1163), or says where the conversation is when none is found (story 769, #1161).
+  func tapNote(onPhone: Bool, openChat: @escaping (String) -> Void) {
     let tap = WhiteboardNote.tap(onPhone: onPhone, thread: threadKey)
     switch tap {
     case .toggle:
@@ -52,9 +52,23 @@ extension WhiteboardModel {
     case .nothing:
       log.event(
         "whiteboard", ["action": "conversation_chat", "board": board.id, "thread": "", "found": tap.found ?? ""])
-      // Cleared first, so a second tap with the same words takes the middle again for its few seconds.
-      pasteNote = nil
-      say(WhiteboardNote.noThread(drawnOn: store.editable(board) ? nil : board.deviceName))
+      let title = store.index.board(board.id)?.title ?? board.title
+      let drawnOn = store.editable(board) ? nil : board.deviceName
+      Task { [weak self, board = self.board, cockpit = self.cockpit, log = self.log] in
+        let answer = await BoardThreadLookup.find(
+          board: board.id, title: title, cockpit: cockpit, log: log, from: "note")
+        switch answer {
+        case .thread(let key): openChat(key)
+        case .problem(let problem):
+          // Cleared first, so a second tap with the same words takes the middle again for its few seconds.
+          self?.pasteNote = nil
+          // No chat is the board's: say where the conversation is (#1161); a Cockpit out of reach says why.
+          self?.say(
+            problem.message == BoardThreadFind.noneMessage ? WhiteboardNote.noThread(drawnOn: drawnOn) : problem.message
+          )
+        case .busy: break
+        }
+      }
     }
   }
 

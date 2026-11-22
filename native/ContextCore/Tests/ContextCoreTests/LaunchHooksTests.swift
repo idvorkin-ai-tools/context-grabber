@@ -281,6 +281,9 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertEqual(WhiteboardHooks(["GRABBER_WHITEBOARD_LARRY_WAIT": "retry"]).larryWait, .retry)
     XCTAssertEqual(WhiteboardHooks(["GRABBER_WHITEBOARD_LARRY_WAIT": "dismiss"]).larryWait, .dismiss)
     XCTAssertEqual(WhiteboardHooks(["GRABBER_WHITEBOARD_LARRY_WAIT": "interrupt"]).larryWait, .interrupt)
+    XCTAssertEqual(
+      WhiteboardHooks(["GRABBER_WHITEBOARD_LIST_CHAT": "smoke-chat"]).listChat, "smoke-chat",
+      "#1163: the board whose chat bubble the list taps")
     XCTAssertEqual(LaunchHooks(["GRABBER_WHITEBOARD_GRID": "on"]).whiteboard.grid, true)
     XCTAssertFalse(board.newBoardsBare)
     let bare = WhiteboardHooks(["GRABBER_WHITEBOARD_GRID": "off"])
@@ -306,6 +309,8 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertNil(none.larryTimeout)
     XCTAssertNil(none.larryWait)
     XCTAssertNil(WhiteboardHooks(["GRABBER_WHITEBOARD_LARRY_WAIT": "Retry"]).larryWait, "as written, or no hook")
+    XCTAssertNil(none.listChat)
+    XCTAssertNil(WhiteboardHooks(["GRABBER_WHITEBOARD_LIST_CHAT": ""]).listChat, "no board named, no tap")
 
     let odd = WhiteboardHooks([
       "GRABBER_WHITEBOARD_SAVE_FAILS": "", "GRABBER_WHITEBOARD_GHOST_SECONDS": "long", "GRABBER_WHITEBOARD_GRID": "1",
