@@ -52,6 +52,7 @@ extension PaperBoardController {
       folds: tags, pages: pages, board: board)
     // What he dropped stays where he let go of it.
     for index in dragged { plan.offsets[index] = nil }
+    let pushedKeys = plan.offsets.keys.filter { elements.indices.contains($0) }.map { Self.key(elements[$0].elementID) }
     // The board before the drag: the dragged strokes back where they were.
     var before = markup
     for element in elements {
@@ -64,6 +65,15 @@ extension PaperBoardController {
     // Not from inside PaperKit's own callback: its step for the drag is taken back, and one step for both goes on.
     Task { @MainActor [weak self] in
       guard let self else { return }
+      // PaperKit's drag is still going while the finger is down: the push waits for the lift, up to 3 s.
+      var waited = 0
+      while self.run != nil, waited < 60 {
+        try? await Task.sleep(for: .milliseconds(50))
+        waited += 1
+      }
+      event["waited_ms"] = waited * 50
+      let now = self.paper.markup ?? markup
+      event["now_is_drop"] = Self.close(now.strokeFrames, markup.strokeFrames)
       let tookBack = self.quietly { self.takeBackPaperKitsStep(why: "drop") }
       let undidDrag = self.paper.markup.map { Self.close($0.strokeFrames, before.strokeFrames) } ?? false
       event["took_back"] = tookBack
@@ -72,7 +82,20 @@ extension PaperBoardController {
       if tookBack, !undidDrag { self.quietly { self.paper.undoManager?.redo() } }
       let framesBefore = self.inkFrames
       self.registerStepBack(to: before, named: "Move")
-      guard let (held, _, _) = self.put(plan, on: markup, hashes: hashes, named: "Move", stepBack: false) else {
+      // The change goes on the strokes PaperKit holds after taking its step back, not on its copies from before: a set
+      // of those dropped the push (the simulator, 2026-11-22: the line stayed, the dragged strokes landed). The drag is
+      // done again by its own offsets, and the push with it.
+      var start = now
+      var onLive = plan
+      if undidDrag, let live = self.paper.markup, live.subelements.strokes.count == elements.count {
+        start = live
+        for index in dragged {
+          guard let move = back[Self.key(live.subelements.strokes[index].elementID)] else { continue }
+          onLive.offsets[index] = CGVector(dx: move.dx, dy: move.dy)
+        }
+      }
+      event["on_live"] = start.subelements.count == now.subelements.count && undidDrag
+      guard let (held, _, _) = self.put(onLive, on: start, hashes: hashes, named: "Move", stepBack: false) else {
         event["failed"] = true
         self.log.event("whiteboard", event)
         return
@@ -81,7 +104,28 @@ extension PaperBoardController {
       self.noteInk(held, since: framesBefore, report: true)
       event["pages"] = self.pages
       event["undo_name"] = self.paper.undoManager?.undoActionName ?? ""
+      event["pushed"] = pushedKeys.count
+      event["pushed_now"] = self.pushedStill(pushedKeys, from: markup, dy: push.dy)
       self.log.event("whiteboard", event)
+      // Whether the push is still there once the touch is over: PaperKit's drag ends after this runs.
+      try? await Task.sleep(for: .seconds(1))
+      self.log.event(
+        "whiteboard",
+        [
+          "action": "paper_drop_after", "board": self.model.board.id, "pushed": pushedKeys.count,
+          "pushed_now": self.pushedStill(pushedKeys, from: markup, dy: push.dy), "in_touch": self.run != nil,
+          "undo_name": self.paper.undoManager?.undoActionName ?? "",
+        ])
     }
+  }
+
+  /// How many of `keys` sit `dy` below where they were in `before`, on the paper now.
+  private func pushedStill(_ keys: [String], from before: PaperMarkup, dy: CGFloat) -> Int {
+    let was = before.strokeFrames
+    let now = paper.markup?.strokeFrames ?? [:]
+    return keys.filter { key in
+      guard let a = was[key], let b = now[key] else { return false }
+      return abs(b.minY - a.minY - dy) < 1
+    }.count
   }
 }

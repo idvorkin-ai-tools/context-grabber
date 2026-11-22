@@ -72,15 +72,26 @@ final class WhiteboardDropRoomUITests: XCTestCase {
     waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 4 strokes"), send, timeout: 10)
   }
 
+  /// Black ink below `y`, right of the group and its menu and label: the line the group is dropped on.
+  private func lower(below y: CGFloat) -> (PaperScreen) -> PaperScreen.Box? {
+    { $0.ink(in: PaperScreen.Box(minX: 0.5, minY: y, maxX: 1, maxY: 1)) }
+  }
+
   func testAGroupDroppedOnMyLinePushesItDownAndOneUndoPutsBothBack() throws {
     let app = XCUIApplication.forTests(animated: true)
     try lineAndKeptGroup(app)
     let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his circles kept")
-    let mine = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "my line")
-    XCTAssertGreaterThan(abs(kept.center.y - mine.center.y), 0.08, "the group starts off my line: \(kept) \(mine)")
-    shot(app, "my line and the kept group")
+    // His circles sit by the line he answered; a second line lower down is the one the group is dropped on.
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.65))
+      .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.65)))
+    let send = app.buttons["whiteboard-send"]
+    waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 5 strokes"), send, timeout: 10)
+    let first = try XCTUnwrap(
+      PaperScreen.settled(app) { $0.ink(in: PaperScreen.Box(minX: 0, minY: 0, maxX: 1, maxY: 0.58)) })
+    let mine = try XCTUnwrap(PaperScreen.settled(app, lower(below: 0.58)), "my second line")
+    shot(app, "my lines and the kept group")
 
-    // A tap on one circle selects the group (story 947); a finger drags it onto my line.
+    // A tap on one circle selects the group (story 947); a finger drags it onto my second line.
     PaperScreen.tap(app, CGPoint(x: kept.minX + 0.003, y: kept.center.y))
     XCTAssertTrue(app.buttons["whiteboard-to-text"].appears(within: 5), "the tap selected it: \(app.debugDescription)")
     sleep(2)
@@ -91,19 +102,20 @@ final class WhiteboardDropRoomUITests: XCTestCase {
 
     let dropped = PaperScreen.showing(app, within: 10, { $0.larryKept }, { abs($0.center.y - mine.center.y) < 0.03 })
     let pushed = PaperScreen.showing(
-      app, within: 10, { $0.ink }, { box in dropped.map { box.minY > $0.maxY } ?? false })
+      app, within: 10, lower(below: 0.58), { box in dropped.map { box.minY > $0.maxY } ?? false })
     shot(app, "dropped on my line")
-    XCTAssertNotNil(dropped, "the group stays where I let go")
-    let group = try XCTUnwrap(dropped)
-    let line = try XCTUnwrap(pushed, "my line is still on screen")
+    let group = try XCTUnwrap(dropped, "the group stays where I let go")
+    let line = try XCTUnwrap(pushed, "my second line is still on screen")
     XCTAssertGreaterThan(line.minY, group.maxY, "my line moved down clear of the group: \(line) under \(group)")
-    XCTAssertEqual(line.minX, mine.minX, accuracy: 0.01, "straight down")
-    XCTAssertEqual(app.buttons["whiteboard-send"].label, "Send to Larry, 4 strokes", "moved, not drawn")
+    XCTAssertEqual(line.maxX, mine.maxX, accuracy: 0.01, "straight down")
+    let above = PaperScreen(app).ink(in: PaperScreen.Box(minX: 0, minY: 0, maxX: 1, maxY: 0.58))
+    XCTAssertEqual(above?.minY ?? -1, first.minY, accuracy: 0.005, "the line above the cut stays")
+    XCTAssertEqual(send.label, "Send to Larry, 5 strokes", "moved, not drawn")
 
     let undo = app.buttons["whiteboard-undo"]
     waitUntil(NSPredicate(format: "isEnabled == true"), undo, timeout: 5)
     undo.tap()
-    let lineBack = PaperScreen.showing(app, within: 10, { $0.ink }, { abs($0.minY - mine.minY) < 0.01 })
+    let lineBack = PaperScreen.showing(app, within: 10, lower(below: 0.58), { abs($0.minY - mine.minY) < 0.01 })
     let groupBack = PaperScreen.showing(app, within: 10, { $0.larryKept }, { abs($0.minY - kept.minY) < 0.01 })
     shot(app, "after one undo")
     XCTAssertEqual(lineBack?.minY ?? -1, mine.minY, accuracy: 0.01, "one Undo put my line back")
