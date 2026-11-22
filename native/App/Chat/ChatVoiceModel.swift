@@ -41,6 +41,8 @@ final class ChatVoiceModel: ObservableObject {
     logger: log.bugLogger, hostMicrophoneBusy: { [weak self] in self?.micHeldElsewhere() != nil })
   /// Each recording's start, stop and five-minute timer (ContextCore, host-tested).
   private var clock = ChatVoiceClock()
+  /// Auto-lock held off while a recording runs (#1165, ContextCore, host-tested).
+  private var awake = ChatVoiceAwake()
   /// The saved microphone is named once per launch, the first time a picker shows (story 303).
   private var namedSavedMicrophone = false
   private var capTimer: Task<Void, Never>?
@@ -198,6 +200,7 @@ final class ChatVoiceModel: ObservableObject {
     case .none: return
     case .started(let recording, let capAt):
       log.event("chat_voice", ["action": "record_start", "thread": thread])
+      keepAwake(true)
       capTimer?.cancel()
       capTimer = Task { [weak self] in
         try? await Task.sleep(for: .seconds(capAt.timeIntervalSinceNow))
@@ -212,7 +215,21 @@ final class ChatVoiceModel: ObservableObject {
       fields["thread"] = thread
       fields["seconds"] = seconds
       log.event("chat_voice", fields)
+      keepAwake(false)
     }
+  }
+
+  /// #1165 (Igor, 2026-11-22): the screen does not auto-lock while a recording runs, and auto-lock is back at its
+  /// stop, whichever way it stopped; every stop path (tap, Send, leaving the thread, a call, an interruption, the cap)
+  /// ends in the dictation no longer listening, which is where this is called.
+  private func keepAwake(_ on: Bool) {
+    let app = UIApplication.shared
+    let flagNow = app.isIdleTimerDisabled
+    let write = awake.recording(on, flagNow: flagNow)
+    if let write { app.isIdleTimerDisabled = write }
+    log.event(
+      "chat_voice",
+      ["action": "keep_awake", "on": on, "thread": thread, "wrote": write != nil, "held_elsewhere": on && flagNow])
   }
 
   /// `route_change` (#1165): only while a recording is starting or under way; never the words.

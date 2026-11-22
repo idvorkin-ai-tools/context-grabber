@@ -94,3 +94,37 @@ final class ChatNewChatVoiceTests: XCTestCase {
     XCTAssertFalse(ask.take())
   }
 }
+
+/// The screen kept awake while a chat recording runs (#1165, story 303).
+final class ChatVoiceAwakeTests: XCTestCase {
+  func testAutoLockIsHeldFromTheStartToTheStop() {
+    var awake = ChatVoiceAwake()
+    XCTAssertEqual(awake.recording(true, flagNow: false), true, "on at the start")
+    XCTAssertNil(awake.recording(true, flagNow: true), "the same state again writes nothing")
+    XCTAssertEqual(awake.recording(false, flagNow: true), false, "off at the stop")
+    XCTAssertNil(awake.recording(false, flagNow: false), "a second stop writes nothing")
+    XCTAssertFalse(awake.holding)
+  }
+
+  func testEachRecordingHoldsItAgain() {
+    var awake = ChatVoiceAwake()
+    XCTAssertEqual(awake.recording(true, flagNow: false), true)
+    XCTAssertEqual(awake.recording(false, flagNow: true), false)
+    XCTAssertEqual(awake.recording(true, flagNow: false), true)
+    XCTAssertEqual(awake.recording(false, flagNow: true), false)
+  }
+
+  func testNeverOnWithoutAStart() {
+    var awake = ChatVoiceAwake()
+    XCTAssertNil(awake.recording(false, flagNow: false))
+    XCTAssertNil(awake.recording(false, flagNow: true), "someone else's hold is left alone")
+  }
+
+  func testAHoldSomeoneElseSetIsLeftOnAtTheStop() {
+    var awake = ChatVoiceAwake()
+    XCTAssertNil(awake.recording(true, flagNow: true), "the Gym Timer already holds it")
+    XCTAssertNil(awake.recording(false, flagNow: true), "so the chat's stop does not clear it")
+    XCTAssertEqual(awake.recording(true, flagNow: false), true, "the next recording on its own holds it")
+    XCTAssertEqual(awake.recording(false, flagNow: true), false)
+  }
+}

@@ -57,6 +57,36 @@ public struct ChatVoiceClock: Equatable, Sendable {
   }
 }
 
+/// The screen kept awake while a chat recording runs (#1165, story 303): auto-lock is held off from the recording's
+/// start to its stop, whichever way it stops, and never longer. The flag is the whole app's (the Gym Timer, breathing
+/// and a call write it too), so the chat clears only a hold it set: a flag already on at the start belongs to someone
+/// else and is left alone at the stop.
+public struct ChatVoiceAwake: Equatable, Sendable {
+  /// A recording is under way.
+  public private(set) var holding = false
+  /// This recording turned the flag on, so its stop turns it off.
+  public private(set) var owns = false
+
+  public init() {}
+
+  /// The recording started (`on`) or stopped, with the flag as it is now. Returns the value to write, or nil to leave
+  /// it as it is.
+  public mutating func recording(_ on: Bool, flagNow: Bool) -> Bool? {
+    switch (on, holding) {
+    case (true, false):
+      holding = true
+      owns = !flagNow
+      return owns ? true : nil
+    case (false, true):
+      holding = false
+      defer { owns = false }
+      return owns ? false : nil
+    default:
+      return nil
+    }
+  }
+}
+
 /// The words for one thread's bar, handed over once: a bar takes only its own thread's, so another thread never
 /// shows words spoken in this one.
 public struct ChatVoiceWords: Equatable, Sendable {
