@@ -328,13 +328,13 @@ class PaperHost: UIViewController {
     return "\(kind) \(WhiteboardStrokes.hex(red: red, green: green, blue: blue)) \(width)"
   }
 
-  /// #1078 (story 1064): the tool the picker shows selected, as `toolText` says an ink; the eraser, the lasso, or the
-  /// item's own identifier for anything else. Every iPad touch logged `drawingTool` as a black pen, even ones that
-  /// erased or drew blue, so the log carries the picker's word beside it.
   /// Story 1091: the one tool the board decides on, the picker's. `PickedTool(paper.drawingTool)` here goes back to the
   /// board's own.
   var decidingTool: PickedTool { PickedTool(picker.selectedToolItem) }
 
+  /// #1078 (story 1064): the tool the picker shows selected, as `toolText` says an ink; the eraser, the lasso, or the
+  /// item's own identifier for anything else. Every iPad touch logged `drawingTool` as a black pen, even ones that
+  /// erased or drew blue, so the log carries the picker's word beside it.
   var pickerText: String {
     let item = picker.selectedToolItem
     switch item {
