@@ -413,6 +413,10 @@ ink it covers, without picking up the eraser.
 - It's a change like any erase: the board saves, and Larry's next picture and strokes no longer have that ink. It doesn't
   ask Claude about the board, as nothing new was written.
 - A look-only board can't be scratched out, as it can't be drawn on.
+- **Only the pen scratches out** (#1121, story 1108). With the eraser in hand a fast back-and-forth is the eraser at work:
+  it rubs out what it crosses, as the eraser does, and nothing of the scratch-out happens (no flash, no word, no
+  *Nothing under the scribble to erase*). On the iPad the eraser's sweep was read as a zigzag and the app crashed taking
+  it back.
 - **Folded ink is never scratched** (story 898): ink hidden under a folded header stays, even where the lines below it
   now sit on top of it, and it doesn't count toward whether the zigzag lies over ink.
 - **A zigzag over a folded header takes the whole fold** (story 905): over its "▸ N lines folded", where there is no ink,

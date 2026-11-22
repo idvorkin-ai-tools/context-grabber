@@ -894,3 +894,23 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board on paper where I have just moved a word with the lasso
 - **When:** I scratch out another word with a quick zigzag
 - **Then:** the scratched-out word and the zigzag are gone, and the word I moved stays where I put it
+
+---
+
+### User Story 1108:
+
+- **Summary:** The eraser scrubbed back and forth over ink erases, and is never a scratch-out
+- **Status:** in progress
+- **Issues:** [#1121](https://github.com/idvorkin/context-grabber/issues/1121), [#1120](https://github.com/idvorkin/context-grabber/issues/1120): the iPad crashed (signal 5, PaperKit trapping inside Undo) when the board took back the "zigzag" of an eraser sweep it had read as a scratch-out
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** rubbing out ink with the eraser on the iPad
+- **I want to** scrub back and forth as fast as I like
+- **so that** the eraser just erases, and the board never mistakes it for a pen's scratch-out and falls over
+
+#### Acceptance Criteria:
+- **Scenario:** A fast scrub with the eraser over a word
+- **Given:** a board on paper with a word written on it, and the eraser picked
+- **When:** I scrub the eraser back and forth fast over the word with the Pencil
+- **Then:** the eraser rubs out what it crosses, no scratch-out flash or *Nothing under the scribble to erase* shows, and the app stays up
