@@ -778,6 +778,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** With no network Larry's turn says so and nothing waits
 - **Status:** implemented in [53481a1](https://github.com/idvorkin/context-grabber/commit/53481a1); the simulator compile only: no test runs a turn with no network, so this is owed on the iPad
 - **Why:** split from story 421, whose old wording promised this case a send or a wait; a turn has no outbox
+- **Issues:** [#1136](https://github.com/idvorkin/context-grabber/issues/1136) (*The network connection was lost* on the iPad when the app left the screen for a moment during a turn: one quiet second try)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -790,6 +791,16 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** no network
 - **When:** I tap *Larry's turn*
 - **Then:** a copyable error says Larry couldn't be reached, and nothing is queued
+
+- **Scenario:** A connection dropped under the turn is tried once more
+- **Given:** Larry's turn is on its way and the iPad loses the connection under it, as when I leave the app for a moment
+- **When:** the app is back on screen
+- **Then:** the picture goes again by itself, once, and I see no error; Larry gets it once
+
+- **Scenario:** The second try fails too
+- **Given:** the connection was lost under the turn and lost again on the second try
+- **When:** the second try ends
+- **Then:** a copyable error says Larry couldn't be reached, as with no network
 
 ---
 

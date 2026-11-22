@@ -357,6 +357,11 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 - **With no network** a *Send* waits in the outbox with its strokes beside its picture, and both go when the network
   is back (story 427). *Larry's turn* doesn't wait: a copyable error says Larry couldn't be reached, and nothing is
   queued (story 428).
+- **A dropped connection is tried once more before anything is said** (#1136, story 428). When the iPad loses the
+  connection under the picture on its way to Larry (most often because the app left the screen for a moment while it
+  was going), the board sends it again by itself once the app is back on screen, and Igor sees nothing. Only a second
+  failure, or any other network error, says Larry couldn't be reached. The second try is the same message, so Larry
+  gets the picture once; a turn Igor has retried, dismissed or interrupted in the meantime is not sent again.
 - The strokes are the whole board each time, never a difference: a stroke missing from a send was erased.
 - **Rubbed-out ink doesn't go** (story 423). What the pixel eraser removed is missing from the strokes as it is from
   the picture; what is left of a stroke it cut goes as new strokes, one per stretch still visible.
