@@ -22,12 +22,17 @@ final class BoardMeaningTests: XCTestCase {
   private final class TestDisk: BoardDisk {
     let disk = FileBoardDisk()
     var refuse: String?
+    var garbleNext: String?
     var changes: [String] = []
     func exists(_ url: URL) -> Bool { disk.exists(url) }
     func read(_ url: URL) throws -> Data { try disk.read(url) }
     func write(_ data: Data, to url: URL) throws {
       changes.append("write \(url.lastPathComponent)")
       if let refuse, url.lastPathComponent.hasSuffix(refuse) { throw CocoaError(.fileWriteOutOfSpace) }
+      if let garble = garbleNext, url.lastPathComponent.hasSuffix(garble) {
+        garbleNext = nil
+        return try disk.write(Data("not the meaning".utf8), to: url)
+      }
       try disk.write(data, to: url)
     }
     func remove(_ url: URL) throws {
@@ -308,6 +313,22 @@ final class BoardMeaningTests: XCTestCase {
     guard case .failure? = keeping.migrateInkIdentity("b1", from: keys, after: BoardOpLedger(defaults: defaults))
     else { return XCTFail("should fail") }
     XCTAssertEqual(try keeping.meaning("b1"), try sample(), "never removed: it holds the rest of the meaning")
+    XCTAssertEqual(keys.labels(board: "b1"), [1, 2], "tried again next launch")
+    XCTAssertEqual(keys.theirs(board: "b1"), [7])
+  }
+
+  func testAMoveThatDoesntReadBackPutsTheFileBackAsItWas() throws {
+    let keys = inkKeys()
+    let disk = TestDisk()
+    let keeping = keeping(disk)
+    try keeping.saveMeaning(try sample(), board: "b1")
+    let url = try XCTUnwrap(keeping.meaningURL("b1"))
+    let before = try disk.read(url)
+    disk.garbleNext = ".meaning.json"
+    guard case .failure? = keeping.migrateInkIdentity("b1", from: keys, after: BoardOpLedger(defaults: defaults))
+    else { return XCTFail("should fail") }
+    XCTAssertEqual(try disk.read(url), before, "the file's original bytes, not removed")
+    XCTAssertEqual(try keeping.meaning("b1"), try sample())
     XCTAssertEqual(keys.labels(board: "b1"), [1, 2], "tried again next launch")
     XCTAssertEqual(keys.theirs(board: "b1"), [7])
   }
