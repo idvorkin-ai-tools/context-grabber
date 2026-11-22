@@ -576,7 +576,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A smoke run on a locked Mac
 - **Given:** a smoke run under way
 - **When:** the screen locks after the smoke started (a smoke asked for on a locked screen doesn't start: it waits for an unlock and then exits 75, story 1022), and the smoke reaches the timer, breathing and the real-audio call
-- **Then:** each prints *skipped: Mac screen locked* and doesn't run, the run's last lines count them as skipped and not passed, and unlocked they run as before
+- **Then:** each prints *skipped: Mac screen locked* and doesn't run, the run's last lines count them as skipped and not passed, and unlocked they run as before (the real-audio call is also skipped while the lid is closed on the built-in mic, story 1025)
 
 ---
 
@@ -1231,3 +1231,32 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** an agent wants to run a UI test or a test class on a simulator
 - **When:** it runs it
 - **Then:** it runs it through the wrapper or a recipe that uses it, never a bare `xcodebuild test` on a simulator, so the lock rules of stories 1022 and 1023 always hold
+
+---
+
+### User Story 1025:
+
+- **Summary:** The smoke skips the real-audio call while the Mac's lid is closed, and a held-back report still fails a clean call
+- **Status:** in progress on branch `native/smoke-lid-mic-qj5y`
+- **Issues:** bead `context-grabber-qj5y` (a clean real-audio call filed *the microphone is delivering silence*; the rerun passed only because the ten-minute window held its report back)
+
+#### Use Case:
+- **As Igor,** running the simulator smoke with the MacBook's lid closed on an external display
+- **I want to** have the real-audio call skipped and named as skipped when the built-in mic can't hear
+- **so that** a closed lid doesn't fail the run, a rerun doesn't pass by hiding the same failure, and a skipped check is never read as a pass
+
+#### Acceptance Criteria:
+- **Scenario:** A smoke run with the lid closed
+- **Given:** the Mac's lid is closed and its default input is the built-in microphone
+- **When:** the smoke reaches the real-audio call
+- **Then:** it prints *skipped: Mac lid closed, the built-in mic hears nothing* and doesn't run it, the run's last lines count it as skipped and not passed, and the timer, breathing, the synthetic call and the dropped call still run
+
+- **Scenario:** The lid is open, or another input is the default
+- **Given:** the lid is open, or the default input is not the built-in microphone, or the Mac can't say (Linux)
+- **When:** the smoke reaches the real-audio call
+- **Then:** it runs as before
+
+- **Scenario:** A rerun inside the report window
+- **Given:** a call that went wrong filed a report less than ten minutes ago
+- **When:** a call the smoke expects to be clean goes wrong again and its report is held back by the window
+- **Then:** that call's check still fails: each call is judged on its own log, and a report filed or held back both count

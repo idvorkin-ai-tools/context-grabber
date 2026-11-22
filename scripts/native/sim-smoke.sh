@@ -426,14 +426,19 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
   failed=$(jq -c 'select(.type=="error" or ((.type|startswith("call_")) and .ok == false
     and (.type != "call_archive" or .reason != "no archive URL")))' "$f")
   if [ -z "$failed" ]; then ok "call ($label): nothing failed"; else bad "call ($label): $failed"; fi
+  # Story 248: a clean call files no automatic report. Story 1025 (bead qj5y): judged on this call's own log, and a
+  # report the ten-minute window held back (bug_report_auto_skipped) counts as filed, or a rerun hides the failure.
+  local filed
+  filed=$(jq -sr '[.[] | select(.type=="bug_report_auto" or .type=="bug_report_auto_skipped") | .reason] | join(",")' "$f")
+  if [ -z "$filed" ]; then ok "call ($label): a clean call files no automatic report"
+  else bad "call ($label): a clean call filed (or the window held back) automatic report(s): $filed"; fi
 }
 call_check synthetic synthetic
-if audio_ok "call (real audio)"; then call_check "real audio" ""; fi
+# Story 1025: with the lid closed on the built-in mic the simulator hears exact zeros, so the call is skipped, not run.
+if audio_ok "call (real audio)" && mic_ok "call (real audio)"; then call_check "real audio" ""; fi
 
-# Story 248: a call that goes wrong files one BugKit automatic report with the call's log; a clean call files none.
+# Story 248: a call that goes wrong files one BugKit automatic report with the call's log.
 # The second fake bridge cuts every connection.
-clean=$(jq -s '[.[] | select(.type=="bug_report_auto")] | length' "$(newest_log)")
-if [ "$clean" = "0" ]; then ok "call: a clean call files no automatic report"; else bad "call: a clean call filed $clean automatic report(s)"; fi
 stash bugs-auto.json  # an earlier run's ten-minute window would skip the first report; put back at exit
 DROP_PORT=$((PORT + 1))
 DROP_REPORT=$(mktemp -t fake-bridge-drop); : >"$DROP_REPORT"
