@@ -43,15 +43,40 @@ grep -q "15.0 s  Step F" <<<"$out" || fail "the sixth gap kind counts toward the
   echo "Test Case '-[GrabberNativeUITests.SynthUITests testFlaky]' started."
   echo "Test Case '-[GrabberNativeUITests.SynthUITests testFlaky]' passed (2.000 seconds)."; } >"$dir/retry.log"
 out=$("$here/ui-timings.py" "$dir/retry.log" --jsonl "$dir/retry.jsonl")
-grep -q "passed only on retry (1): SynthUITests.testFlaky" <<<"$out" || fail "a retried case is named: $out"
+grep -q "passed only on retry (1), a flake, counted as a failure: SynthUITests.testFlaky" <<<"$out" ||
+  fail "a retried case is named, as a failure: $out"
 grep -q "^ui timings: 1 cases" <<<"$out" || fail "a retried case counts once: $out"
 grep -qE "^ +5.0 s +1 +launch" <<<"$out" || fail "and once in its class: $out"
 python3 - "$dir/retry.jsonl" <<'PY' || fail "the retry's JSON line is tagged"
 import json, sys
-assert [json.loads(l)["retry"] for l in open(sys.argv[1])] == [False, True]
+rows = [json.loads(l) for l in open(sys.argv[1])]
+assert [r["retry"] for r in rows] == [False, True], rows
+assert [r["flaky"] for r in rows] == [False, True] and rows[1]["quarantined"] is False, rows
+PY
+# Story 1017: the flakes that count, for the wrapper; a quarantined one is named apart and doesn't count.
+: >"$dir/q"
+"$here/ui-timings.py" "$dir/retry.log" --quarantine "$dir/q" --flaky-out "$dir/flaky" >/dev/null
+[ "$(cat "$dir/flaky")" = SynthUITests.testFlaky ] || fail "the counted flake is written out: $(cat "$dir/flaky")"
+echo "SynthUITests.testFlaky context-grabber-abc chased" >"$dir/q"
+out=$("$here/ui-timings.py" "$dir/retry.log" --quarantine "$dir/q" --flaky-out "$dir/flaky")
+[ ! -s "$dir/flaky" ] || fail "a quarantined flake doesn't count: $(cat "$dir/flaky")"
+grep -q "quarantined, not counted: SynthUITests.testFlaky (context-grabber-abc)" <<<"$out" || fail "it is named apart: $out"
+# A run asked to repeat a passing case (-test-iterations N, #906's 40) repeats it; that is not a retry nor a flake.
+{ for _ in 1 2 3; do
+    echo "Test Case '-[GrabberNativeUITests.SynthUITests testAgain]' started."
+    echo "Test Case '-[GrabberNativeUITests.SynthUITests testAgain]' passed (2.000 seconds)."
+  done; } >"$dir/repeat.log"
+out=$("$here/ui-timings.py" "$dir/repeat.log" --jsonl "$dir/repeat.jsonl" --flaky-out "$dir/flaky")
+grep -q "repeated runs of a passing case (asked for, not retries): 2" <<<"$out" || fail "repeats are named as repeats: $out"
+! grep -q "passed only on retry" <<<"$out" || fail "a repeat is no flake: $out"
+[ ! -s "$dir/flaky" ] || fail "and writes no flake"
+python3 - "$dir/repeat.jsonl" <<'PY' || fail "a repeat's JSON line is no retry"
+import json, sys
+rows = [json.loads(l) for l in open(sys.argv[1])]
+assert [r["retry"] for r in rows] == [False] * 3 and [r["repeat"] for r in rows] == [False, True, True], rows
 PY
 
 : >"$dir/empty.log"
 "$here/ui-timings.py" "$dir/empty.log" --jsonl "$dir/none.jsonl" | grep -q "no test cases" || fail "an empty log"
 [ ! -e "$dir/none.jsonl" ] || fail "an empty log writes no JSON"
-echo "ok   ui-timings: totals, launch, retries, gap kinds, JSON lines"
+echo "ok   ui-timings: totals, launch, retries, flakes and the quarantine, repeats, gap kinds, JSON lines"

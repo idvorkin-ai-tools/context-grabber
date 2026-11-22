@@ -510,6 +510,14 @@ the coverage that skipped, how many changes are known to have reached a device, 
 that a better selection, a fixed flaky test or a free lane would have saved. A retried case, a test that skipped on the
 wrong device, and a change with no known delivery each stay visible as themselves.
 
+A UI test that fails gets one more try on its own, so the run finishes and the flake is caught, but a test that passed
+only on that second try is a failure, not a pass: the run fails and names it as a flake to fix (story 1017). A known
+flake that someone is already chasing can be quarantined, and only with the bead or issue that tracks it: it still runs
+and is still named when it passes only on its retry, as quarantined, but it doesn't fail the run. A run asked to repeat
+a passing test is not retrying it, so repeats are never counted as retries or flakes. The report calls a climb that
+failed on flakes alone flaky, counts it as a failed attempt, names its flakes and its quarantined cases, and shows for
+each test class how often a case passed only on retry, apart from the repeats.
+
 ## Acceptance criteria
 
 Step 1:

@@ -2,7 +2,8 @@
 # xcodebuild-log.sh against a fake xcodebuild (the pipeline report of 2026-11-10): a test run gets a time limit per
 # test, a build doesn't, an xcodebuild that hangs after its suite closes is stopped and judged by the log, and a run of
 # built tests whose first suite never starts is stopped and fails with exit 75 (story 783), and the hang stop waits for
-# the result bundle to be written in full, so a failed test's screenshots can still be opened (story 790).
+# the result bundle to be written in full, so a failed test's screenshots can still be opened (story 790), and a case
+# that passed only on its retry fails the run unless it is quarantined with its bead (story 1017).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 dir=$(mktemp -d)
@@ -19,6 +20,10 @@ if [ -n "${FAKE_NO_START:-}" ]; then  # a dark or locked Mac: the runner waits, 
   while :; do sleep 1; done
 fi
 echo "Test Suite 'Selected tests' started at now."
+if [ -n "${FAKE_FLAKY:-}" ]; then  # Class.test: fails, then passes on its retry
+  c="Test Case '-[GrabberNativeUITests.${FAKE_FLAKY%.*} ${FAKE_FLAKY#*.}]'"
+  printf '%s\n' "$c started." "$c failed (1.000 seconds)." "$c started." "$c passed (1.000 seconds)."
+fi
 echo "Test Suite 'Selected tests' ${FAKE_RESULT:-passed} at now."
 bundle= prev=
 for a in "$@"; do [ "$prev" = -resultBundlePath ] && bundle=$a; prev=$a; done
@@ -58,6 +63,28 @@ FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1 run xcodebuild -scheme 
 FAKE_HANG=1 FAKE_RESULT=failed FAKE_RETRY=1 XCODEBUILD_IDLE_SECONDS=1 run xcodebuild -scheme X test
 status=$?
 [ "$status" -eq 0 ] && ok "a retry still printing isn't stopped, and its passed decides" || bad "a retry that passed exited $status"
+
+# Story 1017: a case that passed only on its retry fails a run xcodebuild calls a success, unless it is quarantined.
+flake() { FAKE_FLAKY=SynthUITests.testFlaky PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" \
+  UI_TIMINGS_JSONL="$dir/t.jsonl" UI_QUARANTINE="$dir/quarantine" "$@" scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" \
+  xcodebuild -scheme X test 2>&1 >/dev/null; }
+: >"$dir/quarantine"
+out=$(flake env)
+status=$?
+[ "$status" -eq 65 ] && ok "a case that passed only on its retry fails the run" || bad "a retried-only pass exited $status"
+case $out in *"passed only on its retry, so the run fails"*"SynthUITests.testFlaky"*) ok "and the failure names it";;
+  *) bad "a retried-only pass said: $out";; esac
+out=$(flake env FAKE_HANG=1 XCODEBUILD_IDLE_SECONDS=1)
+[ $? -eq 65 ] && ok "and so it does after a hang that is stopped" || bad "a retried-only pass after a hang: $out"
+echo "SynthUITests.testFlaky because it is flaky" >"$dir/quarantine"
+flake env >/dev/null
+[ $? -eq 65 ] && ok "a quarantine without the bead that tracks it quarantines nothing" || bad "an untracked quarantine let it pass"
+echo "SynthUITests.testFlaky context-grabber-test1 the race is being chased" >"$dir/quarantine"
+out=$(flake env)
+[ $? -eq 0 ] && ok "a quarantined case's retried pass doesn't fail the run" || bad "a quarantined flake failed the run: $out"
+echo "SynthUITests #1 the whole class" >"$dir/quarantine"
+flake env >/dev/null
+[ $? -eq 0 ] && ok "nor does one in a quarantined class" || bad "a flake in a quarantined class failed the run"
 
 # Story 790: the hang stop waits for the result bundle. The fake writes it for 8 s after the suite closes, printing
 # nothing, then hangs: stopping at the 1 s idle limit (the suite line is looked for every 5 s) would leave Staging and no Info.plist.
