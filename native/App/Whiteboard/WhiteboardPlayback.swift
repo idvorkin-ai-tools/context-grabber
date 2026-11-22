@@ -371,6 +371,9 @@ final class PlaybackCanvasView: UIView, PKCanvasViewDelegate {
   let ghostView = UIImageView()
   var laidStep: CGFloat = 0
   private var laidOut = false
+  /// The strokes' elements, kept by number: an element made afresh at each ask was freed once the ask returned, and
+  /// the accessibility tree then held two of three as empty, frameless elements (bead context-grabber-zj39).
+  private var strokeElements: [Int: PlaybackStrokeElement] = [:]
 
   init(player: WhiteboardPlaybackPlayer) {
     self.player = player
@@ -427,9 +430,13 @@ final class PlaybackCanvasView: UIView, PKCanvasViewDelegate {
   /// Each stroke showing as an element over its ink (story 956 for VoiceOver and the UI test): activated, it seeks there.
   override var accessibilityElements: [Any]? {
     get {
-      [canvas]
-        + player.showingNumbered.map { shown in
-          let element = PlaybackStrokeElement(accessibilityContainer: self)
+      let showing = player.showingNumbered
+      let numbers = Set(showing.map(\.number))
+      strokeElements = strokeElements.filter { numbers.contains($0.key) }
+      return [canvas]
+        + showing.map { shown in
+          let element = strokeElements[shown.number] ?? PlaybackStrokeElement(accessibilityContainer: self)
+          strokeElements[shown.number] = element
           element.accessibilityLabel = "Stroke \(shown.number)"
           element.accessibilityIdentifier = "whiteboard-playback-stroke-\(shown.number)"
           element.accessibilityTraits = .button

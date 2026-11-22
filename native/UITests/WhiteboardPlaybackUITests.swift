@@ -1,6 +1,8 @@
 //  Stories 954–958 on the iPad simulator: Play draws a board's strokes again in order, the bar pauses, skips and
 //  changes speed, a tap on a stroke goes back to when it was drawn, and Done leaves the board as it was. The Pencil's own
-//  pace and a big board's frame rate are the iPad's (`whiteboard` action: playback_start, playback_end).
+//  pace and a big board's frame rate are the iPad's (`whiteboard` action: playback_start, playback_end). The tool picker
+//  opens on the tool picked last, in an earlier launch too (story 1098), so the test picks the pen before it draws: a lane
+//  left on the eraser by `WhiteboardEraserUITests` erased the first stroke (bead context-grabber-zj39).
 
 import XCTest
 
@@ -19,6 +21,17 @@ final class WhiteboardPlaybackUITests: XCTestCase {
   private func stroke(_ app: XCUIApplication, atHeight dy: CGFloat) {
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: dy))
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: dy)))
+  }
+
+  /// The pen, unless it is already picked: a tap on the picked tool opens its options over the paper.
+  private func pickPen(_ app: XCUIApplication) {
+    let pen = app.buttons["Pen"]
+    XCTAssertTrue(pen.appears(within: 10), "the tool picker: \(app.debugDescription)")
+    if !pen.isSelected {
+      pen.tap()
+      sleep(1)
+    }
+    XCTAssertTrue(pen.isSelected, "the pen is picked: \(app.debugDescription)")
   }
 
   private func waitFor(_ element: XCUIElement, label: String, timeout: TimeInterval = 10) {
@@ -41,6 +54,7 @@ final class WhiteboardPlaybackUITests: XCTestCase {
     XCTAssertTrue(send.appears(within: 10), app.debugDescription)
     XCTAssertFalse(app.buttons["whiteboard-play"].exists, "a board with no ink has no Play")
     sleep(2)
+    pickPen(app)
     for (n, height) in [0.3, 0.5, 0.7].enumerated() {
       stroke(app, atHeight: height)
       waitFor(send, label: "Send to Larry, \(n + 1) strokes")
