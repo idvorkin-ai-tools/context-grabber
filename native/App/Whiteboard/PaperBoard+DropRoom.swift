@@ -87,14 +87,15 @@ extension PaperBoardController {
       // done again by its own offsets, and the push with it.
       var start = now
       var onLive = plan
+      event["on_live"] = false
       if undidDrag, let live = self.paper.markup, live.subelements.strokes.count == elements.count {
         start = live
+        event["on_live"] = true
         for index in dragged {
           guard let move = back[Self.key(live.subelements.strokes[index].elementID)] else { continue }
           onLive.offsets[index] = CGVector(dx: move.dx, dy: move.dy)
         }
       }
-      event["on_live"] = start.subelements.count == now.subelements.count && undidDrag
       guard let (held, _, _) = self.put(onLive, on: start, hashes: hashes, named: "Move", stepBack: false) else {
         event["failed"] = true
         self.log.event("whiteboard", event)
