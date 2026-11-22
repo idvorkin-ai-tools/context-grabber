@@ -10,7 +10,7 @@
 # fails with exit 65 when a case passed only on its retry, unless scripts/native/ui-quarantine.txt names it (story 1017).
 # A test run that fails after the Mac's screen was seen locked during it exits 75, asking for a rerun unlocked (story 1018).
 # A test run on a simulator doesn't start while the screen is locked (it waits up to 2 minutes, then exits 75), and one
-# whose tests are still running when the screen locks is stopped, the app ended on the simulator, and exits 75 (story 1022).
+# whose tests are still running when the screen locks is stopped, the app ended on the simulator, and exits 75 (stories 1022, 1023).
 # Usage: xcodebuild-log.sh <name> <done> <command...>
 set -uo pipefail
 name=$1 done=$2
@@ -192,7 +192,7 @@ if [ -e "$lock_stopped" ]; then
     exit 65
   fi
   echo "the Mac's screen locked at $at, so the simulator test run was stopped there and the app ended on the simulator," \
-    "before a test could open the mic: a locked Mac starves the simulator's audio and the app can crash (story 1022)." \
+    "before a test could open the mic: a locked Mac starves the simulator's audio and the app can crash (story 1023)." \
     "Not run, not failed; unlock the Mac and rerun. The whole log: $log" >&2
   exit 75
 fi

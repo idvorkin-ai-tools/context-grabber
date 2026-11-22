@@ -5,7 +5,7 @@
 # the result bundle to be written in full, so a failed test's screenshots can still be opened (story 790), and a case
 # that passed only on its retry fails the run unless it is quarantined with its bead (story 1017), and a failed run
 # during which the Mac's screen locked exits 75, asking for a rerun unlocked, while a passed one stands (story 1018), and
-# a simulator test run doesn't start on a locked screen, and one is stopped, its app ended, when the screen locks (story 1022).
+# a simulator test run doesn't start on a locked screen, and one is stopped, its app ended, when the screen locks (stories 1022, 1023).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 dir=$(mktemp -d)
