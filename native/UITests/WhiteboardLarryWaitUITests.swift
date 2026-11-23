@@ -15,7 +15,7 @@ final class WhiteboardLarryWaitUITests: XCTestCase {
     stroke(app, at: 0.5)
     addTeardownBlock { try? self.post(cockpit + "/fake/larry-ops", "null") }
     try post(cockpit + "/fake/larry-ops", #"{"kind": "slow", "seconds": 45}"#)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let state = app.descendants(matching: .any)["whiteboard-note-state"]
     XCTAssertTrue(state.appears(within: 10), app.debugDescription)
     let interrupt = app.buttons["whiteboard-larry-interrupt"]
@@ -28,7 +28,7 @@ final class WhiteboardLarryWaitUITests: XCTestCase {
     expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: state)
     waitForExpectations(timeout: 10)
     // The next tap sends at once, never *Larry already has this*: a fresh clock.
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(state.appears(within: 10), app.debugDescription)
     XCTAssertFalse(interrupt.exists, "the fresh turn's twenty seconds start again")
   }
@@ -39,7 +39,7 @@ final class WhiteboardLarryWaitUITests: XCTestCase {
     let (app, cockpit) = try launch()
     addTeardownBlock { try? self.post(cockpit + "/fake/board-stuck", #"{"seconds": 0}"#) }
     stroke(app, at: 0.4)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let state = app.descendants(matching: .any)["whiteboard-note-state"]
     XCTAssertTrue(state.appears(within: 10), app.debugDescription)
     // The first turn lands and is answered, so the thread is one whose pictures carry marks.
@@ -47,7 +47,7 @@ final class WhiteboardLarryWaitUITests: XCTestCase {
     waitForExpectations(timeout: 20)
     try post(cockpit + "/fake/board-stuck", #"{"seconds": 28}"#)
     stroke(app, at: 0.6)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(state.appears(within: 10), app.debugDescription)
     let retry = app.buttons["whiteboard-larry-retry"]
     XCTAssertTrue(retry.appears(within: 26), app.debugDescription)
@@ -59,6 +59,26 @@ final class WhiteboardLarryWaitUITests: XCTestCase {
     expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: retry)
     expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: state)
     waitForExpectations(timeout: 15)
+  }
+
+  /// Story 765 (bead context-grabber-x3tm): once Larry has the board, Send is dimmed while he looks and after he
+  /// answers, until the next stroke.
+  func testSendIsDimmedOnceLarryHasTheBoardUntilTheNextStroke() throws {
+    let (app, _) = try launch()
+    stroke(app, at: 0.4)
+    let send = app.buttons["whiteboard-send"]
+    XCTAssertTrue(send.isEnabled, "a board he hasn't seen")
+    send.tap()
+    let state = app.descendants(matching: .any)["whiteboard-note-state"]
+    XCTAssertTrue(state.appears(within: 10), app.debugDescription)
+    XCTAssertFalse(send.isEnabled, "dimmed while he looks")
+    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: state)
+    waitForExpectations(timeout: 20)
+    XCTAssertFalse(send.isEnabled, "still dimmed once he has answered")
+    shot(app, "Send dimmed once Larry has the board")
+    stroke(app, at: 0.6)
+    expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: send)
+    waitForExpectations(timeout: 5)
   }
 
   private func launch() throws -> (XCUIApplication, String) {
