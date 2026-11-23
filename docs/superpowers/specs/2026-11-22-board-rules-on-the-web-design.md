@@ -96,6 +96,39 @@ as one box.
   answers `{"name", "contract", "mismatches": [..], "turns": [{"id", "onBoard", "hint"}], "batches": [{"reply",
   "arrivedAt", "matches", "replayedOk", "recordedOk"}]}`, or `{"error": why}`.
 
+## The interface, version 2: rows and folds
+
+Story 1508. Igor, 2026-11-22: "build all of the web features for the Swift core and drag them back and forth". Version 2 adds the
+next two answers the web board takes from the app: which row of writing a tap is on, and what folding a header tucks
+away. Everything in version 1 is unchanged; `bw_info` says `"abi": 2`.
+
+These answers need the board's writing itself, not only its boxes, so the Cockpit sends a second copy, the *outline*,
+held apart from the board `bw_load` keeps:
+
+- Each stroke with its real points and pen width (a width left out is 3), and whether it is hidden.
+- Each kept text and each card as the box the Cockpit measured, since the module cannot measure text. Each moves whole
+  and is nobody's handwriting.
+- Which strokes belong to one group (a text or a card is its own group).
+- The headers as the iPad keeps them: each header's strokes, its `#` mark and deeper marks, and, when it is folded,
+  what its fold holds, what it hid itself, how far the rest slid, how many lines it hides and where its section ended.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_outline_load` | pointer, length of an outline | the number of strokes and boxes read, or `-1` with nothing loaded |
+| `bw_outline_add` | pointer, length of `{"strokes": [...]}` | the number of strokes and boxes now, or `-1` with the outline as it was |
+| `bw_row_at` | `y` (`f64`) | a reply: `{"row": null}` on blank paper, `{"row": {"header", "top", "bottom"}}` on a header's row, else `{"row": {"names", "top", "bottom"}}` with the row's strokes in board order |
+| `bw_fold` | pointer, length of `{"id"}` | a reply: `{"fold": null}` when there is nothing to fold, else `{"fold": {"ids", "own", "shift", "lines", "bottom"}}` |
+
+- The row at a height is the row of writing within half a line of it, as a margin tap or the hold menu on the iPad
+  finds it. A row holding a header is that header.
+- Folding asks what the fold would do and leaves the loaded outline as it was: the Cockpit applies the answer to its
+  own board, then sends the outline again.
+- New writing at the end goes in with `bw_outline_add`; anything else that changes the board loads the outline again.
+- With no outline loaded, both questions answer `{"error"}` saying so, and every failure can be read back as words.
+
+The web board's "Swift N/M" level moves each answer over one step at a time: below the step the web board answers
+itself, at or above it the module does, so the two can be compared on the same board.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
