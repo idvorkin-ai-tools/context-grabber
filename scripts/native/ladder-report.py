@@ -38,7 +38,7 @@ TIMINGS = (f"{HOME}/.treehouse/*/*/*/native/Build/logs/ui-timings.jsonl:"
            f"{os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))}/native/Build/logs/ui-timings.jsonl")
 DEPLOYS = os.environ.get("LEAD_TIMES_DEPLOYS", f"{HOME}/tmp/agent/notes/lead-times/deploys.jsonl")
 # The kinds of deploy that put a change on a device. An upload to TestFlight is not one until it is available.
-DELIVERED = {"cable", "testflight_available"}
+DELIVERED = {"cable", "network", "testflight_available"}  # network: just deploy (story 1511)
 # Story 1017: a climb whose only failures were cases that passed on their retry failed on flakes: a failure too.
 FAILED = ("fail", "timeout", "flaky")
 NOT_RUN = ("unavailable", "interrupted", "censored")

@@ -216,3 +216,5 @@ echo "ota: times: $times"
 mkdir -p "$(dirname "$timings")" && echo "$(date '+%F %T') $version ($build) $sha: $times" >>"$timings"
 # For the watcher: one line, space separated.
 echo "ota-built: $version $build $sha $selected $sum $dest"
+# Story 1511: the build offered to the iPad, so device-build-check accepts it once the iPad reports it.
+"$(dirname "$0")/record-deploy.sh" ipad "$selected" ota_posted >/dev/null || true
