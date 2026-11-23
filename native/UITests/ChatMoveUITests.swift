@@ -33,6 +33,23 @@ final class ChatMoveUITests: XCTestCase {
     // Larry's message offers no such choice; Copy closes the menu and changes nothing.
     let his = element(app, "label BEGINSWITH %@", larrys)
     XCTAssertTrue(his.appears(within: 20), app.debugDescription)
+    if !app.buttons["chat-moved"].firstMatch.exists {
+      moveMine(app, his)
+      app.terminate()
+      app = launch(cockpit)
+    }
+
+    // The old chat, opened afresh: the message is gone, the moved line is there and opens the new chat.
+    let moved = app.buttons["chat-moved"].firstMatch
+    XCTAssertTrue(moved.appears(within: 20), app.debugDescription)
+    XCTAssertTrue(element(app, "label BEGINSWITH %@", larrys).exists, "Larry's reply stays where it was")
+    XCTAssertFalse(element(app, "label BEGINSWITH %@", mine).exists, "my message left this chat")
+    moved.tap()
+    XCTAssertTrue(
+      element(app, "label CONTAINS %@", "Larry heard: \(mine)").appears(within: 20), app.debugDescription)
+  }
+
+  private func moveMine(_ app: XCUIApplication, _ his: XCUIElement) {
     his.press(forDuration: 1.2)
     let copy = app.buttons["Copy"].firstMatch
     XCTAssertTrue(copy.appears(within: 5), app.debugDescription)
@@ -46,17 +63,6 @@ final class ChatMoveUITests: XCTestCase {
     let send = app.buttons["Send to new chat"].firstMatch
     XCTAssertTrue(send.appears(within: 5), app.debugDescription)
     send.tap()
-    XCTAssertTrue(
-      element(app, "label CONTAINS %@", "Larry heard: \(mine)").appears(within: 20), app.debugDescription)
-
-    // The old chat, opened afresh: the message is gone, the moved line is there and opens the new chat.
-    app.terminate()
-    app = launch(cockpit)
-    let moved = app.buttons["chat-moved"].firstMatch
-    XCTAssertTrue(moved.appears(within: 20), app.debugDescription)
-    XCTAssertTrue(element(app, "label BEGINSWITH %@", larrys).exists, "Larry's reply stays where it was")
-    XCTAssertFalse(element(app, "label BEGINSWITH %@", mine).exists, "my message left this chat")
-    moved.tap()
     XCTAssertTrue(
       element(app, "label CONTAINS %@", "Larry heard: \(mine)").appears(within: 20), app.debugDescription)
   }

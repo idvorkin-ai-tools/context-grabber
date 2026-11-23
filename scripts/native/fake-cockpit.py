@@ -60,7 +60,8 @@ the asks as /fake/asks does (with "other" as there) and has Larry put a question
 ask, x, y} in the picture's pixels, with its frame); GET /ink/answers?ids=a,b answers with the question and answer of the
 asks decided here, as ink_store.decision_answer reads them, and lists the rest as unknown.
 Thread igor2-88g.820 holds one message of Igor's and Larry's answer, for Send to new chat (story 820; ChatMoveUITests
-moves Igor's out, so a second run needs a fresh fake Cockpit, as the chat UI script starts).
+moves Igor's out, so a retry against the same fake Cockpit checks only the moved line; a full second run needs a
+fresh one, as the chat UI script starts).
 Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu (stories 518-519, 540-541), apart from .900, where the simulator's outbox can hold leftover smoke items; the chat UI script and the ladder's chat step clear the outbox's own leftovers for .629 first (forget-chat-thread.sh, #801, #812).
 POST /ink/to-text {name, png} reads handwriting as the Cockpit's ink_text.py answers (stories 920-922): a PNG in base64
 or a 400 with its reason, then {ok, text, too_long, advice, model, via} with the text "hello"; POST /fake/to-text
