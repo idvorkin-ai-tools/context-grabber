@@ -1493,3 +1493,143 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the iPhone or the Mac
 - **When:** I open Settings on the Home screen
 - **Then:** there is no *PaperKit board* row
+
+---
+
+### User Story 1206:
+
+- **Summary:** *Open in Chat* on a board slides its thread in over the board, and *Back* brings back the board as he left it
+- **Status:** implemented in [360bfbfe](https://github.com/idvorkin/context-grabber/commit/360bfbfe) (its UI test reaching Open in Chat on the iPad: [5e7ba3ab](https://github.com/idvorkin/context-grabber/commit/5e7ba3ab)); verified by host tests and lint (`just native-test`, `BoardChatJumpTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked, the lock probe overridden on Igor's word: `ChatImageUITests` 9 of 9, `testOpenInChatSlidesTheThreadInAndBoardGoesBack` among them); not yet seen on the iPad; no iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*; [The board's conversation](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md)
+- **Issues:** bead context-grabber-dbku (Igor, 2026-11-22: "when I click Jump to board or Jump to chat, it seems to go through a main list. I want it deeply integrated to the board")
+
+#### Use Case:
+- **As** Igor on a board that has a thread with Larry
+- **I want to** open the thread straight from the board and come straight back
+- **so that** reading the conversation never drops me on home or a list, and the board is as I left it
+
+#### Acceptance Criteria:
+- **Scenario:** To the thread and back
+- **Given:** a board with a thread
+- **When:** I tap *Open in Chat* (on an iPhone, the note's line)
+- **Then:** the thread slides in over the board, as a board slides in from the boards list, with no home or list on the way; *Back* on the thread brings back the board
+
+---
+
+### User Story 1207:
+
+- **Summary:** A jump back to where I came from goes back, rather than opening a second copy
+- **Status:** implemented in [360bfbfe](https://github.com/idvorkin/context-grabber/commit/360bfbfe) (its UI test reaching Open in Chat on the iPad: [5e7ba3ab](https://github.com/idvorkin/context-grabber/commit/5e7ba3ab)); verified by host tests and lint (`just native-test`, `BoardChatJumpTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked, the lock probe overridden on Igor's word: `ChatImageUITests` 9 of 9, `testOpenInChatOnABoardFromItsThreadGoesBack` and `testAPictureFromABoardJumpsToIt` among them); not yet seen on the iPad; no iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
+- **Issues:** bead context-grabber-dbku
+
+#### Use Case:
+- **As** Igor going back and forth between a board and its thread
+- **I want to** have each jump to the place I came from take me back there
+- **so that** the screens don't pile up and one *Back* always leaves
+
+#### Acceptance Criteria:
+- **Scenario:** Board, thread, board
+- **Given:** a thread I opened from its board
+- **When:** I tap *Board* in its top bar
+- **Then:** the thread slides away and I am on that same board, not a second copy of it
+
+---
+
+### User Story 1208:
+
+- **Summary:** A board already open elsewhere is brought forward rather than opened twice
+- **Status:** implemented in [360bfbfe](https://github.com/idvorkin/context-grabber/commit/360bfbfe); verified by host tests (`just native-test`, `BoardChatJumpTests` for the hop's session-log event) and the iPad simulator's `ChatImageUITests` (9 of 9, 2026-11-22); not yet seen on the iPad
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
+- **Issues:** bead context-grabber-dbku
+
+#### Use Case:
+- **As** Igor jumping to a board from its thread
+- **I want to** never have one board open twice
+- **so that** two copies never fight over one board's ink
+
+#### Acceptance Criteria:
+- **Scenario:** The board is open in its own window or in the whiteboard behind
+- **Given:** a board open in an iPad window of its own, or in the whiteboard under the chat
+- **When:** I jump to it from its thread
+- **Then:** that open board is brought forward, as a link brings it, and no second copy opens
+
+---
+
+### User Story 1223:
+
+- **Summary:** A board waits, saved and quiet, while its thread is over it
+- **Status:** implemented in [360bfbfe](https://github.com/idvorkin/context-grabber/commit/360bfbfe) (its UI test reaching Open in Chat on the iPad: [5e7ba3ab](https://github.com/idvorkin/context-grabber/commit/5e7ba3ab)); verified by host tests and lint (`just native-test`, `BoardChatJumpTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked, the lock probe overridden on Igor's word: `ChatImageUITests` 9 of 9, `testOpenInChatSlidesTheThreadInAndBoardGoesBack` among them); the board closing when the whiteboard is taken down with its thread, or anything pushed from it, still over it: `BoardChatJumpTests` (host); not yet seen on the iPad; no iPhone runs (whiteboard work, Igor 2026-11-22). Split from story 1206 in review
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
+- **Issues:** bead context-grabber-dbku
+
+#### Use Case:
+- **As** Igor on a board, looking at its thread
+- **I want to** find the board as I left it when I come back
+- **so that** a look at the conversation never loses ink, leaves the mic listening, or drops a change Larry is holding
+
+#### Acceptance Criteria:
+- **Scenario:** The board waits
+- **Given:** a board with ink not yet saved, the mic on, or a change of Larry's it is holding
+- **When:** I open its thread and come back
+- **Then:** the ink was saved as I left, the mic is off, Larry's held change still waits, and the board is still there even if it was a new empty board
+
+---
+
+### User Story 1224:
+
+- **Summary:** On an iPhone, a board row's chat bubble slides its thread in over the boards list
+- **Status:** implemented in [360bfbfe](https://github.com/idvorkin/context-grabber/commit/360bfbfe) (its UI test reaching Open in Chat on the iPad: [5e7ba3ab](https://github.com/idvorkin/context-grabber/commit/5e7ba3ab)); verified by host tests and lint (`just native-test`, `BoardChatJumpTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked, the lock probe overridden on Igor's word: `ChatImageUITests` 9 of 9); not yet seen on an iPhone (whiteboard work, Igor 2026-11-22). Split from story 1206 in review
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
+- **Issues:** bead context-grabber-dbku
+
+#### Use Case:
+- **As** Igor on an iPhone, in the boards list
+- **I want to** open a board's thread from its row and come back to the list
+- **so that** reading a board's conversation never drops me on home
+
+#### Acceptance Criteria:
+- **Scenario:** From the boards list on an iPhone
+- **Given:** a row's chat bubble
+- **When:** I tap it
+- **Then:** the board's thread slides in over the list, and *Back* comes back to the list
+
+---
+
+### User Story 1225:
+
+- **Summary:** Open in Chat on a board I opened from its thread goes back to that thread
+- **Status:** implemented in [360bfbfe](https://github.com/idvorkin/context-grabber/commit/360bfbfe) (its UI test reaching Open in Chat on the iPad: [5e7ba3ab](https://github.com/idvorkin/context-grabber/commit/5e7ba3ab)); verified by host tests and lint (`just native-test`, `BoardChatJumpTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked, the lock probe overridden on Igor's word: `ChatImageUITests` 9 of 9, `testOpenInChatOnABoardFromItsThreadGoesBack` among them); not yet seen on the iPad; no iPhone runs (whiteboard work, Igor 2026-11-22). Split from story 1207 in review
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
+- **Issues:** bead context-grabber-dbku
+
+#### Use Case:
+- **As** Igor going back and forth between a thread and its board
+- **I want to** have *Open in Chat* take me back to the thread I came from
+- **so that** the screens don't pile up and one *Back* always leaves
+
+#### Acceptance Criteria:
+- **Scenario:** Thread, board, thread
+- **Given:** a board I opened from its thread
+- **When:** I tap *Open in Chat*
+- **Then:** the board slides away and I am on that same thread
+
+---
+
+### User Story 1226:
+
+- **Summary:** Every hop between a board and its chat is in the session log
+- **Status:** implemented in [360bfbfe](https://github.com/idvorkin/context-grabber/commit/360bfbfe); verified by host tests (`just native-test`, `BoardChatJumpTests` for the hop's session-log event); not yet seen on the iPad. Split from story 1208 in review
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
+- **Issues:** bead context-grabber-dbku
+
+#### Use Case:
+- **As** the agent reading the session log
+- **I want to** see each hop between a board and its chat
+- **so that** a jump that went the long way shows in the log
+
+#### Acceptance Criteria:
+- **Scenario:** The log
+- **Given:** any jump between a board and its chat
+- **When:** it happens
+- **Then:** the session log says where from, where to, how (slid in, went back, or brought forward) and whether any list was passed through

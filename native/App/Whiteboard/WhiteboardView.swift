@@ -21,6 +21,15 @@ struct WhiteboardView: View {
   @State private var pageHeight: CGFloat = 0
   /// #1005 (story 1054): Paste shows only while there is text to paste.
   @State private var clipboardHasText = false
+  /// Bead context-grabber-dbku, story 1206: the board's thread, slid in over the board by *Open in Chat* or the note.
+  @State private var chatJump: ChatJump?
+  @Environment(\.dismiss) private var dismiss
+  /// Story 1225: the thread this board was slid in over, so *Open in Chat* on it goes back rather than piling up.
+  private let cameFromThread: String?
+  /// Story 1223: the boards set aside under this one, told when it comes and goes.
+  private let under: BoardsUnder
+  @State private var screenID = UUID().uuidString
+  private let chat: ChatModel
   private let logger: BugLogger
   private let log: SessionLog
   private let callLive: AnyPublisher<Bool, Never>
@@ -65,7 +74,10 @@ struct WhiteboardView: View {
   /// Story 889: a question card's own answer is spoken with Chat's mic.
   private let chatVoice: ChatVoiceModel
 
-  init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
+  init(
+    board: BoardEntry, store: WhiteboardStore, app: AppModel, cameFromThread: String? = nil,
+    under: BoardsUnder = BoardsUnder()
+  ) {
     _model = StateObject(
       wrappedValue: WhiteboardModel(
         board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit,
@@ -79,6 +91,9 @@ struct WhiteboardView: View {
     log = app.log
     onPhone = store.onPhone
     openChat = { [weak app] key in app?.open(route: .chat(thread: key), from: "whiteboard") }
+    self.cameFromThread = cameFromThread
+    self.under = under
+    chat = app.chat
     decisions = app.chat.decisions
     chatVoice = app.chatVoice
   }
@@ -252,13 +267,26 @@ struct WhiteboardView: View {
       }
     }
     .onAppear {
+      under.appeared(screenID)
+      model.backFromChat()
       model.opened()
       model.startWatchingLarry()
     }
     .onDisappear {
+      under.left(screenID)
+      // Story 1223: its thread slid in over it; the board waits, saved, for Back.
+      if chatJump != nil {
+        model.setAsideForChat()
+        return
+      }
       model.endPlayback()  // story 957: closing the board ends playback, changing nothing
       model.stopMic(why: "closed")
       model.close()
+    }
+    .navigationDestination(item: $chatJump) { jump in
+      ChatThreadView(
+        chat: chat, voice: chatVoice, key: jump.thread, title: chat.title(of: jump.thread), logger: logger,
+        cameFromBoard: model.board.id, under: under.adding(model))
     }
     .onChange(of: scenePhase) { _, phase in
       if phase == .background {
@@ -269,6 +297,24 @@ struct WhiteboardView: View {
     }
     .onReceive(callLive) { live in if live { model.stopMic(why: "call") } }
     .onReceive(reportOpen) { open in if open { model.stopMic(why: "report") } }
+  }
+
+  /// Bead context-grabber-dbku: the board's thread slides in over it, or, when it is the thread this board was slid
+  /// over, the board goes back to it.
+  private func openThread(_ key: String, from: String) {
+    let how = BoardChatJump.how(
+      .thread(key), cameFrom: cameFromThread.map(BoardChatJump.Target.thread), openElsewhere: false)
+    log.event(
+      "jump",
+      [
+        "from": from, "board": model.board.id, "to": "thread", "thread": key, "how": how.rawValue,
+        "through_list": how.throughList,
+      ])
+    switch how {
+    case .wentBack: dismiss()
+    case .slidIn: chatJump = ChatJump(thread: key)
+    case .broughtForward: openChat(key)
+    }
   }
 
   /// Stories 970–972: Larry's refused change, with Retry and ×. Each takes a finger's worth of the chip, all of it its
@@ -307,7 +353,8 @@ struct WhiteboardView: View {
   /// The note's line (story 766), from the model's values; its taps go back to the model (#1039).
   private var noteStrip: some View {
     let model = model
-    let (onPhone, openChat) = (onPhone, openChat)
+    let onPhone = onPhone
+    let openChat: (String) -> Void = { openThread($0, from: "board_note") }
     let shown: (ContinuousClock.Instant) -> WhiteboardNoteStrip.Shown = { now in
       WhiteboardNoteStrip.Shown(
         line: WhiteboardNote.line(
@@ -327,7 +374,7 @@ struct WhiteboardView: View {
   /// The open note over the board on an iPad (story 768), from the model's values (#1039).
   private var conversationPanel: some View {
     let model = model
-    let openChat = openChat
+    let openChat: (String) -> Void = { openThread($0, from: "board_panel") }
     let live: (ContinuousClock.Instant) -> [WhiteboardNote.Row] = { now in
       WhiteboardNote.live(
         thread: model.thread, larry: model.larry, now: now, cockpitAnswering: !model.larryAway,
@@ -339,4 +386,10 @@ struct WhiteboardView: View {
       current: live(.now), live: live, pageHeight: pageHeight, openInChat: openInChat,
       linkOpened: { model.logLinkOpened($0) })
   }
+}
+
+/// Bead context-grabber-dbku: a board's thread to slide in over it.
+struct ChatJump: Hashable, Identifiable {
+  let thread: String
+  var id: String { thread }
 }

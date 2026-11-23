@@ -674,15 +674,26 @@ struct ChatThreadView: View {
   /// #1091: *Board* is asking iCloud for the thread's board, and why the last tap couldn't open it.
   @State private var lookingForBoard = false
   @State private var boardProblem: BugProblem?
+  /// Bead context-grabber-dbku: the board slid in over this thread by *Board* or a picture's *Jump to board*.
+  @State private var boardJump: BoardJump?
   @Environment(\.dismiss) private var dismiss
+  /// Story 1207: the board this thread was slid in over, so *Board* on it goes back rather than opening a second copy.
+  private var cameFromBoard: String?
+  /// Story 1223: the boards set aside under this thread, told when it comes and goes.
+  private var under = BoardsUnder()
 
-  init(chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger) {
+  init(
+    chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger,
+    cameFromBoard: String? = nil, under: BoardsUnder = BoardsUnder()
+  ) {
     self.chat = chat
     self.inbox = chat.inbox
     self.voice = voice
     self.fixedKey = key
     self.fixedTitle = title
     self.logger = logger
+    self.cameFromBoard = cameFromBoard
+    self.under = under
   }
 
   /// The + (#536): an empty thread with the ordinary bar; its first Send starts the thread.
@@ -830,10 +841,14 @@ struct ChatThreadView: View {
     }
     // No identifier on the whole screen: SwiftUI hands it down over a contained element's own, and the decision
     // card's `decision-card-<id>` read as `chat-thread` (#878, on the simulator).
-    .onAppear { if let key { chat.open(key) } }
+    .onAppear {
+      under.appeared(screenID)
+      if let key { chat.open(key) }
+    }
     .onDisappear {
       if let key { chat.close(key) }
       chat.viewGone()
+      under.left(screenID)
     }
     // A new chat becomes its thread once the Cockpit has the first message: the same screen, now live.
     .onChange(of: first?.chatThread) { _, thread in
@@ -841,8 +856,13 @@ struct ChatThreadView: View {
     }
     .onChange(of: messages.last?.id, initial: true) { runHoldHook() }
     .navigationDestination(item: $jumpTo) { target in
-      ChatThreadView(chat: chat, voice: voice, key: target, title: chat.title(of: target), logger: logger)
+      ChatThreadView(
+        chat: chat, voice: voice, key: target, title: chat.title(of: target), logger: logger, under: under)
     }
+    .navigationDestination(item: $boardJump) { jump in
+      if let screen = chat.boardScreen(jump.board, key, under) { screen }
+    }
+    .environment(\.jumpToBoard, { board, from in go(toBoard: board, from: from) })
     // Story 744: an Inbox chip, in a bubble or the strip above, opens its thread here; any other link as ever.
     .environment(\.openURL, OpenURLAction(handler: openInApp))
     .chatTextSize()
@@ -869,7 +889,26 @@ struct ChatThreadView: View {
           "ms": .int(Int((ProcessInfo.processInfo.systemUptime - started) * 1000)),
         ])
       boardProblem = problem
-      if problem == nil { chat.openBoard(found.board) }
+      if problem == nil { go(toBoard: found.board, from: "thread_board") }
+    }
+  }
+
+  /// Bead context-grabber-dbku: a found board slides in over this thread, or, when it is the board this thread was
+  /// slid over, this thread goes back to it; a board open elsewhere is brought forward as a link brings it.
+  private func go(toBoard board: String, from: String) {
+    let how = BoardChatJump.how(
+      .board(board), cameFrom: cameFromBoard.map(BoardChatJump.Target.board),
+      openElsewhere: chat.boardOpenElsewhere(board))
+    logger(
+      "jump",
+      [
+        "from": .string(from), "thread": .string(key ?? ""), "to": "board", "board": .string(board),
+        "how": .string(how.rawValue), "through_list": .bool(how.throughList),
+      ])
+    switch how {
+    case .wentBack: dismiss()
+    case .broughtForward: chat.openBoard(board)
+    case .slidIn: boardJump = BoardJump(board: board)
     }
   }
 
@@ -1235,6 +1274,18 @@ private struct ChatDocument: View {
   }
 }
 
+/// Bead context-grabber-dbku: a board to slide in over a thread.
+struct BoardJump: Hashable, Identifiable {
+  let board: String
+  var id: String { board }
+}
+
+extension EnvironmentValues {
+  /// Bead context-grabber-dbku: how a picture inside a thread jumps to its board, over that same thread (nil outside
+  /// one, where the jump goes the link's way).
+  @Entry var jumpToBoard: (@MainActor (_ board: String, _ from: String) -> Void)?
+}
+
 private struct ChatImage: View {
   let url: URL
   let message: String
@@ -1248,6 +1299,7 @@ private struct ChatImage: View {
   @State private var jumpProblem: BugProblem?
   /// The cover is going down for a jump: the board opens once it has, so no cover is left stuck.
   @State private var leaving = false
+  @Environment(\.jumpToBoard) private var jumpToBoard
 
   private func close(how: String) {
     full = false
@@ -1283,7 +1335,9 @@ private struct ChatImage: View {
 
   private func coverDismissed() {
     jumpProblem = nil
-    if leaving, let board { chat.openBoard(board) }
+    if leaving, let board {
+      if let jumpToBoard { jumpToBoard(board, "picture") } else { chat.openBoard(board) }
+    }
     leaving = false
   }
 

@@ -1312,7 +1312,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A board's thread has *Board* in its top bar, back to the board
 - **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the host by `ChatThreadBoardTests` (the newest board message names it, else this device's record; none for a thread with no board), the Mac build, and the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testABoardsThreadHasBoardInItsBarBackToTheBoard` against the fake Cockpit; the iPad and the phone not yet; a board drawn here opening at once in [4933b0ba](https://github.com/idvorkin/context-grabber/commit/4933b0ba) (#1137)
-- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091), [#1137](https://github.com/idvorkin/context-grabber/issues/1137)
+- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091), [#1137](https://github.com/idvorkin/context-grabber/issues/1137), bead context-grabber-dbku
 - **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1324,7 +1324,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Back to the board from its thread
 - **Given:** a thread holds a message sent from a board that iCloud or this device holds, or this device started the thread from one of its boards
 - **When:** I open the thread and tap *Board*
-- **Then:** a board drawn on this device opens at once, another device's after iCloud is asked, with what is on it now, and its *Back* shows the boards
+- **Then:** a board drawn on this device opens at once, another device's after iCloud is asked, with what is on it now, sliding in over the thread with no home or boards list on the way, and its *Back* comes back to the thread (bead context-grabber-dbku)
 
 ---
 
@@ -1512,7 +1512,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A board picture in a thread jumps to that board as it is now
 - **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267), a board drawn here opening at once in [4933b0ba](https://github.com/idvorkin/context-grabber/commit/4933b0ba) (#1137, story 1137); verified on the simulator against the fake Cockpit (the jump); a board that comes down from iCloud on the jump, and sending `board` from the app (another branch), not yet
-- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603), [#1137](https://github.com/idvorkin/context-grabber/issues/1137)
+- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603), [#1137](https://github.com/idvorkin/context-grabber/issues/1137), bead context-grabber-dbku
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1524,7 +1524,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A picture from a board
 - **Given:** a thread holds a picture sent from a whiteboard that iCloud or this device holds
 - **When:** I tap the picture, then *Jump to board*
-- **Then:** the full-size view goes down and the board opens with what is on it now (at once for a board drawn on this device, after asking iCloud for another device's); *Done* on the boards takes me home, and no full-size view is left in the way
+- **Then:** the full-size view goes down and the board slides in over the thread with what is on it now (at once for a board drawn on this device, after asking iCloud for another device's), with no home or boards list on the way; *Back* on the board comes back to the thread, and no full-size view is left in the way (bead context-grabber-dbku)
 
 ---
 

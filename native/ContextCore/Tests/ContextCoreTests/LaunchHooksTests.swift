@@ -240,6 +240,13 @@ final class LaunchHooksTests: XCTestCase {
     ])
     XCTAssertEqual(full?.from, "Igor's iPad")
     XCTAssertEqual(full?.oldInk, 3)
+    XCTAssertNil(alone?.thread)
+    // Bead context-grabber-dbku: the fixture's thread with Larry, so the board offers *Open in Chat*.
+    let threaded = BoardFixtureHook([
+      "GRABBER_BOARD_FIXTURE": "board-3", "GRABBER_BOARD_FIXTURE_THREAD": "igor2-88g.603",
+    ])
+    XCTAssertEqual(threaded?.thread, "igor2-88g.603")
+    XCTAssertNil(BoardFixtureHook(["GRABBER_BOARD_FIXTURE": "b", "GRABBER_BOARD_FIXTURE_THREAD": ""])?.thread)
     let odd = BoardFixtureHook([
       "GRABBER_BOARD_FIXTURE": "b", "GRABBER_BOARD_FIXTURE_FROM": "", "GRABBER_BOARD_FIXTURE_OLD_INK": "some",
     ])

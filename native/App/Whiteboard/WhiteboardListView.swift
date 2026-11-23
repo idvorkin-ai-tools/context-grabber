@@ -19,6 +19,8 @@ struct WhiteboardListView: View {
   /// #1163, story 1097: the board whose chat the iPhone is looking for, and why the last look found none.
   @State private var findingChat: String?
   @State private var chatProblem: BugProblem?
+  /// Bead context-grabber-dbku: a row's thread, slid in over the list by its chat bubble; Back comes back to the list.
+  @State private var listChat: ChatJump?
   private let app: AppModel
   private let onDone: () -> Void
 
@@ -73,6 +75,11 @@ struct WhiteboardListView: View {
       }
       .navigationDestination(for: String.self) { id in
         if let board = store.index.board(id) { WhiteboardView(board: board, store: store, app: app) }
+      }
+      .navigationDestination(item: $listChat) { jump in
+        ChatThreadView(
+          chat: app.chat, voice: app.chatVoice, key: jump.thread, title: app.chat.title(of: jump.thread),
+          logger: app.bugLogger)
       }
     }
     .accessibilityIdentifier("whiteboard-list")
@@ -204,7 +211,14 @@ struct WhiteboardListView: View {
       board: board.id, title: board.title, icloud: store.index.board(board.id)?.thread ?? board.thread,
       drawnHere: store.editable(board), cockpit: app.chat.cockpit, log: app.log, from: "list")
     switch answer {
-    case .thread(let key): app.open(route: .chat(thread: key), from: "whiteboard_list")
+    case .thread(let key):
+      app.log.event(
+        "jump",
+        [
+          "from": "list_bubble", "board": board.id, "to": "thread", "thread": key,
+          "how": BoardChatJump.How.slidIn.rawValue, "through_list": false,
+        ])
+      listChat = ChatJump(thread: key)
     case .problem(let problem): chatProblem = problem
     case .busy: break
     }

@@ -9,12 +9,16 @@ public struct BoardFixtureHook: Equatable, Sendable {
   public var board: String
   public var from: String?
   public var oldInk: Int?
+  /// `GRABBER_BOARD_FIXTURE_THREAD=<thread>`: the board's thread with Larry, as if it had sent him a picture (bead
+  /// context-grabber-dbku: *Open in Chat* on the simulator).
+  public var thread: String?
 
   public init?(_ env: [String: String]) {
     guard let board = env["GRABBER_BOARD_FIXTURE"], !board.isEmpty else { return nil }
     self.board = board
     from = env["GRABBER_BOARD_FIXTURE_FROM"]
     oldInk = env["GRABBER_BOARD_FIXTURE_OLD_INK"].flatMap { Int($0) }
+    thread = env["GRABBER_BOARD_FIXTURE_THREAD"].flatMap { $0.isEmpty ? nil : $0 }
   }
 }
 

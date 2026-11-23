@@ -6,6 +6,7 @@ import BackgroundTasks
 import BugKit
 import ContextCore
 import Foundation
+import SwiftUI
 import UserNotifications
 
 @MainActor
@@ -48,6 +49,14 @@ final class ChatModel: ObservableObject {
   var findBoard: @MainActor (String, String) async -> BugProblem? = { _, _ in nil }
   /// #603, set by the app: leaves the thread for that board.
   var openBoard: @MainActor (String) -> Void = { _ in }
+  /// Bead context-grabber-dbku, set by the app: the board's own screen, slid in over a thread, told which thread it was
+  /// jumped from and the boards set aside under it; nil when the board isn't here.
+  var boardScreen: @MainActor (_ board: String, _ fromThread: String?, _ under: BoardsUnder) -> AnyView? = {
+    _, _, _ in nil
+  }
+  /// Bead context-grabber-dbku, story 1208, set by the app: the board is already open on this device (its own window,
+  /// the whiteboard behind), so a jump brings that one forward instead of opening a second copy.
+  var boardOpenElsewhere: @MainActor (String) -> Bool = { _ in false }
   /// The list or a thread has left the screen: when Chat is closing, a link waiting for it goes on (bead
   /// context-grabber-mzdf). It also leaves when a thread is pushed over it, which the stack tells apart.
   var viewGone: @MainActor () -> Void = {}

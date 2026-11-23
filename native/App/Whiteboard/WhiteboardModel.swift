@@ -203,6 +203,9 @@ final class WhiteboardModel: ObservableObject {
   /// (bead context-grabber-x3tm).
   @Published var larryFrameMoved = true
   var watchTask: Task<Void, Never>?
+  /// Story 1223 (bead context-grabber-dbku): its thread is slid in over it; the board waits, saved, for Back.
+  var asideForChat = false
+  var chatCover = BoardCover()
   var lookFailures = 0
 
   static let ghostsKey = "whiteboard_ghosts"

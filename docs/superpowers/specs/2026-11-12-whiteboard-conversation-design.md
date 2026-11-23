@@ -185,7 +185,8 @@ of the screen is just under the panel.
   reading (bead context-grabber-97s): it doesn't jump back down under his finger. Scrolled back to the bottom, it
   follows the newest again; closed and opened again, it opens at the newest.
 - **It is the conversation, not a log of turns.** Larry's words in full, newest at the bottom, up to the last ten
-  messages; *Open in Chat* opens the whole thread. The thread's top bar has *Board*, which comes back to
+  messages; *Open in Chat* slides the whole thread in over the board, and *Back* brings back the board as he left it
+  (bead context-grabber-dbku). The thread's top bar has *Board*, which comes back to
   this board ([native chat, A board's thread opens its board](2026-10-25-native-chat-design.md); #1091). Igor's pictures that carried no words of his (the *Your turn on
   the board* the board sends on its own) are not rows: they were most of the panel, between Larry's sentences. A
   picture that went with Igor's own spoken words shows as a row of those words.
@@ -220,7 +221,8 @@ of the screen is just under the panel.
 - **It closes on a tap on the line.** It doesn't close when Larry answers or when Igor draws. Open or closed is
   remembered for the next board.
 - **Nothing on the board is under the panel**, so every suggestion stays tappable while it is open.
-- **On an iPhone** there is no panel: a tap on the line opens the board's thread in Chat, when it has one.
+- **On an iPhone** there is no panel: a tap on the line slides the board's thread in over the board, when it has one,
+  and *Back* brings back the board (bead context-grabber-dbku).
 - **A tap that finds no thread says so** (Igor, 2026-11-22, #1161: "I should be able to interact with the chat"; the
   tap did nothing, silently). A board's thread is known only to the device that sent its pictures to Larry, so the
   iPhone looking at an iPad's board finds none. The note's middle then says, for its few seconds, where the
@@ -258,7 +260,8 @@ the iPhone. Not sure, maybe something subtle." Just before, a tap on the note of
 nothing: that board had a thread with Larry, but only the iPad knew which one.
 
 - **Every row of the boards list on an iPhone ends in a small chat bubble**, quiet, in the secondary colour, at least
-  44 points to tap. A tap on it opens that board's thread in Chat. A tap anywhere else on the row opens the board, as
+  44 points to tap. A tap on it slides that board's thread in over the list, and *Back* comes back to the list (bead
+  context-grabber-dbku). A tap anywhere else on the row opens the board, as
   before. The iPad and the Mac have no bubble: there the board's panel holds its conversation.
 - **The board's thread is found wherever it was started.** The one this device started is used at once. Otherwise
   **the board carries its thread through iCloud** (Igor, 2026-11-22, #1161, option B): the device that sends a

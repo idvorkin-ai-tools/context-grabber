@@ -4,6 +4,8 @@
 //  Stories 317–319, 228 (#603): a picture from a board also jumps to that board; a missing board says so and the
 //  picture stays. Stories 1122–1124 (#1091): the board's thread itself has *Board* in its bar, to the same ends. A link to a missing board staying on the boards and saying so is whiteboard code, not chat's:
 //  `WhiteboardRowDeleteUITests` ends on it, and why a board can't open is `BoardIndexTests` (story 770).
+//  Stories 1206–1208 (bead context-grabber-dbku): each jump between a board and its thread slides the other in over
+//  where he is, never through home or a list, and *Back* (or a jump back) returns to where he jumped from.
 
 import XCTest
 
@@ -17,15 +19,22 @@ final class ChatImageUITests: XCTestCase {
   }
 
   /// The thread, with its picture opened full size by itself when `picture`.
-  private func launchThread(_ thread: String, board: String? = nil, picture: Bool) throws -> XCUIApplication {
+  private func launchThread(
+    _ thread: String, board: String? = nil, picture: Bool, link: String? = nil, boardThread: String? = nil,
+    conversationOpen: Bool = false
+  ) throws -> XCUIApplication {
     guard let cockpit = ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], !cockpit.isEmpty else {
       throw XCTSkip("needs the fake Cockpit: run scripts/native/test-chat-ui.sh")
     }
     let app = XCUIApplication.forTests()
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     if picture { app.launchEnvironment["GRABBER_CHAT_IMAGE"] = "open" }
-    app.launchEnvironment["GRABBER_LINK"] = "grabbernative://chat?thread=\(thread)"
+    app.launchEnvironment["GRABBER_LINK"] = link ?? "grabbernative://chat?thread=\(thread)"
     if let board { app.launchEnvironment["GRABBER_BOARD_FIXTURE"] = board }
+    if let boardThread { app.launchEnvironment["GRABBER_BOARD_FIXTURE_THREAD"] = boardThread }
+    // On an iPad, Open in Chat is in the board's conversation panel, and a board with nothing to say shows no note to
+    // open it with: start with the panel open (the setting the note's chevron keeps).
+    if conversationOpen { app.launchArguments += ["-whiteboard_conversation_open", "YES"] }
     app.launch()
     return app
   }
@@ -129,15 +138,14 @@ final class ChatImageUITests: XCTestCase {
     jump.tap()
     XCTAssertTrue(app.descendants(matching: .any)["whiteboard"].appears(within: 15), app.debugDescription)
     XCTAssertFalse(app.buttons["chat-image-done"].exists, "no zoom left stuck over the board")
+    XCTAssertFalse(app.buttons["whiteboard-done"].exists, "slid in over the thread, not through the boards")
 
-    // Out of the board and the list: home, not a stuck cover.
+    // Story 317 (bead context-grabber-dbku): Back comes back to the thread, not the boards or home.
     let back = app.navigationBars.buttons.firstMatch
     XCTAssertTrue(back.appears(within: 5), app.debugDescription)
     back.tap()
-    let done = app.buttons["whiteboard-done"]
-    XCTAssertTrue(done.appears(within: 10), app.debugDescription)
-    done.tap()
-    XCTAssertTrue(app.buttons["home-call"].appears(within: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["chat-thread-board"].appears(within: 10), "back on the thread: \(app.debugDescription)")
+    XCTAssertFalse(app.buttons["whiteboard-done"].exists, app.debugDescription)
   }
 
   func testAMissingBoardSaysSoAndThePictureStays() throws {
@@ -154,7 +162,8 @@ final class ChatImageUITests: XCTestCase {
     XCTAssertTrue(app.buttons["chat-image-done"].waitForNonExistence(timeout: 5), app.debugDescription)
   }
 
-  /// Story 1122 (#1091): a board's thread has *Board* in its bar; it opens the board, whose Back shows the boards.
+  /// Story 1122 (#1091): a board's thread has *Board* in its bar; it slides the board in, whose Back comes back to the
+  /// thread (bead context-grabber-dbku).
   func testABoardsThreadHasBoardInItsBarBackToTheBoard() throws {
     let app = try launchThread("igor2-88g.603", board: "board-603", picture: false)
     let board = app.buttons["chat-thread-board"]
@@ -164,7 +173,56 @@ final class ChatImageUITests: XCTestCase {
     let back = app.navigationBars.buttons.firstMatch
     XCTAssertTrue(back.appears(within: 5), app.debugDescription)
     back.tap()
-    XCTAssertTrue(app.buttons["whiteboard-done"].appears(within: 10), "Back shows the boards: \(app.debugDescription)")
+    XCTAssertTrue(app.buttons["chat-thread-board"].appears(within: 10), "back on the thread: \(app.debugDescription)")
+    XCTAssertFalse(app.buttons["whiteboard-done"].exists, "no boards on the way: \(app.debugDescription)")
+  }
+
+  /// The board's *Open in Chat*: the panel's on an iPad (opened by a tap on the note when it's closed), the note itself
+  /// on an iPhone.
+  private func openInChat(_ app: XCUIApplication) {
+    let chat = app.buttons["whiteboard-conversation-chat"]
+    if chat.exists {
+      chat.tap()
+      return
+    }
+    let note = app.descendants(matching: .any)["whiteboard-note"]
+    XCTAssertTrue(note.appears(within: 10), app.debugDescription)
+    note.tap()
+    if chat.appears(within: 3) { chat.tap() }
+  }
+
+  /// Stories 1206, 1207 (bead context-grabber-dbku): a board opened by a link slides its thread in with *Open in Chat*;
+  /// the thread's *Board* goes back to that same board, whose Back then shows the boards it was opened over.
+  func testOpenInChatSlidesTheThreadInAndBoardGoesBack() throws {
+    let app = try launchThread(
+      "igor2-88g.603", board: "board-603", picture: false, link: "grabbernative://whiteboard?board=board-603",
+      boardThread: "igor2-88g.603", conversationOpen: true)
+    XCTAssertTrue(app.descendants(matching: .any)["whiteboard"].appears(within: 20), app.debugDescription)
+    openInChat(app)
+    let board = app.buttons["chat-thread-board"]
+    XCTAssertTrue(board.appears(within: 15), "the thread slid in over the board: \(app.debugDescription)")
+    XCTAssertFalse(app.buttons["whiteboard-done"].exists, "no boards list on the way: \(app.debugDescription)")
+    board.tap()
+    XCTAssertTrue(app.descendants(matching: .any)["whiteboard"].appears(within: 15), app.debugDescription)
+    XCTAssertTrue(board.disappears(within: 10), "went back, not a second copy over the thread: \(app.debugDescription)")
+    let back = app.navigationBars.buttons.firstMatch
+    XCTAssertTrue(back.appears(within: 5), app.debugDescription)
+    back.tap()
+    XCTAssertTrue(app.buttons["whiteboard-done"].appears(within: 10), "one Back to the boards: \(app.debugDescription)")
+  }
+
+  /// Story 1225: a board slid in over its thread goes back to that thread with *Open in Chat*.
+  func testOpenInChatOnABoardFromItsThreadGoesBack() throws {
+    let app = try launchThread(
+      "igor2-88g.603", board: "board-603", picture: false, boardThread: "igor2-88g.603", conversationOpen: true)
+    let board = app.buttons["chat-thread-board"]
+    XCTAssertTrue(board.appears(within: 20), app.debugDescription)
+    board.tap()
+    XCTAssertTrue(app.descendants(matching: .any)["whiteboard"].appears(within: 15), app.debugDescription)
+    openInChat(app)
+    XCTAssertTrue(board.appears(within: 10), "back on the thread: \(app.debugDescription)")
+    XCTAssertTrue(
+      app.descendants(matching: .any)["whiteboard"].disappears(within: 10), "the board went, not under a new thread")
   }
 
   /// Story 1124: a thread with no board has no *Board*.

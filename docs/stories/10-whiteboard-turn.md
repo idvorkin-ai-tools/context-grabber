@@ -1842,7 +1842,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A board drawn on the iPad
 - **Given:** the boards list on an iPhone, with a board drawn on the iPad that has a thread with Larry
 - **When:** I tap the quiet chat bubble at the end of its row
-- **Then:** Chat opens on that board's thread; a tap elsewhere on the row still opens the board, and a board with no thread says *No chat with Larry for this board yet*, copyably, filing no report
+- **Then:** that board's thread slides in over the list, and *Back* comes back to the list (bead context-grabber-dbku); a tap elsewhere on the row still opens the board, and a board with no thread says *No chat with Larry for this board yet*, copyably, filing no report
 
 - **Scenario:** The thread comes with the board
 - **Given:** a board the iPad sent to Larry and has synced since

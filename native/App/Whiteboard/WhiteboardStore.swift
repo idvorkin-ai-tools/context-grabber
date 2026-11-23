@@ -312,6 +312,9 @@ final class WhiteboardStore: ObservableObject {
 
   func opened(_ id: String) { open.insert(id) }
 
+  /// Story 1208: the board is on screen somewhere on this device, so a jump brings that one forward.
+  func isOpen(_ id: String) -> Bool { open.contains(id) }
+
   /// Closing a board, after its last save: a new one left without a stroke is gone; anything else goes up to iCloud.
   func closed(_ id: String, empty: Bool) {
     open.remove(id)
