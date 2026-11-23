@@ -16,7 +16,8 @@ below the middle of the picture he was sent (its frame, in board points) by dy, 
 on the message's own rev (one behind it with "behind", which the board still applies, story 961; before anything the
 board remembers with "stale", which it refuses); with "kind": "connector_marks", marks instead: a
 connector by points from the end of the first stroke sent to the start of the second (story 917); with "kind": "link_reply",
-the usual arrow and label with a reply that ends on a Lavish link on the Cockpit's host (story 1127); with "kind": "words_only",
+the usual arrow and label with a reply that ends on a Lavish link on the Cockpit's host (story 1127); with "kind": "small_label",
+one label of 12-point letters asking for a 1-point pen, below the picture (stories 772, 779); with "kind": "words_only",
 his usual words and no marks at all (story 1155); with "kind": "hold" (and "label", else none, as the Cockpit may send),
 no answer at all: the picture's receipt goes seen with "waiting" {label, ts}, Larry holding for more, which his next
 row (any of his) clears (story 929); with "kind": "ink_and_button", instead a purple line of his
@@ -412,6 +413,18 @@ def answer_board_later(key):
                     waiting["label"] = label
                 BOARD_MESSAGES[key]["receipt"] = {"state": "seen", "received_ts": stamp, "seen_ts": stamp,
                                                   "waiting": waiting}
+                return
+            if LARRY_OPS is not None and LARRY_OPS.get("kind") == "small_label":
+                # Stories 772, 779 (bead context-grabber-z8o): letters as small as Larry's that vanished once kept on the
+                # iPad, 12 points on the board (12 x the frame's scale in picture pixels), asking for a 1-point pen: under
+                # what PencilKit draws, as a ninth of their height was before Igor's pen reached his labels (#949). 80
+                # points below the picture, clear of a paste's selection menu.
+                LARRY_OPS = None
+                frame = BOARD_MESSAGES[key]["frame"]
+                w, h = frame["w"] * frame["scale"], frame["h"] * frame["scale"]
+                marks(key, "small words", [
+                    {"kind": "text", "points": [[w / 4, h + 80 * frame["scale"]]], "text": "small",
+                     "size": 12 * frame["scale"], "pen": frame["scale"]}])
                 return
             if LARRY_OPS is not None and LARRY_OPS.get("kind") == "words_only":
                 # Story 1155: his answer is words alone, so a test's unprompted marks after it are the only ones to keep.

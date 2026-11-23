@@ -699,6 +699,91 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(result["label"] as? String, "make room")
   }
 
+  /// Story 772 (bead context-grabber-z8o): a label of Larry's with 12-point letters and no pen of its own, kept by a tap
+  /// and Keep, stays on the canvas as ink as wide as its ghost was, and the next picture Larry gets shows it in his
+  /// purple. On Igor's iPad such labels were saved but drew nothing: their pen was under what PencilKit draws (#883).
+  func testASmallLabelKeptStaysOnTheCanvasAndInThePicture() throws {
+    let cockpit = try cockpit()
+    // Pasted ink, not drawn: no pen has been in hand, so his label takes its own pen, a ninth of its 12-point letters
+    // (1.3 points), as Igor's did on 2026-11-14; a drawn stroke would give it the pen in hand instead (#949).
+    // A hook pastes, as XCUITest's taps never reach the system's paste button.
+    let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
+    wait(send(app), label: strokes(4))
+    try larrySmallLabel(cockpit)
+    app.buttons["whiteboard-larry"].tap()
+    let ghost = try XCTUnwrap(
+      PaperScreen.settled(app, within: 15) { $0.larryGhost }, "his small label, faint, in his purple")
+    shot(app, "a small label as a ghost")
+    XCTAssertNil(PaperScreen(app).larryKept, "a ghost isn't ink")
+
+    let pasted = send(app).label
+    PaperScreen.tap(app, ghost.center)
+    keep(app)
+    waitUntil(NSPredicate(format: "label != %@", pasted), send(app), timeout: 10)
+    let kept = try XCTUnwrap(
+      PaperScreen.showing(app, { $0.larryKept }) { abs($0.width - ghost.width) < 0.03 }, "small ink in his purple")
+    shot(app, "the small label kept")
+    XCTAssertEqual(kept.width, ghost.width, accuracy: 0.03, "every letter drawn")
+    XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.03, "where the ghost was")
+
+    let before = try pictureFrames(cockpit)
+    send(app).tap()
+    let frame = try newPictureFrame(cockpit, besides: before)
+    let purple = try purplePixels(try picture(cockpit, id: frame.id))
+    XCTAssertGreaterThan(purple, 20, "the picture Larry gets shows the kept label: \(purple) purple pixels, \(frame)")
+  }
+
+  /// Arms the fake Cockpit's next board answer as one label of 12-point letters and no pen (story 772).
+  private func larrySmallLabel(_ cockpit: String) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
+    request.httpMethod = "POST"
+    request.httpBody = Data(#"{"kind": "small_label"}"#.utf8)
+    let done = expectation(description: "the fake Cockpit took it")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
+  /// The picture of board message `id`, as the fake Cockpit took it.
+  private func picture(_ cockpit: String, id: String) throws -> Data {
+    let threads = try XCTUnwrap(try get(cockpit, "/chat")["threads"] as? [[String: Any]])
+    let refs = try threads.compactMap { $0["key"] as? String }.flatMap { key -> [String] in
+      let messages = try get(cockpit, "/chat/\(key)")["messages"] as? [[String: Any]] ?? []
+      return messages.filter { $0["picture_id"] as? String == id }.compactMap {
+        ($0["attachments"] as? [String])?.first
+      }
+    }
+    let ref = try XCTUnwrap(refs.first, "board message \(id) carries its picture")
+    let url = try XCTUnwrap(URL(string: cockpit + "/attachments/" + ref))
+    var got: Data?
+    let done = expectation(description: "the fake Cockpit answered")
+    URLSession.shared.dataTask(with: url) { body, _, _ in
+      got = body
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+    return try XCTUnwrap(got)
+  }
+
+  /// How many of a picture's pixels are Larry's kept purple (#ba39e6), as `PaperScreen.larryKept` reads it.
+  private func purplePixels(_ png: Data) throws -> Int {
+    let image = try XCTUnwrap(UIImage(data: png)?.cgImage, "a picture")
+    let (w, h) = (image.width, image.height)
+    var bytes = [UInt8](repeating: 0, count: w * h * 4)
+    bytes.withUnsafeMutableBytes { raw in
+      let context = CGContext(
+        data: raw.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+        space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+      context?.draw(image, in: CGRect(x: 0, y: 0, width: w, height: h))
+    }
+    return stride(from: 0, to: bytes.count, by: 4).filter { i in
+      let (r, g, b) = (Int(bytes[i]), Int(bytes[i + 1]), Int(bytes[i + 2]))
+      return r > 150 && r < 215 && g < 110 && b > 190
+    }.count
+  }
+
   /// Stories 840, 842, 845, 846: Larry's ink lands as ink, not a ghost, and goes back to him under his name; his button
   /// shows at its place and is no stroke, and a tap on it reaches the Cockpit at once with its event. What the plan
   /// does and the fallback when the Cockpit has no events route are `BoardOpsInkTests` and `BoardOpsControlsTests`.

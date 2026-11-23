@@ -685,8 +685,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 772:
 
 - **Summary:** A kept label of small letters stays on the board
-- **Status:** implemented in [b54599d](https://github.com/idvorkin/context-grabber/commit/b54599d), the floor at 2.5 points in [b18aa04](https://github.com/idvorkin/context-grabber/commit/b18aa04); verified on the host (`just native-test`: `WhiteboardTurnTests.testNoMarkIsThinnerThanTheIPadDraws`, a small label's pen, a thin asked-for pen and an unasked line, and the rest of `WhiteboardTurnTests`) and by the Mac build (`just native-build-mac`). Not yet seen on the simulator or the iPad
-- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883)
+- **Status:** implemented in [b54599d](https://github.com/idvorkin/context-grabber/commit/b54599d), the floor at 2.5 points in [b18aa04](https://github.com/idvorkin/context-grabber/commit/b18aa04); verified on the host (`just native-test`: `WhiteboardTurnTests.testNoMarkIsThinnerThanTheIPadDraws`, a small label's pen, a thin asked-for pen and an unasked line, and the rest of `WhiteboardTurnTests`) and by the Mac build (`just native-build-mac`); on the iPad simulator (rung 2, bead context-grabber-z8o): `WhiteboardPaperGhostsUITests.testASmallLabelKeptStaysOnTheCanvasAndInThePicture` keeps a label of 12-point letters asking for a 1-point pen by a tap and Keep, and finds it on the canvas as wide as its ghost and in Larry's purple in the next picture he gets; with the floor taken out the same test fails (the ghost showed, the kept ink drew nothing, `paper_kept_ink` `ink_px` 0, now `missing` **none**). Not yet seen on the iPad
+- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883); bead `context-grabber-z8o` (relayed by Larry: the 2026-11-14 board, thread igor2-88g.1461)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *How a mark looks*
 
 #### Use Case:
@@ -705,8 +705,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 779:
 
 - **Summary:** A mark that asks for a pen too thin to draw is drawn at the thinnest the iPad shows
-- **Status:** implemented in [b54599d](https://github.com/idvorkin/context-grabber/commit/b54599d), the floor at 2.5 points in [b18aa04](https://github.com/idvorkin/context-grabber/commit/b18aa04); split from story 772. Verified on the host (`just native-test`: `WhiteboardTurnTests.testNoMarkIsThinnerThanTheIPadDraws`, a thin asked-for pen) and by the Mac build (`just native-build-mac`). Not yet seen on the simulator or the iPad
-- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883)
+- **Status:** implemented in [b54599d](https://github.com/idvorkin/context-grabber/commit/b54599d), the floor at 2.5 points in [b18aa04](https://github.com/idvorkin/context-grabber/commit/b18aa04); split from story 772. Verified on the host (`just native-test`: `WhiteboardTurnTests.testNoMarkIsThinnerThanTheIPadDraws`, a thin asked-for pen) and by the Mac build (`just native-build-mac`); on the iPad simulator (rung 2, bead context-grabber-z8o): `WhiteboardPaperGhostsUITests.testASmallLabelKeptStaysOnTheCanvasAndInThePicture` keeps a label of 12-point letters asking for a 1-point pen by a tap and Keep, and finds it on the canvas as wide as its ghost and in Larry's purple in the next picture he gets; with the floor taken out the same test fails (the ghost showed, the kept ink drew nothing, `paper_kept_ink` `ink_px` 0, now `missing` **none**). Not yet seen on the iPad
+- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883); bead `context-grabber-z8o` (relayed by Larry: the 2026-11-14 board, thread igor2-88g.1461)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *How a mark looks*
 
 #### Use Case:
