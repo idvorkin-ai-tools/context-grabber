@@ -202,8 +202,11 @@ to that event's own bullet; never join two events on one line.
   - **changed** with board, label, undo_step (true when the outline change supplies an Undo step for its ink or header state), moved, hidden, shown, headers, folded, declined, pages and ms
   - **header_undo** (story 1179, context-grabber-ssl) with board, label and the restored counts in headers and declined.
   - **header_redo** with the same fields as **header_undo**.
-  - **hold_menu** with y and items
-  - **hold_chose** with item
+  - **hold_menu** (stories 874, 1186, 1187) with board, y, x, items, on (what the finger is on: header-mark, header, group, ink or paper) and strokes (the held thing's strokes)
+  - **hold_chose** with board, item, on and strokes
+  - **hold_lifted** with board and at, a drawing finger's hold lifted: the dot it left is taken back
+  - **hold_selected** (story 1186) with board and strokes, the held thing selected; **hold_selected_held** a beat later with board, held (whether the selection still stood) and selected (the strokes selected)
+  - **hold_deleted** (story 1187) with board and strokes, the held thing erased as one Undo named Delete
   - **erase_fold** (stories 902–905) with board, via (eraser, eraser_rub for the pixel eraser, scratch, or eraser_cancelled: what a called-off stroke still took), folds, headers, strokes, path, took, can_undo and undo_name
   - **erase_fold_cancelled** (stories 906, 907, context-grabber-0m2d), an eraser stroke that crossed a fold and was called off before it lifted, with board, via, folds (crossed), taken (those whose header's words were gone from the board anyway, so they went too; 0 means the fold stayed), by_marker, path and markup (false: the board had no markup to read, so nothing went)
   - **erase_fold_check** (stories 1170, 955, context-grabber-bov), an eraser stroke that lifted after crossing a fold, the line before its erase_fold: via (eraser, or eraser_rub for the pixel eraser), folds (crossed, by the marker or near the header's words), taken (by the marker, or whose words the eraser took: some of them, or for the pixel eraser all of them; 0 means every fold stayed, as when only the underline or # went), by_marker, path and markup (false: no markup to read, so only the marker took a fold)

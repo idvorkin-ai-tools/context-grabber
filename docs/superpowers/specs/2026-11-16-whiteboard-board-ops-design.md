@@ -364,7 +364,7 @@ existing text, I want it to move just like if I was to select text" (stories 969
     selection's own menu (Copy, Delete and the rest).
   - *Delete*: it goes, one Undo named *Delete*, and Larry hears it erased. Not offered on a header's row: rubbing a
     header out has its own rules, above.
-  - then *Make header* (or *Not a header*), *Make room here* and *Paste*, as before.
+  - then *Make room here*, *Paste* and *Make header* (or *Not a header*), as before.
   Held **off ink** on the page, or in the margin, the menu is as before. The rows stand in a column, each with its
   icon, beside the finger and kept on screen; a tap anywhere else closes it. A finger that draws leaves no dot where
   it held for the menu. Each menu shown and each row chosen is in
