@@ -28,10 +28,19 @@ box or a loop: the clean shape shows at once, and lands when you lift.
   where the text is, its words in it, the keyboard up. The same holds for every kept text: Igor's own typed or To text
   text, a text of Larry's, and one inside a group (which the first tap picks up with its whole group, #1171, #947; the
   shapes spec, *A finger tap on anything of Larry's he kept*), whether or not one of his controls shows (bead
-  context-grabber-9d1). A drag after the first tap moves the text and opens nothing. A tap on one of Larry's marks
+  context-grabber-9d1). A drag after the first tap moves the text where the finger goes, down as well as across, and
+  opens nothing. A tap on one of Larry's marks
   still chooses the mark; a tap in the margin is still the margin's; a look-only board opens nothing. A tap on one of
   his controls is the control's, even over a kept text: it neither selects it nor opens its words. Inside a bigger
   selection of his own the tap is the selection's (the shapes spec, *What the tap lands on inside it doesn't matter*).
+- **A drag that starts inside a selection moves it, however small it is** (bead context-grabber-vhae). The system's
+  corner handles, which stretch a selection, take any touch near them, so on a text of a few letters they cover the
+  whole word, and a drag straight down on it stretched it sideways instead of moving it. Now a finger that goes down
+  inside the selected thing's box and drags moves it: while the finger is down the word still stretches under it, as
+  the system draws it, and on the lift it lands moved by the finger's travel, down and across, at its own size. One
+  Undo, named *Move*, puts it back; a drop onto ink below still makes room (story 973). A drag that begins on a handle
+  outside the box, on or past its edge, still stretches it, and a bigger selection, whose middle no handle covers,
+  moves and stretches as before.
 - A tap on ink that isn't a kept text, or on blank paper, does what it did before. The Pencil writes as ever: a Pencil
   tap on a text is a dot, not an edit.
 - He edits the words. Return, or a tap anywhere off the field, is *done*.
@@ -67,6 +76,9 @@ box or a loop: the clean shape shows at once, and lands when you lift.
 - A first finger tap on a kept text selects it (*Text · tap to reword*, ready to drag); a second opens its words in
   place; Return or a tap off it applies them: re-wrapped at the same
   top-left, same id to Larry, one undo back to the old words. Empty words delete it; unchanged words change nothing.
+- A finger drag that starts inside a selection, even a one-word text, lands it moved by the finger's travel down and
+  across, at its own size, on the lift (it stretches under the finger until then); one Undo puts it back; its corner
+  handles still stretch it from outside the box.
 - A held stroke that is nearly a shape shows clean while the Pencil is still down; lifting keeps it, one undo back to
   the raw ink; moving on brings the raw stroke back.
 
@@ -76,3 +88,5 @@ box or a loop: the clean shape shows at once, and lands when you lift.
   that grows may overlap ink under it; Tidy overlaps or a margin drag makes room.
 - Rewording with the Pencil (Scribble into the field works, as in any text field; a Pencil tap on a text stays a dot).
 - Changing a text's lettering, size or colour.
+- A small selection that follows the finger while dragged from inside, rather than stretching until the lift (bead
+  context-grabber-ppha, for Igor to choose once he has felt the lift's move on the iPad).
