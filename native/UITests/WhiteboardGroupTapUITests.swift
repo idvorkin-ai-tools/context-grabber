@@ -49,7 +49,7 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }  // Ghosts off: only Larry's marks show.
+    if ghosts.label.hasPrefix("Ask at my pauses: on") { ghosts.tap() }  // Ghosts off: only Larry's marks show.
     // The picker opens on the tool an earlier launch left (story 1098): the finger draws with the pen.
     let pen = app.buttons["Pen"]
     XCTAssertTrue(pen.appears(within: 10), "the tool picker: \(app.debugDescription)")

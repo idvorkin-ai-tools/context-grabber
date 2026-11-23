@@ -45,7 +45,7 @@ final class WhiteboardHelpFeedbackUITests: XCTestCase {
     for gesture in [
       "Tap beside a line", "Hold and drag down", "Hold a header's mark", "Hold the Pencil on a word",
       "Underline a line, or start it with #", "Fast zigzag over ink", "Lasso, then To text",
-      "Hold the Pencil at a stroke's end", "Keep all",
+      "Hold the Pencil at a stroke's end", "Keep all", "Ask at my pauses",
     ] {
       let row = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", gesture)).firstMatch
       if !row.exists { scroll() }

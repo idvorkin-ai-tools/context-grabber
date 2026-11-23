@@ -23,8 +23,8 @@ extension WhiteboardModel {
     cancelPause()
   }
 
-  /// A stroke landed (drawn or pasted): Claude's pause starts, or with Ghosts off the bar says no one is watching and the
-  /// log says so once, at the first unwatched stroke (stories 1114, 1116).
+  /// Starts the pause after ink is drawn or pasted. With the pause switch off, the bar says no one is watching and
+  /// the first unwatched stroke logs `pause_skipped` (stories 1114, 1116).
   func strokeLanded() {
     let unwatchedBefore = turns.writingUnwatched
     if turns.stroked() {

@@ -423,7 +423,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Words spoken to the board
-- **Given:** the mic open on a board with Ghosts on
+- **Given:** the mic open on a board with *Ask at my pauses* on
 - **When:** I speak, close the mic, and the words go with the next picture
 - **Then:** that picture's events carry one `mic` event with the mic on, first words, mic off, words ready and sent times and the gaps between them in milliseconds, and the count of characters, never the words
 

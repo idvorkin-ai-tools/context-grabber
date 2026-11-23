@@ -120,7 +120,8 @@ with each picture:
   first words were heard, when the mic closed (none if it was still open), when the words were ready, and when they
   went with a picture, with the gaps between them in milliseconds and how many characters there were (never the
   words). Words said while the mic stays open are timed from the words before them. They ride with the next picture
-  that goes to Larry, or the next batch of events sent between turns; words Ghosts off drops are not timed.
+  that goes to Larry, or the next batch of events sent between turns. Words dropped when *Ask at my pauses* is off
+  are excluded from the timing.
 - None of this changes what Igor sees on the board. A Cockpit that doesn't yet read these fields keeps them as they
   came, and the debug page shows them once it reads them.
 

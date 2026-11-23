@@ -525,20 +525,40 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1055:
 
 - **Summary:** A long press on a bar button says its name
-- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Not yet seen on the iPad
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Renamed *Ask at my pauses*, its row naming the responder, in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac) (story 1171), the same test on the iPad simulator. Not yet seen on the iPad
 - **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
 
 #### Use Case:
 - **As someone** who sees a sparkle and a hand in the board's bar
 - **I want to** find out what each one does without trying it
-- **so that** I don't send Larry a picture or turn off Claude's suggestions by accident
+- **so that** I don't send Larry a picture or accidentally stop the board from asking at my pauses
 
 #### Acceptance Criteria:
 - **Scenario:** Long press the sparkle
-- **Given:** a board open with Ghosts on
+- **Given:** a board open with *Ask at my pauses* on
 - **When:** I press and hold the sparkle
-- **Then:** a small menu headed *Ghosts* shows one row, *Hide Claude's suggestions*, which does it if I tap it; Talk, Larry and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 926), and a plain tap on any of them does what it always did
+- **Then:** a small *Ask at my pauses* menu offers a row that toggles the switch and names the board's responder ([story 1171](#user-story-1171)); Talk, Larry and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 926), and a plain tap on any of them does what it always did
+
+---
+
+### User Story 1171:
+
+- **Summary:** The Ghosts switch is *Ask at my pauses*, for whoever answers the board
+- **Status:** implemented in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac); verified on the host (`WhiteboardGhostTurnsTests.testTheLinesNameTheSwitchForWhoeverAnswers`, the shared prefix of the two bar notices), the Mac build, and the iPad simulator (rung 2, the whole `test-whiteboard-ui.sh` suite on iPad Pro 11-inch (M5) before the rebase onto 5260449a: `WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard` sees the fake Cockpit's request count rise after a pause with the switch on for Larry and stay put after pauses with it off for either Larry or Haiku, reads the long press's row for each responder, the no-one-is-watching line and Larry's two marks staying; `testTheBarNamesItsButtonsAndHasNoHole` reads the new menu; `WhiteboardHelpFeedbackUITests` the help row; every other whiteboard UI test on the new label, 81 of 82 passing, the one failure `WhiteboardOnPaperUITests.testInkShowsInDarkMode`, unrelated, bead context-grabber-vsz9). No iPhone run (Igor, 2026-11-22). Not yet seen on the iPad
+- **Issues:** bead `context-grabber-4ic` (Igor, design board, 2026-11-22: "the switch becomes 'Ask at my pauses' for whoever answers"; labelled *Ghosts* / *Hide Claude's suggestions*, it read as Claude's alone, though on a Larry board, the default, it also stops Larry being asked and keeps the mic closed)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md); [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
+
+#### Use Case:
+- **As someone** drawing on a board that Larry or Claude answers
+- **I want to** see the switch named for what it does, asking whoever answers at my pauses
+- **so that** I don't turn it off thinking only Claude goes quiet and then write for minutes to a board Larry can't see
+
+#### Acceptance Criteria:
+- **Scenario:** Turning it off on a Larry board, and on a Haiku board
+- **Given:** a board open with *Ask at my pauses* on, Larry's marks showing, and its responder Larry (or Haiku)
+- **When:** I press and hold the sparkles, tap *Stop asking Larry at my pauses* (or *… Haiku …*), then write and pause
+- **Then:** VoiceOver reads *Ask at my pauses: off*, nothing is sent at the pause, the bar [says no one is watching](10-whiteboard-marks.md#user-story-1114), and Larry's marks stay. Talk [requires the switch to be on](10-whiteboard-turn.md#user-story-367), and the [help sheet](#user-story-950) lists the switch under *In the bar*
 
 ---
 
@@ -1016,7 +1036,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 950:
 
 - **Summary:** The board's cheat sheet is one tap away
-- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) the ? opened *How this board works* listing every gesture the test names; its close and the fixed test's full pass not yet seen (the Mac's screen was locked for the rerun); not yet seen on the iPad
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408) and [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c), verified on the host and the Mac build. The *Ask at my pauses* row was added in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac). On the iPad simulator, `WhiteboardHelpFeedbackUITests.testTheCheatSheetIsOneTap` checked that the sheet opens, lists the row and closes (see [story 1171](#user-story-1171) for the pre-rebase run). Not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 
 #### Use Case:
@@ -1030,7 +1050,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap **?** at the board's top right
 - **Then:** *How this board works* opens and lists the margin tap, the margin hold with a finger or the Pencil, the hold
   on the page, the Pencil on a word, scratch-out, the lasso's *To text*, the shape snap, *Keep all*, *Fold all* and the
-  levels, and Feedback; *Done* closes it and the board is as it was
+  levels, *Ask at my pauses* in the bar (story 1171), and Feedback; *Done* closes it and the board is as it was
 
 ---
 
@@ -1050,7 +1070,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The bar after the change
 - **Given:** a board drawn on this iPad
 - **When:** it opens
-- **Then:** the Board menu, Paste, the mic, Ghosts, Larry's turn and Send are in the top bar as before, and **?** and
+- **Then:** the Board menu, Paste, the mic, *Ask at my pauses*, Larry's turn and Send are in the top bar as before, and **?** and
   Feedback float at the board's top right; a look-only board shows Feedback only
 
 ---

@@ -7,7 +7,7 @@ GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /c
 POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
 the Cockpit's write boundary),
 GET /attachments/<ref>, POST /whiteboard/strokes (story 419: counted and answered, never kept), POST /whiteboard/suggest (a ghost circle at the picture's right edge, streamed as NDJSON when the request
-accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. GET /fake/strokes says the ids of each POST /whiteboard/strokes so far, and the folds beside each (story 857). GET and POST /whiteboard/responder keep each board's knob (story 659), Sonnet by default. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
+accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. GET /fake/strokes says the ids of each POST /whiteboard/strokes so far, and the folds beside each (story 857). GET /fake/turns lists the board of each POST /whiteboard/suggest so far (story 1171). GET and POST /whiteboard/responder keep each board's knob (story 659), Sonnet by default. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-ops {"stale": false, "dy": 120}
@@ -92,6 +92,7 @@ BOARD_MESSAGES = {}  # thread -> the newest message of Igor's carrying a board's
 STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
 FOLD_SENDS = []  # the folds beside each (story 857)
 RESPONDERS = {}  # board -> haiku | sonnet | larry, as POST /whiteboard/responder set it (story 659)
+SUGGESTS = []  # each POST /whiteboard/suggest's board, oldest first: a pause's turn, whoever answers (story 1171)
 LARRY_OPS = None  # the next board answer's batch, as POST /fake/larry-ops armed it: once
 LAST_STROKES = []  # the newest POST /whiteboard/strokes, for a connector mark between its first two (story 917)
 TO_TEXT = {}  # what POST /ink/to-text answers, as POST /fake/to-text set it (stories 920-922)
@@ -555,6 +556,8 @@ class Handler(BaseHTTPRequestHandler):
                                         "unknown": [i for i in ids if i not in DECIDED]})
             if path == "/fake/answers":
                 return self._json(200, {"ok": True, "answers": ANSWERS})
+            if path == "/fake/turns":
+                return self._json(200, {"ok": True, "turns": SUGGESTS})
             if path == "/fake/strokes":
                 return self._json(200, {"ok": True, "sends": STROKE_SENDS, "folds": FOLD_SENDS})
             if path == "/fake/to-text":
@@ -769,6 +772,8 @@ class Handler(BaseHTTPRequestHandler):
         accepts = "application/x-ndjson" in self.headers.get("Accept", "")
         self._report({"turn": "claude", "width": w, "height": h, "text": data.get("text"),
                       "origin": self.headers.get("Origin")})
+        with LOCK:
+            SUGGESTS.append(data.get("board"))
         if not data.get("image") or not w or not h:
             return self._json(400, {"ok": False, "error": "no picture"})
         circle = {"kind": "circle", "cx": w - 20, "cy": h / 2, "r": 40}

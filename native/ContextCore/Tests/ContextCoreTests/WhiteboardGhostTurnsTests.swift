@@ -333,6 +333,16 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertTrue(turns.stroked(), "and the next stroke asks again")
   }
 
+  /// Story 1171 (bead context-grabber-4ic): the bar's lines name the switch, *Ask at my pauses*, and nobody in
+  /// particular, as the switch stops the asking whoever answers the board.
+  func testTheLinesNameTheSwitchForWhoeverAnswers() {
+    for line in [WhiteboardTurn.writingGhostsOff, WhiteboardTurn.micGhostsOff] {
+      XCTAssertTrue(line.hasPrefix("Ask at my pauses is off, so "), line)
+      XCTAssertFalse(line.contains("Ghosts"), line)
+      XCTAssertFalse(line.contains("Claude"), line)
+    }
+  }
+
   /// Stories 1114, 1116 (bead context-grabber-bozm): only the first unwatched stroke since Ghosts went off is new, however
   /// often a mic tap or Larry's words take the bar's line in between.
   func testOnlyTheFirstStrokeWithGhostsOffStartsTheUnwatchedSpell() {

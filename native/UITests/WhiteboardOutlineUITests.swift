@@ -28,7 +28,7 @@ final class WhiteboardOutlineUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: on") { ghosts.tap() }
     return app
   }
 

@@ -4,7 +4,7 @@
 //  timer and the request; a `true` from a method means start the pause.
 
 public struct WhiteboardPacer: Sendable {
-  /// Bumped when Igor sends Claude's turn away (a dismissal, Ghosts off): an answer asked under an older one is stale.
+  /// Advances when Igor dismisses Claude's turn or turns off the pause switch. Answers under older generations are stale.
   public private(set) var generation = 0
   private var pausing = false
   private var asking = false

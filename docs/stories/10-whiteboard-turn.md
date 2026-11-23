@@ -48,17 +48,17 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** A ghost, kept
-- **Given:** I drew two circles and lifted the Pencil with Ghosts on, and a faint orange shape appeared within about five seconds
+- **Given:** I drew two circles and lifted the Pencil with *Ask at my pauses* on, and a faint orange shape appeared within about five seconds
 - **When:** I tap it
 - **Then:** it becomes a real stroke in Claude's orange that my eraser and undo treat like mine
 
 - **Scenario:** Every kind of stroke
-- **Given:** Ghosts are on and I paused
+- **Given:** *Ask at my pauses* is on and I paused
 - **When:** the Cockpit answers with a line, an arrow, a polyline, a circle, an arc, a label and a kind the app doesn't know
 - **Then:** the six I know appear as faint orange ghosts, the label's letters standing on the spot the Cockpit gave as its baseline, and the unknown one isn't shown
 
 - **Scenario:** The model takes too long
-- **Given:** Ghosts are on and I paused
+- **Given:** *Ask at my pauses* is on and I paused
 - **When:** the Cockpit has not answered after 10 s
 - **Then:** no ghost appears and the bar says *Ghosts: the Cockpit isn't answering* until a turn gets through
 
@@ -168,21 +168,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 665:
 
-- **Summary:** Turning Ghosts off closes the board's mic
-- **Status:** implemented in [9a83d67](https://github.com/idvorkin/context-grabber/commit/9a83d67); verified on the host (`WhiteboardGhostTurnsTests`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad
+- **Summary:** Turning *Ask at my pauses* off closes the board's mic
+- **Status:** implemented in [9a83d67](https://github.com/idvorkin/context-grabber/commit/9a83d67); verified on the host (`WhiteboardGhostTurnsTests`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad. The bar's line worded for *Ask at my pauses* in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac) (story 1171), verified on the host and the Mac build
 - **Issues:** [#824](https://github.com/idvorkin/context-grabber/issues/824) (the mic heard words with Ghosts off and dropped them silently)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
-- **As someone** talking to the board who switches the ghosts off mid-sentence
+- **As someone** talking to the board who turns *Ask at my pauses* off mid-sentence
 - **I want to** have the mic close and say why
 - **so that** I don't keep talking to a mic that reaches no one (story 367)
 
 #### Acceptance Criteria:
-- **Scenario:** Ghosts go off while I talk
+- **Scenario:** Ask at my pauses goes off while I talk
 - **Given:** the board's mic is open
-- **When:** I turn Ghosts off
-- **Then:** the mic closes, the bar says Ghosts are off so the mic would reach no one, and the words aren't asked about, now or when Ghosts come back
+- **When:** I turn *Ask at my pauses* off
+- **Then:** the mic closes, the bar shows the [same notice as when Talk is refused](#user-story-367), and the words aren't asked about, now or when it comes back on
 
 ---
 
@@ -347,21 +347,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 367:
 
-- **Summary:** Ghosts off holds for speech too
-- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone, and since bead `context-grabber-y8r` by the host alone (`WhiteboardGhostTurnsTests`); real dictation to try on the iPad. Since [9a83d67](https://github.com/idvorkin/context-grabber/commit/9a83d67) (#824) the mic doesn't open with Ghosts off, so the say hook no longer stands in for it here: verified on the host (`WhiteboardGhostTurnsTests`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad
+- **Summary:** *Ask at my pauses* off holds for speech too
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone, and since bead `context-grabber-y8r` by the host alone (`WhiteboardGhostTurnsTests`); real dictation to try on the iPad. Since [9a83d67](https://github.com/idvorkin/context-grabber/commit/9a83d67) (#824) the mic doesn't open with Ghosts off, so the say hook no longer stands in for it here: verified on the host (`WhiteboardGhostTurnsTests`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad. The bar's line worded for *Ask at my pauses* in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac) (story 1171), verified on the host and the Mac build
 - **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605), [#824](https://github.com/idvorkin/context-grabber/issues/824) (the mic heard words with Ghosts off and dropped them silently)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
-- **As someone** who switched the ghosts off
+- **As someone** who switched *Ask at my pauses* off
 - **I want to** have talking ask nothing either
 - **so that** the switch means what it says (story 351)
 
 #### Acceptance Criteria:
-- **Scenario:** Speaking with Ghosts off
-- **Given:** Ghosts are off
+- **Scenario:** Speaking with Ask at my pauses off
+- **Given:** *Ask at my pauses* is off
 - **When:** I tap the board's mic
-- **Then:** it doesn't open, and the bar says Ghosts are off so the mic would reach no one; nothing is asked, no ghost appears, and nothing is sent when Ghosts come back
+- **Then:** it doesn't open, and the bar says *Ask at my pauses is off, so the mic would reach no one: turn it on to talk*; nothing is asked, no ghost appears, and nothing is sent when it comes back on
 
 ---
 
@@ -465,18 +465,18 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 376:
 
 - **Summary:** A turn sent away shows no more marks
-- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); not covered by a test; to see on the iPad
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20). The switch dropping a pending answer is covered by the host test `WhiteboardGhostTurnsTests.testGhostsOffMidTurnMakesItsAnswerStaleAndForgetsTheOwedAsk`. See [story 825](10-whiteboard-marks.md#user-story-825) for the later change to taps outside marks. To see on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** drawing with Claude beside me
-- **I want to** have a dismissal stop the marks still on their way
+- **I want to** stop the marks still on their way when I turn off *Ask at my pauses*
 - **so that** what I sent away doesn't come back
 
 #### Acceptance Criteria:
 - **Scenario:** Sent away part way
-- **Given:** marks are arriving
-- **When:** I tap off them or turn Ghosts off
+- **Given:** Claude's marks are arriving
+- **When:** I turn *Ask at my pauses* off
 - **Then:** they go and no more of that turn's marks appear
 
 ---
@@ -994,7 +994,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Then:** its Responder row says Larry (story 960) and opens on Haiku, Sonnet and Larry with Larry ticked, and when I pick Haiku the tick moves at once and the board has Haiku when I reopen it, here and on my other devices
 
 - **Scenario:** A Larry board
-- **Given:** a board whose responder is Larry, with Ghosts on
+- **Given:** a board whose responder is Larry, with *Ask at my pauses* on
 - **When:** I draw and pause
 - **Then:** no orange ghosts come; the bar's note begins with Larry's clock (*Larry · 0:00*, story 667), the picture is in the board's chat thread, and his purple marks show when he answers
 
@@ -1078,7 +1078,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** A shorter pause
-- **Given:** Ghosts are on
+- **Given:** *Ask at my pauses* is on
 - **When:** I draw a circle and lift the Pencil
 - **Then:** the turn is asked half a second later (the session log's `pause_ms` is about 500), and the Pencil going back down before then still holds it
 
@@ -1097,7 +1097,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** A measured turn
-- **Given:** Ghosts are on
+- **Given:** *Ask at my pauses* is on
 - **When:** I draw, pause, and a ghost turn goes
 - **Then:** its session-log line has `pause_ms`, `render_ms`, `encode_ms` and `upload_ms` beside who answered, and the Cockpit's log of that turn has the pause, render and encode times
 
@@ -1968,7 +1968,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** A pause mid-sentence and one at the end of a line
-- **Given:** Ghosts are on and I write a few words at my usual pace
+- **Given:** *Ask at my pauses* is on and I write a few words at my usual pace
 - **When:** I pause for a second in the middle of the line, then later stop at the end of the line
 - **Then:** the mid-line pause asks nothing, and the pause at the end asks after about four times my usual gap between strokes, never less than 1.5 s nor more than 5 s; the session log's `vad` line says the wait, its cue and my usual gap
 
@@ -1987,7 +1987,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** A question mark, a new line, the hand gone
-- **Given:** Ghosts are on and I have written a line
+- **Given:** *Ask at my pauses* is on and I have written a line
 - **When:** I end it with a question mark, or move the hovering Pencil to the start of the next line, or lift my hand away from the screen
 - **Then:** the turn is asked 1.5 s after my last lift (at once if that has passed), and the session log's `vad` line names the cue
 

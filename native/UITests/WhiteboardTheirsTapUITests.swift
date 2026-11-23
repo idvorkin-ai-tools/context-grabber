@@ -50,7 +50,7 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }  // Ghosts off: only Larry's marks show.
+    if ghosts.label.hasPrefix("Ask at my pauses: on") { ghosts.tap() }  // Ghosts off: only Larry's marks show.
     sleep(2)
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.5))
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)))

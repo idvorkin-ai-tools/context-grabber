@@ -36,7 +36,7 @@ final class WhiteboardTitleRenameUITests: XCTestCase {
     // Ghosts off, so a stroke asks nothing of a Cockpit.
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: on") { ghosts.tap() }
 
     // The name in the bar opens the rename box, filled with the board's name.
     let title = app.buttons["whiteboard-title"]
