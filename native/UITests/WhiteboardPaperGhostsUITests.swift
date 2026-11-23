@@ -568,6 +568,37 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     shot(app, "after one undo")
   }
 
+  /// Stories 774, 778 (bead context-grabber-a3w): keeping one of Larry's marks leaves the pen in my hand as it was. My
+  /// next stroke after keeping his circle is my black at my stroke's width, with none of his purple in it.
+  func testKeepingHisMarkLeavesMyPenAsItWas() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    ghosts(app).tap()  // Ghosts off: only Larry's marks show.
+    stroke(app)
+    wait(send(app), label: strokes(1))
+    let mine = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "my stroke, in black")
+    try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
+    send(app).tap()
+    XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
+    try larryDraws(1, cockpit)
+    XCTAssertTrue(toKeep(app, 1).appears(within: 10), app.debugDescription)
+    let mark = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his circle, faint")
+    PaperScreen.tap(app, CGPoint(x: mark.minX + 0.003, y: mark.center.y))
+    keep(app)
+    wait(send(app), label: strokes(2))
+    // That the kept circle shows in his purple is `testKeepAllKeepsHisWholeReplyAndOneUndoTakesItBack`'s: PaperKit
+    // sometimes draws a kept circle black though it holds it purple (bead context-grabber-pbvt), not the pen's doing.
+
+    stroke(app, atHeight: 0.62)
+    wait(send(app), label: strokes(3))
+    let below = PaperScreen.Box(minX: 0, minY: 0.56, maxX: 1, maxY: 0.70)
+    shot(app, "my stroke after the keep")
+    let next = try XCTUnwrap(
+      PaperScreen.showing(app, { $0.ink(in: below) }) { _ in true }, "my next stroke is still black")
+    XCTAssertNil(PaperScreen(app).larryKept(in: below), "none of his purple in my next stroke")
+    XCTAssertEqual(next.maxY - next.minY, mine.maxY - mine.minY, accuracy: 0.002, "at my pen's width: \(mine) \(next)")
+  }
+
   /// Stories 1008, 1009 (#965): the bar's Undo and Redo, a finger's size, dimmed with nothing to do, take a stroke back and
   /// bring it again; after Keep all, Undo names it and one press takes the whole group back. What each label says for
   /// each state of the stack is `BoardUndoButtonsTests`, on the host.
