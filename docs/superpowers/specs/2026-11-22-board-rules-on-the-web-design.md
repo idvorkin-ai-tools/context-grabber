@@ -173,7 +173,7 @@ makes the board change. `bw_info` says `"abi": 4`; versions 1 to 3 are unchanged
 
 ## The interface, version 5: what a hold is on
 
-Story 1514. A Pencil held still picks up what `BoardOutline.word(at:)` says, and a finger held still brings up the
+Story 1620. A Pencil held still picks up what `BoardOutline.word(at:)` says, and a finger held still brings up the
 menu `holdMenu(at:)` makes: *Select* and *Delete* the thing under it (no *Delete* on a header's row), then the rows
 for its line. Both over the loaded outline; `bw_info` says `"abi": 5`; versions 1 to 4 are unchanged.
 
