@@ -1582,7 +1582,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1512:
 
 - **Summary:** The web board asks the app's own rules what an underline or a # written in ink makes, and what Fold all and Collapse to a level fold
-- **Status:** implemented in 5abbb189; verified by `just wasm-test` (132 checks, a hand-worked underline header and both kinds of folding among them), and by the Cockpit's comparison with its own rules (every recorded board and 60 seeded ones: 9,246 strokes read for headers, underlines, #s, ## and writing joining a header, and 320 Fold all and Collapse plans, 0 differences; one rule apart, counted: the app reads every grouped stroke as not his writing, the Cockpit only Larry's groups, and only the web lets him group his own writing), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Status:** implemented in 9ff54485; verified by `just wasm-test` (132 checks, a hand-worked underline header and both kinds of folding among them), and by the Cockpit's comparison with its own rules (every recorded board and 60 seeded ones: 9,246 strokes read for headers, underlines, #s, ## and writing joining a header, and 320 Fold all and Collapse plans, 0 differences; one rule apart, counted: the app reads every grouped stroke as not his writing, the Cockpit only Larry's groups, and only the web lets him group his own writing), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 4
 - **Issues:** bead `context-grabber-edl`
 
