@@ -246,21 +246,6 @@ public struct WhiteboardQuestions: Codable, Equatable, Sendable {
     return out
   }
 
-  /// The open asks, the snoozed ones too: a snoozed ask's card is still open, as on the web board.
-  public static func asksRequest(cockpit: String) throws -> URLRequest {
-    guard URL(string: cockpit)?.host != nil else { throw URLError(.badURL) }
-    return try ChatWire.get(cockpit, "/asks?snoozed=1")
-  }
-
-  /// The question and answer of closed asks, `GET /ink/answers?ids=a,b`.
-  public static func answersRequest(_ ids: [String], cockpit: String) throws -> URLRequest {
-    guard URL(string: cockpit)?.host != nil, !ids.isEmpty else { throw URLError(.badURL) }
-    var allowed = CharacterSet.urlQueryAllowed
-    allowed.remove(charactersIn: "&=+,#")
-    let list = ids.map { $0.addingPercentEncoding(withAllowedCharacters: allowed) ?? $0 }.joined(separator: ",")
-    return try ChatWire.get(cockpit, "/ink/answers?ids=" + list)
-  }
-
   /// `{ok, answers: {id: {title, label, note}}}`, or nil for an answer that isn't that.
   public static func answers(_ data: Data) -> [String: WhiteboardQuestion.Answer]? {
     guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], json["ok"] as? Bool == true

@@ -9,23 +9,6 @@ final class WhiteboardResponderTests: XCTestCase {
 
   // MARK: The knob on the wire
 
-  func testTheReadAsksForTheBoard() throws {
-    let request = try WhiteboardResponder.readRequest(board: "b 1", cockpit: cockpit)
-    XCTAssertEqual(request.httpMethod ?? "GET", "GET")
-    XCTAssertEqual(request.url?.absoluteString, "https://cockpit.example/whiteboard/responder?board=b%201")
-    XCTAssertEqual(request.timeoutInterval, WhiteboardResponder.timeout)
-  }
-
-  func testTheWriteNamesTheBoardAndTheResponder() throws {
-    let request = try WhiteboardResponder.writeRequest(.haiku, board: "b1", cockpit: cockpit)
-    XCTAssertEqual(request.httpMethod, "POST")
-    XCTAssertEqual(request.url?.absoluteString, "https://cockpit.example/whiteboard/responder")
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
-    let body = try XCTUnwrap(
-      JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: String])
-    XCTAssertEqual(body, ["board": "b1", "responder": "haiku"])
-  }
-
   func testTheCockpitsAnswerIsTheBoardsResponder() {
     let body = Data(
       #"""
@@ -239,25 +222,5 @@ final class WhiteboardResponderTests: XCTestCase {
     let timings = WhiteboardTimings(render: .milliseconds(30), encode: .milliseconds(9))
     XCTAssertEqual(timings.wire, ["render_ms": 30, "encode_ms": 9])
     XCTAssertEqual(timings.logFields, ["render_ms": 30, "encode_ms": 9])
-  }
-
-  func testTheGhostRequestCarriesTheBoardAndTimings() throws {
-    let request = try WhiteboardTurn.suggestRequest(
-      title: "Plan", picture: Data([1]), width: 8, height: 6, cockpit: cockpit, board: "b1",
-      timings: ["pause_ms": 500, "render_ms": 40])
-    let body = try XCTUnwrap(
-      JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertEqual(body["board"] as? String, "b1")
-    XCTAssertEqual(body["timings"] as? [String: Int], ["pause_ms": 500, "render_ms": 40])
-    XCTAssertNil(body["responder"], "the board's knob decides; no per-turn override in this piece")
-  }
-
-  func testAGhostRequestWithNeitherLeavesThemOut() throws {
-    let request = try WhiteboardTurn.suggestRequest(
-      title: "Plan", picture: Data([1]), width: 8, height: 6, cockpit: cockpit)
-    let body = try XCTUnwrap(
-      JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertNil(body["board"])
-    XCTAssertNil(body["timings"])
   }
 }

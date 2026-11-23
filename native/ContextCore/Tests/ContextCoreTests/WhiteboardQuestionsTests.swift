@@ -10,7 +10,6 @@ import XCTest
 /// once per ask; which open asks name a board; what an answer leaves on the card; the answers fetched for asks closed
 /// elsewhere; folding; the eraser; and the Cockpit's wire.
 final class WhiteboardQuestionsTests: XCTestCase {
-  private let cockpit = "https://cockpit.example.ts.net:8443/"
 
   private func ask(_ id: String, title: String = "Renew the gym?", thread: String? = nil, context: String = "")
     throws -> ChatAsk
@@ -122,14 +121,8 @@ final class WhiteboardQuestionsTests: XCTestCase {
     XCTAssertEqual(WhiteboardQuestions.answerText(card.answered!), "just a note")
   }
 
-  func testOwnWordsAreTheInboxsFreeTextAnswer() throws {
-    let a = try ask("b-1")
-    let request = try ChatDecisions.request(.ownWords(" every month "), ask: a, cockpit: cockpit)
-    XCTAssertEqual(request.url?.path, "/act")
-    let body = try XCTUnwrap(try JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? NSDictionary)
-    XCTAssertEqual(body["response"] as? String, "DECISION: every month")
-    XCTAssertEqual(body["action"] as? String, "respond")
-    XCTAssertEqual(body["base_updated_at"] as? String, "2026-11-16T10:00:00Z")
+  // Its request: WhiteboardRequestsTests (ContextCore holds the HTTP requests).
+  func testOwnWordsAreTheInboxsFreeTextAnswer() {
     XCTAssertEqual(
       ChatDecisions.Verb.ownWords("abc").logFields as NSDictionary, ["option": "own", "answer_chars": 3],
       "the log has the words' length, never the words")
@@ -158,17 +151,6 @@ final class WhiteboardQuestionsTests: XCTestCase {
     XCTAssertEqual(board.wanted(open: ["open"]), ["gone"], "and asked again next time")
     XCTAssertEqual(board.fill([:], asked: ["gone"]), 0, "the placeholder stays a placeholder")
     XCTAssertNil(WhiteboardQuestions.answers(Data(#"{"ok": false}"#.utf8)))
-  }
-
-  func testTheWireAsksForSnoozedAsksAndEncodesTheIDs() throws {
-    XCTAssertEqual(
-      try WhiteboardQuestions.asksRequest(cockpit: cockpit).url?.absoluteString,
-      "https://cockpit.example.ts.net:8443/asks?snoozed=1")
-    XCTAssertEqual(
-      try WhiteboardQuestions.answersRequest(["igor2-88g.1", "b 2"], cockpit: cockpit).url?.absoluteString,
-      "https://cockpit.example.ts.net:8443/ink/answers?ids=igor2-88g.1,b%202")
-    XCTAssertThrowsError(try WhiteboardQuestions.answersRequest([], cockpit: cockpit))
-    XCTAssertThrowsError(try WhiteboardQuestions.asksRequest(cockpit: "not a url"))
   }
 
   // MARK: Stories 885, 886: folding and the eraser

@@ -31,18 +31,6 @@ public enum BoardToText {
     return CGRect(x: left, y: top, width: ink.maxX + pad - left, height: ink.maxY + pad - top)
   }
 
-  /// `POST <cockpit>/ink/to-text` with `{name, png}`: the board's id and the picture, base64.
-  public static func request(png: Data, board: String, cockpit: String) throws -> URLRequest {
-    guard let base = URL(string: cockpit), base.host != nil else { throw URLError(.badURL) }
-    var request = URLRequest(url: base.appendingPathComponent("ink").appendingPathComponent("to-text"))
-    request.httpMethod = "POST"
-    request.timeoutInterval = timeout
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = try JSONSerialization.data(withJSONObject: ["name": board, "png": png.base64EncodedString()])
-    return request
-  }
-
   public enum Answer: Equatable, Sendable {
     /// The words, trimmed, at most `maxText` characters.
     case text(String)
