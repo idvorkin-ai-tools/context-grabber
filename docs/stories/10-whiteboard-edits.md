@@ -739,6 +739,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** A refused change of Larry's says so on the board
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry: "show a chip so I'm not guessing" when Larry's push is refused
 - **Issues:** `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` on main 2510b8c6, 2026-11-17: the chip moved under ? and Feedback (#929), and a tap on its bare × glyph went through to the paper and drew a dot (`ui_touch_begin` on `PKTiledGestureView` at 797, 202.5; no `board_blocked dismissed`)
+- **Issues:** beads context-grabber-ts8a and context-grabber-kxzk (2026-11-23): since #1325 dimmed Send once Larry has the picture, Retry went through that refusal, sent nothing and used up its chip, and `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` failed on main; Igor via Larry: Retry always hands over the board. Fixed in [c28d6164](https://github.com/idvorkin/context-grabber/commit/c28d6164).
 - **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2). Retry and × take a finger's width in [753c9ec](https://github.com/idvorkin/context-grabber/commit/753c9ec); verified by `just test`, the Mac build, and on the simulator (`WhiteboardPaperGhostsUITests`, the chip test included, and `WhiteboardHelpFeedbackUITests`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
@@ -759,6 +760,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Retry hands Larry the board again
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
+- **Issues:** beads context-grabber-ts8a and context-grabber-kxzk (2026-11-23): since #1325 dimmed Send once Larry has the picture, Retry went through that refusal, sent nothing and used up its chip, and `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` failed on main; Igor via Larry: Retry always hands over the board. Retry always hands Larry the board, even when he has this picture; only the Send button keeps that dimming. Fixed in [c28d6164](https://github.com/idvorkin/context-grabber/commit/c28d6164).
 - **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
@@ -779,6 +781,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** × puts the chip away
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
+- **Issues:** beads context-grabber-ts8a and context-grabber-kxzk (2026-11-23): since #1325 dimmed Send once Larry has the picture, Retry went through that refusal, sent nothing and used up its chip, and `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` failed on main; Igor via Larry: Retry always hands over the board. Fixed in [c28d6164](https://github.com/idvorkin/context-grabber/commit/c28d6164).
 - **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
