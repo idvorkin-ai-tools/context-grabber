@@ -686,7 +686,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A selection dropped onto writing pushes the writing down
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"; [#945](https://github.com/idvorkin/context-grabber/issues/945) (2026-11-18: a box PaperKit showed after a margin tap dragged 223 strokes onto writing, twice, and nothing was pushed: the move came with no selection, so it was never taken for a drop); bead context-grabber-9uj2 ([story 1172](#user-story-1172))
-- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a) and fixed in [5652a358](https://github.com/idvorkin/context-grabber/commit/5652a358) after a selected drop left the writing unmoved. The original change was verified by `BoardRoomDropTests`, `just test` and `just native-build-mac`. The fix was verified on the iPad simulator with a tap-selected group ([story 1172](#user-story-1172)). The lasso drag still needs a device check.
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a) and fixed in [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24) after a selected drop left the writing unmoved. The original change was verified by `BoardRoomDropTests`, `just test` and `just native-build-mac`. The fix was verified on the iPad simulator with a tap-selected group ([story 1172](#user-story-1172)). The lasso drag still needs a device check.
 - **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
@@ -706,7 +706,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** The drag and the push are one Undo
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry; bead context-grabber-9uj2 (a drop picked up with nothing selected is one Undo too, story 1172)
-- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by `BoardRoomDropTests`, `just test` and `just native-build-mac`. One Undo restored both positions after the fix in [5652a358](https://github.com/idvorkin/context-grabber/commit/5652a358) on the iPad simulator ([story 1172](#user-story-1172)).
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by `BoardRoomDropTests`, `just test` and `just native-build-mac`. One Undo restored both positions after the fix in [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24) on the iPad simulator ([story 1172](#user-story-1172)).
 - **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
@@ -766,7 +766,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Text or ink dropped on writing makes room, however I picked it up
 - **Issues:** bead context-grabber-9uj2: Igor on the iPad, 2026-11-22 14:49, board ead78e80, via Larry: "OK when I drop text onto existing text, I want it to move just like if I was to select text". The log: he kept Larry's 20-letter reply (29 strokes), then dragged it twice onto his own first line (it landed at y 70, then 67, on the line at 54 to 95); each drag began on PaperKit's handwriting view with nothing selected (`selected: 0`, `held_at_start: 0`), every stroke moved the same way, and no `paper_drop` was logged: the board took a move nothing selected held for the system's, not a drop
-- **Status:** implemented in [d9e40a75](https://github.com/idvorkin/context-grabber/commit/d9e40a75) and [5652a358](https://github.com/idvorkin/context-grabber/commit/5652a358), with settling checks in [e31dd562](https://github.com/idvorkin/context-grabber/commit/e31dd562) and [aa3c3dd0](https://github.com/idvorkin/context-grabber/commit/aa3c3dd0). Host coverage uses the iPad's drag in `PaperProbePickupTests` and its landing boxes in `BoardRoomDropTests`. `just native-test` and `just native-build-mac` passed on the earlier implementation. The 2026-11-22 iPad simulator runs of `WhiteboardDropRoomUITests` (rung 2) verified the push and Undo for a tap-selected group on the implementation in 5652a358, before the settling checks. The session log also confirmed the push via `pushed_now`. Dragging directly from PaperKit's handwriting view with nothing selected still needs a physical iPad check (rung 3).
+- **Status:** implemented in [d340873a](https://github.com/idvorkin/context-grabber/commit/d340873a) and [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24), with settling checks in [dac8955f](https://github.com/idvorkin/context-grabber/commit/dac8955f) and [aa3c3dd0](https://github.com/idvorkin/context-grabber/commit/aa3c3dd0). Host coverage uses the iPad's drag in `PaperProbePickupTests` and its landing boxes in `BoardRoomDropTests`. `just native-test` and `just native-build-mac` passed on the earlier implementation. The 2026-11-22 iPad simulator runs of `WhiteboardDropRoomUITests` (rung 2) verified the push and Undo for a tap-selected group on the implementation in c5c3bf24, before the settling checks. The session log also confirmed the push via `pushed_now`. Dragging directly from PaperKit's handwriting view with nothing selected still needs a physical iPad check (rung 3).
 - **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
@@ -786,7 +786,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** The system rearranging my handwriting opens no room
 - **Issues:** bead context-grabber-9uj2 (split from story 1172)
-- **Status:** implemented in [d9e40a75](https://github.com/idvorkin/context-grabber/commit/d9e40a75) and [5652a358](https://github.com/idvorkin/context-grabber/commit/5652a358); verified by host tests (`PaperProbePickupTests`), `just native-test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [d340873a](https://github.com/idvorkin/context-grabber/commit/d340873a) and [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24); verified by host tests (`PaperProbePickupTests`), `just native-test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
 - **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
@@ -806,7 +806,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** The log says how a drop was picked up and why it opened no room
 - **Issues:** bead context-grabber-9uj2 (split from story 1172: the iPad's drag left no `paper_drop` line at all)
-- **Status:** implemented in [d9e40a75](https://github.com/idvorkin/context-grabber/commit/d9e40a75) and [5652a358](https://github.com/idvorkin/context-grabber/commit/5652a358), with stale push logging in [e31dd562](https://github.com/idvorkin/context-grabber/commit/e31dd562). `PaperProbePickupTests` covers pickup classification on the host. The log confirmed the push on the earlier iPad simulator build ([story 1172](#user-story-1172)). The unselected drag's log still needs a physical iPad check.
+- **Status:** implemented in [d340873a](https://github.com/idvorkin/context-grabber/commit/d340873a) and [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24), with stale push logging in [dac8955f](https://github.com/idvorkin/context-grabber/commit/dac8955f). `PaperProbePickupTests` covers pickup classification on the host. The log confirmed the push on the earlier iPad simulator build ([story 1172](#user-story-1172)). The unselected drag's log still needs a physical iPad check.
 - **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
