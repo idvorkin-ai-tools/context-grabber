@@ -163,7 +163,8 @@ fi
 cd ../..
 for check in scripts/native/test-ladder-map.sh scripts/native/test-breath-clips.py scripts/native/test-ui-timings.sh scripts/native/test-ladder-report.sh \
   scripts/native/test-smoke-lock.sh scripts/native/test-linux-imports.sh scripts/native/test-build-lane.sh \
-  scripts/native/test-story-ids.sh scripts/native/test-story-commits.sh scripts/native/test-board-sessions.py scripts/native/test-testing-lists.sh; do
+  scripts/native/test-story-ids.sh scripts/native/test-story-commits.sh scripts/native/test-board-sessions.py scripts/native/test-testing-lists.sh \
+  scripts/native/test-mic-tests.sh; do
   log=$build/$(basename "$check").log
   if "$check" >"$log" 2>&1; then
     echo "ok   $check"

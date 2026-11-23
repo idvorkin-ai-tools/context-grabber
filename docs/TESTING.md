@@ -29,9 +29,10 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-host-lane.sh`: the host slots, six jobs on four, the wait, a killed holder (stories 795, 797, 798)
 - `scripts/native/test-ui-timings.sh`: the UI test timing digest against a real run's log
 - `scripts/native/test-ladder-report.sh`: the ladder report keeping a retry, a wrong-device skip and a missing deploy apart, on a fixture (#1038, story 1016)
-- `scripts/native/test-xcodebuild-log.sh`: the UI test run wrapper's time limit, retry, flake gate and quarantine (story 1017, after a hang too), hang stop (which waits for the result bundle to be written, story 790) start watchdog, a failure after the screen locked (story 1018), and the locked-screen wait and mid-run stop (stories 1022, 1023) against a fake xcodebuild
+- `scripts/native/test-xcodebuild-log.sh`: the UI test run wrapper's time limit, retry, flake gate and quarantine (story 1017, after a hang too), hang stop (which waits for the result bundle to be written, story 790) start watchdog, a failure after the screen locked (story 1018), and on a locked screen the skip of the tests that open the mic and the mid-run stop while one is still to run (stories 1022, 1023, bead context-grabber-wm8y) against a fake xcodebuild
 - `scripts/native/test-own-child.sh`: the wrapper stops a watchdog at the end of a run only while it is still the wrapper's own child, so a number a watchdog left long ago, since given to another process on a busy Mac, isn't killed (bead context-grabber-tne1)
 - `scripts/native/test-smoke-lock.sh`: the smoke's audio checks skipped, and said to be, on a locked Mac (story 827, #419)
+- `scripts/native/test-mic-tests.sh`: every UI test that touches a mic control or a call is listed in `scripts/native/mic-tests.txt`, as one that opens the mic (skipped on a locked Mac) or one reviewed as not, and a listed test still exists (bead context-grabber-wm8y)
 - `scripts/native/test-fake-cockpit-ops.py`: the fake Cockpit's board ops, which the whiteboard UI tests rely on (stories 814–818)
 - `scripts/native/test-board-sessions.py`: the Cockpit's recorded board sessions, vendored scrubbed (stories 1173, 1174)
 - `scripts/native/test-fake-cockpit-session.py`: the fake Cockpit playing those sessions back (stories 1173, 1174)
@@ -232,15 +233,25 @@ whiteboard suite or the smoke ends (`scripts/native/sim-poster-prune.sh`, storie
 simulator's are never touched (each device's state is read again just before its delete; story 988), PosterBoard rebuilds about
 300 MB on the next boot, one line names the simulators and the MB freed, and a failed prune never fails the run (story 989). Don't `xcrun simctl shutdown all` after a run; that is a heat stop's, not a habit.
 
-**UI tests need the Mac's display on and its screen unlocked** (story 782). With the display off they don't start, and
-running ones stall: on 2026-11-16 the whiteboard step sat 17 minutes before its first test on a dark Mac, against about
-30 s once the display came on, and a run that morning spent two hours in tests that pass in ten minutes. `caffeinate -i`
-keeps the Mac awake but lets the display sleep, and with the lock set to "immediately" a sleeping display is a locked
-screen. So the simulator rung holds the display on (`caffeinate -d`), lights it first (`caffeinate -u`), and on a
-locked screen waits up to two minutes for an unlock, then refuses with exit 75 and a line saying so, rather than hold
-the build lock for an hour (story 1022, below). Unlock the Mac and rerun. A screen that locks during a simulator test
-run stops it (story 1023); a test that fails after a lock on any other run sends the run back with exit 75 (story 1018,
-below).
+**UI tests need the Mac's display on; on a locked screen only the tests that open the mic are skipped** (stories 782,
+1022, 1023, 1509; bead context-grabber-wm8y). With the display off they don't start, and running ones stall: on
+2026-11-16 the whiteboard step sat 17 minutes before its first test on a dark Mac, against about 30 s once the display
+came on, and a run that morning spent two hours in tests that pass in ten minutes. So the simulator rung holds the
+display on (`caffeinate -d`), lights it first (`caffeinate -u`), and story 783's watchdog stops a run that still doesn't
+start within 3 minutes. A locked screen with the display on is a different thing: every UI test runs on it as on an
+unlocked one, except a test that opens the mic, which crashes the app in Apple's audio toolbox because a locked Mac
+starves the simulator's audio server (beads 2v63, 208e). Evidence: on 2026-11-21 the screen was locked from 19:00:19 to
+19:02:34, and the PaperKit touch contract UI tests, the contract tests, ChatReaction and ChatSkillThread all passed in
+that window, the voice-button test the only failure; on 2026-11-22 at 22:42, locked throughout,
+`WhiteboardTitleRenameUITests` started within seconds on the iPad simulator and passed 2 of 2 in 25 s. So on a locked
+screen a simulator test run skips the tests `scripts/native/mic-tests.txt` lists as opening the mic (`-skip-testing`),
+names each one on screen and in the ladder's ledger (`locked_skip`) to rerun unlocked, and runs the rest; a run that
+named only such tests doesn't start (exit 75), and one that ran nothing else isn't a pass (exit 75). A screen that
+locks during a simulator test run stops it only while one of its tests that open the mic is still to run (story 1023);
+a test that fails after a lock on a run off the simulator sends the run back with exit 75 (story 1018, below).
+`scripts/native/mic-tests.py check` (in `just test`) fails when a UI test touches a mic control or a call and is on
+neither the list's `mic` lines nor its `reviewed` ones, so a new test that opens the mic can't run on a locked Mac
+unnoticed.
 
 **Never run a simulator rung while more xcodebuilds run than the Mac has lanes.** Startup waits fail under contention,
 and a run under contention counts as failed and is rerun, not debugged. The lock doesn't cover this, since a device

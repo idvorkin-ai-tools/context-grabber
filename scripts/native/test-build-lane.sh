@@ -277,15 +277,13 @@ TARGET="iPhone 17" boot BUILD_LANES=1 BUILD_LANE=1 FAKE_HELD=build-2.lock
 is "one lane: only the target is booted" "$(grep '|Booted|' "$STATE/devices" | cut -d'|' -f1)" "$PHONE"
 [ ! -e "$MARKS/lockf" ] && ok "one lane: sim-boot asks no lock" || bad "one lane: sim-boot asks no lock"
 
-# Story 1022: on a locked screen sim-boot waits for an unlock, then boots and shuts down nothing, and exits 75.
+# Bead context-grabber-wm8y: on a locked screen sim-boot boots as on an unlocked one (the wrapper skips the mic tests).
 printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionScreenIsLocked\\"=Yes"\n' >"$fakes/locked-screen"
 chmod +x "$fakes/locked-screen"
 devices "$PHONE:Shutdown:iPhone 17" "$PAD:Booted:iPad Pro 11-inch (M5)"
-TARGET="iPhone 17" boot BUILD_LANES=1 BUILD_LANE=1 SMOKE_LOCK_PROBE="$fakes/locked-screen" SIM_LOCK_WAIT=1 SIM_LOCK_POLL=1
-is "a locked screen: sim-boot exits 75" "$?" 75
-is "a locked screen: the target isn't booted" "$(state_of "$PHONE")" Shutdown
-is "a locked screen: nothing is shut down" "$(state_of "$PAD")" Booted
-has "a locked screen: says why" "$out" "so booting a simulator for a test run didn't start (waited 1 s)"
+TARGET="iPhone 17" boot BUILD_LANES=1 BUILD_LANE=1 SMOKE_LOCK_PROBE="$fakes/locked-screen"
+is "a locked screen: sim-boot boots" "$?" 0
+is "a locked screen: the target is booted" "$(state_of "$PHONE")" Booted
 
 # The wait for other xcodebuilds.
 idle() { with XCODEBUILD_IDLE_WAIT=0 XCODEBUILD_IDLE_POLL=1 "$@" scripts/native/xcodebuild-idle.sh >"$out" 2>&1; }

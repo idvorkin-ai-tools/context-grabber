@@ -9,9 +9,11 @@
 # kept, is native/Build/logs/<name>.xcresult unless the command names its own (story 790). A test run that would pass
 # fails with exit 65 when a case passed only on its retry, unless scripts/native/ui-quarantine.txt names it (story 1017);
 # after a hang, a suite that failed only on tries its retry passed is judged that way too, not as a failed run (bead 36f).
-# A test run that fails after the Mac's screen was seen locked during it exits 75, asking for a rerun unlocked (story 1018).
-# A test run on a simulator doesn't start while the screen is locked (it waits up to 2 minutes, then exits 75), and one
-# whose tests are still running when the screen locks is stopped, the app ended on the simulator, and exits 75 (stories 1022, 1023).
+# A test run off the simulator that fails after the Mac's screen was seen locked during it exits 75, asking for a rerun
+# unlocked (story 1018). A test run on a simulator that starts on a locked screen skips the tests that open the mic
+# (scripts/native/mic-tests.txt) and names them, and one whose tests are still running when the screen locks is stopped,
+# the app ended on the simulator, and exits 75, but only while a test that opens the mic is still to run (stories 1022,
+# 1023, bead context-grabber-wm8y): every other UI test runs on a locked Mac as on an unlocked one.
 # Usage: xcodebuild-log.sh <name> <done> <command...>
 set -uo pipefail
 name=$1 done=$2
@@ -98,11 +100,74 @@ end_sim_apps() {
   return 0
 }
 # A locked Mac starves the simulator's audio server, and opening the mic then aborts the app about ten seconds on, a
-# crash dialog on the Mac each time: so a locked screen doesn't start a simulator test run.
+# crash dialog on the Mac each time. Every other UI test runs on a locked Mac as on an unlocked one (bead
+# context-grabber-wm8y: 2026-11-21 19:00–19:02 and 2026-11-22 22:42, both locked throughout), so a locked screen skips
+# only the tests that open the mic, listed in scripts/native/mic-tests.txt (MIC_TESTS: another list), and names them.
+mic_list=${MIC_TESTS:-$(dirname "$0")/mic-tests.txt}
+mics=()  # this run's tests that open the mic: those its -only-testing takes in (all, with none), less its -skip-testing
+skipped_mics=0
+covers() {  # covers <filter> <Target/Class/test>: an -only-testing or -skip-testing filter that takes the test in
+  [ "$1" = "$2" ] || [ "$1" = "${2%/*}" ] || [ "$1" = "${2%%/*}" ]
+}
 if [ "$sim_test" -eq 1 ]; then
-  wait_unlocked "the simulator test run $name" || exit 75
+  only=() skip=()
+  for a in "$@"; do
+    case $a in
+      -only-testing:*) only+=("${a#-only-testing:}") ;;
+      -skip-testing:*) skip+=("${a#-skip-testing:}") ;;
+    esac
+  done
+  while read -r kind id _; do
+    [ "$kind" = mic ] && [ -n "$id" ] || continue
+    taken=0
+    if [ ${#only[@]} -eq 0 ]; then taken=1; else for f in "${only[@]}"; do covers "$f" "$id" && taken=1; done; fi
+    for f in ${skip[@]+"${skip[@]}"}; do covers "$f" "$id" && taken=0; done
+    [ "$taken" -eq 1 ] && mics+=("$id")
+  done < <(sed 's/#.*//' "$mic_list" 2>/dev/null)
+  if mac_locked; then
+    if [ ${#mics[@]} -eq 0 ]; then
+      echo "the Mac's screen is locked; no test in the simulator test run $name opens the mic ($mic_list), so it runs" >&2
+    else
+      # Every test the run names is one that opens the mic: nothing would be left to run.
+      left=0
+      for f in ${only[@]+"${only[@]}"}; do
+        hit=0
+        for m in "${mics[@]}"; do [ "$f" = "$m" ] && hit=1; done
+        [ "$hit" -eq 1 ] || left=1
+      done
+      if [ ${#only[@]} -gt 0 ] && [ "$left" -eq 0 ]; then
+        echo "the Mac's screen is locked, and every test in the simulator test run $name opens the mic, so it didn't" \
+          "start: a locked Mac starves the simulator's audio and the app can crash (story 1022); unlock it and rerun" >&2
+        exit 75
+      fi
+      for m in "${mics[@]}"; do set -- "$@" "-skip-testing:$m"; done
+      echo "the Mac's screen is locked, so the simulator test run $name skips the ${#mics[@]} test(s) that open the mic" \
+        "(a locked Mac starves the simulator's audio and the app can crash), to rerun unlocked: ${mics[*]}" >&2
+      if [ -n "${LADDER_RUN_ID:-}" ] && [ "${LADDER_LEDGER:-}" != off ] && command -v jq >/dev/null; then
+        ledger=${LADDER_LEDGER:-$HOME/tmp/agent/notes/ladder/runs.jsonl}
+        mkdir -p "${ledger%/*}" 2>/dev/null
+        jq -cn --arg run_id "$LADDER_RUN_ID" --arg event locked_skip --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          --arg name "$name" --argjson tests "$(printf '%s\n' "${mics[@]}" | jq -R . | jq -cs .)" \
+          '$ARGS.named' >>"$ledger" 2>/dev/null || true
+      fi
+      skipped_mics=1 mics=()
+    fi
+  fi
 fi
+# The run's tests that open the mic and haven't finished: passed, or failed on their last try.
+tries=1
+[ "${UI_TEST_RETRY:-1}" = 1 ] && tries=2
+mics_left() {
+  local m t c n
+  for m in ${mics[@]+"${mics[@]}"}; do
+    t=${m%%/*} c=${m#*/} c=${c%%/*} n=${m##*/}
+    grep -qF "Test Case '-[$t.$c $n]' passed" "$log" && continue
+    [ "$(grep -cF "Test Case '-[$t.$c $n]' failed" "$log")" -ge "$tries" ] && continue
+    echo "$c/$n"
+  done
+}
 stopped=$(mktemp -u) unstarted=$(mktemp -u) unfinished=$(mktemp -u) locked_at=$(mktemp -u) lock_stopped=$(mktemp -u)
+lock_seen=$(mktemp -u)
 # Written in full: xcodebuild writes Info.plist and drops Staging last. No bundle to wait for (a build) counts as written.
 bundle_written() { [ -z "$bundle" ] || { [ -e "$bundle/Info.plist" ] && [ ! -e "$bundle/Staging" ]; }; }
 stop_xcodebuild() {
@@ -170,16 +235,22 @@ if [ "$is_test" -eq 1 ]; then
   (
     while kill -0 $$ 2>/dev/null; do
       if mac_locked; then
-        # When it was first seen locked, and how many cases had failed by then: those failed on an unlocked Mac.
-        [ -e "$locked_at" ] || echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
-        # Story 1022: on a simulator, a run whose tests are still running stops here. Once the last suite has closed,
-        # no test can open the mic any more, and the result stands (story 1018 reads it). It keeps looking after a
-        # closing line: a run of several test targets closes one per target, and the next can start (bead i5x4).
-        if [ "$sim_test" -eq 1 ] && tests_running; then
-          echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
-          touch "$lock_stopped"
-          stop_for_lock
-          exit
+        if [ "$sim_test" -eq 1 ]; then
+          # Story 1023, bead wm8y: on a simulator, a run whose tests are still running stops here while a test that
+          # opens the mic is still to run. Once the last suite has closed, or with no such test left, no test can open
+          # the mic, and the run goes on: its result stands. It keeps looking after a closing line: a run of several
+          # test targets closes one per target, and the next can start (bead i5x4).
+          left=$(mics_left | paste -sd' ' -)
+          if tests_running && [ -n "$left" ]; then
+            echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
+            echo "$left" >"$lock_stopped"
+            stop_for_lock
+            exit
+          fi
+          [ -e "$lock_seen" ] || date "+%H:%M:%S" >"$lock_seen"
+        else
+          # Story 1018: when it was first seen locked, and how many cases had failed by then: those failed unlocked.
+          [ -e "$locked_at" ] || echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
         fi
       fi
       sleep "$lock_poll" || exit
@@ -197,7 +268,8 @@ for w in "$watchdog" ${start_watchdog:+"$start_watchdog"} ${lock_watch:+"$lock_w
   kill_own_child "$w"
 done
 if [ -e "$lock_stopped" ]; then
-  rm -f "$lock_stopped"
+  left=$(cat "$lock_stopped")
+  rm -f "$lock_stopped" "$lock_seen"
   end_sim_apps  # the watcher may have been ended before its second go
   read -r at before <"$locked_at"
   rm -f "$locked_at" "$unstarted"
@@ -206,9 +278,9 @@ if [ -e "$lock_stopped" ]; then
       "failed before that, so it counts as a failure; the whole log: $log" >&2
     exit 65
   fi
-  echo "the Mac's screen locked at $at, so the simulator test run was stopped there and the app ended on the simulator," \
-    "before a test could open the mic: a locked Mac starves the simulator's audio and the app can crash (story 1023)." \
-    "Not run, not failed; unlock the Mac and rerun. The whole log: $log" >&2
+  echo "the Mac's screen locked at $at with test(s) that open the mic still to run ($left), so the simulator test run" \
+    "was stopped there and the app ended on the simulator: a locked Mac starves the simulator's audio and the app can" \
+    "crash (story 1023). Not run, not failed; unlock the Mac and rerun. The whole log: $log" >&2
   exit 75
 fi
 if [ -e "$unstarted" ]; then
@@ -221,7 +293,7 @@ fi
 # Where a test run's time went, per case, on screen and as JSON lines to compare runs (ui-timings.py), and the cases that
 # passed only on their retry and aren't quarantined (story 1017).
 flaky=$(mktemp "${TMPDIR:-/tmp}/ui-flaky.XXXXXX")
-trap 'rm -f "$flaky" "$locked_at"' EXIT
+trap 'rm -f "$flaky" "$locked_at" "$lock_seen"' EXIT
 # Story 1018: a test that failed after the screen was seen locked isn't a test's failure: the run could not run as it
 # should. Only when every failed case failed after the lock was first seen; a build that failed, or a case that failed
 # while the screen was still unlocked, fails as before, with the lock named.
@@ -257,6 +329,15 @@ pass() {
     exit 65
   fi
   [ -s "$locked_at" ] && echo "the Mac's screen locked during the run (first seen locked at $(cut -d' ' -f1 "$locked_at")); it passed anyway" >&2
+  [ -s "$lock_seen" ] && echo "the Mac's screen locked during the run (first seen locked at $(cat "$lock_seen")) when no" \
+    "test that opens the mic could start, so it ran on; it passed anyway" >&2
+  # Bead wm8y: a locked run that skipped its mic tests and ran nothing else (a class of only mic tests) didn't pass.
+  if [ "$skipped_mics" -eq 1 ] && ! grep -qE "^Test Case '.+' (passed|failed)" "$log"; then
+    echo "the Mac's screen was locked, and every test this run took in opens the mic, so none ran: not run, not" \
+      "passed; unlock the Mac and rerun. The whole log: $log" >&2
+    exit 75
+  fi
+  [ "$skipped_mics" -eq 1 ] && echo "passed without its test(s) that open the mic, skipped on the locked Mac: rerun them unlocked" >&2
   exit 0
 }
 # Every case that failed passed on its last try, and at least one did: the suite failed only for tries its retry passed.

@@ -313,20 +313,20 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 782:
 
-- **Summary:** The simulator rung keeps the Mac's display on, and refuses a locked screen at once
-- **Status:** implemented in c58dba5; verified on the host by `scripts/native/test-ladder-map.sh` (fake `caffeinate` and lock probe: rung 2 runs under `caffeinate -d -i` after a `caffeinate -u`, the Mac rung under `-i` alone, and a locked screen stops rung 2 with exit 75 before anything builds); not yet seen on a real dark Mac; amended in a344919f (story 1022: a locked screen first waits up to 2 minutes for an unlock)
+- **Summary:** The simulator rung keeps the Mac's display on, and runs on a locked screen without its tests that open the mic
+- **Status:** implemented in c58dba5; verified on the host by `scripts/native/test-ladder-map.sh` (fake `caffeinate` and lock probe: rung 2 runs under `caffeinate -d -i` after a `caffeinate -u`, the Mac rung under `-i` alone, and a locked screen stops rung 2 with exit 75 before anything builds); not yet seen on a real dark Mac; amended in a344919f (story 1022: a locked screen first waits up to 2 minutes for an unlock); amended on branch `fix/locked-skip-mic-wm8y` (bead `context-grabber-wm8y`: a locked screen no longer stops the rung, verified on the host by the same script: rung 2 on a locked screen runs its class and says it skips the tests that open the mic)
 - **Issues:** the fast-sim-tests study of 2026-11-16 (the 915 run's whiteboard step: 29 minutes, 17 of them waiting for a dark, locked screen; a run that morning, two hours)
 
 #### Use Case:
 - **As Igor,** away from the Mac while a change climbs the ladder
-- **I want to** have the simulator rung keep the display lit, and refuse straight away when the screen is already locked
-- **so that** a run that takes 11 to 14 minutes doesn't take 30 minutes or two hours, and a locked Mac costs seconds and says why, not an hour of the build lock
+- **I want to** have the simulator rung keep the display lit, and run on a locked screen with only the tests that open the mic held back
+- **so that** a run that takes 11 to 14 minutes doesn't take 30 minutes or two hours, and a locked Mac still tests everything it safely can
 
 #### Acceptance Criteria:
 - **Scenario:** Starting the simulator rung
 - **Given:** the Mac's display may be asleep, and its screen may be locked
 - **When:** the ladder starts rung 2
-- **Then:** it wakes the display and holds it on for the whole rung, and if the screen is locked it waits up to 2 minutes for an unlock (story 1022), then stops with exit 75 and *the Mac's screen is locked: UI tests don't start on a locked screen*, building nothing
+- **Then:** it wakes the display and holds it on for the whole rung, and if the screen is locked it says *the Mac's screen is locked: rung 2 runs, skipping the tests that open the mic* and runs, the wrapper skipping those tests (story 1022)
 
 ---
 
@@ -1324,41 +1324,47 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 1022:
 
-- **Summary:** No simulator test run starts while the Mac's screen is locked, so a locked Mac never crashes the app into a *quit unexpectedly* dialog
-- **Status:** implemented in a344919f (spec 73476853); verified on the host by `scripts/native/test-xcodebuild-log.sh`, `scripts/native/test-build-lane.sh` and `scripts/native/test-ladder-map.sh` (the lock probe faked: a simulator test run on a locked screen waits its time and exits 75 without starting xcodebuild, and starts when the screen unlocks within it; a build and a test off the simulator aren't held; sim-boot on a locked screen boots and shuts down nothing and exits 75; rung 2 refuses with its line)
-- **Issues:** bead `context-grabber-208e` (Igor, 2026-11-22: "I keep seeing crashes from runs. Can we make sure I don't see them?"). Seven `GrabberNative` crash reports on the Mac on 2026-11-21 between 19:00 and 19:48, on the iPhone simulators of lanes 2, 3 and 4, each the app aborting in Apple's audio toolbox (`_ReportRPCTimeout` under `AVAudioEngine.inputNode`) as a test opened the mic, each while the screen was locked (the system log: locked 19:00:19 to 19:02:34, and from 19:11:58 on); story 1018 only read such a run's failure once it was over, after the crash and its dialog
+- **Summary:** A simulator test run on a locked screen skips only the tests that open the mic, so a locked Mac never crashes the app and still runs the rest
+- **Status:** implemented in a344919f (spec 73476853); verified on the host by `scripts/native/test-xcodebuild-log.sh`, `scripts/native/test-build-lane.sh` and `scripts/native/test-ladder-map.sh` (the lock probe faked: a simulator test run on a locked screen waits its time and exits 75 without starting xcodebuild, and starts when the screen unlocks within it; a build and a test off the simulator aren't held; sim-boot on a locked screen boots and shuts down nothing and exits 75; rung 2 refuses with its line). Amended on branch `fix/locked-skip-mic-wm8y` (bead `context-grabber-wm8y`, Igor 2026-11-22: "remove those tests or skip those tests"): verified on the host by `scripts/native/test-xcodebuild-log.sh`, `scripts/native/test-build-lane.sh` and `scripts/native/test-ladder-map.sh` (the lock probe faked: a locked run starts at once with `-skip-testing` for the listed test and names it, in the ladder's ledger too; a locked run of no listed test skips nothing; one of only listed tests doesn't start, 75; one that ran nothing but them isn't a pass, 75; sim-boot boots; rung 2 runs)
+- **Issues:** bead `context-grabber-208e` (Igor, 2026-11-22: "I keep seeing crashes from runs. Can we make sure I don't see them?"). Seven `GrabberNative` crash reports on the Mac on 2026-11-21 between 19:00 and 19:48, on the iPhone simulators of lanes 2, 3 and 4, each the app aborting in Apple's audio toolbox (`_ReportRPCTimeout` under `AVAudioEngine.inputNode`) as a test opened the mic, each while the screen was locked (the system log: locked 19:00:19 to 19:02:34, and from 19:11:58 on); story 1018 only read such a run's failure once it was over, after the crash and its dialog. Bead `context-grabber-wm8y`: in that same locked window the PaperKit touch contract UI tests, the contract tests, ChatReaction and ChatSkillThread all passed (slot 12's and slot 13's logs), the voice-button test the only failure; and on 2026-11-22 at 22:42, locked throughout, `WhiteboardTitleRenameUITests` started within seconds on the iPad simulator and passed 2 of 2 in 25 s (`~/tmp/agent/notes/lock-experiment/run1.log`): only a test that opens the mic needs an unlocked Mac
 
 #### Use Case:
 - **As Igor,** away from the Mac or back at it after it locked while agents test
-- **I want to** have simulator test runs wait for me to unlock before they start
-- **so that** I never come back to a stack of *GrabberNative quit unexpectedly* dialogs from tests that could not run anyway, and a run that could not run says so and is rerun
+- **I want to** have simulator test runs hold back only the tests that open the mic until I unlock, and run the rest
+- **so that** a locked Mac never crashes the app, agents keep testing overnight, and what was held back is named and rerun
 
 #### Acceptance Criteria:
 - **Scenario:** A simulator test run asked for while the screen is locked
 - **Given:** the Mac's screen is locked
 - **When:** anything starts a test run on a simulator, or boots one for it (a UI test run through the wrapper every run goes through, the simulator smoke, the ladder's rung 2, the contract tests, the Health grant)
-- **Then:** it waits for the screen to unlock, saying so once, checking every 5 s for up to 2 minutes (as the device build's signing guard waits); unlocked in that time, it starts as usual; still locked, it stops with exit 75, starting nothing, with a line saying the screen is locked, that a locked Mac starves the simulator's audio and can crash the app when a test opens the mic, and to unlock and rerun
+- **Then:** it starts at once, without the tests that open the mic, and names each one it held back, on screen and in the ladder's ledger, saying a locked Mac starves the simulator's audio and can crash the app when a test opens the mic, and to rerun them unlocked; a simulator boots as on an unlocked Mac
+- **And:** a run that names only tests that open the mic doesn't start, exit 75, saying so; one that ran nothing but them (a class that holds only such tests) ends with exit 75, not a pass; a run with none of them says the screen is locked and runs as it is
 - **And:** a build, a Mac build and a test run that isn't on a simulator start as before
 
 ---
 
 ### User Story 1023:
 
-- **Summary:** A simulator test run in flight is stopped when the Mac's screen locks, before a test can open the mic and crash the app
-- **Status:** implemented in a344919f (spec 73476853); verified on the host by `scripts/native/test-xcodebuild-log.sh` (the lock probe faked: a lock mid-run stops it within seconds, ends the app and its runner on that simulator and exits 75, or 65 after an earlier failure; a lock after the tests finished changes nothing). Amended on branch `native/sim-lock-targets-i5x4` (bead `context-grabber-i5x4`): a run of two test targets is guarded to its last, verified on the host by the same script (a lock between the targets stops the run once the second starts, exit 75; one lifted before it starts lets the run pass). On the simulator (iPhone 17 lane 2, 2026-11-22, the probe reading a file flipped to locked 3 s into `GymTimerUITests`): the run was stopped and exited 75 with the line, no xcodebuild and no app left running, no new crash report; flipped back, the same class passed
-- **Issues:** bead `context-grabber-208e`, as story 1022; bead `context-grabber-i5x4` (the stop stood down after the first of two test targets: `just native-test-contracts` closes a suite per target, two in slot 12's log of 2026-11-21, so a lock during the second wasn't stopped)
+- **Summary:** A simulator test run in flight is stopped when the Mac's screen locks while a test that opens the mic is still to run, before it can crash the app
+- **Status:** implemented in a344919f (spec 73476853); verified on the host by `scripts/native/test-xcodebuild-log.sh` (the lock probe faked: a lock mid-run stops it within seconds, ends the app and its runner on that simulator and exits 75, or 65 after an earlier failure; a lock after the tests finished changes nothing). Amended on branch `native/sim-lock-targets-i5x4` (bead `context-grabber-i5x4`): a run of two test targets is guarded to its last, verified on the host by the same script (a lock between the targets stops the run once the second starts, exit 75; one lifted before it starts lets the run pass). On the simulator (iPhone 17 lane 2, 2026-11-22, the probe reading a file flipped to locked 3 s into `GymTimerUITests`): the run was stopped and exited 75 with the line, no xcodebuild and no app left running, no new crash report; flipped back, the same class passed. Amended on branch `fix/locked-skip-mic-wm8y` (bead `context-grabber-wm8y`): verified on the host by `scripts/native/test-xcodebuild-log.sh` (a lock mid-run with no listed test to come doesn't stop the run, and a test that fails after it fails the run, 65; a lock after the listed test passed doesn't stop it, and its pass stands with a line; with the listed test still to come, the stops above as before)
+- **Issues:** bead `context-grabber-208e`, as story 1022; bead `context-grabber-wm8y`, as story 1022; bead `context-grabber-i5x4` (the stop stood down after the first of two test targets: `just native-test-contracts` closes a suite per target, two in slot 12's log of 2026-11-21, so a lock during the second wasn't stopped)
 
 #### Use Case:
 - **As Igor,** stepping away from the Mac while agents test
-- **I want to** have a simulator test run stop when the screen locks under it
+- **I want to** have a simulator test run stop when the screen locks under it while a test that opens the mic is still to run, and otherwise run on
 - **so that** the app is never left running into a locked Mac's starved audio, crashing into a *quit unexpectedly* dialog, and the run says it was stopped and is rerun
 
 #### Acceptance Criteria:
 - **Scenario:** The screen locks during a simulator test run
-- **Given:** a test run on a simulator whose tests are still running
+- **Given:** a test run on a simulator whose tests are still running, with a test that opens the mic (`scripts/native/mic-tests.txt`) still to run
 - **When:** the screen is seen locked (it is looked at every 2 s)
-- **Then:** the run is stopped within seconds: xcodebuild is ended and the app and its test runner are ended on that simulator before a test can open the mic, and the run exits 75 saying when the screen locked, that the run was stopped so the app could not crash, and to unlock and rerun; if a case had already failed before the lock, the run fails with exit 65 instead, naming the lock; once the run's tests have all finished, a lock no longer stops it, and its result stands
+- **Then:** the run is stopped within seconds, naming the tests that open the mic still to run: xcodebuild is ended and the app and its test runner are ended on that simulator before a test can open the mic, and the run exits 75 saying when the screen locked, that the run was stopped so the app could not crash, and to unlock and rerun; if a case had already failed before the lock, the run fails with exit 65 instead, naming the lock; once the run's tests have all finished, a lock no longer stops it, and its result stands
 - **And:** a run of several test targets (the contract tests are two) is guarded to the end of its last: a lock seen during any target stops the run as above, and one seen between two targets stops it as soon as the next target starts while the screen is still locked; unlocked by then, the run goes on: a pass stands with a line saying the screen locked, a failure after that lock is read as story 1018 says, and a later lock that stops the run is the one it names, its 75 or 65 counting the cases that had failed before it
+
+- **Scenario:** The screen locks with no test that opens the mic to come
+- **Given:** a simulator test run with no test that opens the mic, or whose ones have all finished, or that skipped them as it started locked
+- **When:** the screen is seen locked
+- **Then:** the run goes on; a pass stands with a line saying the screen locked and no test that opens the mic could start, and a test that fails after the lock fails the run as on an unlocked Mac
 
 ---
 
@@ -1474,6 +1480,25 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the watcher is running and main has merges since the last build
 - **When:** ten minutes pass with no newer merge
 - **Then:** it builds the checked commit, posts *New build on /builds: <version> (<build>) <commit>, with: <the PRs merged since the last build>* to `igor2-88g.1620`, and remembers the build outside the repository. A newer merge before the build is selected makes it wait again. A failed post is retried after a restart without rebuilding. Busy and locked builds are retried at the next poll, and other build failures stop the watcher with local diagnostics
+
+---
+
+### User Story 1509:
+
+- **Summary:** Every UI test that taps a mic control or starts a call is listed as opening the mic or not, so a new one can't crash a locked Mac unnoticed
+- **Status:** implemented on branch `fix/locked-skip-mic-wm8y`; verified on the host by `scripts/native/test-mic-tests.sh` (fixtures: a test that taps the mic through a helper and isn't listed fails the check and is named, one that touches no mic control isn't; a listed test that is gone fails; a mic line without its test target is refused; the real UI tests: 2 open the mic, 9 reviewed)
+- **Issues:** bead `context-grabber-wm8y` (Igor, 2026-11-22: skip the tests a locked Mac can't run, after story 1022's evidence showed only the mic crashes one)
+
+#### Use Case:
+- **As Igor,** with agents testing on the Mac while it is locked
+- **I want to** have the list of tests that open the mic kept whole by a check
+- **so that** a test someone adds that opens the mic is skipped on a locked Mac, not run into a crash
+
+#### Acceptance Criteria:
+- **Scenario:** A UI test that touches a mic control
+- **Given:** a UI test that taps, holds or looks for a mic control, the voice button, a microphone picker or a call, itself or through a helper in its file
+- **When:** `just test` runs
+- **Then:** the check fails, naming it, unless `scripts/native/mic-tests.txt` lists it as one that opens the mic (with its test target, skipped on a locked Mac) or as reviewed and not, each with why; a listed test that no longer exists fails the check too
 
 ---
 

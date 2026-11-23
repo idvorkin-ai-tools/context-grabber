@@ -72,13 +72,14 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
 - **Sanity-check geometry thresholds against the real fixtures** (`__tests__/fixtures/locations.json`,
   `context-grabber.db`) before shipping clustering, place-matching or distance rules; synthetic tests miss what real
   data exposes.
-- **Never run `xcodebuild test` on a simulator outside the wrapper, and never while the Mac's screen is locked**
-  (stories 1022–1024, bead `context-grabber-208e`). A locked Mac starves the simulator's audio server, the app aborts in
-  Apple's audio toolbox when a test opens the mic, and the run is lost (before BugKit 0.3.16 each crash also left Igor a
-  *quit unexpectedly* dialog; now a simulator crash ends at `Documents/crashes/signal-*.txt` in the app's container).
-  `scripts/native/xcodebuild-log.sh` (and every recipe, rung and script that runs tests or boots a simulator) waits up
-  to two minutes for an unlock, then exits 75, and stops a run when the screen locks under it. A 75 there means unlock
-  and rerun, not debug.
+- **Never run `xcodebuild test` on a simulator outside the wrapper; on a locked Mac it skips only the tests that open
+  the mic** (stories 1022–1024, 1509, beads `context-grabber-208e`, `context-grabber-wm8y`). A locked Mac starves the
+  simulator's audio server, and the app aborts in Apple's audio toolbox when a test opens the mic (now a simulator crash
+  ends at `Documents/crashes/signal-*.txt` in the app's container); every other UI test runs locked as unlocked (Igor,
+  2026-11-22, after the evidence in [TESTING.md](docs/TESTING.md)). `scripts/native/xcodebuild-log.sh` skips the tests
+  `scripts/native/mic-tests.txt` lists as opening the mic and names them to rerun unlocked, and stops a run when the
+  screen locks only while one of those is still to run. A new UI test that taps a mic control or starts a call goes on
+  that list (`mic` or `reviewed`), or `just test` fails. A 75 there means unlock and rerun, not debug.
 - **Build lanes scale with RAM; one booted simulator per lane, left booted between runs** (stories 785, 980; #954).
   The Mac and simulator rungs run in `scripts/native/build-lane.sh run`: one job per lane, `BUILD_LANES` or one lane
   per 12 GB, at most four (4 on this 48 GB Mac, 1 on a 16 GB one, where everything is one job at a time as before).
