@@ -33,7 +33,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 351:
 
 - **Summary:** Turn the ghosts off (the switch is *Ask at my pauses* since story 1171: it stops asking whoever answers the board, Larry included)
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on), which passed with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3). Since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`: a stroke with Ghosts off starts no pause, Claude's go and Larry's stay, an answer on its way lands stale, on again asks), and that UI test is gone. Renamed *Ask at my pauses* in [66376ef9](https://github.com/idvorkin/context-grabber/commit/66376ef9) (story 1171): off asks no one on a Larry board or a Haiku board, verified on the iPad simulator (`WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`)
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on), which passed with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3). Since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`: a stroke with Ghosts off starts no pause, Claude's go and Larry's stay, an answer on its way lands stale, on again asks), and that UI test is gone. Renamed *Ask at my pauses* in [f77304bd](https://github.com/idvorkin/context-grabber/commit/f77304bd) (story 1171): off asks no one on a Larry board or a Haiku board, verified on the iPad simulator (`WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -52,7 +52,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1114:
 
 - **Summary:** Writing with Ghosts off says no one is watching
-- **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified on the host (`WhiteboardGhostTurnsTests`: the first stroke with Ghosts off sets the line and it stays; `WhiteboardNoteTests`: the line holds the middle) and the Mac build. Not yet seen on the iPad
+- **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified on the host (`WhiteboardGhostTurnsTests`: the first stroke with Ghosts off sets the line and it stays; `WhiteboardNoteTests`: the line holds the middle) and the Mac build. Not yet seen on the iPad. Worded for *Ask at my pauses* in [f77304bd](https://github.com/idvorkin/context-grabber/commit/f77304bd) (story 1171), read on the iPad simulator by `WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`
 - **Issues:** bead `context-grabber-bozm` (iPad, 2026-11-22: a tap meant for the mic landed on Ghosts at 13:31; 16 minutes of writing went to no one, with nothing on screen saying so)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -412,7 +412,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 356:
 
 - **Summary:** Larry's marks stay when the ghosts go off (the switch is *Ask at my pauses* since story 1171, and off it asks Larry nothing either)
-- **Status:** app side implemented in [e2f693e](https://github.com/idvorkin/context-grabber/commit/e2f693e); verified on the simulator by the session log (`whiteboard` ghosts: Ghosts off drops Claude's one ghost, then Larry's turn shows his two); a UI test could not read it, as the Ghosts button's accessibility label does not refresh for XCUITest while Ghosts is off; on the iPad not yet
+- **Status:** app side implemented in [e2f693e](https://github.com/idvorkin/context-grabber/commit/e2f693e); verified on the simulator by the session log (`whiteboard` ghosts: Ghosts off drops Claude's one ghost, then Larry's turn shows his two); a UI test could not read it, as the Ghosts button's accessibility label does not refresh for XCUITest while Ghosts is off; on the iPad not yet. Renamed *Ask at my pauses* in [f77304bd](https://github.com/idvorkin/context-grabber/commit/f77304bd) (story 1171), Larry's two marks staying with it off read on the iPad simulator by `WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
