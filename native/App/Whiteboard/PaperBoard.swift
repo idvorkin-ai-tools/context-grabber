@@ -100,6 +100,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let reword = BoardRewordState()
   /// Story 1188: PaperKit's handwriting reflow, for the log (PaperBoard+ReflowWatch.swift).
   let reflowWatch = BoardReflowWatch()
+  let selectionDrag = SelectionDragWatch()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
   private(set) var board = BoardPages()
   var pages = 1
@@ -647,6 +648,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if ghostTap?.selection?.isGroup == true { ghostTap = nil }
     groupTap = nil
     reflowTouched(touch)
+    selectionTouchDown(touch)
     // Story 1143: the turns logged as the touch began, so its line says how many came while it was down.
     if touchesDown == 0 { run?.turnsAtStart = model.turnsLogged }
     if touch.type == .pencil {
@@ -702,6 +704,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
     pathTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
     foldEraserMoved(touch)
+    selectionTouchMoved(touch)
     roomBandPencilMoved(touch, at: lines.columnPoint(of: touch.location(in: lines)))
     guard touchTool.erases, touch.type == .pencil || fingersDraw,
       model.questions.board.cards.contains(where: { $0.answered != nil })

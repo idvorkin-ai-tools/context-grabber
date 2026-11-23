@@ -81,7 +81,7 @@ final class WhiteboardRewordUITests: XCTestCase {
     XCTAssertEqual(after.minX, before.minX, accuracy: 0.01, "from the same left")
   }
 
-  /// Story 1197: a drag after the first tap moves the text, and opens nothing.
+  /// Stories 1197, 1201: a drag after the first tap moves the text where the finger goes, at its size, and opens nothing.
   func testAFirstTapPicksUpATextToDrag() throws {
     let (app, before) = try boardWithAText()
     let send = app.buttons["whiteboard-send"]
@@ -94,14 +94,20 @@ final class WhiteboardRewordUITests: XCTestCase {
     let to = app.coordinate(withNormalizedOffset: CGVector(dx: before.center.x, dy: before.center.y + 0.1))
     // Slow, and held before the lift, as the group's drag (bead context-grabber-z93g).
     from.press(forDuration: 0.3, thenDragTo: to, withVelocity: 200, thenHoldForDuration: 0.5)
-    // It moved, not where to: on the simulator PaperKit takes a drag on selected handwriting-like ink sideways (the log's
-    // ink_moved said dx -34, dy 0 for a drag 120 points down; bead context-grabber-vhae).
-    let moved = PaperScreen.settled(app, within: 10) { screen in
-      screen.ink.flatMap {
-        abs($0.center.x - before.center.x) > 0.01 || abs($0.center.y - before.center.y) > 0.01 ? $0 : nil
-      }
-    }
-    XCTAssertNotNil(moved, "the text moved from \(before): \(String(describing: PaperScreen(app).ink))")
+    // Story 1201: down, as the finger went, at its size. PaperKit's resize handles cover a text this small, and the drag
+    // stretched it sideways (ink_moved dx -34, dy 0 for a drag 120 points down; bead context-grabber-vhae); the board
+    // takes the stretch back on the lift and moves it by the finger's travel. PaperKit's drag begins a few points in,
+    // so the move may be a little short of the finger's. Read where it should be, below the selection's label, which sits
+    // just above the text.
+    let landing = PaperScreen.Box(
+      minX: before.minX - 0.03, minY: before.minY + 0.08, maxX: before.maxX + 0.03, maxY: before.maxY + 0.15)
+    let moved = try XCTUnwrap(
+      PaperScreen.settled(app, within: 10) { $0.ink(in: landing) },
+      "the text moved down from \(before): \(String(describing: PaperScreen(app).ink))")
+    // The label reaches into the region on its right and above, so the text's left and bottom edges are what is read: a
+    // stretch moved the left edge 0.04 to the left and left the bottom where it was.
+    XCTAssertEqual(moved.maxY - before.maxY, 0.1, accuracy: 0.03, "as far down as the finger went: \(moved)")
+    XCTAssertEqual(moved.minX, before.minX, accuracy: 0.01, "and not across, nor stretched: \(moved)")
     XCTAssertFalse(field(app).exists, "a drag opens no field")
     XCTAssertEqual(send.label, glyphs, "moved, not drawn")
   }
