@@ -476,10 +476,10 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   }
 
   /// Arms the fake Cockpit's next board answer as Larry's ink and a button (stories 840, 845).
-  private func larryInkAndButton(_ cockpit: String) throws {
+  private func larryInkAndButton(_ cockpit: String, kind: String = "ink_and_button") throws {
     var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
     request.httpMethod = "POST"
-    request.httpBody = Data(#"{"kind": "ink_and_button"}"#.utf8)
+    request.httpBody = Data(#"{"kind": "\#(kind)"}"#.utf8)
     let done = expectation(description: "the fake Cockpit took it")
     URLSession.shared.dataTask(with: request) { _, response, _ in
       XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
@@ -734,6 +734,40 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let ids = try strokeIDs(cockpit, after: sent)
     XCTAssertTrue(ids.contains("fake-line-1"), "his line goes back under his name: \(ids)")
     XCTAssertEqual(ids.count, 3, "and his button is no stroke: \(ids)")
+  }
+
+  /// Stories 947, 1141 (bead context-grabber-9d1): with one of his controls showing, a text of Larry's he kept is picked
+  /// up by the first tap and opens its words at the second, as with none showing.
+  func testWithHisButtonShowingHisTextSelectsFirstAndRewordsSecond() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    _ = try inkAboveAndBelow(app)
+    try larryInkAndButton(cockpit, kind: "text_and_button")
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(toKeep(app, 1).appears(within: 15), app.debugDescription)
+    let ghost = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his text, faint, in his purple")
+    PaperScreen.tap(app, ghost.center)
+    keep(app)
+    XCTAssertTrue(toKeep(app, 1).waitForNonExistence(timeout: 10), "kept, it's no longer a ghost")
+    let kept = try XCTUnwrap(
+      PaperScreen.showing(app, { $0.larryKept }) { abs($0.width - ghost.width) < 0.03 }, "his text, in his purple")
+    let button = try XCTUnwrap(PaperScreen.settled(app) { $0.green }, "his button, in its green")
+    XCTAssertGreaterThan(button.minY, kept.maxY, "the button sits under his text")
+    shot(app, "his text kept, his button showing")
+
+    let words = app.descendants(matching: .any).matching(identifier: "whiteboard-reword").firstMatch
+    let label = app.descendants(matching: .any).matching(identifier: "whiteboard-selection-label").firstMatch
+    PaperScreen.tap(app, kept.center)
+    XCTAssertTrue(label.appears(within: 5), "the first tap selected his text: \(app.debugDescription)")
+    XCTAssertEqual(label.label, "Selected: Text, tap to reword")
+    XCTAssertFalse(words.exists, "the first tap opens no words")
+    shot(app, "the first tap selects")
+    sleep(2)  // past the tap's selection window
+
+    PaperScreen.tap(app, kept.center)
+    XCTAssertTrue(words.appears(within: 5), "the second tap opens his words: \(app.debugDescription)")
+    XCTAssertEqual(words.value as? String, "room here")
+    shot(app, "the second tap rewords")
   }
 
   /// Story 961: a push made on the revision before the picture's, naming nothing Igor moved since, still pushes, and

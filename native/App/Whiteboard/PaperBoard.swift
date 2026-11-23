@@ -627,9 +627,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       noSelectionUntil = CACurrentMediaTime() + 0.8
       return
     }
-    // Story 947: with no marks or controls showing, a tap on a group's stroke selects all of it; with it selected, a tap
-    // on its text opens the words (story 940). Story 1141: one thing of Larry's outside a group, the same way.
-    if count == 0, model.overlays.list.isEmpty, reword.editing == nil,
+    // Story 947: with no marks showing, a tap on a group's stroke selects all of it; with it selected, a tap on its text
+    // opens the words (story 940). Story 1141: one thing of Larry's outside a group, the same way. His controls showing
+    // change nothing (bead context-grabber-9d1), but a tap on one is the control's (story 846): no selection, no words.
+    let onControl = model.overlays.hit(at, tolerance: 4 / max(screenScale, 0.01)) != nil
+    if count == 0, !onControl, reword.editing == nil,
       let group = tappedGroup(at: at) ?? tappedTheirs(at: at)
     {
       if group.selected, rewordTapped(at: at) {
@@ -641,7 +643,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       return
     }
     // Story 940: with no marks to choose, a tap on a kept text opens its words (or, with them open, is done).
-    if count == 0, rewordTapped(at: at) {
+    if count == 0, !onControl || reword.editing != nil, rewordTapped(at: at) {
       noSelectionUntil = CACurrentMediaTime() + 0.8
       ghostTap = TapDot(at: at, beganAt: beganAt, within: PaperProbe.rewordDotSeconds)
       return

@@ -57,7 +57,7 @@ extension PaperBoardController {
     showToText()
     let event: [String: Any] = [
       "action": "group_tap", "board": model.board.id, "at": point(at), "group": group.name, "kind": group.kind,
-      "strokes": ids.count,
+      "strokes": ids.count, "controls": model.overlays.list.count,
       "touch_mode": name(paper.directTouchMode), "fingers_draw": fingersDraw, "selected": paper.selection.count,
     ]
     log.event("whiteboard", event)
