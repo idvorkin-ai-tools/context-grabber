@@ -88,7 +88,7 @@ extension WhiteboardModel {
     }
     let handOff = WhiteboardResponder.handOff(
       answered: read.responder, answer: answer, stale: landing.stale,
-      firstSendWaiting: firstSendWaiting(in: inbox.items))
+      firstSendWaiting: firstSendWaiting(in: inbox.items), turnHolds: larry.waitingToSend)
     // Story 662: one turn of Larry's out at a time. While one is, the pause is held for his answer, with its words.
     var toLarry: String??
     switch handOff {

@@ -144,6 +144,22 @@ final class WhiteboardOneSendTests: XCTestCase {
     XCTAssertTrue(WhiteboardLarryFrame.rect(shown).moved(to: shown.insetBy(dx: 1, dy: 1)))
   }
 
+  /// Bead context-grabber-8lsj: words a pause hears while the Send waits go with the picture after his answer, or with
+  /// the next Send if it can't go.
+  func testWordsSpokenWhileItWaitsGoWithTheNextPicture() {
+    var turn = waiting()
+    XCTAssertEqual(turn.paused(version: 1, words: "label the arrow", now: at(5)), .held)
+    XCTAssertTrue(turn.wordsWaiting)
+    XCTAssertTrue(turn.outboxSent(now: at(10)))
+    XCTAssertTrue(turn.wordsWaiting, "still kept once it has gone")
+    XCTAssertEqual(turn.replied(version: 1, now: at(40)), .send(words: "label the arrow"))
+
+    var refused = waiting()
+    _ = refused.paused(version: 2, words: "and the box", now: at(5))
+    refused.failed(refused.state, words: nil)
+    XCTAssertEqual(refused.tapped(version: 2, now: at(6)), .send(words: "and the box"), "kept when it can't go")
+  }
+
   func testWaitingIsOnlyForATurnOut() {
     var turn = WhiteboardLarryTurn()
     turn.waitsInOutbox()
