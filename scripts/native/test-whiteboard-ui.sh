@@ -23,7 +23,7 @@ sleep 1
 kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $port" >&2; exit 1; }
 # Story 1501: the classes under BoardLabUITests launch the Board Lab, a small app that opens on the boards list; the
 # GrabberNative scheme builds and runs both bundles.
-# The classes, one a line in name order, so PRs that add classes touch different lines (story 1502). The ladder reads
+# The classes, one a line in name order, so PRs that add classes touch different lines (story 1503). The ladder reads
 # this list for its whiteboard area, and scripts/native/test-testing-lists.sh holds it to docs/TESTING.md and the
 # native/UITests/Whiteboard*UITests.swift files.
 classes=(

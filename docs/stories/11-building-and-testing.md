@@ -1508,9 +1508,9 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 1502:
 
-- **Summary:** The lists every PR adds to in the testing guide and the whiteboard suite's script are one item a line, the ladder reads the whiteboard's classes from that script, and the host rung fails when one drifts from its script
-- **Status:** implemented on branch `native/testing-lists-2b54`; verified on the host rung by `scripts/native/test-testing-lists.sh` in `just test` (a dropped class, two classes out of order, a new UI test file and a new host check each fail by name on a copy of the tree; the real tree passes) and the Mac build (rung 1.5); no simulator or phone run, as nothing in the app changed. The whiteboard's script lists (bead context-grabber-b295) implemented on branch `native/ui-lists-one-a-line-b295`; verified on the host rung (the suite's 24 classes the same before and after, the ladder's dry run for a whiteboard file, the fake Cockpit, the suite script and the conversation strip the same byte for byte, `scripts/native/test-ladder-map.sh` and `scripts/native/test-testing-lists.sh` in `just test`) and the Mac build (rung 1.5); no simulator or phone run, as nothing in the app changed
-- **Issues:** bead context-grabber-b295 (adding a whiteboard class still meant editing three one-line lists in the scripts); bead context-grabber-2b54 (#1217 hit a merge conflict in the whiteboard suite's one long table row on every rebase, four rounds, each sending the pipeline back to review)
+- **Summary:** The lists every PR adds to in the testing guide are one item a line, and the host rung fails when one drifts from its script
+- **Status:** implemented on branch `native/testing-lists-2b54`; verified on the host rung by `scripts/native/test-testing-lists.sh` in `just test` (a dropped class, two classes out of order, a new UI test file and a new host check each fail by name on a copy of the tree; the real tree passes) and the Mac build (rung 1.5); no simulator or phone run, as nothing in the app changed
+- **Issues:** bead context-grabber-2b54 (#1217 hit a merge conflict in the whiteboard suite's one long table row on every rebase, four rounds, each sending the pipeline back to review)
 
 #### Use Case:
 - **As Igor,** with several agents landing whiteboard PRs at once
@@ -1523,7 +1523,21 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** the host rung runs (on the Mac or the Linux box)
 - **Then:** it fails naming each class or check that the suite's script, the whiteboard's test files or the host recipe has and the guide doesn't list, or the guide lists and they don't have, and each suite list that is out of name order; with none of these it passes
 
+---
+
+### User Story 1503:
+
+- **Summary:** A new whiteboard UI test class is one line in the suite's script and one in the testing guide, and the ladder picks it up from the script
+- **Status:** implemented on branch `native/ui-lists-one-a-line-b295`; verified on the host rung (the suite's 24 classes the same before and after; the ladder's dry run for a whiteboard file, the fake Cockpit, the suite script and the conversation strip the same byte for byte; `scripts/native/test-ladder-map.sh` and `scripts/native/test-testing-lists.sh`, which now also fails on a script list out of name order, in `just test`) and the Mac build (rung 1.5); no simulator or phone run, as nothing in the app changed
+- **Issues:** bead context-grabber-b295 (after story 1502, adding a whiteboard class still meant editing three one-line lists in the scripts: the suite's and its story list, the ladder's and the ladder check's)
+
+#### Use Case:
+- **As Igor,** with several agents landing whiteboard PRs at once
+- **I want to** have the whiteboard suite's script name its classes one to a line, and the ladder take its whiteboard classes from there
+- **so that** two PRs that each add a class edit different lines in one script, not the same long line in three
+
+#### Acceptance Criteria:
 - **Scenario:** A PR adds a whiteboard UI test class
 - **Given:** the whiteboard suite's script names its classes one to a line, in name order
 - **When:** the PR adds the class's file, its line in the script and its line in the testing guide
-- **Then:** nothing else changes: the ladder runs the new class for any whiteboard change because it reads the script's list, its own check expects every whiteboard test file, and two PRs adding different classes touch different lines
+- **Then:** nothing else needs editing: the ladder runs the new class for any whiteboard change, its own check expects every whiteboard test file, and the host rung fails if the script's list is out of name order
