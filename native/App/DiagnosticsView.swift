@@ -434,6 +434,7 @@ private struct HomeSettingsView: View {
   @State private var showLinks = false
   @State private var showWhatsNew = false
   @State private var showInkSideBySide = false
+  @State private var showPaperKitBoard = false
   /// Story 304: the Archive section, re-read on open and whenever an archive run ends while it is up.
   @State private var archiveLines: [ArchiveStatus.Line] = []
   @State private var loggedArchiveStatus = false
@@ -467,8 +468,10 @@ private struct HomeSettingsView: View {
           .accessibilityIdentifier("home-settings-whats-new")
           // Stories 1217–1219: every pen and shape PaperKit has, on a scratch page, on the iPad alone.
           if UIDevice.current.userInterfaceIdiom == .pad && !ProcessInfo.processInfo.isMacCatalystApp {
-            NavigationLink {
-              PaperKitBoardView(log: model.log)
+            // Story 1222 (context-grabber-wvpv): full screen, not pushed inside this sheet, where PencilKit's tool
+            // picker never showed and a finger only selected (Igor's iPad, 2026-11-22 23:09, "Nothing there?").
+            Button {
+              showPaperKitBoard = true
             } label: {
               Label("PaperKit board", systemImage: "pencil.tip.crop.circle")
             }
@@ -563,6 +566,16 @@ private struct HomeSettingsView: View {
       }
       .navigationDestination(isPresented: $showLinks) { LinksView(log: model.log) }
       .navigationDestination(isPresented: $showInkSideBySide) { InkSideBySideView(log: model.log) }
+      .fullScreenCover(isPresented: $showPaperKitBoard) {
+        NavigationStack {
+          PaperKitBoardView(log: model.log)
+            .toolbar {
+              ToolbarItem(placement: .cancellationAction) {
+                Button("Done") { showPaperKitBoard = false }.accessibilityIdentifier("paperkit-board-done")
+              }
+            }
+        }
+      }
       .navigationDestination(isPresented: $showWhatsNew) {
         WhatsNewView(feed: model.whatsNew, reports: model.bugReports, logger: model.bugLogger, from: "home_settings")
       }

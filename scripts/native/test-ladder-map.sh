@@ -381,7 +381,7 @@ says "iPad, iPhone and whiteboard classes: the phone's alone" "rung 2 UI tests: 
 says "iPad, iPhone and whiteboard classes: the whiteboard's" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardTurnUITests"
 dry --all --changed docs/TESTING.md
 # Story 1216: Ink side by side is iPad-only, so its class rides with the iPad's, never in the iPhone's run.
-says "--all: the iPad's classes on the iPad" "rung 2 UI tests (on the iPad, which they need): IPadInkSideBySideUITests IPadUITests"
+says "--all: the iPad's classes on the iPad" "rung 2 UI tests (on the iPad, which they need): IPadInkSideBySideUITests IPadPaperKitBoardUITests IPadUITests"
 if grep -E "^rung 2 UI tests: .*IPad(InkSideBySide)?UITests" "$out" >/dev/null; then bad "--all: the iPad's classes not in the iPhone's run"; else ok "--all: the iPad's classes not in the iPhone's run"; fi
 case $known in *" IPadUITests "*) ok "the iPad's class: a real class" ;; *) : >"$out"; bad "the iPad's class: a real class" ;; esac
 
