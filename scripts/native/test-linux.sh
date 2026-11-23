@@ -9,7 +9,7 @@
 #      the UI tests, against the BugKit and ThinkACard pins in native/project.yml (a generated SwiftPM package in the
 #      build directory; resolving it needs the network). Compiled, never linked into a bundle or run. Skipped, and said
 #      so, without the SDK or when the packages can't be fetched.
-#   4. The host rung's script checks that need no Mac: the ladder's map, the breath clips, the UI timing digest.
+#   4. The host rung's script checks that need no Mac (the list in step 4 below; docs/TESTING.md names each).
 # None of it covers Xcode itself (the project, asset catalogs, signing), Catalyst-only code or anything at runtime on
 # Apple: the Mac's `just native-test` and the simulator do.
 #
@@ -163,7 +163,7 @@ fi
 cd ../..
 for check in scripts/native/test-ladder-map.sh scripts/native/test-breath-clips.py scripts/native/test-ui-timings.sh scripts/native/test-ladder-report.sh \
   scripts/native/test-smoke-lock.sh scripts/native/test-linux-imports.sh scripts/native/test-build-lane.sh \
-  scripts/native/test-story-ids.sh scripts/native/test-board-sessions.py; do
+  scripts/native/test-story-ids.sh scripts/native/test-board-sessions.py scripts/native/test-testing-lists.sh; do
   log=$build/$(basename "$check").log
   if "$check" >"$log" 2>&1; then
     echo "ok   $check"

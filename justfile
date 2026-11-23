@@ -105,6 +105,8 @@ native-test-host:
     scripts/native/test-story-ids.sh
     # Bead wq2j: every board test file is in BoardCoreTests or listed as staying in ContextCoreTests.
     scripts/native/test-board-tests-listed.sh
+    # Story 1502 (bead 2b54): docs/TESTING.md's one-a-line lists match the host checks and the suites' classes.
+    scripts/native/test-testing-lists.sh
 
 # The board's host tests alone (bead wq2j): builds ChatWireKit, BoardCore and BoardCoreTests, not the rest of ContextCore,
 # and runs that bundle. FILTER is a test class or class/test (`just board-test BoardRoomTests`). Mac only (xctest);
