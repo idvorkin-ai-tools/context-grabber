@@ -38,8 +38,10 @@ final class WhiteboardStrokesFileTests: XCTestCase {
       return XCTFail("Expected two folds, got \(file.folds.count)")
     }
     XCTAssertEqual(file.folds.map { $0["header"] as? String }, ["h1", "h2"])
-    XCTAssertEqual(file.folds[1]["y"] as? Double, 300)
-    XCTAssertEqual(file.folds[1]["h"] as? Double, 40.5)
+    XCTAssertEqual(file.folds[0]["header_strokes"] as? [String], ["s1"])
+    XCTAssertEqual(file.folds[0]["lines"] as? Int, 2)
+    XCTAssertEqual(file.folds[0]["strokes"] as? [String], ["s3", "s4"])
+    XCTAssertEqual(file.folds[1]["strokes"] as? [String], ["s5"])
   }
 
   // An empty folds list is still the wrapped form, so it reads as no folds.

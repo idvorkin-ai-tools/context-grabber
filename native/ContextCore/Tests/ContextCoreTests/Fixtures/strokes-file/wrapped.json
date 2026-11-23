@@ -4,7 +4,7 @@
     {"id": "s2", "color": "#ba39e6", "width": 3.0, "tool": "pen", "points": [[40.0, 60.0], [42.0, 61.0]]}
   ],
   "folds": [
-    {"header": "h1", "y": 120.0, "h": 80.0},
-    {"header": "h2", "y": 300.0, "h": 40.5}
+    {"header": "h1", "header_strokes": ["s1"], "lines": 2, "strokes": ["s3", "s4"]},
+    {"header": "h2", "header_strokes": ["s2"], "lines": 1, "strokes": ["s5"]}
   ]
 }
