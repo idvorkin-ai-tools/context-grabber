@@ -150,7 +150,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
     XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" SIM_DEVICES_DIR="$tmp/devices" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
-chat_all="ChatArchiveUITests ChatAskSearchUITests ChatDecisionUITests ChatFileUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
+chat_all="ChatArchiveUITests ChatAskSearchUITests ChatDecisionUITests ChatFileUITests ChatImageUITests ChatMoveUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
 board_all="WhiteboardConnectUITests WhiteboardDropRoomUITests WhiteboardEraserUITests WhiteboardGroupTapUITests WhiteboardHelpFeedbackUITests WhiteboardLetteringUITests WhiteboardLinkChipUITests WhiteboardListeningUITests WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPanelScrollUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardPlaybackUITests WhiteboardQuestionUITests WhiteboardRewordUITests WhiteboardRowDeleteUITests WhiteboardScratchOutUITests WhiteboardTheirsTapUITests WhiteboardTitleRenameUITests WhiteboardToTextUITests WhiteboardTurnUITests"
 
 dry --changed native/App/Chat/ChatViews.swift
