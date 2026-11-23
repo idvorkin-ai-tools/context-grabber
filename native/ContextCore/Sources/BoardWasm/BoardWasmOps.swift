@@ -4,7 +4,12 @@
 //  carries the one it asks about. Only the export is WASI's; the answer builds everywhere.
 
 import BoardCore
-import Foundation
+
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -101,7 +106,7 @@ enum WebOps {
     let plan = BoardOps.plan(
       ops, strokes: strokes, texts: kept, metas: metas, folds: board["folds"] as? [String: String] ?? [:],
       ghosts: ghosts,
-      pages: (board["pages"] as? NSNumber)?.intValue ?? 1)
+      pages: JSONNumber(board["pages"])?.intValue ?? 1)
     let name = { (i: Int) in strokes[i].ids[0] }
     var selected = Set<String>()
     out["plan"] =

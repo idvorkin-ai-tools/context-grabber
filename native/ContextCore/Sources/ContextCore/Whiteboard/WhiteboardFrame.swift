@@ -1,7 +1,11 @@
 //  The whiteboard's geometry (spec 2026-11-01-whiteboard-design.md, stories 341–343): how big the board is, where the
 //  view opens, and what part of it the picture for Larry covers.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

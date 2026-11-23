@@ -3,7 +3,11 @@
 //  ink, and a margin tap within 22 points of its middle is on it. The ▾ in the margin's middle sat on the very # that
 //  made the header (the iPad, 2026-11-20: a # at x 6–33 hid its ▾ at x 32). Pure: the boxes, in board points.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

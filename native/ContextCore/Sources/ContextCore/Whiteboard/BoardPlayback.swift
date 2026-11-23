@@ -2,7 +2,11 @@
 //  956–958; bead context-grabber-3tdv): the board's strokes again in the order they were drawn, each at the pace the
 //  hand drew it, a long pause between them shortened. Platform-free: the app turns PencilKit's strokes into these.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

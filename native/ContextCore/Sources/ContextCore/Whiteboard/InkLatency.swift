@@ -1,7 +1,11 @@
 //  Ink side by side (story 1209, bead context-grabber-vabk; spec docs/superpowers/specs/2026-11-22-ink-side-by-side-design.md):
 //  one half's pen-down-to-next-frame times, the readout in its corner, and the web half's probe script.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// One half's samples: the time from a pen touching down to the start of the next frame, in milliseconds.
 public struct InkLatency: Equatable, Sendable {

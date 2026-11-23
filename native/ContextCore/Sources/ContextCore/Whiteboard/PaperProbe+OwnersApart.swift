@@ -2,7 +2,11 @@
 //  never carries Igor's ink and Larry's (or Claude's) together. On the iPad the reflow took Larry's 52-stroke text and two
 //  of Igor's strokes for one line, and a drag moved all 54; Igor kept the reflow but not the mixing.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

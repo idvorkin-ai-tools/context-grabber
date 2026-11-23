@@ -4,10 +4,10 @@
 //  from a Cockpit that sends no `thread`, on its own bead's chat, `ask.id == thread.key`. The model hands in the
 //  transport.
 
-import Foundation
-
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
 #endif
 
 public struct ChatAsk: Decodable, Equatable, Sendable, Identifiable {
@@ -318,11 +318,16 @@ public enum ChatDecisions {
     case .abandon: return "Abandoned"
     case .snooze:
       guard let wake = snoozedUntil.flatMap(ChatWire.date) else { return "Snoozed" }
-      let f = DateFormatter()
-      f.locale = Locale(identifier: "en_US_POSIX")
-      f.timeZone = timeZone
-      f.dateFormat = "EEE h:mm a"
-      return "Snoozed until \(f.string(from: wake))"
+      #if FOUNDATION_ESSENTIALS_ONLY
+        // The wasm has no DateFormatter, and no board shows this line.
+        return "Snoozed until \(LiteText.weekdayTime(wake, timeZone: timeZone))"
+      #else
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = timeZone
+        f.dateFormat = "EEE h:mm a"
+        return "Snoozed until \(f.string(from: wake))"
+      #endif
     }
   }
 

@@ -5,7 +5,11 @@
 //  here, so a gesture bug is settled against Igor's real stroke, and a fixture of them holds the verdicts
 //  (`just touch-fixture`, docs/TESTING.md).
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -148,7 +152,7 @@ public enum BoardTouchReplay {
         }
         phone = said
       }
-      let t = (fields["t"] as? NSNumber)?.intValue
+      let t = JSONNumber(fields["t"])?.intValue
       cases.append(
         Case(
           name: name(kind, t: t, board: lineBoard, phone: phone, host: host), kind: kind, board: lineBoard, t: t,
@@ -206,21 +210,17 @@ public enum BoardTouchReplay {
     ].compactMap { $0 }.joined(separator: " ")
   }
 
-  /// JSONSerialization hands back NSNumber for both 1 and true; only a JSON boolean is a boolean.
-  private static func isBool(_ number: NSNumber) -> Bool {
-    #if canImport(Darwin)
-      return CFGetTypeID(number) == CFBooleanGetTypeID()
-    #else
-      // Linux (just test-linux): no CFBooleanGetTypeID, but a JSON boolean is its own NSNumber subclass there too.
-      return type(of: number) == type(of: NSNumber(value: true))
-    #endif
-  }
-
   private static func fieldText(_ value: Any) -> String {
     switch value {
     case let string as String: return string
-    case let number as NSNumber:
-      return isBool(number) ? (number.boolValue ? "true" : "false") : number.stringValue
+    #if FOUNDATION_ESSENTIALS_ONLY
+      case is Bool, is Int64, is Double:
+        return (try? LiteJSON.data(value, fragmentsAllowed: true)).map { String(decoding: $0, as: UTF8.self) } ?? ""
+    #else
+      case let number as NSNumber:
+        // JSONSerialization hands back NSNumber for both 1 and true; only a JSON boolean is a boolean.
+        return JSONNumber.isBool(number) ? (number.boolValue ? "true" : "false") : number.stringValue
+    #endif
     default:
       guard JSONSerialization.isValidJSONObject(value),
         let data = try? JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])

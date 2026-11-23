@@ -2,7 +2,11 @@
 //  *What the board says about its own sending, for the debug page*; story 1112, bead context-grabber-7zmj): the iPad's half
 //  of a picture's way to Larry, and spoken words' mic-off-to-text timing. Both ride among the turn's events.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// One picture's send, as the iPad saw it. `t` is when its message left, unix ms.
 public struct BoardPostTiming: Equatable, Codable, Sendable {

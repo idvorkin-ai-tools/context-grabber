@@ -2,7 +2,11 @@
 //  which ink a change moved, what came of a touch, and whether a finger tapped. PaperKit stays in the app. The trial on
 //  paper that this began with is gone (2026-11-07); the real page geometry is `BoardPages`.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

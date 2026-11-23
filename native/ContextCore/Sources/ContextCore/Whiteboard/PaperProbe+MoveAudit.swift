@@ -2,7 +2,11 @@
 //  and whose ink it was, for the log. On the iPad one finger drag moved Larry's text and two of Igor's strokes with nothing
 //  selected; this is what the next such line has to say.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

@@ -2,7 +2,11 @@
 //  stays selected. On the iPad a selection of handwriting brought up the system's handwriting popover a second later,
 //  and the selection went with no callback: the drag that followed moved nothing. iPadOS has no switch for the offer.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 extension PaperProbe {
   /// Story 945: a controller presented over the board is the system's handwriting offer when it is a popover pointed at

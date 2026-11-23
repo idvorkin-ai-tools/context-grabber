@@ -3,7 +3,11 @@
 //  and the words it reads come back to take the ink's place as a kept text. Here: the picture's crop, the request, what
 //  the answer means, and where the words go. PaperKit and the drawing stay in the app.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(FoundationNetworking)
   import FoundationNetworking

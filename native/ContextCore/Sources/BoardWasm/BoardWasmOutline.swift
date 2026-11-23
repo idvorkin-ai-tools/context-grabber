@@ -5,7 +5,12 @@
 //  so a plain `swift build` checks it.
 
 import BoardCore
-import Foundation
+
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -16,7 +21,7 @@ struct WebOutlineUnreadable: Error, CustomStringConvertible {
 }
 
 enum WebOutline {
-  static func number(_ any: Any?) -> CGFloat? { (any as? NSNumber).map { CGFloat($0.doubleValue) } }
+  static func number(_ any: Any?) -> CGFloat? { JSONNumber(any).map { CGFloat($0.doubleValue) } }
 
   /// One stroke of ink: `{"id", "points": [[x, y], ...], "width", "hidden", "t"}`, its box its points widened by half
   /// its pen, as `BoardSnapshot` reads the iPad's; `t` when it was made, unix ms, when the host knows.

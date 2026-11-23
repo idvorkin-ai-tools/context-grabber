@@ -2,7 +2,11 @@
 //  and what it hears*): the microphone rows the board offers, in the note's line while the mic is open and under Talk's
 //  long press, open or closed, and whether *Find microphones* may read the connected ones now.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardMicMenu: Equatable, Sendable {
   /// A microphone the board knows, by its system id and name.

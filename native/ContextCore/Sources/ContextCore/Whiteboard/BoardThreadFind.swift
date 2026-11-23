@@ -5,7 +5,11 @@
 //  one only when a message on it came from this very board.
 //
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum BoardThreadFind {
   /// The most threads read to confirm one: each is a request to the Cockpit.

@@ -2,7 +2,11 @@
 //  story 1118, bead context-grabber-u1yy): the silence after his last new words, longer for a phrase that doesn't end
 //  like a sentence, longest, and bounded, for one left hanging.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum BoardSpeechEnd {
   public enum Why: String, Sendable {

@@ -3,7 +3,11 @@
 //  pages the board needs after. The ops run in order, each on the board the ones before it left, so a later op can move
 //  or erase what an earlier one drew. Pure: the app applies the plan to PaperKit.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

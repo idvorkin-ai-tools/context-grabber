@@ -1,7 +1,11 @@
 //  Pasted text as ink lines (spec 2026-11-02-whiteboard-paste-design.md, stories 390, 392, 393): capped, wrapped to the
 //  view, and placed in the middle of it.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

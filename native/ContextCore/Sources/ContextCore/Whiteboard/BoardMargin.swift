@@ -2,7 +2,11 @@
 //  view and Undo*, story 849): how Igor will ask for room by hand. The margin is the column's left 64 points, as on the
 //  web board (`MARGIN` in the Cockpit's assets/ink/board.mjs).
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(FoundationNetworking)
   import FoundationNetworking

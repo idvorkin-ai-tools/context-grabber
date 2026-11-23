@@ -2,7 +2,11 @@
 //  stories 535–539; #636). All in board points, with page 1's corner at the board's origin: zoom only thins the ruled
 //  lines. PaperKit stays in the app.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

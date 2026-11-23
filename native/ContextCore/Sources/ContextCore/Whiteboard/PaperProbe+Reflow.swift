@@ -2,7 +2,11 @@
 //  picture a position that is not a number and the system stopped the app; these say what the reflow showed, so the
 //  log can settle what put it there.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 extension PaperProbe {
   /// Story 1188: what is wrong with a frame a layer would be given. The system stops the app for a position that is not

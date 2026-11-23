@@ -2,7 +2,11 @@
 //  story 896, bead context-grabber-cg3). A label is known by its moment; one in a group of Larry's (story 991: a box and
 //  its label grouped in one change) is part of what moves whole, so Tidy leaves it where it is, as ink.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

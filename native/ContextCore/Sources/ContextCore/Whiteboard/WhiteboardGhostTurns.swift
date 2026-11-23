@@ -3,7 +3,11 @@
 //  when an answer is stale, what Ghosts off stops, and when spoken words go. The board's model owns the timers, the
 //  requests, the picture, the canvas and the log; it hands the time in, so a host test can step it.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// A ghost as these rules see it: which one, and whose.
 public protocol WhiteboardGhost {

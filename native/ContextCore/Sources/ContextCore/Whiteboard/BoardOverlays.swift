@@ -2,7 +2,11 @@
 //  stories 845, 846): a band, chip, button or hint at a place on the board, with a label, his style and the event a tap
 //  on it sends him. Not ink: never in the picture or the strokes, never undone, gone when the board closes.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

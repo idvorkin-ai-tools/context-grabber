@@ -4,7 +4,11 @@
 //  since the last that went, to the Cockpit's archive (`POST /archive`, the `whiteboard.log` stream), as a call's log
 //  goes at its hang-up (story 212). On the box: cockpit-data's archive.sqlite3, one record per line.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum WhiteboardLogArchive {
   public static let stream = "whiteboard.log"
@@ -68,10 +72,12 @@ public enum WhiteboardLogArchive {
 
   private static func guid(_ launch: String, _ seq: Int) -> String { "\(launch):" + String(format: "%06d", seq) }
 
-  /// A launch's name in the archive: the session log's own stamp and the device, in the archive's guid characters.
-  public static func launch(logFile: String, device: String) -> String {
-    let allowed = Set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.+-")
-    let stem = (logFile as NSString).deletingPathExtension
-    return String((String(device.prefix(8)) + "." + stem).filter { allowed.contains($0) }.prefix(100))
-  }
+  #if !FOUNDATION_ESSENTIALS_ONLY
+    /// A launch's name in the archive: the session log's own stamp and the device, in the archive's guid characters.
+    public static func launch(logFile: String, device: String) -> String {
+      let allowed = Set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.+-")
+      let stem = (logFile as NSString).deletingPathExtension
+      return String((String(device.prefix(8)) + "." + stem).filter { allowed.contains($0) }.prefix(100))
+    }
+  #endif
 }

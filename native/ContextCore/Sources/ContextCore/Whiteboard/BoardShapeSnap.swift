@@ -2,7 +2,11 @@
 //  end that is nearly a line, a rectangle or an ellipse, cleaned up. Ported from the web board's `cleanShape`
 //  (cockpit assets/ink/board.mjs) with its thresholds, so the two boards snap the same strokes. Board points throughout.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

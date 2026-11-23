@@ -4,7 +4,11 @@
 //  moves down to the first clear space under it instead. Board points throughout; the app hands in the ink as points
 //  and moves what this names.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum WhiteboardTidy {
   /// The air left between ink and a label moved under it: half a ruled line, as on the web board.

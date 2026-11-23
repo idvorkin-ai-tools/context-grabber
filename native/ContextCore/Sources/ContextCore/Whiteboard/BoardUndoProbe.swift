@@ -4,7 +4,11 @@
 //  gone from the stack: Undo could never take the keep back. This presses Undo only for a step that isn't the board's: one
 //  of the board's own, reached instead, is put straight back with Redo.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// The undo stack, as the probe needs it: an app's `UndoManager`, or a test's.
 public protocol BoardUndoStack: AnyObject {

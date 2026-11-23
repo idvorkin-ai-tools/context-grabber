@@ -3,7 +3,11 @@
 //  the same two names, so Larry can answer "am I running it?" from the message alone. In ChatWireKit, the module the
 //  chat's and the board's posts are both built on.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct AppBuild: Equatable, Sendable {
   /// CFBundleVersion, like "212".
@@ -25,7 +29,9 @@ public struct AppBuild: Equatable, Sendable {
 
   /// This app's or extension's own Info.plist. Only a bundle carrying the GitSha stamp is ours: the test runner's
   /// bundle has a CFBundleVersion of its own, and it says nothing about the app.
-  public static let current = AppBuild(info: Bundle.main.infoDictionary ?? [:])
+  #if !FOUNDATION_ESSENTIALS_ONLY
+    public static let current = AppBuild(info: Bundle.main.infoDictionary ?? [:])
+  #endif
 
   public init(info: [String: Any]) {
     let value = { (key: String) in (info[key] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "" }

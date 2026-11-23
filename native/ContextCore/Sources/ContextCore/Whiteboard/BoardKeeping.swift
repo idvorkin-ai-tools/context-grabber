@@ -4,7 +4,11 @@
 //  without losing the last good one (#1043). The app's `WhiteboardStore` and
 //  `WhiteboardListView` only carry these out: PencilKit decodes, UIKit draws the picture, CloudKit syncs. The disk is handed in, so a test can give it one that fails.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// The disk a board's files live on: `FileBoardDisk` in the app, a full or recording one in a test.
 public protocol BoardDisk {
@@ -289,58 +293,62 @@ public struct BoardKeeping {
     try disk.write(encoder.encode(meaning), to: url)
   }
 
-  /// Once per board: the meaning this device kept in UserDefaults (`legacy`) moves into the board's file, which is read
-  /// back before the keys go. Never over a file already there, whose keys are let go. Nil when there was nothing to
-  /// move; the moved meaning, or why it couldn't be, when there was (the keys then stay, for next launch).
-  public func migrateMeaning(_ id: String, from legacy: BoardOpLedger) -> Result<BoardMeaning, any Error>? {
-    guard let url = meaningURL(id), let old = legacy.meaning(board: id) else { return nil }
-    if disk.exists(url) {
-      legacy.forget(board: id)
-      return nil
+  #if !FOUNDATION_ESSENTIALS_ONLY
+    /// Once per board: the meaning this device kept in UserDefaults (`legacy`) moves into the board's file, which is read
+    /// back before the keys go. Never over a file already there, whose keys are let go. Nil when there was nothing to
+    /// move; the moved meaning, or why it couldn't be, when there was (the keys then stay, for next launch).
+    public func migrateMeaning(_ id: String, from legacy: BoardOpLedger) -> Result<BoardMeaning, any Error>? {
+      guard let url = meaningURL(id), let old = legacy.meaning(board: id) else { return nil }
+      if disk.exists(url) {
+        legacy.forget(board: id)
+        return nil
+      }
+      do {
+        try saveMeaning(old, board: id)
+        guard try meaning(id) == old else { throw CocoaError(.fileReadCorruptFile) }
+        legacy.forget(board: id)
+        return .success(old)
+      } catch {
+        // A file that didn't read back as written goes, so the next launch moves the keys again.
+        try? disk.remove(url)
+        return .failure(error)
+      }
     }
-    do {
-      try saveMeaning(old, board: id)
-      guard try meaning(id) == old else { throw CocoaError(.fileReadCorruptFile) }
-      legacy.forget(board: id)
-      return .success(old)
-    } catch {
-      // A file that didn't read back as written goes, so the next launch moves the keys again.
-      try? disk.remove(url)
-      return .failure(error)
-    }
-  }
+  #endif
 
-  /// Once per board: the kept labels and Larry's ink this device kept in UserDefaults (`keys`) join the board's
-  /// file (bead context-grabber-p1pl). Unlike `migrateMeaning` the file is usually there already, so the keys' moments
-  /// are added to what it holds, never in place of it (`BoardInkKeys.fill`), and the file is read back before the
-  /// keys go. A board whose six old keys haven't moved yet (`legacy`) waits: a file made now would make that move
-  /// think its keys stale. Nil when there was nothing to move, or nothing new in it; the meaning as written, or why it
-  /// couldn't be, when there was. On a failure the file is put back as it was, never removed, and the keys stay.
-  public func migrateInkIdentity(
-    _ id: String, from keys: BoardInkKeys, after legacy: BoardOpLedger
-  ) -> Result<BoardMeaning, any Error>? {
-    guard let url = meaningURL(id), keys.any(board: id), legacy.meaning(board: id) == nil else { return nil }
-    var original: Data?
-    var wrote = false
-    do {
-      original = disk.exists(url) ? try disk.read(url) : nil
-      let held = try meaning(id) ?? BoardMeaning()
-      var filled = held
-      keys.fill(&filled, board: id)
-      if filled != held {
-        wrote = true
-        try saveMeaning(filled, board: id)
-        guard try meaning(id) == filled else { throw CocoaError(.fileReadCorruptFile) }
+  #if !FOUNDATION_ESSENTIALS_ONLY
+    /// Once per board: the kept labels and Larry's ink this device kept in UserDefaults (`keys`) join the board's
+    /// file (bead context-grabber-p1pl). Unlike `migrateMeaning` the file is usually there already, so the keys' moments
+    /// are added to what it holds, never in place of it (`BoardInkKeys.fill`), and the file is read back before the
+    /// keys go. A board whose six old keys haven't moved yet (`legacy`) waits: a file made now would make that move
+    /// think its keys stale. Nil when there was nothing to move, or nothing new in it; the meaning as written, or why it
+    /// couldn't be, when there was. On a failure the file is put back as it was, never removed, and the keys stay.
+    public func migrateInkIdentity(
+      _ id: String, from keys: BoardInkKeys, after legacy: BoardOpLedger
+    ) -> Result<BoardMeaning, any Error>? {
+      guard let url = meaningURL(id), keys.any(board: id), legacy.meaning(board: id) == nil else { return nil }
+      var original: Data?
+      var wrote = false
+      do {
+        original = disk.exists(url) ? try disk.read(url) : nil
+        let held = try meaning(id) ?? BoardMeaning()
+        var filled = held
+        keys.fill(&filled, board: id)
+        if filled != held {
+          wrote = true
+          try saveMeaning(filled, board: id)
+          guard try meaning(id) == filled else { throw CocoaError(.fileReadCorruptFile) }
+        }
+        keys.forget(board: id)
+        return filled == held ? nil : .success(filled)
+      } catch {
+        if wrote {
+          if let original { try? disk.write(original, to: url) } else { try? disk.remove(url) }
+        }
+        return .failure(error)
       }
-      keys.forget(board: id)
-      return filled == held ? nil : .success(filled)
-    } catch {
-      if wrote {
-        if let original { try? disk.write(original, to: url) } else { try? disk.remove(url) }
-      }
-      return .failure(error)
     }
-  }
+  #endif
 
   /// A file that can't be read, moved beside it under a name no older one has, so an earlier one set aside stays too.
   @discardableResult

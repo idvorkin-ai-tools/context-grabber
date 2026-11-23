@@ -1898,3 +1898,32 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** no build lane is held
 - **When:** I build for a lane's simulator or run tests on a simulator no lane owns
 - **Then:** the command proceeds without requiring a build lane
+
+---
+
+### User Story 1700:
+
+- **Summary:** The board's web rules load without Foundation's locale data
+- **Status:** implemented on branch `chore/board-wasm-no-icu-pt1e`. Verified on the Mac host by `FoundationLiteTests`, which compares each stand-in with Foundation, and by `just native-test`. Also verified on Linux in Docker with Swift 6.4.3 and its wasm SDK: the module dropped from 55.9 MB to 14.9 MB, and gzipped from 19.8 MB to 4.4 MB. `test-board-wasm` passed 168 of 168 checks. Every reply matches the old module's byte for byte, apart from the order inside one unordered debug dictionary.
+- **Issues:** bead context-grabber-pt1e
+
+#### Use Case:
+- **As Igor,** opening a board on the Cockpit's web page
+- **I want to** download board rules that leave out Foundation's ICU locale data, which they never use
+- **so that** the board opens quickly, even on the phone's connection
+
+#### Acceptance Criteria:
+- **Scenario:** The board's web module carries no ICU
+- **Given:** the board's rules built as WebAssembly
+- **When:** the module is built
+- **Then:** it links FoundationEssentials alone, with no Foundation and no ICU data, and it is at least 30 MB smaller than before
+
+- **Scenario:** The rules answer as before
+- **Given:** the recorded board sessions
+- **When:** they replay through the new module
+- **Then:** every check that passed before passes, and every answer is the same as before
+
+- **Scenario:** The app is unchanged
+- **Given:** the iPad and Mac apps, which keep full Foundation
+- **When:** they read, trim, encode or write the same inputs
+- **Then:** they give the same results as before, and each stand-in the module uses gives the same result as Foundation

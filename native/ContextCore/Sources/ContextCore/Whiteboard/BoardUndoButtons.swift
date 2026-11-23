@@ -1,7 +1,11 @@
 //  #965 (stories 1008, 1009; spec 2026-11-01-whiteboard-design.md, *Undo and Redo on the board's own bar*): what the
 //  board's Undo and Redo buttons say and whether they can be pressed, from the undo stack's state.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardUndoButtons: Equatable, Sendable {
   public struct Button: Equatable, Sendable {

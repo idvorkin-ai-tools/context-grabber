@@ -4,7 +4,11 @@
 //  says they do, so the board's rules ask this instead. It answers as CoreGraphics does (checked on the Mac,
 //  2026-11-23): an edge or a corner shared is no overlap, any area is, and a box with no width inside another meets it.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

@@ -3,7 +3,11 @@
 //  `{"error": …, "ms": …}` in its place when the model fails, when asked for NDJSON (cockpit#85), and a Cockpit that
 //  doesn't still answers with one JSON. The caller reads the body a byte at a time.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct WhiteboardStream: Sendable {
   /// False for anything but a 200 in NDJSON: the body is kept whole and read as one answer at the end.

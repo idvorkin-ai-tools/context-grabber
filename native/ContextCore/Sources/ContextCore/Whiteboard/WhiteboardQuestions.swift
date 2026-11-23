@@ -4,7 +4,11 @@
 //  (`addQuestion`, `answerQuestion`, `needsAnswer`, `collapseQuestion`, `cardLines`, CARD_W and CARD_H) and ink.html's
 //  question cards. Here: the cards, where they land, what they say, what the eraser takes, and the Cockpit's wire.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(FoundationNetworking)
   import FoundationNetworking

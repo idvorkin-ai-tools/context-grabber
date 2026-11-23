@@ -2,7 +2,11 @@
 //  `rewordText` in cockpit assets/ink/board.mjs): what the edited words mean, how wide the text wraps, and where its new
 //  lines go. Board points throughout. PaperKit, the field and the undo stay in the app.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

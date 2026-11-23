@@ -1,6 +1,10 @@
 //  Story 1020 (bead 8o93): the grammar of the bare PaperKit stage's launch hook, for the touch contracts' UI tests.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// `GRABBER_PAPER_STAGE=<draw|select>[,cancel]`: a bare PaperKit paper, set up as the board sets it up, over the app, so a
 /// UI test's real touch reaches real PaperKit with none of the board's own handling in between. `draw` leaves a finger

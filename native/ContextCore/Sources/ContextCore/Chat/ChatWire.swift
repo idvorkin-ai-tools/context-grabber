@@ -2,10 +2,10 @@
 //  `GET /chat` lists every thread with a server-side unread count and the Done fold; `GET /chat/<key>` is one thread's
 //  messages, Igor's carrying 👀/🏆 receipts; `POST /chat-seen` marks a thread read on every device.
 
-import Foundation
-
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
 #endif
 
 public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
@@ -317,25 +317,42 @@ public enum ChatWire {
 
   public static func attachment(_ ref: String) -> Attachment? {
     guard
-      ref.range(
-        of: #"^\d{4}-\d{2}-\d{2}/[0-9a-f]{16}\.(png|jpg|gif|webp|pdf|txt|docx|xlsx|pptx)$"#, options: .regularExpression
-      )
-        != nil, let ext = ref.split(separator: ".").last.map(String.init)
+      isAttachmentRef(ref), let ext = ref.split(separator: ".").last.map(String.init)
     else { return nil }
     if let label = documentLabels[ext] { return .document(ext: ext, label: label) }
     return .image
+  }
+
+  /// A delivered file's ref: `yyyy-mm-dd/` and sixteen lower-case hex digits, then one of the known extensions.
+  static func isAttachmentRef(_ ref: String) -> Bool {
+    #if FOUNDATION_ESSENTIALS_ONLY
+      return LiteText.isAttachmentRef(ref)
+    #else
+      return ref.range(
+        of: #"^\d{4}-\d{2}-\d{2}/[0-9a-f]{16}\.(png|jpg|gif|webp|pdf|txt|docx|xlsx|pptx)$"#, options: .regularExpression
+      )
+        != nil
+    #endif
   }
 
   /// The name a delivered document shows and opens under: the message's first line when that is a file name of the
   /// same type (the phone sends the name first, `ChatSend.text(for:)`), else the name the Cockpit minted.
   public static func documentName(_ ref: String, text: String) -> String {
     let minted = String(ref.split(separator: "/").last ?? Substring(ref))
-    let ext = (minted as NSString).pathExtension.lowercased()
+    let ext = pathExtension(minted).lowercased()
     let first = text.split(whereSeparator: \.isNewline).first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
-    guard first.count <= 200, (first as NSString).pathExtension.lowercased() == ext,
+    guard first.count <= 200, pathExtension(first).lowercased() == ext,
       first.count > ext.count + 1, !first.contains("/"), !first.contains(":")
     else { return minted }
     return first
+  }
+
+  private static func pathExtension(_ path: String) -> String {
+    #if FOUNDATION_ESSENTIALS_ONLY
+      return LiteText.pathExtension(path)
+    #else
+      return (path as NSString).pathExtension
+    #endif
   }
 
   /// Why a delivered document's fetch can't open, or nil when it can: an answer other than 200, or nothing in it.

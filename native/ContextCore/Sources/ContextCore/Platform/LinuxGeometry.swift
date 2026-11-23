@@ -3,7 +3,11 @@
 //  has these, so none of this is built.
 
 #if !canImport(CoreGraphics)
-  import Foundation
+  #if FOUNDATION_ESSENTIALS_ONLY
+    import FoundationEssentials
+  #else
+    import Foundation
+  #endif
 
   public struct CGVector: Equatable, Sendable {
     public var dx: CGFloat

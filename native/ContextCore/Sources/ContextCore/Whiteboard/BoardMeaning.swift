@@ -5,9 +5,16 @@
 //  batch of Larry's is remembered as handled only once its ink is on disk (story 1106). It used to be six UserDefaults
 //  keys per board (`BoardOpLedger`), moved here once (`BoardKeeping.migrateMeaning`).
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardMeaning: Codable, Equatable, Sendable {
+  /// The most kept texts a board remembers.
+  public static let mostTexts = 500
+
   /// The file's own version, for a later build that changes it.
   public static let currentVersion = 1
 
@@ -192,7 +199,7 @@ public final class BoardMeaningLedger: @unchecked Sendable {
 
   public func texts(board: String) -> [BoardText] { meaning.texts }
   public func setTexts(_ texts: [BoardText], board: String) {
-    change(board) { $0.texts = Array(texts.suffix(BoardOpLedger.mostTexts)) }
+    change(board) { $0.texts = Array(texts.suffix(BoardMeaning.mostTexts)) }
   }
 
   public func labels(board: String) -> Set<Int64> { Set(meaning.labels) }
@@ -213,69 +220,73 @@ public final class BoardMeaningLedger: @unchecked Sendable {
   }
 }
 
-/// Where a board's kept labels and Larry's ink were remembered before they joined its meaning file (bead
-/// context-grabber-p1pl): two UserDefaults keys per board on this device, each a list of creation moments. Read now
-/// only to move them into the file (`BoardKeeping.migrateInkIdentity`), and to fill the board as it opens until then.
-public struct BoardInkKeys: @unchecked Sendable {
-  private let defaults: UserDefaults
+#if !FOUNDATION_ESSENTIALS_ONLY
+  /// Where a board's kept labels and Larry's ink were remembered before they joined its meaning file (bead
+  /// context-grabber-p1pl): two UserDefaults keys per board on this device, each a list of creation moments. Read now
+  /// only to move them into the file (`BoardKeeping.migrateInkIdentity`), and to fill the board as it opens until then.
+  public struct BoardInkKeys: @unchecked Sendable {
+    private let defaults: UserDefaults
 
-  public init(defaults: UserDefaults = .standard) {
-    self.defaults = defaults
-  }
-
-  public static func labelsKey(_ board: String) -> String { "whiteboard_labels_\(board)" }
-  public static func theirsKey(_ board: String) -> String { "whiteboard_theirs_\(board)" }
-
-  /// The moments a key holds; nil when the board has no such key.
-  public func labels(board: String) -> [Int64]? { moments(Self.labelsKey(board)) }
-  public func theirs(board: String) -> [Int64]? { moments(Self.theirsKey(board)) }
-
-  private func moments(_ key: String) -> [Int64]? {
-    guard let list = defaults.array(forKey: key) else { return nil }
-    return list.compactMap { ($0 as? NSNumber)?.int64Value }
-  }
-
-  /// Whether the board still has either key.
-  public func any(board: String) -> Bool { labels(board: board) != nil || theirs(board: board) != nil }
-
-  /// The keys' moments added to the meaning's, never in place of them: what the meaning already holds stays, in its
-  /// order, after the keys' older moments it lacks.
-  public func fill(_ meaning: inout BoardMeaning, board: String) {
-    if let labels = labels(board: board) {
-      meaning.labels = Array(Self.adding(labels, to: meaning.labels).suffix(BoardMeaning.mostLabels))
+    public init(defaults: UserDefaults = .standard) {
+      self.defaults = defaults
     }
-    if let theirs = theirs(board: board) {
-      meaning.theirs = Array(Self.adding(theirs, to: meaning.theirs).suffix(BoardMeaning.mostTheirs))
+
+    public static func labelsKey(_ board: String) -> String { "whiteboard_labels_\(board)" }
+    public static func theirsKey(_ board: String) -> String { "whiteboard_theirs_\(board)" }
+
+    /// The moments a key holds; nil when the board has no such key.
+    public func labels(board: String) -> [Int64]? { moments(Self.labelsKey(board)) }
+    public func theirs(board: String) -> [Int64]? { moments(Self.theirsKey(board)) }
+
+    private func moments(_ key: String) -> [Int64]? {
+      guard let list = defaults.array(forKey: key) else { return nil }
+      return list.compactMap { JSONNumber($0)?.int64Value }
+    }
+
+    /// Whether the board still has either key.
+    public func any(board: String) -> Bool { labels(board: board) != nil || theirs(board: board) != nil }
+
+    /// The keys' moments added to the meaning's, never in place of them: what the meaning already holds stays, in its
+    /// order, after the keys' older moments it lacks.
+    public func fill(_ meaning: inout BoardMeaning, board: String) {
+      if let labels = labels(board: board) {
+        meaning.labels = Array(Self.adding(labels, to: meaning.labels).suffix(BoardMeaning.mostLabels))
+      }
+      if let theirs = theirs(board: board) {
+        meaning.theirs = Array(Self.adding(theirs, to: meaning.theirs).suffix(BoardMeaning.mostTheirs))
+      }
+    }
+
+    private static func adding(_ old: [Int64], to held: [Int64]) -> [Int64] {
+      let have = Set(held)
+      return old.filter { !have.contains($0) } + held
+    }
+
+    /// The board's two keys, gone once its file holds what they did.
+    public func forget(board: String) {
+      defaults.removeObject(forKey: Self.labelsKey(board))
+      defaults.removeObject(forKey: Self.theirsKey(board))
     }
   }
+#endif
 
-  private static func adding(_ old: [Int64], to held: [Int64]) -> [Int64] {
-    let have = Set(held)
-    return old.filter { !have.contains($0) } + held
-  }
+#if !FOUNDATION_ESSENTIALS_ONLY
+  /// Every UserDefaults key this device keeps for one board, its meaning's old keys and its own view of it alike: the
+  /// board's thread, its pictures' times and folds, the marks settled, where the paper was, its lines and lettering (and
+  /// labels and Larry's ink, until they move into the board's file). A delete forgets them all.
+  public enum BoardDeviceKeys {
+    public static func keys(of board: String, in defaults: UserDefaults) -> [String] {
+      let suffix = "_\(board)"
+      return defaults.dictionaryRepresentation().keys.filter { $0.hasPrefix("whiteboard_") && $0.hasSuffix(suffix) }
+        .sorted()
+    }
 
-  /// The board's two keys, gone once its file holds what they did.
-  public func forget(board: String) {
-    defaults.removeObject(forKey: Self.labelsKey(board))
-    defaults.removeObject(forKey: Self.theirsKey(board))
+    /// Removes them, and says how many there were.
+    @discardableResult
+    public static func forget(_ board: String, in defaults: UserDefaults = .standard) -> Int {
+      let keys = keys(of: board, in: defaults)
+      for key in keys { defaults.removeObject(forKey: key) }
+      return keys.count
+    }
   }
-}
-
-/// Every UserDefaults key this device keeps for one board, its meaning's old keys and its own view of it alike: the
-/// board's thread, its pictures' times and folds, the marks settled, where the paper was, its lines and lettering (and
-/// labels and Larry's ink, until they move into the board's file). A delete forgets them all.
-public enum BoardDeviceKeys {
-  public static func keys(of board: String, in defaults: UserDefaults) -> [String] {
-    let suffix = "_\(board)"
-    return defaults.dictionaryRepresentation().keys.filter { $0.hasPrefix("whiteboard_") && $0.hasSuffix(suffix) }
-      .sorted()
-  }
-
-  /// Removes them, and says how many there were.
-  @discardableResult
-  public static func forget(_ board: String, in defaults: UserDefaults = .standard) -> Int {
-    let keys = keys(of: board, in: defaults)
-    for key in keys { defaults.removeObject(forKey: key) }
-    return keys.count
-  }
-}
+#endif

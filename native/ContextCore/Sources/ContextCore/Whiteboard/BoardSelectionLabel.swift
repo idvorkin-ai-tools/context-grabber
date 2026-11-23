@@ -1,7 +1,11 @@
 //  What a selection is, said on a small label beside it (spec 2026-11-22-whiteboard-selection-label-design.md, story
 //  1095, #1045): plain ink, a kept text, a group, a connector, or a mix, and what applies to it. Pure.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum BoardSelectionLabel {
   /// A stroke as the label reads it: the names Larry knows it by, and when it was made (a kept text's glyphs share one

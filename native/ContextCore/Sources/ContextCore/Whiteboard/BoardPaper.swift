@@ -2,7 +2,11 @@
 //  a deep one for dark, as ink is black in light mode and white in dark. `BoardPaperTests` holds them to the ink and
 //  the ghosts.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum BoardPaper: String, CaseIterable, Sendable {
   case plain, cream, sage, lilac, grey

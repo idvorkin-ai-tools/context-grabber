@@ -2,7 +2,11 @@
 //  and the board need, in ChatWireKit below ContextCore (plan 2026-11-22-contextcore-targets-plan.md). The rest of
 //  `CockpitPage` extends it in ContextCore.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum CockpitPage {
   /// Igor's decision Cockpit, served only on the tailnet: reaching the host at all is the authentication.

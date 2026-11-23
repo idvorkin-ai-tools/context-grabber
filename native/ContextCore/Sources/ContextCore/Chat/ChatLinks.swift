@@ -1,7 +1,11 @@
 //  Links in a chat thread (#736; spec 2026-10-25-native-chat-design.md, Links in a thread): every pull request, gist
 //  and web link a thread's messages hold, as chips — labelled, one per page, newest first.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct ChatLink: Equatable, Sendable, Identifiable {
   public enum Kind: Equatable, Sendable {

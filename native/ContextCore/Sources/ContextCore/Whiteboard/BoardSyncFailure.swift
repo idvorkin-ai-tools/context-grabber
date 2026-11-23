@@ -3,7 +3,11 @@
 //  errors arrive here as plain `NSError`s (their userInfo keys are CloudKit's documented ones), so this stays
 //  platform-free and the host tests can hand it a fake CloudKit result.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// The call a whiteboard sync was making when it failed.
 public enum BoardSyncStep: String, Sendable {
@@ -58,28 +62,32 @@ public struct BoardSyncFailure {
     self.recordName = recordName
   }
 
-  public var fields: [String: Any] {
-    var out: [String: Any] = [
-      "ok": false, "why": why, "step": step.rawValue, "pending": pending, "first_of_launch": firstOfLaunch,
-      "message": "\(error)", "code": (error as NSError).code,
-    ]
-    if let board, step == .delete || step == .upload { out["board"] = board }
-    if let strokes, step == .upload { out["strokes"] = strokes }
-    if let saveError { out["save_error"] = CloudErrorFields.item(saveError) }
-    if let deleteError { out["delete_error"] = CloudErrorFields.item(deleteError) }
-    if let zoneError { out["zone_error"] = CloudErrorFields.item(zoneError) }
-    let partial = [error, saveError, deleteError].compactMap { $0 }.compactMap {
-      CloudErrorFields.partial($0, recordName: recordName)
+  #if !FOUNDATION_ESSENTIALS_ONLY
+    public var fields: [String: Any] {
+      var out: [String: Any] = [
+        "ok": false, "why": why, "step": step.rawValue, "pending": pending, "first_of_launch": firstOfLaunch,
+        "message": "\(error)", "code": (error as NSError).code,
+      ]
+      if let board, step == .delete || step == .upload { out["board"] = board }
+      if let strokes, step == .upload { out["strokes"] = strokes }
+      if let saveError { out["save_error"] = CloudErrorFields.item(saveError) }
+      if let deleteError { out["delete_error"] = CloudErrorFields.item(deleteError) }
+      if let zoneError { out["zone_error"] = CloudErrorFields.item(zoneError) }
+      let partial = [error, saveError, deleteError].compactMap { $0 }.compactMap {
+        CloudErrorFields.partial($0, recordName: recordName)
+      }
+      if let first = partial.first { out["partial"] = first }
+      if let retryAfter { out["retry_after"] = retryAfter }
+      return out
     }
-    if let first = partial.first { out["partial"] = first }
-    if let retryAfter { out["retry_after"] = retryAfter }
-    return out
-  }
+  #endif
 
-  /// How long CloudKit asked to wait before trying again, in seconds: the longest any of the errors names.
-  public var retryAfter: Double? {
-    [error, saveError, deleteError].compactMap { $0 }.compactMap(CloudErrorFields.retryAfter).max()
-  }
+  #if !FOUNDATION_ESSENTIALS_ONLY
+    /// How long CloudKit asked to wait before trying again, in seconds: the longest any of the errors names.
+    public var retryAfter: Double? {
+      [error, saveError, deleteError].compactMap { $0 }.compactMap(CloudErrorFields.retryAfter).max()
+    }
+  #endif
 }
 
 /// When a failed whiteboard sync tries again by itself (#1002): 15 s after the first failure, twice as long after each
@@ -105,38 +113,40 @@ public struct BoardSyncRetry: Sendable {
   public mutating func succeeded() { failures = 0 }
 }
 
-/// One CloudKit error as log fields.
-public enum CloudErrorFields {
-  /// CloudKit's userInfo keys: `CKErrorRetryAfterKey`, `CKPartialErrorsByItemIDKey`, and the server's own message,
-  /// which CloudKit prints as `server message = …`.
-  static let retryKey = "CKRetryAfter"
-  static let partialKey = "CKPartialErrors"
-  static let serverKey = "ServerErrorDescription"
-  static let cloudKitDomain = "CKErrorDomain"
+#if !FOUNDATION_ESSENTIALS_ONLY
+  /// One CloudKit error as log fields.
+  public enum CloudErrorFields {
+    /// CloudKit's userInfo keys: `CKErrorRetryAfterKey`, `CKPartialErrorsByItemIDKey`, and the server's own message,
+    /// which CloudKit prints as `server message = …`.
+    static let retryKey = "CKRetryAfter"
+    static let partialKey = "CKPartialErrors"
+    static let serverKey = "ServerErrorDescription"
+    static let cloudKitDomain = "CKErrorDomain"
 
-  /// The code, the server's message when it gave one, the domain when it isn't CloudKit's, and the whole text.
-  public static func item(_ error: Error) -> [String: Any] {
-    let e = error as NSError
-    var out: [String: Any] = ["code": e.code, "text": "\(error)"]
-    if e.domain != cloudKitDomain { out["domain"] = e.domain }
-    if let server = e.userInfo[serverKey] as? String { out["server"] = server }
-    return out
-  }
-
-  /// How long CloudKit asked to wait before trying again, in seconds.
-  public static func retryAfter(_ error: Error) -> Double? {
-    let value = (error as NSError).userInfo[retryKey]
-    return (value as? Double) ?? (value as? NSNumber)?.doubleValue
-  }
-
-  /// A partial failure's per-record errors, by record name; nil when the error carries none.
-  public static func partial(_ error: Error, recordName: (AnyHashable) -> String) -> [String: Any]? {
-    guard let byID = (error as NSError).userInfo[partialKey] as? [AnyHashable: Any], !byID.isEmpty else { return nil }
-    var out: [String: Any] = [:]
-    for (id, value) in byID {
-      guard let itemError = value as? Error else { continue }
-      out[recordName(id)] = item(itemError)
+    /// The code, the server's message when it gave one, the domain when it isn't CloudKit's, and the whole text.
+    public static func item(_ error: Error) -> [String: Any] {
+      let e = error as NSError
+      var out: [String: Any] = ["code": e.code, "text": "\(error)"]
+      if e.domain != cloudKitDomain { out["domain"] = e.domain }
+      if let server = e.userInfo[serverKey] as? String { out["server"] = server }
+      return out
     }
-    return out.isEmpty ? nil : out
+
+    /// How long CloudKit asked to wait before trying again, in seconds.
+    public static func retryAfter(_ error: Error) -> Double? {
+      let value = (error as NSError).userInfo[retryKey]
+      return (value as? Double) ?? JSONNumber(value)?.doubleValue
+    }
+
+    /// A partial failure's per-record errors, by record name; nil when the error carries none.
+    public static func partial(_ error: Error, recordName: (AnyHashable) -> String) -> [String: Any]? {
+      guard let byID = (error as NSError).userInfo[partialKey] as? [AnyHashable: Any], !byID.isEmpty else { return nil }
+      var out: [String: Any] = [:]
+      for (id, value) in byID {
+        guard let itemError = value as? Error else { continue }
+        out[recordName(id)] = item(itemError)
+      }
+      return out.isEmpty ? nil : out
+    }
   }
-}
+#endif

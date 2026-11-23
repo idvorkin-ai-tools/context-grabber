@@ -1,5 +1,9 @@
 #if canImport(PencilKit)
-  import Foundation
+  #if FOUNDATION_ESSENTIALS_ONLY
+    import FoundationEssentials
+  #else
+    import Foundation
+  #endif
   import PencilKit
 
   /// #1083 (story 1063): a stroke's ink read without PencilKit's Swift `inkType`, which traps (signal 5) on a kind of ink

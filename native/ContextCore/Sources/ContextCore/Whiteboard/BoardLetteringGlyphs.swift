@@ -11,7 +11,11 @@
 //  http://emergent.unpythonic.net/software/hershey (futural.jhf, scripts.jhf).
 // swiftlint:disable file_length
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 extension BoardLettering {
   /// Roman Simplex, one entry a character (its data in pieces, joined) from space (32) to tilde (126).

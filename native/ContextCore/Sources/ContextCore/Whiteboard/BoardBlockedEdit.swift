@@ -2,7 +2,11 @@
 //  stories 970–972): the chip that says a change of his was refused, and what each way out of it does. The board's
 //  model owns the chip's view and the turn Retry starts; this says when it shows and goes.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardBlockedEdit: Equatable, Sendable {
   /// What the chip says.

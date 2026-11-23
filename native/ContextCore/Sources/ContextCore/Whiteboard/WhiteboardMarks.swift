@@ -2,7 +2,11 @@
 //  to the board's chat thread with where it sits on the board; Larry's rows come back with shapes in that picture's
 //  pixels and the same place. Here: what a picture carries, his rows as the app reads them, and which row to show.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -64,99 +68,103 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
   }
 }
 
-/// Each board's one chat thread on this device, by board id. ponytail: UserDefaults on this device; the board's iCloud
-/// copy carries the drawing device's (#1161), and `board(_:carried:drawnHere:)` picks between them (story 1158).
-public struct WhiteboardThreads: @unchecked Sendable {
-  private let defaults: UserDefaults
+#if !FOUNDATION_ESSENTIALS_ONLY
+  /// Each board's one chat thread on this device, by board id. ponytail: UserDefaults on this device; the board's iCloud
+  /// copy carries the drawing device's (#1161), and `board(_:carried:drawnHere:)` picks between them (story 1158).
+  public struct WhiteboardThreads: @unchecked Sendable {
+    private let defaults: UserDefaults
 
-  public init(defaults: UserDefaults = .standard) {
-    self.defaults = defaults
-  }
-
-  private func key(_ board: String) -> String { "whiteboard_thread_\(board)" }
-
-  public func thread(board: String) -> String? { defaults.string(forKey: key(board)) }
-
-  /// Story 1158 (bead context-grabber-da1): the board's one conversation, which every picture of it goes to and the note
-  /// opens. On the device that drew the board its own thread, which is what its iCloud copy carries, else the carried
-  /// one (a reinstall); on any other device the carried one, else its own. A thread the Cockpit said is gone is never
-  /// used. `carried`: the thread the board's iCloud copy carries (#1161).
-  public func board(_ board: String, carried: String?, drawnHere: Bool) -> String? {
-    let carried = carried.flatMap { $0 == defaults.string(forKey: goneKey(board)) ? nil : $0 }
-    let own = thread(board: board)
-    return drawnHere ? own ?? carried : carried ?? own
-  }
-
-  /// A thread the Cockpit said is gone (context-grabber-e3vb): the board's iCloud copy may still carry it, and only the
-  /// drawing device's sync clears it there, so it stays gone after a new thread starts; a thread id is never reused.
-  /// Its own prefix, so `all()` never reads it as a board.
-  private func goneKey(_ board: String) -> String { "whiteboard_gone_thread_\(board)" }
-
-  public func set(_ thread: String, board: String) {
-    defaults.set(thread, forKey: key(board))
-  }
-
-  /// Every board this device has a thread for, board id to thread (#1091: a thread's *Board* finds its board).
-  public func all() -> [String: String] {
-    let prefix = key("")
-    var out: [String: String] = [:]
-    for (name, value) in defaults.dictionaryRepresentation() where name.hasPrefix(prefix) {
-      if let thread = value as? String { out[String(name.dropFirst(prefix.count))] = thread }
+    public init(defaults: UserDefaults = .standard) {
+      self.defaults = defaults
     }
-    return out
-  }
 
-  /// The Cockpit no longer has `thread`: it is remembered as gone, so it is never used again and the board's iCloud
-  /// copy stops carrying it (context-grabber-e3vb), whether it was this device's own or the one the board carries
-  /// (story 1158). A newer thread of this device's own stays. True when this learned something new.
-  @discardableResult
-  public func forget(_ thread: String, board: String) -> Bool {
-    let own = self.thread(board: board) == thread
-    let known = defaults.string(forKey: goneKey(board)) == thread
-    if own { defaults.removeObject(forKey: key(board)) }
-    defaults.set(thread, forKey: goneKey(board))
-    return own || !known
-  }
+    private func key(_ board: String) -> String { "whiteboard_thread_\(board)" }
 
-  /// Every board with a thread the Cockpit said is gone, board id to that thread.
-  public func gone() -> [String: String] {
-    let prefix = goneKey("")
-    var out: [String: String] = [:]
-    for (name, value) in defaults.dictionaryRepresentation() where name.hasPrefix(prefix) {
-      if let thread = value as? String { out[String(name.dropFirst(prefix.count))] = thread }
+    public func thread(board: String) -> String? { defaults.string(forKey: key(board)) }
+
+    /// Story 1158 (bead context-grabber-da1): the board's one conversation, which every picture of it goes to and the note
+    /// opens. On the device that drew the board its own thread, which is what its iCloud copy carries, else the carried
+    /// one (a reinstall); on any other device the carried one, else its own. A thread the Cockpit said is gone is never
+    /// used. `carried`: the thread the board's iCloud copy carries (#1161).
+    public func board(_ board: String, carried: String?, drawnHere: Bool) -> String? {
+      let carried = carried.flatMap { $0 == defaults.string(forKey: goneKey(board)) ? nil : $0 }
+      let own = thread(board: board)
+      return drawnHere ? own ?? carried : carried ?? own
     }
-    return out
+
+    /// A thread the Cockpit said is gone (context-grabber-e3vb): the board's iCloud copy may still carry it, and only the
+    /// drawing device's sync clears it there, so it stays gone after a new thread starts; a thread id is never reused.
+    /// Its own prefix, so `all()` never reads it as a board.
+    private func goneKey(_ board: String) -> String { "whiteboard_gone_thread_\(board)" }
+
+    public func set(_ thread: String, board: String) {
+      defaults.set(thread, forKey: key(board))
+    }
+
+    /// Every board this device has a thread for, board id to thread (#1091: a thread's *Board* finds its board).
+    public func all() -> [String: String] {
+      let prefix = key("")
+      var out: [String: String] = [:]
+      for (name, value) in defaults.dictionaryRepresentation() where name.hasPrefix(prefix) {
+        if let thread = value as? String { out[String(name.dropFirst(prefix.count))] = thread }
+      }
+      return out
+    }
+
+    /// The Cockpit no longer has `thread`: it is remembered as gone, so it is never used again and the board's iCloud
+    /// copy stops carrying it (context-grabber-e3vb), whether it was this device's own or the one the board carries
+    /// (story 1158). A newer thread of this device's own stays. True when this learned something new.
+    @discardableResult
+    public func forget(_ thread: String, board: String) -> Bool {
+      let own = self.thread(board: board) == thread
+      let known = defaults.string(forKey: goneKey(board)) == thread
+      if own { defaults.removeObject(forKey: key(board)) }
+      defaults.set(thread, forKey: goneKey(board))
+      return own || !known
+    }
+
+    /// Every board with a thread the Cockpit said is gone, board id to that thread.
+    public func gone() -> [String: String] {
+      let prefix = goneKey("")
+      var out: [String: String] = [:]
+      for (name, value) in defaults.dictionaryRepresentation() where name.hasPrefix(prefix) {
+        if let thread = value as? String { out[String(name.dropFirst(prefix.count))] = thread }
+      }
+      return out
+    }
   }
-}
+#endif
 
-/// When each picture this device sent Larry was taken, unix ms, per board (#894, story 1006): a reply names its picture,
-/// and the ink made after that moment is what he couldn't have seen. Kept across launches, so a reply that lands with
-/// the board closed knows too. ponytail: UserDefaults on this device, the newest `kept` a board; a picture sent from
-/// another device isn't known, and its reply keeps with nothing moved.
-public struct WhiteboardPictureTimes: @unchecked Sendable {
-  public static let kept = 200
-  private let defaults: UserDefaults
+#if !FOUNDATION_ESSENTIALS_ONLY
+  /// When each picture this device sent Larry was taken, unix ms, per board (#894, story 1006): a reply names its picture,
+  /// and the ink made after that moment is what he couldn't have seen. Kept across launches, so a reply that lands with
+  /// the board closed knows too. ponytail: UserDefaults on this device, the newest `kept` a board; a picture sent from
+  /// another device isn't known, and its reply keeps with nothing moved.
+  public struct WhiteboardPictureTimes: @unchecked Sendable {
+    public static let kept = 200
+    private let defaults: UserDefaults
 
-  public init(defaults: UserDefaults = .standard) {
-    self.defaults = defaults
+    public init(defaults: UserDefaults = .standard) {
+      self.defaults = defaults
+    }
+
+    private func key(_ board: String) -> String { "whiteboard_picture_times_\(board)" }
+
+    /// "<picture id> <ms>", oldest first.
+    private func entries(_ board: String) -> [String] { defaults.stringArray(forKey: key(board)) ?? [] }
+
+    public func record(_ pictureID: String, at ms: Int64, board: String) {
+      let others = entries(board).filter { !$0.hasPrefix("\(pictureID) ") }
+      defaults.set(Array((others + ["\(pictureID) \(ms)"]).suffix(Self.kept)), forKey: key(board))
+    }
+
+    /// When `pictureID` was taken on this board; nil for one this device doesn't remember.
+    public func taken(_ pictureID: String?, board: String) -> Int64? {
+      guard let pictureID else { return nil }
+      return entries(board).last { $0.hasPrefix("\(pictureID) ") }.flatMap { Int64($0.dropFirst(pictureID.count + 1)) }
+    }
   }
-
-  private func key(_ board: String) -> String { "whiteboard_picture_times_\(board)" }
-
-  /// "<picture id> <ms>", oldest first.
-  private func entries(_ board: String) -> [String] { defaults.stringArray(forKey: key(board)) ?? [] }
-
-  public func record(_ pictureID: String, at ms: Int64, board: String) {
-    let others = entries(board).filter { !$0.hasPrefix("\(pictureID) ") }
-    defaults.set(Array((others + ["\(pictureID) \(ms)"]).suffix(Self.kept)), forKey: key(board))
-  }
-
-  /// When `pictureID` was taken on this board; nil for one this device doesn't remember.
-  public func taken(_ pictureID: String?, board: String) -> Int64? {
-    guard let pictureID else { return nil }
-    return entries(board).last { $0.hasPrefix("\(pictureID) ") }.flatMap { Int64($0.dropFirst(pictureID.count + 1)) }
-  }
-}
+#endif
 
 public struct WhiteboardMarks: Sendable {
   /// One of Larry's rows on the thread.

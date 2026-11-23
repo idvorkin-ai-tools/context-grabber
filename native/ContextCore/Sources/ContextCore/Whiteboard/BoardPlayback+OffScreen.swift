@@ -1,7 +1,11 @@
 //  Story 1111 (#1169): in playback, where the stroke being drawn is when it is off the screen, above or below, and on
 //  which page, so a label can say *Writing above, page 1*. Platform-free and host-tested.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

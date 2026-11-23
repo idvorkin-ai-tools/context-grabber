@@ -4,10 +4,10 @@
 //  before the route answers 400. The old chat keeps a system row naming the new one (`ChatMessage.movedTo`). The chat's
 //  model hands in the transport, so a host test can answer it.
 
-import Foundation
-
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
 #endif
 
 public enum ChatMove {

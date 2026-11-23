@@ -6,7 +6,11 @@
 
 #if os(WASI)
   import BoardCore
-  import Foundation
+  #if FOUNDATION_ESSENTIALS_ONLY
+    import FoundationEssentials
+  #else
+    import Foundation
+  #endif
 
   /// This interface's version: up when an export's arguments, results or JSON change.
   let abi = 8

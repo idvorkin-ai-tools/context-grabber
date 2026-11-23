@@ -5,7 +5,11 @@
 //  applies at all. PaperKit stays in the app. All in raw board points, origin the board's top-left: the space of the
 //  `strokes` the app sends Larry, never a picture's `frame`.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -290,11 +294,11 @@ public enum BoardOps {
     /// As the iPad sends it in `op_result.room`.
     public init?(wire any: Any) {
       guard let json = any as? [String: Any],
-        let askedY = (json["asked_below_y"] as? NSNumber)?.doubleValue,
-        let askedDy = (json["asked_dy"] as? NSNumber)?.doubleValue,
-        let y = (json["below_y"] as? NSNumber)?.doubleValue, let dy = (json["dy"] as? NSNumber)?.doubleValue
+        let askedY = JSONNumber(json["asked_below_y"])?.doubleValue,
+        let askedDy = JSONNumber(json["asked_dy"])?.doubleValue,
+        let y = JSONNumber(json["below_y"])?.doubleValue, let dy = JSONNumber(json["dy"])?.doubleValue
       else { return nil }
-      self.init(askedY: askedY, askedDy: askedDy, y: y, dy: dy)
+      self.init(askedY: CGFloat(askedY), askedDy: CGFloat(askedDy), y: CGFloat(y), dy: CGFloat(dy))
     }
   }
 
@@ -306,7 +310,7 @@ public enum BoardOps {
     let board = json["board"] as? String
     // A whole number an Int can hold, else nil and the batch is refused (context-grabber-4nes: `Int(d)` trapped on
     // one past Int's range while Larry's reply was read). `Int(exactly:)` is nil for NaN, infinity and fractions too.
-    let baseRev = (json["base_rev"] as? NSNumber).flatMap { Int(exactly: $0.doubleValue) }
+    let baseRev = JSONNumber(json["base_rev"]).flatMap { Int(exactly: $0.doubleValue) }
     let label = json["label"] as? String ?? ""
     var batch = Batch(key: key, source: source, board: board, label: label, baseRev: baseRev, ops: [])
     guard board != nil, baseRev != nil, let list = json["list"] as? [Any] else {
@@ -337,7 +341,7 @@ public enum BoardOps {
     }
     let place = { (key: String) in json[key].flatMap(WhiteboardTurn.number) }
     let shift = { (key: String) -> CGFloat? in
-      (json[key] as? NSNumber).map { CGFloat($0.doubleValue) }
+      JSONNumber(json[key]).map { CGFloat($0.doubleValue) }
     }
     switch kind {
     case "translate":
@@ -419,7 +423,7 @@ public enum BoardOps {
         else { return .failure(Refusal(reason: Reason.badOp)) }
         points.append(CGPoint(x: x, y: y))
       }
-      let width = (json["width"] as? NSNumber).map { CGFloat($0.doubleValue) }.flatMap { $0.isFinite ? $0 : nil }
+      let width = JSONNumber(json["width"]).map { CGFloat($0.doubleValue) }.flatMap { $0.isFinite ? $0 : nil }
       var meta: BoardMeta?
       if let raw = json["meta"] {
         guard let parsed = BoardMeta(raw) else { return .failure(Refusal(reason: Reason.badOp)) }

@@ -4,7 +4,11 @@
 //  `unfoldAll`, `foldAll`, `headerLevels`, `collapseToLevel`, `headerCandidates`, `wordAt`). Pure: the outline works on
 //  the strokes' boxes and paths, and `plan` says what the board does to the canvas.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

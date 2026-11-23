@@ -2,7 +2,11 @@
 //  *Paste makes room*; the Cockpit's assets/ink/board.mjs, `rows`, `snapCut`, `blankBand`, `placeBlock`). Everything is
 //  in board points over the boxes of what moves whole (`BoardOps.items`): a cut never splits one. Pure.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

@@ -2,7 +2,11 @@
 //  finger draws"; stories 354, 1152, 1153; context-grabber-2eml). Pure: the board hands in what shows, the taps and the
 //  Pencil, and sets PaperKit's touch from the verdict.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct WhiteboardFinger: Equatable, Sendable {
   /// Which rule decided, for the session log's `finger_draws`.

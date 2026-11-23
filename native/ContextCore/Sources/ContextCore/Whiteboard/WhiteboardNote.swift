@@ -5,7 +5,11 @@
 //  was said, the thread it already reads every few seconds and the note's other messages; the view draws what comes
 //  back.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// What was said last on a board, and by whom: Larry's newest line, or what the mic last heard.
 public struct WhiteboardSaid: Equatable, Sendable {
