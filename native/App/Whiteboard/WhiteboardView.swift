@@ -1,7 +1,7 @@
-//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347, 658): a column of pages on PaperKit with the
+//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347): a column of pages on PaperKit with the
 //  system tool picker, saved a moment after each stroke, and sent to Larry on the board's chat thread holding its picture
-//  (the Inbox's image path, so it waits in the outbox when the network is away). A board another device draws, or one
-//  drawn on the old canvas (gone 2026-11-07), opens to look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
+//  (the Inbox's image path, so it waits in the outbox when the network is away). A board another device draws opens to
+//  look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
 //  as shapes, drawn faint until a tap keeps one (spec 2026-11-01-whiteboard-shapes-design.md, stories 344, 345, 349).
 //  This file is the SwiftUI view; the model is WhiteboardModel.swift and its WhiteboardModel+<Feature>.swift files.
 
@@ -209,26 +209,23 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-ghosts")
         }
       }
-      // Every board but an old-canvas one, wherever it opens: that one's ink sits where the column put it, not where it's
-      // saved, so there's nothing to frame for Larry (stories 658, 1200).
-      if model.sendable {
-        ToolbarItem(placement: .topBarTrailing) {
-          named(
-            "Send", does: "Send the board to Larry", action: { model.sendToLarry() },
-            label: { Label("Send to Larry", systemImage: "paperplane") }
-          )
-          // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
-          .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
-          // Story 1176: one button. On a board drawn here it is Larry's turn, dimmed while its picture waits in the
-          // outbox, and once Larry has the board as it is until the next stroke (bead context-grabber-x3tm); a board
-          // only looked at is dimmed after a send until other pages are on screen (story 343).
-          .disabled(
-            model.isEmpty || model.nothingOnScreen || model.larrySending || model.sendWaiting(in: inbox.items)
-              || (!model.editable && model.sent != nil) || model.larryHasThis
-          )
-          .accessibilityHint(model.larryHasThis ? "Larry already has this board" : "")
-          .accessibilityIdentifier("whiteboard-send")
-        }
+      // Every board, wherever it opens (story 1200).
+      ToolbarItem(placement: .topBarTrailing) {
+        named(
+          "Send", does: "Send the board to Larry", action: { model.sendToLarry() },
+          label: { Label("Send to Larry", systemImage: "paperplane") }
+        )
+        // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
+        .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
+        // Story 1176: one button. On a board drawn here it is Larry's turn, dimmed while its picture waits in the
+        // outbox, and once Larry has the board as it is until the next stroke (bead context-grabber-x3tm); a board
+        // only looked at is dimmed after a send until other pages are on screen (story 343).
+        .disabled(
+          model.isEmpty || model.nothingOnScreen || model.larrySending || model.sendWaiting(in: inbox.items)
+            || (!model.editable && model.sent != nil) || model.larryHasThis
+        )
+        .accessibilityHint(model.larryHasThis ? "Larry already has this board" : "")
+        .accessibilityIdentifier("whiteboard-send")
       }
     }
     // #1005 (story 1054): asking whether the clipboard holds text never prompts; it can change while the app is away, and

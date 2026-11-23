@@ -1,7 +1,7 @@
 //  Stories 590–612 on the simulator, its ghosts in `WhiteboardPaperGhostsUITests`: a new board is a real board on paper.
-//  A board drawn on the old canvas opening look-only (story 658) is `BoardIndexTests` and `BoardPagesTests` on the host
-//  and the smoke's `paper_open` check. How the Pencil feels and what a finger does with one paired are the iPad's
-//  (`whiteboard` action: paper_touch). A finger draws on the simulator.
+//  A board drawn on the old canvas being dropped (story 1204) is `BoardIndexTests` on the host. How the Pencil feels
+//  and what a finger does with one paired are the iPad's (`whiteboard` action: paper_touch). A finger draws on the
+//  simulator.
 
 import XCTest
 
@@ -204,33 +204,20 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     }
   }
 
-  /// Story 1200 (bead context-grabber-xg3): another device's board says whose it is and has Send; the same board drawn
-  /// on the old canvas says the same and has none, as no board from the old canvas has.
-  func testEveryLookOnlyBoardButTheOldCanvassHasSend() {
-    let tag = String(UUID().uuidString.prefix(6))
-    for old in [false, true] {
-      let name = (old ? "Old " : "Studio ") + tag
-      var environment = [
-        "GRABBER_BOARD_FIXTURE": "board-xg3-\(old ? "old" : "paper")-\(tag)", "GRABBER_BOARD_FIXTURE_FROM": name,
-      ]
-      if old { environment["GRABBER_BOARD_FIXTURE_OLD_INK"] = "20" }
-      let app = launch(environment)
-      let card = row(app, "Drawn on \(name)")
-      XCTAssertTrue(card.appears(within: 20), app.debugDescription)
-      card.tap()
-      let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Drawn on \(name): look only"))
-        .firstMatch
-      XCTAssertTrue(note.appears(within: 10), "the bar says whose it is" + app.debugDescription)
-      keep(app, old ? "another device's old-canvas board: no Send" : "another device's board: Send")
-      let send = app.buttons["whiteboard-send"]
-      if old {
-        sleep(2)
-        XCTAssertFalse(send.exists, "no Send on a board from the old canvas" + app.debugDescription)
-      } else {
-        XCTAssertTrue(send.appears(within: 10), "Send on another device's board" + app.debugDescription)
-      }
-      app.terminate()
-    }
+  /// Story 1200 (bead context-grabber-xg3): another device's board says whose it is and has Send, as every look-only
+  /// board has.
+  func testEveryLookOnlyBoardHasSend() {
+    let name = "Studio " + String(UUID().uuidString.prefix(6))
+    let app = launch(["GRABBER_BOARD_FIXTURE": "board-xg3-\(name.suffix(6))", "GRABBER_BOARD_FIXTURE_FROM": name])
+    let card = row(app, "Drawn on \(name)")
+    XCTAssertTrue(card.appears(within: 20), app.debugDescription)
+    card.tap()
+    let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Drawn on \(name): look only"))
+      .firstMatch
+    XCTAssertTrue(note.appears(within: 10), "the bar says whose it is" + app.debugDescription)
+    keep(app, "another device's board: Send")
+    XCTAssertTrue(
+      app.buttons["whiteboard-send"].appears(within: 10), "Send on another device's board" + app.debugDescription)
   }
 
   /// Stories 599, 612: a failed save is a problem that can be copied, on the board, and on the list if he then leaves.

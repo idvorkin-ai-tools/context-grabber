@@ -4,11 +4,10 @@
 import Foundation
 
 /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board on paper with a known id (#603); `GRABBER_BOARD_FIXTURE_FROM=<device
-/// name>` makes it another device's (#613), `GRABBER_BOARD_FIXTURE_OLD_INK=<n>` gives it ink.
+/// name>` makes it another device's (#613).
 public struct BoardFixtureHook: Equatable, Sendable {
   public var board: String
   public var from: String?
-  public var oldInk: Int?
   /// `GRABBER_BOARD_FIXTURE_THREAD=<thread>`: the board's thread with Larry, as if it had sent him a picture (bead
   /// context-grabber-dbku: *Open in Chat* on the simulator).
   public var thread: String?
@@ -17,7 +16,6 @@ public struct BoardFixtureHook: Equatable, Sendable {
     guard let board = env["GRABBER_BOARD_FIXTURE"], !board.isEmpty else { return nil }
     self.board = board
     from = env["GRABBER_BOARD_FIXTURE_FROM"]
-    oldInk = env["GRABBER_BOARD_FIXTURE_OLD_INK"].flatMap { Int($0) }
     thread = env["GRABBER_BOARD_FIXTURE_THREAD"].flatMap { $0.isEmpty ? nil : $0 }
   }
 }

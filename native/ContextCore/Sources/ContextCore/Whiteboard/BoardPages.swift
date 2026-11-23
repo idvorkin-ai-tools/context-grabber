@@ -168,30 +168,6 @@ public struct BoardPages: Equatable, Sendable {
 
   private static let wide: CGFloat = 1e12
 
-  /// Ink moving onto pages: only ever a translation, so no stroke can scale, and the strokes keep their places relative
-  /// to each other.
-  public struct Placement: Equatable, Sendable {
-    public var shift: CGVector
-    public var board: BoardPages
-    public var pages: Int
-
-    public var transform: CGAffineTransform { CGAffineTransform(translationX: shift.dx, y: shift.dy) }
-  }
-
-  /// `ink` at the first page's corner, inside a margin, on a board as wide as it needs. No ink needs no move.
-  public static func placing(ink: CGRect?) -> Placement {
-    guard let ink = drawn(ink) else { return Placement(shift: .zero, board: BoardPages(), pages: 1) }
-    let board = BoardPages(width: width(forInkWidth: ink.width))
-    return Placement(
-      shift: CGVector(dx: margin - ink.minX, dy: margin - ink.minY), board: board,
-      pages: board.pagesNeeded(inkMaxY: margin + ink.height))
-  }
-
-  /// A page wide, or wider for wider ink, with a margin each side.
-  static func width(forInkWidth inkWidth: CGFloat) -> CGFloat {
-    max(pageWidth, inkWidth + margin * 2)
-  }
-
   /// The ink's box, if it's a box of anything.
   static func drawn(_ ink: CGRect?) -> CGRect? {
     ink.flatMap { $0.isNull || $0.isEmpty || $0.isInfinite ? nil : $0 }

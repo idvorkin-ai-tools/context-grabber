@@ -16,8 +16,6 @@ final class BoardPagesTests: XCTestCase {
 
   func testANewBoardIsOneBlankPage() {
     XCTAssertEqual(pages.pagesNeeded(inkMaxY: nil), 1)
-    XCTAssertEqual(BoardPages.placing(ink: nil).pages, 1)
-    XCTAssertEqual(BoardPages.placing(ink: .null).pages, 1)
   }
 
   func testInkOnAPageNeedsThatPageAndABlankOne() {
@@ -46,7 +44,6 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertEqual(page(.nan), 1)
     XCTAssertEqual(page(.infinity), 1)
     XCTAssertGreaterThan(page(1e300), 1)
-    XCTAssertEqual(BoardPages.placing(ink: .infinite).pages, 1)
   }
 
   // MARK: Story 536: which page a mark is on
@@ -152,66 +149,6 @@ final class BoardPagesTests: XCTestCase {
     }
     XCTAssertEqual(
       pages.ruledLines(visible: 0...300, pages: 1, zoom: 3), [40, 80, 120, 160, 200, 240, 280], "pinching in adds none")
-  }
-
-  // MARK: Story 539: a stroke never scales
-
-  private let oldInk = CGRect(x: 10_100, y: 9_900, width: 300, height: 500)
-
-  func testMovingOntoPagesIsATranslationAndNothingElse() {
-    let boards = [
-      oldInk, CGRect(x: 9_000, y: 9_000, width: 2_000, height: 40),
-      CGRect(x: 10_000, y: 2_000, width: 500, height: 15_000),
-    ]
-    for ink in boards {
-      let transform = BoardPages.placing(ink: ink).transform
-      XCTAssertEqual(transform.a, 1)
-      XCTAssertEqual(transform.b, 0)
-      XCTAssertEqual(transform.c, 0)
-      XCTAssertEqual(transform.d, 1)
-      XCTAssertEqual(ink.applying(transform).size, ink.size)
-    }
-  }
-
-  func testStrokesKeepTheirWidthAndPlacesRelativeToEachOther() {
-    let transform = BoardPages.placing(ink: oldInk).transform
-    XCTAssertEqual(WhiteboardStrokes.width(sizes: [3, 5], transform: transform), 4, "the pen's width")
-    let movedA = CGPoint(x: 10_100, y: 9_900).applying(transform)
-    let movedB = CGPoint(x: 10_400, y: 10_400).applying(transform)
-    XCTAssertEqual(movedB.x - movedA.x, 300)
-    XCTAssertEqual(movedB.y - movedA.y, 500)
-  }
-
-  func testInkLandsInsideTheFirstPagesCorner() {
-    let placed = BoardPages.placing(ink: oldInk)
-    let moved = oldInk.applying(placed.transform)
-    XCTAssertEqual(moved.origin, CGPoint(x: 40, y: 40))
-    XCTAssertEqual(placed.board, BoardPages())
-    XCTAssertEqual(placed.pages, 2)
-    XCTAssertTrue(placed.board.bounds(pages: placed.pages).contains(moved))
-  }
-
-  func testInkWiderThanAPageWidensTheBoardInsteadOfShrinking() {
-    let wide = CGRect(x: 9_000, y: 9_000, width: 2_000, height: 40)
-    let placed = BoardPages.placing(ink: wide)
-    XCTAssertEqual(placed.board.width, 2_080)
-    XCTAssertEqual(placed.board.frame(ofPage: 1).height, 1_060)
-    XCTAssertTrue(placed.board.bounds(pages: placed.pages).contains(wide.applying(placed.transform)))
-  }
-
-  func testTallInkTakesThePagesItNeedsPlusABlankOne() {
-    XCTAssertEqual(
-      BoardPages.placing(ink: CGRect(x: 0, y: 0, width: 10, height: 1_020)).pages, 2, "ends at page 1's end")
-    XCTAssertEqual(BoardPages.placing(ink: CGRect(x: 0, y: 0, width: 10, height: 1_021)).pages, 3)
-    let tall = BoardPages.placing(ink: CGRect(x: 0, y: 0, width: 10, height: 15_000))
-    XCTAssertEqual(tall.pages, 16)
-    XCTAssertGreaterThanOrEqual(tall.board.frame(ofPage: tall.pages).minY, 15_040)
-  }
-
-  func testNoInkDoesNotMove() {
-    let placed = BoardPages.placing(ink: nil)
-    XCTAssertEqual(placed.shift, .zero)
-    XCTAssertEqual(placed.board, BoardPages())
   }
 
   // MARK: Stories 591, 596, 603, 608: a real board's pages and place

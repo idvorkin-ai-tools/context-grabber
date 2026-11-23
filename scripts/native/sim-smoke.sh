@@ -217,18 +217,6 @@ looked=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="chat_lookup")][
 if [[ "$looked" =~ ^smoke-chat\ list\ [a-z_]+$ ]]; then ok "whiteboard: the list's chat bubble looked for the board's thread: $looked"
 else bad "whiteboard: chat_lookup '$looked', wanted smoke-chat list <source or outcome>"; fi
 fi
-# Story 658: a board drawn on the old canvas opens on paper to look at only, its 40 strokes moved onto the first page
-# (the ink's box starts at the page's margin).
-SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-old-canvas SIMCTL_CHILD_GRABBER_BOARD_FIXTURE_OLD_INK=40 \
-  SIMCTL_CHILD_GRABBER_LINK="grabbernative://whiteboard?board=smoke-old-canvas" relaunch
-wait_jq 'select(.type=="whiteboard" and .action=="paper_open")' 30 || echo "      (timed out waiting for paper_open)"
-f=$(newest_log)
-opened=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="open")][0] | "\(.editable) \(.old_canvas)"' "$f")
-shown=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="paper_open")][0] | "\(.strokes) \(.editable) \(.ink[0]) \(.ink[1])"' "$f")
-errors=$(jq -c 'select(.type=="error")' "$f")
-if [ "$opened" = "false true" ] && [ "$shown" = "40 false 40 40" ] && [ -z "$errors" ]; then
-  ok "whiteboard: an old-canvas board opened look-only on paper, 40 strokes at the first page's corner, no error events"
-else bad "whiteboard: old-canvas board open '$opened', shown '$shown', errors: $errors"; fi
 fi  # whiteboard
 
 if want timer && audio_ok timer; then

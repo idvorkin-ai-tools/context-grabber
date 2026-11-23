@@ -43,7 +43,7 @@ to that event's own bullet; never join two events on one line.
   - ink_moved with board, strokes, moved, dx, dy, top_moved_y and zoom: strokes changed place with none added or removed, #624
   - list with boards, own — the ones this device draws —, migrated: the single board from before the list became its first row, and new_board: false on an iPhone, which offers no New board (story 746)
   - new with board and on_paper: always true since 2026-11-07
-  - open with board, strokes, editable — false for a board another device draws or one drawn on the old canvas, which opens to look at only, and for every board on an iPhone —, old_canvas (story 658) and look_only: the bar's reason, null on a board that draws (story 746)
+  - open with board, strokes, editable — false for a board another device draws, which opens to look at only, and for every board on an iPhone —, and look_only: the bar's reason, null on a board that draws (story 746)
   - close with board, strokes and saved — false when that last write failed, which also puts the problem on the list — logged only when leaving had unsaved strokes to write
   - send with board, strokes, bytes, pixels and frame: the picture's rect on the board, x, y, w, h — the pages on screen
   - send on a board drawn here (story 1176) also has picture, new_thread, said_chars, folds and turn: true — the picture went into the outbox as Larry's turn
@@ -109,7 +109,7 @@ to that event's own bullet; never join two events on one line.
   - whiteboard_save / whiteboard_send / whiteboard_responder with board, responder and message — a pick the Cockpit didn't take
   - whiteboard_turn with who, board and message, once when turns start failing, again only after one has succeeded
   - whiteboard_marks with board, thread and message, once when looking at the thread starts failing, again only after a look has succeeded)
-- **save_timing** (#1044), one per save of a board drawn on: board, trigger (debounce: the moment after a stroke; close; background; fixture: a launch hook's board), strokes, revision (the board's `updated` once the list was told), encode_ms, write_ms, picture_ms, index_ms and total_ms to a tenth of a millisecond, and failed naming the stage that threw; never the drawing
+- **save_timing** (#1044), one per save of a board drawn on: board, trigger (debounce: the moment after a stroke; close; background), strokes, revision (the board's `updated` once the list was told), encode_ms, write_ms, picture_ms, index_ms and total_ms to a tenth of a millisecond, and failed naming the stage that threw; never the drawing
 
 ## Pen paths (stories 1104, 1105; spec 2026-11-01-whiteboard-design.md, *A pen touch's path is in the log*)
 
@@ -142,7 +142,7 @@ to that event's own bullet; never join two events on one line.
   - **paper_ink_slow** (story 1168, bead context-grabber-uktm), after a change to the ink whose handling took 250 ms or more: board, `total_ms`, `laps` (each part's ms by name: `frames` the strokes' frames and the change, `tap_dot`, `margin_hold`, `pick_up`, `scratch` the four gestures that can take the stroke, `snap`, `soon` the header, marks and follow timers, `model` the board's model taking the drawing, `pages`, `audits` the change's line and its audits, `show` the lines, page number and to-text, `push` a drop that makes room, `elements` the model told which elements changed, `other` the time between those parts that none of them names, often 0; a part that never ran is absent), `strokes`, `added`, `moved`, `removed`, `since_ink_ms` (since the ink last changed; absent for the first change). A `main_stall` with no `paper_ink_slow` near it was not the board's handling of ink
   - **paper_selection** (#945), every selection PaperKit reports: `selected`, `strokes` (of those, the ink), `box` (their box in board points), `put_back` (a tap's selection taken straight back), `in_touch`, `touch_mode`, and the watch state when no touch was heard
   - **selection_label** (story 1095, #1045), each new label on the selection: `board`, `kind` (ink, text, part_text, group, part_group, connector, arrow, things, mixed), `label` (its words), `strokes` (how many are selected)
-  - **paper_open**, with board: strokes, pages, `width` (wider than 820 for an old-canvas board's wider ink), `ink` (the ink's box as shown, after an old-canvas board's move onto pages), `editable` (false on a look-only board, story 658), `ms`
+  - **paper_open**, with board: strokes, pages, `width` (a page's, 820), `ink` (the ink's box as shown), `editable` (false on a look-only board), `ms`
   - **paper_not_ink**, with board, `elements` and strokes: something on the board that isn't a stroke and so wouldn't be saved
 - `paper_probe` lines are in logs from before 2026-11-07 only: the trial on paper that wrote them is gone
 

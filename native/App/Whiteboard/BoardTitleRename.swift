@@ -10,8 +10,8 @@ import SwiftUI
 struct BoardTitleRename: ViewModifier {
   let board: BoardEntry
   let store: WhiteboardStore
-  /// The board draws here (`WhiteboardModel.editable`): another device's, an old-canvas one, one that couldn't be read
-  /// and every board on an iPhone are only looked at, and their name doesn't rename.
+  /// The board draws here (`WhiteboardModel.editable`): another device's, one that couldn't be read and every board on
+  /// an iPhone are only looked at, and their name doesn't rename.
   let editable: Bool
   @State private var name: String?
   @State private var renaming = false

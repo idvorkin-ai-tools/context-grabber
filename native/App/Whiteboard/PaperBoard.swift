@@ -1,7 +1,7 @@
 //  A board on paper (whiteboard spec's "On paper: the default", stories 590–657, 658; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log; and on it
 //  `PaperBoardController`, which draws on a board through its model, so it saves and syncs, with its ghosts, Larry's
-//  marks, the mic and paste. A look-only board (another device's, or one drawn on the old canvas) shows the same way with
+//  marks, the mic and paste. A look-only board (another device's, or any on an iPhone) shows the same way with
 //  drawing off and no tools. Ghosts lie on the sheet under the ink, in
 //  PaperKit's content view, so they move with the board whatever it does.
 //  Its features are in PaperBoard+<Feature>.swift beside it; PaperKit's host is PaperHost.swift, the SwiftUI canvas
@@ -32,7 +32,7 @@ extension PaperMarkup {
   }
 }
 
-/// A real board on paper, drawn on this device. The drawing goes through the board's model, as the old canvas's does.
+/// A real board on paper, drawn on this device. The drawing goes through the board's model.
 @MainActor
 final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewController.Delegate {
   @Published private(set) var pageText = BoardPages().pageText(visibleMidY: 0, pages: 1)
@@ -101,8 +101,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Story 1188: PaperKit's handwriting reflow, for the log (PaperBoard+ReflowWatch.swift).
   let reflowWatch = BoardReflowWatch()
   let selectionDrag = SelectionDragWatch()
-  /// A page wide, or wider for an old-canvas board's wider ink (story 658).
-  private(set) var board = BoardPages()
+  /// A page wide.
+  let board = BoardPages()
   var pages = 1
   private var laidWidth: CGFloat = 0
   /// What the column's own changes shouldn't report as a person's. Set only by the edit lane (PaperBoard+EditLane.swift).
@@ -258,14 +258,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   private func load() {
     let started = CACurrentMediaTime()
-    var drawing = model.drawing
-    if model.oldCanvas {
-      // Story 658: the old canvas put ink about 10,000 points from its corner. Moved, never scaled, to the first page's
-      // corner for showing only: a look-only board saves nothing, so its file keeps the ink where it was.
-      let placed = BoardPages.placing(ink: drawing.strokes.isEmpty ? nil : drawing.bounds)
-      board = placed.board
-      drawing = drawing.transformed(using: placed.transform)
-    }
+    let drawing = model.drawing
     pages = board.pagesNeeded(inkMaxY: drawing.strokes.isEmpty ? nil : drawing.bounds.maxY)
     var markup = PaperMarkup(bounds: board.bounds(pages: pages))
     markup.append(contentsOf: drawing)

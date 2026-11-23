@@ -233,13 +233,8 @@ final class LaunchHooksTests: XCTestCase {
     let alone = BoardFixtureHook(["GRABBER_BOARD_FIXTURE": "board-1"])
     XCTAssertEqual(alone?.board, "board-1")
     XCTAssertNil(alone?.from)
-    XCTAssertNil(alone?.oldInk)
-    let full = BoardFixtureHook([
-      "GRABBER_BOARD_FIXTURE": "board-2", "GRABBER_BOARD_FIXTURE_FROM": "Igor's iPad",
-      "GRABBER_BOARD_FIXTURE_OLD_INK": "3",
-    ])
+    let full = BoardFixtureHook(["GRABBER_BOARD_FIXTURE": "board-2", "GRABBER_BOARD_FIXTURE_FROM": "Igor's iPad"])
     XCTAssertEqual(full?.from, "Igor's iPad")
-    XCTAssertEqual(full?.oldInk, 3)
     XCTAssertNil(alone?.thread)
     // Bead context-grabber-dbku: the fixture's thread with Larry, so the board offers *Open in Chat*.
     let threaded = BoardFixtureHook([
@@ -247,13 +242,10 @@ final class LaunchHooksTests: XCTestCase {
     ])
     XCTAssertEqual(threaded?.thread, "igor2-88g.603")
     XCTAssertNil(BoardFixtureHook(["GRABBER_BOARD_FIXTURE": "b", "GRABBER_BOARD_FIXTURE_THREAD": ""])?.thread)
-    let odd = BoardFixtureHook([
-      "GRABBER_BOARD_FIXTURE": "b", "GRABBER_BOARD_FIXTURE_FROM": "", "GRABBER_BOARD_FIXTURE_OLD_INK": "some",
-    ])
+    let odd = BoardFixtureHook(["GRABBER_BOARD_FIXTURE": "b", "GRABBER_BOARD_FIXTURE_FROM": ""])
     XCTAssertEqual(odd?.from, "")
-    XCTAssertNil(odd?.oldInk)
     XCTAssertNil(BoardFixtureHook(["GRABBER_BOARD_FIXTURE": "", "GRABBER_BOARD_FIXTURE_FROM": "iPad"]))
-    XCTAssertNil(BoardFixtureHook(["GRABBER_BOARD_FIXTURE_FROM": "iPad", "GRABBER_BOARD_FIXTURE_OLD_INK": "3"]))
+    XCTAssertNil(BoardFixtureHook(["GRABBER_BOARD_FIXTURE_FROM": "iPad"]))
     XCTAssertEqual(steps(["GRABBER_BOARD_FIXTURE": "board-1"]), alone.map { [.boardFixture($0)] })
   }
 

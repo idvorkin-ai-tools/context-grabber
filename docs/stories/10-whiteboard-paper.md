@@ -34,7 +34,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 431:
 
 - **Summary:** An old board moves onto pages with nothing lost
-- **Status:** implemented on paper in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e) as a look-only board (story 658; Igor, 2026-11-07: "Old canvas can be erased"): its ink moved onto the first page's corner, never scaled, by the rule in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34) (story 539); verified by host tests (`BoardPagesTests`, `BoardKeepingTests`) and the simulator smoke's `paper_open` (40 strokes at the first page's corner). A look-only board takes no turns, so Larry's marks don't arise on it. Igor's own old boards on the iPad not yet seen
+- **Status:** removed 2026-11-22 with the old canvas's boards (Igor: "drop the old canvas", no conversion; bead context-grabber-3v69), in COMMIT: a board drawn on the old canvas no longer opens, its ink moved or not (story 1204). Before: implemented on paper in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e) as a look-only board (story 658; Igor, 2026-11-07: "Old canvas can be erased"): its ink moved onto the first page's corner, never scaled, by the rule in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34) (story 539); verified by host tests (`BoardPagesTests`, `BoardKeepingTests`) and the simulator smoke's `paper_open` (40 strokes at the first page's corner). A look-only board takes no turns, so Larry's marks don't arise on it. Igor's own old boards on the iPad not yet seen
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636), closed by Igor 2026-11-20 ("the board feels good now")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -599,7 +599,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 539:
 
 - **Summary:** Moving onto pages never scales a stroke
-- **Status:** the move implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); no real board has moved yet: that's a later slice
+- **Status:** removed 2026-11-22 with the old canvas's boards (Igor: "drop the old canvas", no conversion; bead context-grabber-3v69), in COMMIT: a board drawn on the old canvas no longer opens, its ink moved or not (story 1204). Before: the move implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); no real board has moved yet: that's a later slice
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -712,7 +712,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** On the other device
 - **Given:** a board on paper drawn on the iPad
 - **When:** I open it on the iPhone
-- **Then:** the ink shows look-only on paper, on its pages, with no tool picker (the old canvas went 2026-11-07, story 658)
+- **Then:** the ink shows look-only on paper, on its pages, with no tool picker
 
 ---
 
@@ -2056,7 +2056,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 658:
 
 - **Summary:** A board drawn on the old canvas opens to look at, on paper
-- **Status:** implemented in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e); verified by host tests (`BoardIndexTests`: only a board made on paper, on its own device, is drawn on; the bar's words for each look-only board; `BoardKeepingTests`: through a relaunch; `BoardPagesTests`: the ink moved, never scaled) and on the simulator (`WhiteboardOnPaperUITests.testAnOldCanvasBoardOpensLookOnlyOnPaper`, on an iPad Pro 11-inch simulator too since [#845](https://github.com/idvorkin/context-grabber/issues/845): it searches for the old ink from under the navigation bar and drags right to left, as a swipe right is Back; `paper_ink_look` why `open` counted the ink drawn in 6 of 6 opens; the smoke's `paper_open`). Igor's own old boards on the iPad not yet seen. Since story 770 the simulator's check is the smoke's `paper_open` (look-only, 40 strokes at the first page's corner); the UI test was a duplicate of it and of `BoardIndexTests`; Send's absence on a board from the old canvas wherever it opens, beside the other look-only boards that keep Send, is story 1200 ([55e34d15](https://github.com/idvorkin/context-grabber/commit/55e34d15))
+- **Status:** removed 2026-11-22 with the old canvas's boards (Igor: "drop the old canvas", no conversion; bead context-grabber-3v69), in COMMIT: a board drawn on the old canvas no longer opens, its ink moved or not (story 1204). Before: implemented in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e); verified by host tests (`BoardIndexTests`: only a board made on paper, on its own device, is drawn on; the bar's words for each look-only board; `BoardKeepingTests`: through a relaunch; `BoardPagesTests`: the ink moved, never scaled) and on the simulator (`WhiteboardOnPaperUITests.testAnOldCanvasBoardOpensLookOnlyOnPaper`, on an iPad Pro 11-inch simulator too since [#845](https://github.com/idvorkin/context-grabber/issues/845): it searches for the old ink from under the navigation bar and drags right to left, as a swipe right is Back; `paper_ink_look` why `open` counted the ink drawn in 6 of 6 opens; the smoke's `paper_open`). Igor's own old boards on the iPad not yet seen. Since story 770 the simulator's check is the smoke's `paper_open` (look-only, 40 strokes at the first page's corner); the UI test was a duplicate of it and of `BoardIndexTests`; Send's absence on a board from the old canvas wherever it opens, beside the other look-only boards that keep Send, is story 1200 ([55e34d15](https://github.com/idvorkin/context-grabber/commit/55e34d15))
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Paper is the only canvas*
 
 #### Use Case:

@@ -1,7 +1,7 @@
-//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347, 658): a column of pages on PaperKit with the
+//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347): a column of pages on PaperKit with the
 //  system tool picker, saved a moment after each stroke, and sent to Larry on the board's chat thread holding its picture
-//  (the Inbox's image path, so it waits in the outbox when the network is away). A board another device draws, or one
-//  drawn on the old canvas (gone 2026-11-07), opens to look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
+//  (the Inbox's image path, so it waits in the outbox when the network is away). A board another device draws opens to
+//  look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
 //  as shapes, drawn faint until a tap keeps one (spec 2026-11-01-whiteboard-shapes-design.md, stories 344, 345, 349).
 //  This file holds the board's model: its state, init and load. Each feature's methods are in
 //  WhiteboardModel+<Feature>.swift; the SwiftUI view is WhiteboardView.swift (context-grabber-jp6z).
@@ -147,12 +147,8 @@ final class WhiteboardModel: ObservableObject {
   /// The note's panel is open, remembered for the next board (story 768).
   @Published var conversationOpen = UserDefaults.standard.bool(forKey: WhiteboardModel.conversationKey)
   let board: BoardEntry
-  /// Drawn on here, or only looked at: a board from another device (story 347) or from the old canvas (story 658).
+  /// Drawn on here, or only looked at: a board from another device (story 347), or any board on an iPhone.
   let editable: Bool
-  /// Drawn on the old canvas: its ink is moved onto pages to be shown, and it can't be sent (story 658).
-  let oldCanvas: Bool
-  /// The bar has *Send to Larry*: every board but the old canvas's, wherever it opens (story 1200).
-  let sendable: Bool
   /// Why it's only looked at, for the bar; nil on a board drawn on here.
   let lookOnlyNote: String?
   @Published var drawing: PKDrawing
@@ -249,8 +245,6 @@ final class WhiteboardModel: ObservableObject {
     let (loaded, loadProblem, held) = Self.load(board, from: store, log: log)
     // #1042: an unreadable drawing left in place opens look-only, so no stroke saves over it.
     editable = store.drawable(board) && !held
-    oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
-    sendable = BoardIndex.sendable(board)
     lookOnlyNote = held ? "Couldn't be read: look only" : store.lookOnlyNote(board)
     ops = opLedger.meaning.applier(drawing: store.drawingPrint(board.id))
     texts = opLedger.texts(board: board.id)
@@ -267,7 +261,7 @@ final class WhiteboardModel: ObservableObject {
       "whiteboard",
       [
         "action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": editable,
-        "old_canvas": oldCanvas, "sendable": sendable, "look_only": lookOnlyNote as Any? ?? NSNull(),
+        "look_only": lookOnlyNote as Any? ?? NSNull(),
       ])
     if LaunchHooks.current.whiteboard.grid { setGrid(true) }
     watchNotices()

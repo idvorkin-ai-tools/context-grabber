@@ -172,36 +172,11 @@ final class WhiteboardStore: ObservableObject {
   }
 
   /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board on paper with a known id, for the simulator (#603): this device's, or
-  /// with `GRABBER_BOARD_FIXTURE_FROM=<device name>` another device's (#613). With `GRABBER_BOARD_FIXTURE_OLD_INK=<n>`
-  /// it's a board drawn on the old canvas instead, with n strokes where that canvas put ink (story 658).
-  func addFixture(_ id: String, from other: String? = nil, oldInk: Int? = nil) {
+  /// with `GRABBER_BOARD_FIXTURE_FROM=<device name>` another device's (#613).
+  func addFixture(_ id: String, from other: String? = nil) {
     guard index.board(id) == nil else { return }
-    index.add(
-      id: id, at: Date(), device: other ?? device, deviceName: other ?? deviceName, onPages: oldInk == nil)
-    if let oldInk, oldInk > 0 {
-      do {
-        try save(PKDrawing(strokes: Self.oldCanvasInk(oldInk)), board: id, trigger: .fixture)
-      } catch {
-        log.event("error", ["where": "whiteboard_fixture", "board": id, "message": "\(error)"])
-      }
-    }
+    index.add(id: id, at: Date(), device: other ?? device, deviceName: other ?? deviceName, onPages: true)
     saveIndex()
-  }
-
-  /// Rows of short strokes where the old canvas put ink, about 10,000 points from its corner, the same on every run.
-  private static func oldCanvasInk(_ count: Int) -> [PKStroke] {
-    (0..<count).map { (i: Int) -> PKStroke in
-      let left: CGFloat = 10_060 + CGFloat(i % 20) * 34
-      let top: CGFloat = 10_040 + CGFloat(i / 20) * 40
-      let points: [PKStrokePoint] = (0..<8).map { (step: Int) -> PKStrokePoint in
-        let wiggle: CGFloat = step % 2 == 0 ? 0 : 14
-        return PKStrokePoint(
-          location: CGPoint(x: left + CGFloat(step) * 3, y: top + wiggle), timeOffset: Double(step) * 0.01,
-          size: CGSize(width: 3, height: 3), opacity: 1, force: 1, azimuth: 0, altitude: CGFloat.pi / 2)
-      }
-      let made = Date(timeIntervalSince1970: 1_800_000_000 + Double(i))
-      return PKStroke(ink: PKInk(.pen, color: .black), path: PKStrokePath(controlPoints: points, creationDate: made))
-    }
   }
 
   /// Why a board can't be opened as it is now, once iCloud has been asked; nil when it can (#603). Out of iCloud's

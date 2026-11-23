@@ -66,6 +66,6 @@ final class BoardSaveTimingTests: XCTestCase {
 
   func testTheTriggersAreTheWaysABoardSaves() {
     XCTAssertEqual(
-      BoardSaveTiming.Trigger.allCases.map(\.rawValue), ["debounce", "close", "background", "fixture"])
+      BoardSaveTiming.Trigger.allCases.map(\.rawValue), ["debounce", "close", "background"])
   }
 }
