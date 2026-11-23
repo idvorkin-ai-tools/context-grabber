@@ -5,6 +5,10 @@ import XCTest
 
 @testable import ContextCore
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 final class AppBuildTests: XCTestCase {
   private let cockpit = "https://cockpit.example.ts.net:8443"
   private let build = AppBuild(build: "212", sha: "abc1234")

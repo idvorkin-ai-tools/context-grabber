@@ -48,25 +48,6 @@ public enum BoardEventsSend {
 
   public static let timeout: TimeInterval = 5
 
-  /// `build`: the app's `<sha> <branch>`, for the Cockpit's board debug page (story 1112).
-  /// `appBuild`: the build number and short commit every post carries (story 1134).
-  public static func request(
-    board: String, report: BoardTurnReport, cockpit: String, build: String? = nil, appBuild: AppBuild = .current
-  ) throws -> URLRequest {
-    guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
-    var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("events"))
-    request.httpMethod = "POST"
-    request.timeoutInterval = timeout
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    var body = report.wire
-    body["board"] = board
-    if let build, !build.isEmpty { body["build"] = build }
-    body = appBuild.stamp(body)
-    request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
-    return request
-  }
-
   public static func answer(status: Int?, error: String? = nil) -> Answer {
     guard let status else { return .away(reason: error ?? "no answer") }
     if (200..<300).contains(status) { return .taken }

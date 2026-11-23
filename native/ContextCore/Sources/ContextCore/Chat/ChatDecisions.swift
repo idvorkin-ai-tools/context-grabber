@@ -103,8 +103,6 @@ public struct ChatAsk: Decodable, Equatable, Sendable, Identifiable {
 }
 
 public enum ChatDecisions {
-  public typealias Transport = ChatMove.Transport
-
   public enum Snooze: String, CaseIterable, Sendable {
     case later, tomorrow
     case nextWeek = "next_week"
@@ -195,11 +193,6 @@ public enum ChatDecisions {
     return list.asks
   }
 
-  public static func listRequest(cockpit: String) throws -> URLRequest {
-    guard URL(string: cockpit)?.host != nil else { throw URLError(.badURL) }
-    return try ChatWire.get(cockpit, "/asks")
-  }
-
   public static func canClose(reason: String) -> Bool { !reason.trimmingCharacters(in: .whitespaces).isEmpty }
 
   /// Igor's own words answer only once there are some.
@@ -218,61 +211,9 @@ public enum ChatDecisions {
     }
   }
 
-  /// `build` says which build sent it, on every verb (story 1134).
-  public static func request(_ verb: Verb, ask: ChatAsk, cockpit: String, build: AppBuild = .current) throws
-    -> URLRequest
-  {
-    switch verb {
-    case .answer(let option) where isOther(option): throw NotSent.ownAnswerLabel
-    case .ownWords(let words) where !canSend(words: words): throw NotSent.noWords
-    default: break
-    }
-    let path: String
-    let body: [String: Any]
-    switch verb {
-    case .answer(let option):
-      // What the Cockpit's own card sends for an option with no note (`submit()` in its index.html).
-      path = "/act"
-      body = [
-        "id": ask.id, "action": "respond", "response": "DECISION: \(option.label)", "base_updated_at": ask.updatedAt,
-      ]
-      .merging(postToChat) { a, _ in a }
-    case .ownWords(let words):
-      // The Inbox's free-text answer (`submit()` in its index.html): DECISION: and the words.
-      path = "/act"
-      let words = words.trimmingCharacters(in: .whitespacesAndNewlines)
-      body = ["id": ask.id, "action": "respond", "response": "DECISION: \(words)", "base_updated_at": ask.updatedAt]
-        .merging(postToChat) { a, _ in a }
-    case .snooze(let preset):
-      path = "/snooze"
-      body = ["id": ask.id, "preset": preset.rawValue]
-    case .close(let reason):
-      path = "/close"
-      body = [
-        "id": ask.id, "action": "close", "reason": reason.trimmingCharacters(in: .whitespaces),
-        "base_updated_at": ask.updatedAt,
-      ]
-      .merging(postToChat) { a, _ in a }
-    case .abandon(let reason):
-      path = "/close"
-      body = ["id": ask.id, "action": "abandon", "reason": reason ?? "", "base_updated_at": ask.updatedAt]
-        .merging(postToChat) { a, _ in a }
-    }
-    guard let base = URL(string: cockpit), base.host != nil, let url = URL(string: cockpit.trimmingSuffix("/") + path)
-    else { throw URLError(.badURL) }
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.timeoutInterval = 15
-    // The write boundary answers 415 to a POST that isn't JSON, and refuses one from a foreign origin.
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = try JSONSerialization.data(withJSONObject: build.stamp(body))
-    return request
-  }
-
   /// Igor's row in the ask's chat once the decision lands (cockpit-7fr): only the literal true turns it on, and
   /// `source` names the phone as on `/chat`. A snooze has none.
-  static let postToChat: [String: Any] = ["post_to_chat": true, "source": "app"]
+  package static let postToChat: [String: Any] = ["post_to_chat": true, "source": "app"]
 
   public static func outcome(status: Int?, body: Data?, error: String? = nil) -> Outcome {
     guard let status else { return .refused(error ?? "no answer from the Cockpit") }
@@ -292,15 +233,6 @@ public enum ChatDecisions {
       return .changed(fresh)
     }
     return .refused("\(said ?? "the Cockpit refused it") (HTTP \(status))")
-  }
-
-  public static func run(_ verb: Verb, ask: ChatAsk, cockpit: String, transport: Transport) async -> Outcome {
-    do {
-      let (data, status) = try await transport(try request(verb, ask: ask, cockpit: cockpit))
-      return outcome(status: status, body: data)
-    } catch {
-      return outcome(status: nil, body: nil, error: error.localizedDescription)
-    }
   }
 
   // MARK: Which chats carry a card

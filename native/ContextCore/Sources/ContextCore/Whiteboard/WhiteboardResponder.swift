@@ -35,32 +35,6 @@ public enum WhiteboardResponder: String, CaseIterable, Sendable {
   /// A read or a write of the knob waits this long: it is a file on the Cockpit, no model.
   public static let timeout: TimeInterval = 5
 
-  public static func readRequest(board: String, cockpit: String) throws -> URLRequest {
-    guard let base = URL(string: cockpit),
-      var parts = URLComponents(
-        url: base.appendingPathComponent("whiteboard").appendingPathComponent("responder"),
-        resolvingAgainstBaseURL: false)
-    else { throw URLError(.badURL) }
-    parts.queryItems = [URLQueryItem(name: "board", value: board)]
-    guard let url = parts.url else { throw URLError(.badURL) }
-    var request = URLRequest(url: url)
-    request.timeoutInterval = timeout
-    return request
-  }
-
-  public static func writeRequest(
-    _ responder: WhiteboardResponder, board: String, cockpit: String
-  ) throws -> URLRequest {
-    guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
-    var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("responder"))
-    request.httpMethod = "POST"
-    request.timeoutInterval = timeout
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = try JSONSerialization.data(withJSONObject: ["board": board, "responder": responder.rawValue])
-    return request
-  }
-
   public enum Reply: Equatable, Sendable {
     /// `set`: someone chose it for this board; false when it is the Cockpit's default. A Cockpit that doesn't say
     /// counts as set, so nothing is written over a choice.

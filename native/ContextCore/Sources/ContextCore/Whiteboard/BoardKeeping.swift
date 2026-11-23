@@ -20,7 +20,15 @@ public struct FileBoardDisk: BoardDisk {
   public init() {}
   public func exists(_ url: URL) -> Bool { FileManager.default.fileExists(atPath: url.path) }
   public func read(_ url: URL) throws -> Data { try Data(contentsOf: url) }
-  public func write(_ data: Data, to url: URL) throws { try data.write(to: url, options: .atomic) }
+  public func write(_ data: Data, to url: URL) throws {
+    // WASI (the board's rules in WebAssembly, spec 2026-11-22-board-rules-on-the-web-design.md) has no temporary files,
+    // so no atomic write; nothing there keeps a board on disk.
+    #if os(WASI)
+      try data.write(to: url)
+    #else
+      try data.write(to: url, options: .atomic)
+    #endif
+  }
   public func remove(_ url: URL) throws { try FileManager.default.removeItem(at: url) }
   public func move(_ url: URL, to target: URL) throws { try FileManager.default.moveItem(at: url, to: target) }
   public func makeDirectory(_ url: URL) throws {

@@ -130,30 +130,6 @@ public enum WhiteboardTurn {
   /// How long the app waits for Claude's ghosts: the Cockpit's ghost model takes about 3 s.
   public static let suggestTimeout: TimeInterval = 10
 
-  /// Claude's ghosts: the picture and its size in pixels, which every stroke comes back in. `board` picks the board's
-  /// responder on the Cockpit (story 659); `timings` are the iPad's half of the turn so far (story 661).
-  public static func suggestRequest(
-    title: String, picture: Data, width: Int, height: Int, cockpit: String, board: String? = nil,
-    timings: [String: Int] = [:]
-  ) throws -> URLRequest {
-    guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
-    var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("suggest"))
-    request.httpMethod = "POST"
-    request.timeoutInterval = suggestTimeout
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    // One stroke a line as the model makes it; a Cockpit that doesn't stream answers with one JSON (`WhiteboardStream`).
-    request.setValue("application/x-ndjson", forHTTPHeaderField: "Accept")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    var body: [String: Any] = [
-      "image": picture.base64EncodedString(), "width": width, "height": height, "text": title,
-      "client": "grabber-native",
-    ]
-    if let board { body["board"] = board }
-    if !timings.isEmpty { body["timings"] = timings }
-    request.httpBody = try JSONSerialization.data(withJSONObject: body)
-    return request
-  }
-
   /// Whether a label has letters to draw in a face. The app's is `hasLetters` (CoreText's outlines); a test hands in
   /// its own, so the parse rules run where there are no fonts (`just test-linux`).
   public typealias Lettering = (String, Face) -> Bool

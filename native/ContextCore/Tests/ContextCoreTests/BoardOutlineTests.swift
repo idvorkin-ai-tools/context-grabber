@@ -291,16 +291,4 @@ final class BoardOutlineTests: XCTestCase {
     XCTAssertNil(grouped.theirs(at: CGPoint(x: 105, y: 412), slop: 22, moments: theirs), "a group's is the group's")
     XCTAssertEqual(grouped.theirs(at: CGPoint(x: 320, y: 412), slop: 22, moments: theirs)?.names.count, 3)
   }
-
-  func testFoldsGoBesideTheStrokesToTheCockpit() throws {
-    let picture = WhiteboardPicture(board: "b1", title: "t", rect: CGRect(x: 0, y: 0, width: 10, height: 10), scale: 1)
-    let fold: [String: Any] = ["header": "h-1", "header_strokes": ["a"], "lines": 2, "strokes": ["b"]]
-    let request = try WhiteboardStrokes.request(
-      picture: picture, strokes: [], folds: [fold], cockpit: "https://c.example")
-    let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertEqual((body["folds"] as? [[String: Any]])?.first?["header"] as? String, "h-1")
-    let none = try WhiteboardStrokes.request(picture: picture, strokes: [], cockpit: "https://c.example")
-    let plain = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(none.httpBody)) as? [String: Any])
-    XCTAssertNil(plain["folds"], "no folds, no field")
-  }
 }

@@ -176,19 +176,8 @@ final class BoardOpsControlsTests: XCTestCase {
     XCTAssertGreaterThan(wire["events_dropped"] as? Int ?? 0, 0)
   }
 
-  func testATapOnAControlGoesAtOnceAndWaitsIfTheCockpitCantTakeIt() throws {
-    let report = BoardTurnReport(
-      rev: 9, opResult: BoardOps.Result(label: "fold", ok: true, rev: 9),
-      events: [.overlayTap(id: "b", event: nil, t: 1)])
-    let request = try BoardEventsSend.request(board: "b1", report: report, cockpit: "https://c.example")
-    XCTAssertEqual(request.url?.absoluteString, "https://c.example/whiteboard/events")
-    XCTAssertEqual(request.httpMethod, "POST")
-    let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertEqual(body["board"] as? String, "b1")
-    XCTAssertEqual(body["rev"] as? Int, 9)
-    XCTAssertEqual((body["op_result"] as? [String: Any])?["label"] as? String, "fold")
-    XCTAssertEqual((body["events"] as? [[String: Any]])?.first?["target_id"] as? String, "b")
-
+  // Its request: WhiteboardRequestsTests (ContextCore holds the board's HTTP requests).
+  func testATapOnAControlGoesAtOnceAndWaitsIfTheCockpitCantTakeIt() {
     XCTAssertEqual(BoardEventsSend.answer(status: 200), .taken)
     XCTAssertEqual(BoardEventsSend.answer(status: 404), .notThere)
     XCTAssertEqual(BoardEventsSend.answer(status: 500), .away(reason: "HTTP 500"))

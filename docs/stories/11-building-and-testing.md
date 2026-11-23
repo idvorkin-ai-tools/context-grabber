@@ -1546,3 +1546,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a UI test is waiting for a button or sheet to go away
 - **When:** it goes
 - **Then:** the test moves on in well under a second
+
+---
+
+### User Story 1503:
+
+- **Summary:** The Cockpit's web board runs the app's own board rules, built as WebAssembly
+- **Status:** implemented in 4dfdaec2, 3f12df04, 65a97722, bb54eb09, 76bdc64e, f0c2cce0 and 5d0f079d; verified by the Linux rung (just test-linux: ContextCore's tests under Linux Swift, 2,405 passed; the board's rules built for WASI with the Swift 6.4.2 wasm SDK and `just wasm-test` passing under node), the Mac's host tests and lint (just native-test, 2026-11-22), the Mac build (just native-build-mac) and the iPad simulator (rung 2: WhiteboardTurnUITests, WhiteboardQuestionUITests, CockpitBackUITests, the nine chat classes and the whiteboard classes from Connect to Listening pass; WhiteboardLarryWaitUITests fails on main too, bead context-grabber-5ulm). The web board itself is not yet on the Cockpit.
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md)
+
+#### Use Case:
+- **As Igor,** drawing on the Cockpit's web ink board as well as on the iPad
+- **I want to** have the web board ask the app's own board rules where a cut lands, not a copy of them in JavaScript
+- **so that** a board answers the same on the web as on the iPad, and a rule fixed once is fixed in both
+
+#### Acceptance Criteria:
+- **Scenario:** The recorded sessions through the WebAssembly module
+- **Given:** the board's rules built as WebAssembly by `just wasm`, and the Cockpit's recorded board sessions vendored in the repo
+- **When:** `just wasm-test` loads the module under node and replays each session, then loads each session's last board whole and again in two halves
+- **Then:** every session replays as the app's own replay test expects (contract 1, no mismatch but ops-move's known one, each turn's hint the end of the recorded one), the board answers every cut the same whole or in halves, a cut with nothing loaded is NaN with a reason, and the one 32-bit midpoint case answers as pinned

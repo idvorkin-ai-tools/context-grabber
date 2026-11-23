@@ -56,20 +56,6 @@ final class WhiteboardTurnTests: XCTestCase {
       WhiteboardTurn.answer(status: 200, body: Data(#"{"ok": true}"#.utf8)), .shapes([]))
   }
 
-  func testTheGhostRequestCarriesThePictureAndItsSize() throws {
-    let request = try WhiteboardTurn.suggestRequest(
-      title: "Plan", picture: Data([1, 2, 3]), width: 800, height: 600, cockpit: "https://cockpit.example")
-    XCTAssertEqual(request.url?.absoluteString, "https://cockpit.example/whiteboard/suggest")
-    XCTAssertEqual(request.timeoutInterval, 10)
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Accept"), "application/x-ndjson")
-    let body = try XCTUnwrap(
-      JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertEqual(body["image"] as? String, Data([1, 2, 3]).base64EncodedString())
-    XCTAssertEqual(body["width"] as? Int, 800)
-    XCTAssertEqual(body["height"] as? Int, 600)
-    XCTAssertEqual(body["text"] as? String, "Plan")
-  }
-
   func testEveryKindOfStrokeBecomesAShape() throws {
     let body = Data(
       #"""

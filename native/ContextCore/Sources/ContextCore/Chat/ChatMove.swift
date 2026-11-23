@@ -11,9 +11,6 @@ import Foundation
 #endif
 
 public enum ChatMove {
-  /// `POST` the request; the answer's body and HTTP status (nil when it wasn't HTTP).
-  public typealias Transport = @MainActor (URLRequest) async throws -> (Data, Int?)
-
   public enum Outcome: Equatable, Sendable {
     /// The new chat's key and title.
     case moved(thread: String, title: String)
@@ -23,20 +20,6 @@ public enum ChatMove {
 
   /// The title a new chat shows until the Cockpit's list names it, when the answer gave none.
   public static let untitled = "New chat"
-
-  public static func request(thread: String, message: String, cockpit: String) throws -> URLRequest {
-    guard let url = URL(string: cockpit.trimmingSuffix("/") + "/chat/move"), let base = URL(string: cockpit) else {
-      throw URLError(.badURL)
-    }
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.timeoutInterval = 15
-    // The Cockpit's write boundary answers 415 to a POST that isn't JSON, and refuses one from a foreign origin.
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = try JSONSerialization.data(withJSONObject: ["thread": thread, "message_id": message])
-    return request
-  }
 
   /// What the Cockpit's answer means. Anything but a 200 naming a new chat is a refusal: an older Cockpit may answer a
   /// route it lacks with something other than 404.
@@ -59,16 +42,6 @@ public enum ChatMove {
     default: why = said ?? "the Cockpit refused it"
     }
     return .refused("\(why) (HTTP \(status))")
-  }
-
-  /// One move, start to answer.
-  public static func run(thread: String, message: String, cockpit: String, transport: Transport) async -> Outcome {
-    do {
-      let (data, status) = try await transport(try request(thread: thread, message: message, cockpit: cockpit))
-      return outcome(status: status, body: data)
-    } catch {
-      return outcome(status: nil, body: nil, error: error.localizedDescription)
-    }
   }
 
   /// The Cockpit's own line in a thread (`ChatMessage.isSystem`), as it reads: its words, and the chat a tap opens when

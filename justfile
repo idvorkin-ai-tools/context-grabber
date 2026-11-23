@@ -121,6 +121,17 @@ board-test filter="":
     [ -n "{{filter}}" ] && filter=(-XCTest "BoardCoreTests.{{filter}}")
     xcrun xctest ${filter[@]+"${filter[@]}"} "$bundle" 2>&1 | grep -E "error|failed|Executed [0-9]+ tests" | tail -20
 
+# The board's rules as WebAssembly for the Cockpit's web board (story 1503): BoardWasm built for WASI and stripped, to
+# native/Build/wasm/BoardWasm.wasm, with its size and sha256. Needs a Swift toolchain with a wasm SDK; the script's
+# header lists the settings (LINUX_LIB_DIR and LINUX_SWIFT_BIN as for test-linux).
+wasm:
+    scripts/native/build-wasm.sh
+
+# Builds the module, then replays the recorded board sessions through it under node (story 1503). Skips, saying so,
+# with no wasm SDK.
+wasm-test:
+    scripts/native/test-board-wasm.sh
+
 # Rung 1L, on a Linux box (scripts/native/test-linux.sh says what it needs): ContextCore's portable tests run on Linux,
 # the package and its tests cross-built for macOS, iOS and the simulator with a Darwin Swift SDK, the app's sources
 # (App, widgets, share extension, UI tests) compiled for iOS, and the portable script checks.

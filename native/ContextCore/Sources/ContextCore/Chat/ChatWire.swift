@@ -275,40 +275,6 @@ public enum ChatWire {
     return failed
   }
 
-  public static func listRequest(cockpit: String) throws -> URLRequest {
-    try get(cockpit, "/chat")
-  }
-
-  public static func threadRequest(_ key: String, cockpit: String) throws -> URLRequest {
-    try get(cockpit, "/chat/" + encode(key))
-  }
-
-  public static func seenRequest(_ key: String, cockpit: String) throws -> URLRequest {
-    guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
-    var request = URLRequest(url: base.appendingPathComponent("chat-seen"))
-    request.httpMethod = "POST"
-    request.timeoutInterval = 15
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = try JSONSerialization.data(withJSONObject: ["thread": key])
-    return request
-  }
-
-  /// `POST /chat/<key>/archive` or `/unarchive` (#589, cockpit f94feae); the body is ignored, but the Cockpit's
-  /// write boundary answers 415 to a POST that isn't `application/json`, an empty one included.
-  public static func archiveRequest(_ key: String, archive: Bool, cockpit: String) throws -> URLRequest {
-    guard let base = URL(string: cockpit),
-      let url = URL(
-        string: cockpit.trimmingSuffix("/") + "/chat/" + encode(key) + (archive ? "/archive" : "/unarchive"))
-    else { throw URLError(.badURL) }
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.timeoutInterval = 15
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    return request
-  }
-
   /// Nil when the Cockpit took it; otherwise why not.
   public static func archiveFailure(status: Int?, body: Data?, error: String? = nil) -> String? {
     guard let status else { return error ?? "no answer" }
@@ -396,13 +362,6 @@ public enum ChatWire {
     return f.date(from: iso)
   }
 
-  public static func get(_ cockpit: String, _ path: String) throws -> URLRequest {
-    guard let url = URL(string: cockpit.trimmingSuffix("/") + path) else { throw URLError(.badURL) }
-    var request = URLRequest(url: url)
-    request.timeoutInterval = 15
-    request.cachePolicy = .reloadIgnoringLocalCacheData
-    return request
-  }
 }
 
 /// Which threads get a notification (plan: Hearing back). Larry has the last word, the Cockpit counts it unread, and

@@ -13,19 +13,6 @@ final class BoardToTextTests: XCTestCase {
 
   // MARK: Story 920: the request, the words and where they go
 
-  func testTheRequestIsThePictureAndTheBoardAsTheWebBoardSendsThem() throws {
-    let png = Data([0x89, 0x50, 0x4E, 0x47, 1, 2, 3])
-    let request = try BoardToText.request(png: png, board: "board-7", cockpit: "https://cockpit.example:5004")
-    XCTAssertEqual(request.url?.absoluteString, "https://cockpit.example:5004/ink/to-text")
-    XCTAssertEqual(request.httpMethod, "POST")
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Origin"), "https://cockpit.example:5004")
-    XCTAssertGreaterThan(request.timeoutInterval, 90, "past the Cockpit's own 90 s")
-    let body = try XCTUnwrap(JSONSerialization.jsonObject(with: request.httpBody ?? Data()) as? [String: String])
-    XCTAssertEqual(body, ["name": "board-7", "png": png.base64EncodedString()])
-    XCTAssertThrowsError(try BoardToText.request(png: png, board: "b", cockpit: "not a url"))
-  }
-
   func testTheCropIsTheInkWithAirRoundItNeverOffTheBoard() {
     XCTAssertEqual(
       BoardToText.crop(ink: CGRect(x: 100, y: 200, width: 50, height: 30)),

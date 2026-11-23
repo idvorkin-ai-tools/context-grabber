@@ -138,24 +138,6 @@ public enum WhiteboardStrokes {
     try JSONSerialization.data(withJSONObject: folds.isEmpty ? strokes as Any : ["strokes": strokes, "folds": folds])
   }
 
-  /// `POST /whiteboard/strokes`: the board's strokes under this picture's id and frame.
-  /// `folds`: the folded sections (`BoardOutline.wire`), whose strokes are not in `strokes` (story 857).
-  public static func request(
-    picture: WhiteboardPicture, strokes: [[String: Any]], folds: [[String: Any]] = [], cockpit: String
-  ) throws -> URLRequest {
-    guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
-    var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("strokes"))
-    request.httpMethod = "POST"
-    request.timeoutInterval = timeout
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    var body = picture.wire
-    body["strokes"] = strokes
-    if !folds.isEmpty { body["folds"] = folds }
-    request.httpBody = try JSONSerialization.data(withJSONObject: body)
-    return request
-  }
-
   public static func answer(status: Int?, body: Data?, error: String? = nil) -> Answer {
     guard let status else { return .away(reason: error ?? "no answer") }
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
