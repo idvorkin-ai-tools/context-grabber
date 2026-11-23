@@ -156,7 +156,17 @@ cat >"$tmp/gh" <<'F'
 case "$1 $2" in
   "pr list") [ -z "${FAKE_GH_FAIL:-}" ] || { echo "error connecting to api.github.com" >&2; exit 1; }
     ls "$FAKE_PRS" | sed -n 's/\.diff$//p' | python3 -c 'import json,sys; print(json.dumps([{"number": int(l)} for l in sys.stdin]))' ;;
-  "pr diff") cat "$FAKE_PRS/$3.diff" ;;
+  "pr diff") if [ "$(cat "$FAKE_PRS/$3.diff")" = TOOLARGE ]; then
+      echo "could not find pull request diff: HTTP 406: Sorry, the diff exceeded the maximum number of files (300)" >&2; exit 1
+    fi
+    cat "$FAKE_PRS/$3.diff" ;;
+  # A PR whose diff is too large (bead context-grabber-1338): its file list is $FAKE_PRS/<n>.files (one {f, p} per
+  # line, as the --jq gives), its head is "head<n>", and a file on that head is $FAKE_PRS/<n>.head.<basename>.
+  "api --paginate") n=$(sed -n 's|.*/pulls/\([0-9]*\)/files|\1|p' <<<"$3"); [ -e "$FAKE_PRS/$n.files" ] || exit 1
+    cat "$FAKE_PRS/$n.files" ;;
+  "pr view") echo "head$3" ;;
+  "api -H") n=$(sed -n 's|.*?ref=head||p' <<<"$4"); f=$(sed -n 's|.*/contents/\([^?]*\)?.*|\1|p' <<<"$4")
+    cat "$FAKE_PRS/$n.head.$(basename "$f")" ;;
   *) exit 2 ;;
 esac
 F
@@ -209,6 +219,24 @@ out=$(reserve "$tmp/ledger3.json" the)
 check "a word that names two journeys fails" "$out|$?|$(grep -c 'names 2 journeys' "$tmp/reserve.err")" "|1|1"
 out=$(FAKE_GH_FAIL=1 reserve "$tmp/ledger3.json" second)
 check "with the open PRs unreadable it hands out nothing" "$out|$?|$([ -e "$tmp/ledger3.json" ] && echo written || echo untouched)" "|1|untouched"
+# A PR whose diff gh refuses as too large is read from its file list (bead context-grabber-1338): a story file's
+# patch gives the IDs it adds; a story file with no patch (too large itself) gives every heading on the PR's head.
+echo TOOLARGE >"$tmp/prs/43.diff"
+cat >"$tmp/prs/43.files" <<'J'
+{"f":"native/App/Big.swift","p":"+### User Story 17:"}
+{"f":"docs/stories/01-a.md","p":"@@ -1 +1 @@\n+### User Story 11:\n ### User Story 16:"}
+{"f":"docs/stories/02-b.md","p":null}
+J
+printf '### User Story 10:\n### User Story 12:\n' >"$tmp/prs/43.head.02-b.md"
+check "a too-large PR's story patches and its patchless story file's headings take their IDs; other files don't" \
+  "$(reserve "$tmp/ledger4.json" second 2)" "13
+14"
+check "a too-large PR read from its file list warns about nothing" "$(grep -c WARN "$tmp/reserve.err")" "0"
+echo TOOLARGE >"$tmp/prs/44.diff"
+out=$(reserve "$tmp/ledger5.json" second)
+check "a PR that can be read neither way is named in a warning and doesn't block the reservation" \
+  "$out|$?|$(grep -c 'WARN reserve: open PR #44 could not be read' "$tmp/reserve.err")" "13|0|1"
+rm -f "$tmp/prs"/43.* "$tmp/prs"/44.*
 for k in 1 2 3 4 5 6; do STORY_IDS_HOLD=0.3 reserve "$tmp/race.json" 02-b.md >"$tmp/race.$k" & done
 wait
 check "six reservations at once, each holding the ledger a while, get six different IDs" "$(cat "$tmp"/race.? | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
