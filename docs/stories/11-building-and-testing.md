@@ -1582,7 +1582,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1622:
 
 - **Summary:** The web board asks the app's own rules what Larry's batch of board changes does
-- **Status:** implemented on branch `feat/board-wasm-ops-plan`; verified by `just wasm-test` (hand-worked batch: a refusal, the names used, a whole-line make-room, a group moved whole, a missing name, a text on clear paper) and the Cockpit's comparison (35 batches against its old JavaScript port: 29 the same, 6 differing by this app's rules, each named), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Status:** implemented in 67d04b51 (the batch read and planned, `bw_ops_plan`) and 5c1afd32 (spec, story and wasm-test checks); verified by `just wasm-test` (hand-worked batch: a refusal, the names used, a whole-line make-room, a group moved whole, a missing name, a text on clear paper) and the Cockpit's comparison (35 batches against its old JavaScript port: 29 the same, 6 differing by this app's rules, each named), 2026-11-23. On the Mac, `just native-test` passes (SwiftLint, swift-format, 979 host tests), 2026-11-23.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 7
 - **Issues:** Cockpit bead `cockpit-ang` (ops lane, slice 2)
 
