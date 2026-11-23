@@ -1456,6 +1456,28 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1222:
+
+- **Summary:** The PaperKit scratch page shows its tool picker at once, and a finger draws on it
+- **Status:** implemented in [fe6c00b3](https://github.com/idvorkin/context-grabber/commit/fe6c00b3); verified by lint and host tests (`just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2, `IPadPaperKitBoardUITests`: without the fix the picker's **+** never appeared and the log read `picker_visible: false`, `first_responder: false`, `touch_mode: selection` inside the form sheet; with it the page opens full screen, `picker_visible: true`, a finger stroke lands and the **+** offers *Add Shape* and *Add Text*). Not yet seen on the iPad. No iPhone runs (whiteboard work)
+- **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
+- **Issues:** bead context-grabber-wvpv (Igor, 2026-11-22 23:09, build 5569178f: "Nothing there?"; the page opened twice with
+  no picker, a finger tap drew nothing, Back after 2 s; iPad log grabber-20261122-225645.jsonl); bead context-grabber-yfsz
+  (a merged feature Igor can't reach fails the gate)
+
+#### Use Case:
+- **As someone** trying PaperKit's shapes, with or without the Pencil to hand
+- **I want to** see the tool picker and its **+** the moment the scratch page opens, and draw with a finger too
+- **so that** the shapes are where I look, not behind a tap I can't guess
+
+#### Acceptance Criteria:
+- **Scenario:** The picker is there at once
+- **Given:** the iPad, Settings open on the Home screen
+- **When:** I tap *PaperKit board* and touch nothing else
+- **Then:** the tool picker shows with its **+**; the **+** opens the shapes, and a finger stroke on the page draws
+
+---
+
 ### User Story 1218:
 
 - **Summary:** Closing the PaperKit scratch page throws it away

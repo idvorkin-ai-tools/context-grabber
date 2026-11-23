@@ -381,9 +381,14 @@ says "iPad, iPhone and whiteboard classes: the phone's alone" "rung 2 UI tests: 
 says "iPad, iPhone and whiteboard classes: the whiteboard's" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardTurnUITests"
 dry --all --changed docs/TESTING.md
 # Story 1216: Ink side by side is iPad-only, so its class rides with the iPad's, never in the iPhone's run.
-says "--all: the iPad's classes on the iPad" "rung 2 UI tests (on the iPad, which they need): IPadInkSideBySideUITests IPadUITests"
-if grep -E "^rung 2 UI tests: .*IPad(InkSideBySide)?UITests" "$out" >/dev/null; then bad "--all: the iPad's classes not in the iPhone's run"; else ok "--all: the iPad's classes not in the iPhone's run"; fi
+says "--all: the iPad's classes on the iPad" "rung 2 UI tests (on the iPad, which they need): IPadInkSideBySideUITests IPadPaperKitBoardUITests IPadUITests"
+if grep -E "^rung 2 UI tests: .*IPad[A-Za-z]*UITests" "$out" >/dev/null; then bad "--all: the iPad's classes not in the iPhone's run"; else ok "--all: the iPad's classes not in the iPhone's run"; fi
 case $known in *" IPadUITests "*) ok "the iPad's class: a real class" ;; *) : >"$out"; bad "the iPad's class: a real class" ;; esac
+
+# Story 1222: the scratch page and the Settings row that opens it run its iPad class.
+dry --changed native/App/Whiteboard/PaperKitBoard.swift --changed native/App/DiagnosticsView.swift
+says "the PaperKit board: its iPad class" "rung 2 UI tests (on the iPad, which they need): IPadPaperKitBoardUITests"
+never "the PaperKit board: not the whiteboard suite" "rung 2 UI tests (whiteboard"
 
 dry --changed native/UITests/HomeScreen.swift
 says "a shared test helper: says so" "no UI test map for: native/UITests/HomeScreen.swift"

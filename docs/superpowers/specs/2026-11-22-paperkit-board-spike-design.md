@@ -30,6 +30,9 @@ The full inventory, taken from this Mac's iOS 27.2 SDK, is in the bead.
   - **Lines and arrows:** a plain line, an arrow, or a line with arrowheads at both ends. Lines can bend.
   - **Text boxes**, and text typed inside a shape.
   - **Images, stickers, a magnifier (loupe) and links.**
+- **The tool picker and its +** show the moment the page opens, with nothing tapped first, and a **finger draws** on it
+  as well as the Pencil, so the shapes are reachable without one. (Igor, 2026-11-22 23:09, on build 5569178f: "Nothing
+  there?" The page had opened with no picker; a finger tap drew nothing. Bead context-grabber-wvpv.)
 - Closing the scratch page discards its contents. Reopening starts with a blank page.
 - See [PaperKit board events](../../debugging/whiteboard.md#the-paperkit-board) for the session log fields.
 
@@ -58,6 +61,7 @@ would stay the board's whatever PaperKit draws.
 ## Acceptance criteria
 
 - On the iPad, Settings → *About and diagnostics* → **PaperKit board** opens a blank page whose pen is the fountain pen.
+- The tool picker shows as soon as the page opens, without a tap, and a finger stroke draws.
 - The tool picker offers all eight pens. Its **+** offers every shape (the speech bubble among them), a text box, and
   lines with and without arrowheads.
 - A shape or arrow drawn there can be selected, moved, resized and restyled.

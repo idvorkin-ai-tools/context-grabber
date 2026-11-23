@@ -188,6 +188,8 @@ for f in ${changed[@]+"${changed[@]}"}; do
       add_classes WhiteboardTurnUITests WhiteboardConnectUITests WhiteboardOnPaperUITests ;;
     # A view file of its own gets a row here when it lands, naming the classes that open it (story 784); the board's two
     # big views draw every board, so they and anything unnamed run every class.
+    # Story 1222: the PaperKit scratch page and the Settings row that opens it full screen.
+    native/App/Whiteboard/PaperKitBoard.swift | native/App/DiagnosticsView.swift) add_classes IPadPaperKitBoardUITests ;;
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)
       add_classes $whiteboard_area ;;
     scripts/native/fake-cockpit.py) add_classes $chat_area $whiteboard_area ;;
