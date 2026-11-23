@@ -65,9 +65,10 @@ extension PaperBoardController {
       }
       event["waited_ms"] = waited * 50
       let now = self.paper.markup ?? markup
-      event["now_is_drop"] = Self.close(now.strokeFrames, markup.strokeFrames)
+      let nowIsDrop = Self.close(now.strokeFrames, markup.strokeFrames)
+      event["now_is_drop"] = nowIsDrop
       let keys = elements.map { Self.key($0.elementID) }
-      guard now.subelements.strokes.map({ Self.key($0.elementID) }) == keys else {
+      guard nowIsDrop, now.subelements.strokes.map({ Self.key($0.elementID) }) == keys else {
         event["room"] = false
         event["stale"] = true
         self.log.event("whiteboard", event)
