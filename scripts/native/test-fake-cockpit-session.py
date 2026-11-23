@@ -114,6 +114,18 @@ try:
     batches = [m["ops"] for m in call("/chat/igor2-88g.900")["messages"] if m.get("ops")]
     check([(b["board"], b["base_rev"]) for b in batches] == [("sim-board", 1256), ("sim-board", 1257)],
           "a session on another board's thread names that board, its batches' bases shifted with its revisions")
+    # Story 1501: "first" plays on the thread of the first board message after it, a key the app made.
+    call("/fake/session", {"name": "plain-draw", "thread": "first"})
+    call("/chat/igor2-88g.629", {"id": "words-before-board", "text": "no board here"})
+    first = [s for s in [json.loads(line) for line in open(os.path.join(SESSIONS, "plain-draw.jsonl"), encoding="utf-8")]
+             if s["step"] == "post" and s["route"].startswith("/chat/")][0]
+    body = {k: v for k, v in first["body"].items() if k != "attachments_recorded"}
+    body["id"] = "first-board-turn"
+    call("/chat/igor2-88g.629", body)
+    settle()
+    check(call("/fake/session")["session"]["thread"] == "igor2-88g.629"
+          and any(m["who"] == "larry" and m.get("shapes") for m in call("/chat/igor2-88g.629")["messages"]),
+          "a session on the first board message's thread answers it with Larry's recorded marks")
     check(call("/fake/session", {"name": None})["thread"] is None, "a session stops")
 finally:
     fake.terminate()

@@ -1486,6 +1486,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1501:
+
+- **Summary:** A whiteboard UI test launches the Board Lab, the board alone, instead of the whole app
+- **Status:** implemented in 86cc1677 (two classes, `WhiteboardEraserUITests` and `WhiteboardTitleRenameUITests`); verified on the iPad simulator (iPad Pro 11-inch (M5), rung 2): the two classes 3 runs each way, median 85.8 s in the app against 81.1 s in the lab, and the whole `test-whiteboard-ui.sh` with both bundles passing (82 app cases and 4 lab cases, 1,648 s); host `just native-test`. No iPhone run (Igor, 2026-11-22)
+- **Spec:** [The Board Lab](../superpowers/specs/2026-11-22-board-lab-design.md)
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As Igor,** waiting on the whiteboard's UI tests on the iPad simulator
+- **I want to** have them launch a small app that opens straight onto the boards list, with the same board
+- **so that** a test doesn't wait for the parts of a launch the board doesn't need
+
+#### Acceptance Criteria:
+- **Scenario:** A class moved to the lab
+- **Given:** a whiteboard UI test class listed in the Board Lab's bundle
+- **When:** the whiteboard UI test script runs on the iPad simulator
+- **Then:** the class launches the Board Lab, finds the boards list as the app's whiteboard hook leaves it, passes with its code unchanged, and the plan records its time before and after with the lab's added build time
+
+---
+
 ### User Story 1502:
 
 - **Summary:** The lists every PR adds to in the testing guide are one item a line, and the host rung fails when one drifts from its script

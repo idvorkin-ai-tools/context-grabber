@@ -200,7 +200,11 @@ targets:
     type: bundle.ui-testing
     platform: iOS
     sources:
-      - UITests
+      - path: UITests
+        # The classes that launch the Board Lab instead (story 1501): their files stay here, in BoardLabUITests.
+        excludes:
+          - WhiteboardEraserUITests.swift
+          - WhiteboardTitleRenameUITests.swift
     dependencies:
       - target: GrabberNative
     settings:
@@ -209,7 +213,64 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: GrabberNative
         CODE_SIGN_STYLE: Automatic
+  # The Board Lab (story 1501, plan 2026-11-22-board-lab-plan.md): the app's sources with their own @main, whose only
+  # window is the boards list. The same AppModel and board, without the home window or the scene-phase work, so a
+  # whiteboard UI test launches less. Simulator only; never installed on a device.
+  BoardLab:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes:
+          - GrabberApp.swift
+      - Shared
+      - BoardLab
+    dependencies:
+      - package: ContextCore
+      - package: ThinkACard
+        product: ThinkACardCore
+      - package: ThinkACard
+        product: ThinkACardUI
+      - package: BugKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.idvorkin.grabbernative.boardlab
+        INFOPLIST_FILE: Info.plist
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Board Lab
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        TARGETED_DEVICE_FAMILY: "2"
+        CODE_SIGN_STYLE: Automatic
+        "EXCLUDED_SOURCE_FILE_NAMES[sdk=macosx*]": LiveActivityController.swift GrabberActivityAttributes.swift
+  # The whiteboard UI test classes that launch the Board Lab (story 1501), with the helpers they share with the app's.
+  BoardLabUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UITests/WhiteboardEraserUITests.swift
+      - UITests/WhiteboardTitleRenameUITests.swift
+      - UITests/FastTesting.swift
+      - UITests/SettledTap.swift
+      # PaperScreen lives here until it has a file of its own (two open PRs edit this one); its tests aren't run here.
+      - UITests/WhiteboardPaperGhostsUITests.swift
+      - UITests/WhiteboardWordsOnlyFixture.swift
+    dependencies:
+      - target: BoardLab
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.idvorkin.grabbernative.boardlab.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: BoardLab
+        CODE_SIGN_STYLE: Automatic
 schemes:
+  BoardLab:
+    build:
+      targets:
+        BoardLab: all
+    test:
+      targets:
+        - BoardLabUITests
   GrabberNative:
     build:
       targets:
@@ -217,6 +278,8 @@ schemes:
     test:
       targets:
         - GrabberNativeUITests
+        # Story 1501: the whiteboard classes that launch the Board Lab; one scheme runs both, as the scripts expect.
+        - BoardLabUITests
         - GrabberNativeContractTests
     run:
       config: Debug

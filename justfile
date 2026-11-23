@@ -32,8 +32,8 @@ native_logs := "~/tmp/agent/grabber-logs"
 # BugKit's scripts at the pinned version, as SwiftPM checked them out (tests point it elsewhere).
 bugkit_scripts := "native/Build/SourcePackages/checkouts/bug-kit/scripts"
 
-# Every tracked native Swift file: the app, the package (its manifest too), the UI tests, the contract tests, the widgets, the share extension.
-native_swift := "native/App native/ContextCore/Package.swift native/ContextCore/Sources native/ContextCore/Tests native/UITests native/ContractTests native/Widgets native/Shared native/Share"
+# Every tracked native Swift file: the app, the package (its manifest too), the UI tests, the contract tests, the widgets, the share extension, the Board Lab.
+native_swift := "native/App native/ContextCore/Package.swift native/ContextCore/Sources native/ContextCore/Tests native/UITests native/ContractTests native/Widgets native/Shared native/Share native/BoardLab"
 
 # The native app in swift-format's layout (native/.swift-format), in place.
 native-format:

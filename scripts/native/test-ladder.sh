@@ -99,6 +99,8 @@ drives_paperkit() {
     *) return 1 ;;
   esac
 }
+# Story 1501: these classes launch the Board Lab, so they are in its bundle (the GrabberNative scheme runs both).
+board_lab_classes=" WhiteboardEraserUITests WhiteboardTitleRenameUITests "
 swift=()
 sim_build=0
 mac_build=0
@@ -118,7 +120,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
     # package; the harness is in no app build at all.
     "$replay") mac_build=1; host_only+=("$f") ;;
     native/ContextCore/Sources/BoardOpsHarness/*) host_only+=("$f") ;;
-    native/UITests/* | native/ContractTests/*) sim_build=1 ;;
+    native/UITests/* | native/ContractTests/* | native/BoardLab/*) sim_build=1 ;;
     *) sim_build=1 mac_build=1 ;;
   esac
   # Which UI test classes can see it.
@@ -185,6 +187,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)
       add_classes $whiteboard_area ;;
     scripts/native/fake-cockpit.py) add_classes $chat_area $whiteboard_area ;;
+    native/BoardLab/*) add_classes $board_lab_classes ;;
     native/App/Gym/* | native/ContextCore/Sources/ContextCore/Gym/*) add_classes $gym_area ;;
     native/App/Breathe/* | native/ContextCore/Sources/ContextCore/Breathe/*) add_classes $breathe_area ;;
     native/App/AppSessionHost.swift | native/ContextCore/Sources/ContextCore/Session/*) add_classes $gym_area $breathe_area ;;
@@ -221,7 +224,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
   # What rung 0 formats: the paths the justfile's native_swift names, if the file is still there.
   case $f in
     native/App/*.swift | native/ContextCore/Package.swift | native/ContextCore/Sources/*.swift | native/ContextCore/Tests/*.swift | \
-      native/UITests/*.swift | native/Widgets/*.swift | native/Shared/*.swift | native/Share/*.swift)
+      native/UITests/*.swift | native/Widgets/*.swift | native/Shared/*.swift | native/Share/*.swift | native/BoardLab/*.swift)
       [ -e "$f" ] && swift+=("$f") ;;
   esac
 done
@@ -399,7 +402,12 @@ xcodebuild_sim() {  # <log name> <done line> <xcodebuild arguments...>
 }
 # The smoke's sections for the paths this climb takes as changed (--changed's, or git's since the base).
 smoke_sections() { scripts/native/smoke-features.sh "$base" ${changed[@]+"${changed[@]}"}; }
-only_testing() { for c in "$@"; do printf -- '-only-testing:GrabberNativeUITests/%s\n' "$c"; done; }
+only_testing() {
+  for c in "$@"; do
+    case "$board_lab_classes" in *" $c "*) printf -- '-only-testing:BoardLabUITests/%s\n' "$c" ;;
+    *) printf -- '-only-testing:GrabberNativeUITests/%s\n' "$c" ;; esac
+  done
+}
 step_warm=  # set just before a build step: whether the lane's build folder already held a build (#1038)
 step() {  # <label> <command...>: times one step of rung 2
   local label=$1 start=$SECONDS status warm=$step_warm

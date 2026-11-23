@@ -7,6 +7,10 @@ is added are in [DEBUGGING.md](../DEBUGGING.md); this file only says what each w
 **Adding a line here**: a new event or action is a new bullet under its area (or a new area), and a new field is added
 to that event's own bullet; never join two events on one line.
 
+## The Board Lab (story 1501, spec 2026-11-22-board-lab-design.md)
+
+- `board_lab` action: session with name (the recorded session asked for), status (the fake Cockpit's HTTP answer, 0 when the request failed) and error (the request's error, empty when it was sent): whether the fake Cockpit accepted the lab's request to play a recorded session on the first board message's thread, once per launch that asks for one
+
 ## Whiteboard playback (stories 954–958, bead context-grabber-3tdv)
 
 - `whiteboard` action:

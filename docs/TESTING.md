@@ -633,6 +633,19 @@ just touch-fixture <log>.jsonl --out native/ContextCore/Tests/ContextCoreTests/F
 - A scratch-out's verdict here is its shape and speed; whether ink was under it needs the board's strokes, as in
   `Fixtures/scratch-out/`.
 
+## The Board Lab: a whiteboard UI test without the whole app (story 1501)
+
+`BoardLab` is a second app target, simulator only (`native/project.yml`, plan
+`docs/superpowers/plans/2026-11-22-board-lab-plan.md`). It is the app's own sources with their own `@main` in
+`native/BoardLab/`, and its only window is the boards list. It has the same `AppModel`, board and launch hooks, but
+no home window and no scene-phase work. A whiteboard UI test class moves to it by changing which bundle it is in: its
+file stays in `native/UITests/`, leaves `GrabberNativeUITests`' sources and is listed under `BoardLabUITests`, and
+the ladder's `board_lab_classes` and `test-whiteboard-ui.sh` call it `BoardLabUITests/<Class>`. The GrabberNative
+scheme runs both bundles. Today `WhiteboardEraserUITests` and `WhiteboardTitleRenameUITests` are in it. Measured on
+the iPad simulator, the lab saves about 1.2 s a case for about 4 s more build; the plan has the table.
+`GRABBER_LAB_SESSION=<name>`, with `GRABBER_CHAT_URL` set to the fake Cockpit, has the fake play that recorded session
+(story 1174) on the lab's first board message.
+
 ## Larry's board changes on a copy of a board: `just board-ops`
 
 Larry checks what a batch of his changes will do to Igor's board before he sends it, and an agent reproduces a
