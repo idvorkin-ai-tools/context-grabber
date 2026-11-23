@@ -380,6 +380,13 @@ paper. That description is the requirement, and this lists only where paper need
   whole is never taken for one drawn in part: a small label of thin letters, its colour as far across and as tall as the
   same strokes drawn alone show it, is left as it is, with no blink and no move (context-grabber-qko5). The move a screen
   away only ever follows a redraw in place that left the mark still partly drawn.
+- **Ink an Undo or Redo leaves in place is on the screen too** (context-grabber-9bll; seen only on the simulator so far).
+  An Undo or Redo that moves, adds or takes away ink redraws the board around what changed, and a second later the
+  board checks every stroke near the change, piece by piece across the screen, for a piece that should show and
+  doesn't. Ink the step never touched counts: on the iPad simulator, after a group dropped just above Igor's line was
+  undone, the line stayed drawn only up to one edge and was blank past it. A piece found missing is drawn again on its
+  own, as a kept mark is: the strokes may blink once, and if that's not enough the view moves a screen away and back
+  once, ending where it was. Undo and Redo stay one step each, and the step Redo would take is still there afterwards.
 - **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
 - **Every keep is a step of Undo of its own, and keeps it** (#966). *Keep*, *Keep all* and *Tidy overlaps*
   are each one step, named for what was done (with a keyboard, the menu's *Undo Keep all*). Nothing the board does on its
