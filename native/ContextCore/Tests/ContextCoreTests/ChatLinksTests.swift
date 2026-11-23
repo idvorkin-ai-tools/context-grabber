@@ -146,7 +146,15 @@ final class ChatLinksTests: XCTestCase {
     for written in others {
       XCTAssertEqual(ChatLinks.found(in: "Build: \(written)"), [], written)
       XCTAssertEqual(ChatBubbleLinks.paragraphs(in: "Build: \(written)"), [.plain("Build: \(written)")], written)
+      XCTAssertFalse(ChatLinks.tappableInWords(URL(string: written)!), written)
     }
+  }
+
+  func testOrdinaryLinksStayTappableInWords() {
+    for written in ["https://example.com/a", "http://example.com", "mailto:igor@example.com", "tel:+15555550100"] {
+      XCTAssertTrue(ChatLinks.tappableInWords(URL(string: written)!), written)
+    }
+    XCTAssertFalse(ChatLinks.tappableInWords(URL(string: "ITMS-SERVICES://?action=download-manifest")!))
   }
 
   func testAnInstallChipStandsInItsBubbleAndOncePerManifestOnTheStrip() {

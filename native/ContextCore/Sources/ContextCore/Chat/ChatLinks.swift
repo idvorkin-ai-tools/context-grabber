@@ -203,6 +203,12 @@ public enum ChatLinks {
   /// An over-the-air install link, which the detector may not know (story 1133).
   static let installPrefix = "itms-services://"
 
+  /// Whether a link the detector finds in a message's words may be tapped there: never an install link, which is the
+  /// Cockpit's *Install* chip or nothing (story 1133).
+  public static func tappableInWords(_ url: URL) -> Bool {
+    !url.absoluteString.lowercased().hasPrefix(installPrefix)
+  }
+
   /// The Cockpit's install link as an *Install* chip: `action=download-manifest` and an `https` manifest on the
   /// Cockpit's own host; anything else is no link at all, so a message never offers a build from elsewhere.
   static func installLink(_ written: String) -> ChatLink? {

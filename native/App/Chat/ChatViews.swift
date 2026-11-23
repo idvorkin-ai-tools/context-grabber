@@ -1311,7 +1311,7 @@ enum ChatText {
     guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return out }
     let ns = text as NSString
     for match in detector.matches(in: text, range: NSRange(location: 0, length: ns.length)) {
-      guard let url = match.url, let range = Range(match.range, in: text),
+      guard let url = match.url, ChatLinks.tappableInWords(url), let range = Range(match.range, in: text),
         let lower = AttributedString.Index(range.lowerBound, within: out),
         let upper = AttributedString.Index(range.upperBound, within: out)
       else { continue }
