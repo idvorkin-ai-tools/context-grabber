@@ -451,6 +451,30 @@ what a change would do except to send it to Igor's real board, and paused his ch
   check. The marks become his ink under one group named for the reply, and a later change of Larry's that moves or
   erases that group by its name shows it moving or going as one.
 
+### A recorded board session replays too (contract v1, bead context-grabber-09tx, stories 1173, 1174, 1182, 1183)
+
+The Cockpit keeps recorded real board conversations (its board contract, *Recorded sessions*): what the iPad posted,
+in its order, what Larry replied, and the receipts. The same sessions are replayed on the Cockpit, by the agent's
+whiteboard skill and here, so a change to the wire on one side shows as a failure on the others.
+
+- **Only a scrubbed copy comes here.** This repository is public and the sessions are Igor's own writing. The copy
+  keeps every id, count, revision, frame, event, change and receipt, and nothing anyone wrote: every word becomes x's
+  of the same shape (any script; digits become 0), and every stroke is a straight line across its own box, snapped out to a 40-point grid. It names the Cockpit commit it came from.
+  Making the copy refuses a field it doesn't know, and refuses a copy in which any word of four letters or more from
+  the session's own writing is still readable.
+- **On the Mac, the whole session replays** with the board's own rules, in seconds and with no iPad: each of Larry's
+  batches is tried on the board as it stood when the batch arrived (Igor's strokes since his look included), and the
+  answer the board gives is set beside the answer the iPad really sent on its next turn. His marks show and are tapped
+  as for one reply. Any difference is listed, not hidden.
+- **What Larry was told matches.** For each of Igor's turns, the revision, the last batch's answer, the number of
+  events and the strokes count (and how many are new) that the turn carried are what the Cockpit's recorded hint to
+  Larry says.
+- **The simulator's stand-in Cockpit plays a session back**: once a session is chosen, the board's strokes post is
+  answered with the counts the Cockpit gave, and each of Igor's turns on that board gets Larry's next recorded reply
+  (his words, marks or batch of changes) and its receipts, in the order they happened.
+- Not replayed: the pictures themselves (neither the iPad's nor the Cockpit's render of the board), and what only the
+  iPad's canvas does.
+
 ## Non-goals
 
 - Editing a kept label's words (#912).

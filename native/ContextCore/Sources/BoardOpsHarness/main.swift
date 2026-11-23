@@ -10,6 +10,13 @@
 //  Igor's Keep group (#942), the reply's marks kept as ink under one group; `--keep-group <reply id>@<ms>` keeps it
 //  as if its picture was taken at that unix ms, so ink made after it makes room under the reply (#894).
 //
+//    board-ops-harness --session <name|session.jsonl> [--out <prefix>]
+//
+//  --session replays a whole recorded board session (story 1173): the Cockpit's recordings, scrubbed, under
+//  Tests/ContextCoreTests/Fixtures/board-sessions/ (a bare name is one of those). Each of Larry's batches is tried on the
+//  board as it stood when it arrived and set beside the answer the iPad sent; each turn's board fields are listed. Writes
+//  <prefix>.session.json and prints it, its `mismatches` naming where today's board and the recording part.
+//
 //  Writes <prefix>.png (after), <prefix>-before.png, <prefix>.result.json (each step's op_result and what it touched)
 //  and <prefix>.board.json (the board after, to replay the next batch on). Prints the result JSON. Where there is no
 //  CoreGraphics (Linux, #943), the pictures are <prefix>.svg and <prefix>-before.svg, the same marks and
@@ -26,6 +33,7 @@ struct Failure: Error, CustomStringConvertible { let description: String }
 
 struct Arguments {
   var board = ""
+  var session = ""
   var steps: [(kind: String, value: String)] = []
   var out = ""
   var rev: Int?
@@ -40,6 +48,7 @@ struct Arguments {
     while let flag = rest.popFirst() {
       switch flag {
       case "--board": board = try value(flag)
+      case "--session": session = try value(flag)
       case "--ops": steps.append(("ops", try value(flag)))
       case "--keep": steps.append(("keep", try value(flag)))
       case "--tap": steps.append(("tap", try value(flag)))
@@ -51,7 +60,7 @@ struct Arguments {
       default: throw Failure(description: "unknown argument \(flag)\n\(Self.usage)")
       }
     }
-    guard !board.isEmpty, !steps.isEmpty else { throw Failure(description: Self.usage) }
+    guard !session.isEmpty || (!board.isEmpty && !steps.isEmpty) else { throw Failure(description: Self.usage) }
     if out.isEmpty {
       let stamp = Int(Date().timeIntervalSince1970)
       out = NSString(string: "~/tmp/agent/board-ops/replay-\(stamp)").expandingTildeInPath
@@ -62,6 +71,7 @@ struct Arguments {
     usage: board-ops-harness --board <snapshot.json> --ops <batch.json|reply.json> [--ops ...] [--keep id,id]
                              [--tap x,y] [--keep-group <reply id>[@<picture ms>]]
                              [--out <prefix>] [--rev <n>] [--scale <px per point>]
+           board-ops-harness --session <name|session.jsonl> [--out <prefix>]
     """
 }
 
@@ -78,6 +88,7 @@ func writeJSON(_ any: Any, to path: String) throws {
 
 func main() throws {
   let args = try Arguments(Array(CommandLine.arguments.dropFirst()))
+  if !args.session.isEmpty { return try replaySession(args) }
   let snapshot = try BoardSnapshot(json: try readJSON(args.board))
   var steps: [BoardReplay.Step] = []
   for (i, step) in args.steps.enumerated() {
@@ -127,6 +138,28 @@ func main() throws {
   }
   try writeJSON(result, to: "\(out).result.json")
   try writeJSON(replay.board.json, to: "\(out).board.json")
+  let data = try JSONSerialization.data(
+    withJSONObject: result, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+  FileHandle.standardOutput.write(data)
+  FileHandle.standardOutput.write(Data("\n".utf8))
+}
+
+/// A recorded session (story 1173), by name from the vendored copies or by path: its replay, written and printed.
+func replaySession(_ args: Arguments) throws {
+  var path = NSString(string: args.session).expandingTildeInPath
+  if !path.hasSuffix(".jsonl") {
+    path =
+      URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+      .appendingPathComponent("../../Tests/ContextCoreTests/Fixtures/board-sessions/\(args.session).jsonl").path
+  }
+  let session = try BoardSession(jsonl: try Data(contentsOf: URL(fileURLWithPath: path)))
+  var result = session.replay().wire
+  result["session"] = session.name
+  result["board"] = session.board
+  result["thread"] = session.thread
+  try FileManager.default.createDirectory(
+    at: URL(fileURLWithPath: args.out).deletingLastPathComponent(), withIntermediateDirectories: true)
+  try writeJSON(result, to: "\(args.out).session.json")
   let data = try JSONSerialization.data(
     withJSONObject: result, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
   FileHandle.standardOutput.write(data)

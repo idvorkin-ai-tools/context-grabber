@@ -583,6 +583,19 @@ just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-gr
   Judge batch to an SVG.
 - The fixtures in `native/ContextCore/Tests/ContextCoreTests/Fixtures/board-ops/` are copies of board 13f700bf as
   the night of 2026-11-17 left it, with his batches as he sent them (#937–#939).
+- **A whole recorded session** (stories 1182, 1183): `just board-ops --session <name>` replays one of the Cockpit's recorded
+  board conversations (its board contract, *Recorded sessions*): each of Larry's batches on the board as it stood when it
+  arrived, beside the answer the iPad sent on its next turn, and each turn's board fields as the Cockpit's hint put them;
+  `mismatches` lists where today's board and the recording part. `BoardSessionReplayTests` pins all four.
+- **The sessions are vendored scrubbed**, never raw (the repo is public; they are Igor's writing):
+  `scripts/native/board-sessions.py vendor [--sha <cockpit sha>]` fetches them into a temporary directory outside the
+  repo, turns every free text into x's and every stroke into a straight line across its box snapped to a 40-point grid, refuses a field it doesn't
+  know or a word left readable, and writes `Fixtures/board-sessions/` with `SOURCE.json` naming the commit. A new
+  contract version or session is a re-vendor and a review of the diff. `just test` checks the copies
+  (`test-board-sessions.py`).
+- **On the simulator**, the fake Cockpit plays a session back (story 1174): `POST /fake/session {"name": "<name>",
+  "thread": "<key>"}`, then the board's turns on that thread get Larry's recorded replies and receipts in order
+  (`test-fake-cockpit-session.py`).
 
 What it doesn't show: the Pencil's hold (a batch always applies at once), folds (a snapshot's `folds` are left out),
 connectors' routes, and anything PaperKit itself does; those are the simulator's (`WhiteboardPaperGhostsUITests`) and

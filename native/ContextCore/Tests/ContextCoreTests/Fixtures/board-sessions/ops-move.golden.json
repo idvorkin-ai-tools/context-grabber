@@ -1,0 +1,7 @@
+{
+  "contexts": {
+    "8aa9b297-181e-4d35-9251-45796cef9ef6": "cockpit · chat · Board, igor2-88g.1508 · #thread/igor2-88g.1508 · board 4068edcc-3c28-4c1c-8579-7275d0ec1c9a · draw back: chat.py reply --shapes · rev 257 (move it: chat.py reply --ops, base_rev 257) · op_result refused (stale) for 'xxxx xxxx' at rev 257 · 3 events: whiteboard_events.py show 4068edcc-3c28-4c1c-8579-7275d0ec1c9a --thread igor2-88g.1508 · strokes 406 (1 new): whiteboard_strokes.py render 4068edcc-3c28-4c1c-8579-7275d0ec1c9a 8aa9b297-181e-4d35-9251-45796cef9ef6 --thread igor2-88g.1508 --out <png>",
+    "9f9b52d7-1917-43da-9641-c5120cd1f579": "cockpit · chat · Board, igor2-88g.1508 · #thread/igor2-88g.1508 · board 4068edcc-3c28-4c1c-8579-7275d0ec1c9a · draw back: chat.py reply --shapes · rev 256 (move it: chat.py reply --ops, base_rev 256) · 100 events: whiteboard_events.py show 4068edcc-3c28-4c1c-8579-7275d0ec1c9a --thread igor2-88g.1508 · strokes 405 (143 new): whiteboard_strokes.py render 4068edcc-3c28-4c1c-8579-7275d0ec1c9a 9f9b52d7-1917-43da-9641-c5120cd1f579 --thread igor2-88g.1508 --out <png>",
+    "ed5d17e9-f09c-44b0-b63e-05f220c1dc79": "cockpit · chat · Board, igor2-88g.1508 · #thread/igor2-88g.1508 · board 4068edcc-3c28-4c1c-8579-7275d0ec1c9a · draw back: chat.py reply --shapes · strokes 262 (262 new): whiteboard_strokes.py render 4068edcc-3c28-4c1c-8579-7275d0ec1c9a ed5d17e9-f09c-44b0-b63e-05f220c1dc79 --thread igor2-88g.1508 --out <png>"
+  }
+}

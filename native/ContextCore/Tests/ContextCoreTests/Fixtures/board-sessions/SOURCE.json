@@ -1,0 +1,28 @@
+{
+  "path": "fixtures/board/sessions",
+  "repo": "idvorkin-ai-tools/cockpit",
+  "scrub": "free texts (ask_text, board_title, label, note, question, text) letters to x; stroke points onto a line across their box; golden: contexts only",
+  "sessions": {
+    "ops-move": {
+      "free_texts": 20,
+      "jsonl_sha256": "34a11ca7d1b361fa501a1b63769a0033d49ba640bafcb5f02c79fba92e5e0e67",
+      "steps": 16
+    },
+    "plain-draw": {
+      "free_texts": 26,
+      "jsonl_sha256": "9866a21d72c3021c19696974aead2cc4abed3ed6f485a722b76c33eed27c1bb4",
+      "steps": 30
+    },
+    "question-card": {
+      "free_texts": 46,
+      "jsonl_sha256": "32191bc0185bda54a3bda1d4e6aacfa2e45032e3bacb321fa8cf173e321c3013",
+      "steps": 22
+    },
+    "title-build": {
+      "free_texts": 52,
+      "jsonl_sha256": "d6b46c06eda2e3a341ee999ac93769369471264764155d00a1a80514f65b88d0",
+      "steps": 35
+    }
+  },
+  "sha": "9ca45fe"
+}
