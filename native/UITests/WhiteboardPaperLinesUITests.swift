@@ -24,7 +24,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix(ghostsOn ? "Ghosts off" : "Ghosts on") { ghosts.tap() }
+    if ghosts.label.hasPrefix(ghostsOn ? "Ask at my pauses: off" : "Ask at my pauses: on") { ghosts.tap() }
     return app
   }
 
@@ -258,7 +258,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     menu(app, "Grey", expect: "Board, Grey")
     let bare = Screen(app)
     stroke(app)
-    wait(app.buttons["whiteboard-ghosts"], label: "Ghosts on, 1 showing", timeout: 10)
+    wait(app.buttons["whiteboard-ghosts"], label: "Ask at my pauses: on, 1 showing", timeout: 10)
     sleep(1)
     keep("a ghost on Grey")
     XCTAssertGreaterThan(Screen(app).warmer(than: bare), 20, "an orange ghost on Grey")

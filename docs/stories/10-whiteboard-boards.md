@@ -536,9 +536,29 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Long press the sparkle
-- **Given:** a board open with Ghosts on
+- **Given:** a board open with *Ask at my pauses* (once Ghosts) on
 - **When:** I press and hold the sparkle
-- **Then:** a small menu headed *Ghosts* shows one row, *Hide Claude's suggestions*, which does it if I tap it; Talk, Larry and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 926), and a plain tap on any of them does what it always did
+- **Then:** a small menu headed *Ask at my pauses* (*Ghosts* until story 1171) shows one row, *Stop asking Larry at my pauses* (the board's responder by name), which does it if I tap it; Talk, Larry and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 926), and a plain tap on any of them does what it always did
+
+---
+
+### User Story 1171:
+
+- **Summary:** The Ghosts switch is *Ask at my pauses*, for whoever answers the board
+- **Status:** not yet verified (bead context-grabber-4ic, this branch)
+- **Issues:** bead `context-grabber-4ic` (Igor, design board, 2026-11-22: "the switch becomes 'Ask at my pauses' for whoever answers"; labelled *Ghosts* / *Hide Claude's suggestions*, it read as Claude's alone, though on a Larry board, the default, it also stops Larry being asked and keeps the mic closed)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md); [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
+
+#### Use Case:
+- **As someone** drawing on a board that Larry or Claude answers
+- **I want to** see the switch named for what it does, asking whoever answers at my pauses
+- **so that** I don't turn it off thinking only Claude goes quiet and then write for minutes to a board Larry can't see
+
+#### Acceptance Criteria:
+- **Scenario:** Turning it off on a Larry board, and on a Haiku board
+- **Given:** a board open with *Ask at my pauses* on, Larry's marks showing, and its responder Larry (or Haiku)
+- **When:** I press and hold the sparkles, tap *Stop asking Larry at my pauses* (or *… Haiku …*), then write and pause
+- **Then:** VoiceOver reads *Ask at my pauses: off*, nothing is sent at the pause, the bar says *Ask at my pauses is off, so no one is watching: turn it on for a look*, Larry's marks stay, the mic stays closed until it is back on, and the help sheet lists *Ask at my pauses* under *In the bar*
 
 ---
 
@@ -1030,7 +1050,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap **?** at the board's top right
 - **Then:** *How this board works* opens and lists the margin tap, the margin hold with a finger or the Pencil, the hold
   on the page, the Pencil on a word, scratch-out, the lasso's *To text*, the shape snap, *Keep all*, *Fold all* and the
-  levels, and Feedback; *Done* closes it and the board is as it was
+  levels, *Ask at my pauses* in the bar (story 1171), and Feedback; *Done* closes it and the board is as it was
 
 ---
 

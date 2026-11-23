@@ -14,10 +14,11 @@ public protocol WhiteboardGhost {
 extension WhiteboardTurn {
   /// The board's note while Claude's turns fail.
   public static let ghostsAway = "Ghosts: the Cockpit isn't answering"
-  /// The board's note when the mic would hear words and reach no one (#824).
-  public static let micGhostsOff = "Ghosts are off, so the mic would reach no one: turn Ghosts on to talk to Claude"
-  /// The board's note while he writes with Ghosts off: nobody is watching (story 1114, bead context-grabber-bozm).
-  public static let writingGhostsOff = "Ghosts are off, so no one is watching: turn Ghosts on for a look"
+  /// The board's note when the mic would hear words and reach no one (#824). Named for the switch, *Ask at my pauses*,
+  /// and for whoever answers, not Claude alone (story 1171, bead context-grabber-4ic).
+  public static let micGhostsOff = "Ask at my pauses is off, so the mic would reach no one: turn it on to talk"
+  /// The board's note while he writes with the switch off: nobody is watching (stories 1114, 1171).
+  public static let writingGhostsOff = "Ask at my pauses is off, so no one is watching: turn it on for a look"
 }
 
 public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
@@ -26,7 +27,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// The mark whose Keep and Dismiss show (story 825). Gone with its mark, however that goes.
   public var chosen: Ghost? { chosenID.flatMap { id in ghosts.first { $0.id == id } } }
   private var chosenID: String?
-  /// Story 351's switch.
+  /// Story 351's switch, *Ask at my pauses* in the bar (story 1171): off, a pause asks no one, whoever answers.
   public private(set) var on: Bool
   /// Spoken and not yet in a turn that got through.
   public private(set) var unsaid: String?

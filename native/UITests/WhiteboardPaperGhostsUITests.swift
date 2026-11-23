@@ -155,7 +155,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts off") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: off") { ghosts.tap() }
     sleep(2)
     return app
   }
@@ -194,7 +194,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   /// A stroke and the ghost that answers it, settled.
   private func strokeBringsAGhost(_ app: XCUIApplication) -> PaperScreen.Box? {
     stroke(app)
-    wait(ghosts(app), label: "Ghosts on, 1 showing", timeout: 10)
+    wait(ghosts(app), label: "Ask at my pauses: on, 1 showing", timeout: 10)
     // Past the note arriving above the board and the ghost drawing in.
     return PaperScreen.settled(app) { $0.ghost }
   }
@@ -221,7 +221,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(send(app).label, strokes(1), "a tap alone keeps nothing")
     keep.tap()
     wait(send(app), label: strokes(2))
-    wait(ghosts(app), label: "Ghosts on")
+    wait(ghosts(app), label: "Ask at my pauses: on")
     XCTAssertFalse(keep.exists, "the buttons went with the mark")
     sleep(1)
     shot(app, "kept")
@@ -237,13 +237,13 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let ghost = try XCTUnwrap(strokeBringsAGhost(app))
     PaperScreen.tap(app, CGPoint(x: 0.1, y: 0.72))
     sleep(1)
-    XCTAssertEqual(ghosts(app).label, "Ghosts on, 1 showing", "a stray tap dismisses nothing")
+    XCTAssertEqual(ghosts(app).label, "Ask at my pauses: on, 1 showing", "a stray tap dismisses nothing")
     XCTAssertEqual(send(app).label, strokes(1), "no dot")
     PaperScreen.tap(app, ghost.center)
     let dismiss = app.buttons["whiteboard-mark-dismiss"]
     XCTAssertTrue(dismiss.appears(within: 5), app.debugDescription)
     dismiss.tap()
-    wait(ghosts(app), label: "Ghosts on")
+    wait(ghosts(app), label: "Ask at my pauses: on")
     sleep(1)
     XCTAssertEqual(send(app).label, strokes(1), "nothing kept")
     stroke(app, atHeight: 0.4)
@@ -268,7 +268,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(send(app).label, strokes(1), "the tap off leaves no dot")
     stroke(app, atHeight: 0.4)
     wait(send(app), label: strokes(2))
-    XCTAssertEqual(ghosts(app).label, "Ghosts on, 1 showing", "the mark still shows")
+    XCTAssertEqual(ghosts(app).label, "Ask at my pauses: on, 1 showing", "the mark still shows")
     shot(app, "drew with the mark showing")
     PaperScreen.tap(app, ghost.center)
     XCTAssertTrue(app.buttons["whiteboard-mark-keep"].appears(within: 5), app.debugDescription)
@@ -311,7 +311,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertGreaterThan(bigInk.width, ink.width * 1.2, "the board zoomed")
     XCTAssertEqual(
       (bigGhost.center.x - bigInk.center.x) / bigInk.width, gap, accuracy: 0.1, "the ghost zoomed with the ink")
-    XCTAssertEqual(ghosts(app).label, "Ghosts on, 1 showing")
+    XCTAssertEqual(ghosts(app).label, "Ask at my pauses: on, 1 showing")
     XCTAssertEqual(send(app).label, strokes(1), "a pinch isn't a stroke")
   }
 
@@ -374,7 +374,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(first.count, 2, "\(first)")
     // Larry's marks, ghosts nobody kept, on the board as it's saved.
     waitUntil(
-      NSPredicate(format: "label BEGINSWITH 'Ghosts on, ' AND label ENDSWITH ' showing'"), ghosts(app), timeout: 15)
+      NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: on, ' AND label ENDSWITH ' showing'"), ghosts(app), timeout: 15)
     shot(app, "his marks showing, not kept")
 
     waitForTheSave(app)
@@ -453,7 +453,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   /// Ink above the picture's middle and ink below it, with Ghosts off so only Larry's text can show.
   private func inkAboveAndBelow(_ app: XCUIApplication) throws -> PaperScreen.Box {
     ghosts(app).tap()
-    wait(ghosts(app), label: "Ghosts off")
+    wait(ghosts(app), label: "Ask at my pauses: off")
     stroke(app, atHeight: 0.3)
     wait(send(app), label: strokes(1))
     stroke(app, atHeight: 0.55)
@@ -977,7 +977,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let app = try openBoard(["GRABBER_WHITEBOARD_PAGE_AFTER_INK": "2"])
     // Ghosts off: a ghost showing would make the next finger a tap.
     ghosts(app).tap()
-    wait(ghosts(app), label: "Ghosts off")
+    wait(ghosts(app), label: "Ask at my pauses: off")
     stroke(app, atHeight: 0.3)
     wait(send(app), label: strokes(1))
     wait(pageNumber(app), label: "Page 2 of 2")
@@ -998,7 +998,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertGreaterThanOrEqual(frame.y, top, "page 2 only: \(frame)")
     XCTAssertLessThanOrEqual(frame.y + frame.h, bottom, "page 2 only: \(frame)")
     XCTAssertGreaterThanOrEqual(frame.scale, 1, "at a size Larry can read: \(frame)")
-    wait(ghosts(app), label: "Ghosts off, 2 showing", timeout: 20)
+    wait(ghosts(app), label: "Ask at my pauses: off, 2 showing", timeout: 20)
     XCTAssertEqual(pageNumber(app).label, "Page 2 of 3", "his marks landed by the picture, on page 2")
     shot(app, "Larry's marks on page 2")
   }

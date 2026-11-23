@@ -180,19 +180,17 @@ struct WhiteboardView: View {
           WhiteboardMicButton(model: model, dictation: model.dictation)
         }
         ToolbarItem(placement: .topBarTrailing) {
+          // Story 1171 (bead context-grabber-4ic): once "Ghosts"; off, a pause asks no one, whoever answers the board.
+          let asking = model.ghostsOn ? "Ask at my pauses: on" : "Ask at my pauses: off"
+          let who = model.responder.shown.name
           named(
-            "Ghosts", does: model.ghostsOn ? "Hide Claude's suggestions" : "Show Claude's suggestions",
+            "Ask at my pauses", does: model.ghostsOn ? "Stop asking \(who) at my pauses" : "Ask \(who) at my pauses",
             action: { model.setGhosts(!model.ghostsOn) },
-            label: {
-              Label(model.ghostsOn ? "Ghosts on" : "Ghosts off", systemImage: model.ghostsOn ? "sparkles" : "eye.slash")
-            }
+            label: { Label(asking, systemImage: model.ghostsOn ? "sparkles" : "eye.slash") }
           )
           // How many show, for VoiceOver and the UI test (the board's own content is not in the accessibility tree,
           // and a toolbar button's accessibility value never reaches it).
-          .accessibilityLabel(
-            (model.ghostsOn ? "Ghosts on" : "Ghosts off")
-              + (model.ghosts.isEmpty ? "" : ", \(model.ghosts.count) showing")
-          )
+          .accessibilityLabel(asking + (model.ghosts.isEmpty ? "" : ", \(model.ghosts.count) showing"))
           .accessibilityIdentifier("whiteboard-ghosts")
         }
         ToolbarItem(placement: .topBarTrailing) {

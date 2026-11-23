@@ -27,7 +27,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts off") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: off") { ghosts.tap() }
     sleep(1)
     return (app, ghosts)
   }
@@ -52,7 +52,7 @@ final class WhiteboardTurnUITests: XCTestCase {
   func testSpeakingOnAnEmptyBoardBringsAGhostWithoutAStroke() throws {
     let (app, ghosts) = try openBoard(say: "draw a circle")
     app.buttons["whiteboard-mic"].tap()
-    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
+    wait(ghosts, label: "Ask at my pauses: on, 1 showing", timeout: 8)
     wait(app, strokes: 0)
   }
 
@@ -68,18 +68,18 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(app.buttons["Find microphones"].exists, app.debugDescription)
     shot("whiteboard-mic-hold")
     talk.tap()
-    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
+    wait(ghosts, label: "Ask at my pauses: on, 1 showing", timeout: 8)
   }
 
   /// The one path from a streamed answer to a ghost on screen (story 370's reading is `WhiteboardGhostTurnsTests`).
   func testAPauseBringsAGhostAndLarryTakesATurn() throws {
     let (app, ghosts) = try openBoard()
     stroke(app)
-    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
+    wait(ghosts, label: "Ask at my pauses: on, 1 showing", timeout: 8)
 
     app.buttons["whiteboard-larry"].tap()
     // Larry's two marks beside Claude's one, with no further tap: each author replaces only their own.
-    wait(ghosts, label: "Ghosts on, 3 showing", timeout: 15)
+    wait(ghosts, label: "Ask at my pauses: on, 3 showing", timeout: 15)
     XCTAssertTrue(
       app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Larry: this is where it goes")).firstMatch
         .appears(within: 3), app.debugDescription)
@@ -223,13 +223,82 @@ final class WhiteboardTurnUITests: XCTestCase {
     let gaps = zip([mic, ghosts, larry], [ghosts, larry, send]).map { $1.frame.minX - $0.frame.maxX }
     XCTAssertLessThan((gaps.max() ?? 0) - (gaps.min() ?? 0), 12, "\(gaps)")
     ghosts.press(forDuration: 1.2)
-    let named = app.buttons["Hide Claude's suggestions"]
+    let named = app.buttons["Stop asking Larry at my pauses"]
     XCTAssertTrue(named.appears(within: 5), app.debugDescription)
-    XCTAssertTrue(app.staticTexts["Ghosts"].exists, app.debugDescription)
+    XCTAssertTrue(app.staticTexts["Ask at my pauses"].exists, app.debugDescription)
     shot("whiteboard-bar-long-press")
     named.tap()
-    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts off'"), ghosts, timeout: 5)
+    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: off'"), ghosts, timeout: 5)
     ghosts.tap()
-    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts on'"), ghosts, timeout: 5)
+    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: on'"), ghosts, timeout: 5)
+  }
+
+  /// How many pause turns the fake Cockpit has been asked so far, by any board (story 1171).
+  private func turnsAsked(_ cockpit: String) throws -> Int {
+    let url = try XCTUnwrap(URL(string: cockpit + "/fake/turns"))
+    var got: Data?
+    let done = expectation(description: "the fake Cockpit answered")
+    URLSession.shared.dataTask(with: url) { body, _, _ in
+      got = body
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+    let json = try JSONSerialization.jsonObject(with: try XCTUnwrap(got)) as? [String: Any]
+    return try XCTUnwrap(json?["turns"] as? [Any]).count
+  }
+
+  /// A stroke, then longer than the longest pause (5 s, story 892): no turn reaches the Cockpit.
+  private func aPauseAsksNoOne(_ app: XCUIApplication, _ cockpit: String, strokes: Int, atHeight dy: CGFloat) throws {
+    let before = try turnsAsked(cockpit)
+    stroke(app, atHeight: dy)
+    wait(app, strokes: strokes)
+    sleep(7)
+    XCTAssertEqual(try turnsAsked(cockpit), before, "a pause with the switch off asks no one")
+  }
+
+  /// Story 1171 (bead context-grabber-4ic): the switch is *Ask at my pauses*, for whoever answers. On, a pause reaches
+  /// the Cockpit; off, the same pause reaches no one, on a Larry board (a new board's own, story 960) and on a Haiku
+  /// board, the bar says no one is watching, and Larry's marks already showing stay. The long press names the responder.
+  func testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard() throws {
+    let cockpit = try XCTUnwrap(ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"])
+    let (app, asking) = try openBoard()
+    // On: a pause reaches the Cockpit, so the counts below can see one.
+    let before = try turnsAsked(cockpit)
+    stroke(app)
+    wait(asking, label: "Ask at my pauses: on, 1 showing", timeout: 8)
+    XCTAssertGreaterThan(try turnsAsked(cockpit), before, "on, a pause asks")
+    app.buttons["whiteboard-larry"].tap()
+    wait(asking, label: "Ask at my pauses: on, 3 showing", timeout: 15)
+
+    // Off, on the Larry board, from the long press's row: Claude's mark goes, Larry's two stay.
+    asking.press(forDuration: 1.2)
+    let stop = app.buttons["Stop asking Larry at my pauses"]
+    XCTAssertTrue(stop.appears(within: 5), app.debugDescription)
+    stop.tap()
+    wait(asking, label: "Ask at my pauses: off, 2 showing", timeout: 5)
+    try aPauseAsksNoOne(app, cockpit, strokes: 2, atHeight: 0.35)
+    XCTAssertTrue(
+      app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "no one is watching")).firstMatch
+        .appears(within: 3), app.debugDescription)
+
+    // The board given to Haiku: the long press names Haiku, and off still asks no one.
+    app.buttons["whiteboard-board"].tap()
+    let responder = app.descendants(matching: .any)["whiteboard-responder"].firstMatch
+    XCTAssertTrue(responder.appears(within: 5), app.debugDescription)
+    responder.tapWhenSettled()
+    let haiku = app.descendants(matching: .any)["Haiku"].firstMatch
+    XCTAssertTrue(haiku.appears(within: 5), app.debugDescription)
+    haiku.tapWhenSettled()
+    sleep(1)
+    asking.press(forDuration: 1.2)
+    let ask = app.buttons["Ask Haiku at my pauses"]
+    XCTAssertTrue(ask.appears(within: 5), app.debugDescription)
+    shot("whiteboard-ask-at-my-pauses-haiku")
+    ask.tap()
+    wait(asking, label: "Ask at my pauses: on, 2 showing", timeout: 5)
+    asking.tap()
+    wait(asking, label: "Ask at my pauses: off, 2 showing", timeout: 5)
+    try aPauseAsksNoOne(app, cockpit, strokes: 3, atHeight: 0.65)
+    XCTAssertEqual(asking.label, "Ask at my pauses: off, 2 showing", "Larry's marks stay")
   }
 }

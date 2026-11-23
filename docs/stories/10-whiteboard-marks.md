@@ -32,18 +32,18 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 351:
 
-- **Summary:** Turn the ghosts off
+- **Summary:** Turn the ghosts off (the switch is *Ask at my pauses* since story 1171: it stops asking whoever answers the board, Larry included)
 - **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on), which passed with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3). Since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`: a stroke with Ghosts off starts no pause, Claude's go and Larry's stay, an answer on its way lands stale, on again asks), and that UI test is gone
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** who wants to draw undisturbed
-- **I want to** switch Claude's ghosts off in the board's bar
-- **so that** nothing is asked or offered until I switch them back
+- **I want to** switch *Ask at my pauses* (once Ghosts) off in the board's bar
+- **so that** nothing is asked or offered, by Claude or by Larry, until I switch it back
 
 #### Acceptance Criteria:
-- **Scenario:** Ghosts off
-- **Given:** I turned Ghosts off in the board's bar
+- **Scenario:** Ask at my pauses off
+- **Given:** I turned *Ask at my pauses* off in the board's bar
 - **When:** I draw a stroke and lift the Pencil
 - **Then:** nothing is asked and no ghost appears
 
@@ -65,7 +65,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Writing with Ghosts off
 - **Given:** Ghosts are off on a board
 - **When:** I draw a stroke
-- **Then:** the bar's note says *Ghosts are off, so no one is watching: turn Ghosts on for a look*, and it stays there while I keep writing, past the note's usual few seconds; nothing is asked, as before
+- **Then:** the bar's note says *Ask at my pauses is off, so no one is watching: turn it on for a look* (worded for the switch since story 1171), and it stays there while I keep writing, past the note's usual few seconds; nothing is asked, as before
 
 ---
 
@@ -411,19 +411,19 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 356:
 
-- **Summary:** Larry's marks stay when the ghosts go off
+- **Summary:** Larry's marks stay when the ghosts go off (the switch is *Ask at my pauses* since story 1171, and off it asks Larry nothing either)
 - **Status:** app side implemented in [e2f693e](https://github.com/idvorkin/context-grabber/commit/e2f693e); verified on the simulator by the session log (`whiteboard` ghosts: Ghosts off drops Claude's one ghost, then Larry's turn shows his two); a UI test could not read it, as the Ghosts button's accessibility label does not refresh for XCUITest while Ghosts is off; on the iPad not yet
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** who asked Larry for a turn and wants Claude to stop suggesting
 - **I want to** switch the ghosts off without losing what Larry drew
-- **so that** the switch only quiets Claude, and Larry's answer waits for me to keep it
+- **so that** the switch only stops the asking, and Larry's answer already showing waits for me to keep it
 
 #### Acceptance Criteria:
 - **Scenario:** Ghosts off with Larry's marks showing
 - **Given:** Larry's faint purple shapes are showing
-- **When:** I turn Ghosts off in the board's bar
+- **When:** I turn *Ask at my pauses* off in the board's bar
 - **Then:** his shapes stay and I can still keep them
 
 ---

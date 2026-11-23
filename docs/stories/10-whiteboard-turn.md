@@ -168,7 +168,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 665:
 
-- **Summary:** Turning Ghosts off closes the board's mic
+- **Summary:** Turning *Ask at my pauses* (once Ghosts, story 1171) off closes the board's mic
 - **Status:** implemented in [9a83d67](https://github.com/idvorkin/context-grabber/commit/9a83d67); verified on the host (`WhiteboardGhostTurnsTests`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad
 - **Issues:** [#824](https://github.com/idvorkin/context-grabber/issues/824) (the mic heard words with Ghosts off and dropped them silently)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
@@ -179,10 +179,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** I don't keep talking to a mic that reaches no one (story 367)
 
 #### Acceptance Criteria:
-- **Scenario:** Ghosts go off while I talk
+- **Scenario:** Ask at my pauses goes off while I talk
 - **Given:** the board's mic is open
-- **When:** I turn Ghosts off
-- **Then:** the mic closes, the bar says Ghosts are off so the mic would reach no one, and the words aren't asked about, now or when Ghosts come back
+- **When:** I turn *Ask at my pauses* off
+- **Then:** the mic closes, the bar says *Ask at my pauses is off, so the mic would reach no one: turn it on to talk*, and the words aren't asked about, now or when it comes back on
 
 ---
 
@@ -347,7 +347,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 367:
 
-- **Summary:** Ghosts off holds for speech too
+- **Summary:** *Ask at my pauses* (once Ghosts, story 1171) off holds for speech too
 - **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone, and since bead `context-grabber-y8r` by the host alone (`WhiteboardGhostTurnsTests`); real dictation to try on the iPad. Since [9a83d67](https://github.com/idvorkin/context-grabber/commit/9a83d67) (#824) the mic doesn't open with Ghosts off, so the say hook no longer stands in for it here: verified on the host (`WhiteboardGhostTurnsTests`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad
 - **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605), [#824](https://github.com/idvorkin/context-grabber/issues/824) (the mic heard words with Ghosts off and dropped them silently)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
@@ -358,10 +358,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** the switch means what it says (story 351)
 
 #### Acceptance Criteria:
-- **Scenario:** Speaking with Ghosts off
-- **Given:** Ghosts are off
+- **Scenario:** Speaking with Ask at my pauses off
+- **Given:** *Ask at my pauses* is off
 - **When:** I tap the board's mic
-- **Then:** it doesn't open, and the bar says Ghosts are off so the mic would reach no one; nothing is asked, no ghost appears, and nothing is sent when Ghosts come back
+- **Then:** it doesn't open, and the bar says *Ask at my pauses is off, so the mic would reach no one: turn it on to talk*; nothing is asked, no ghost appears, and nothing is sent when it comes back on
 
 ---
 

@@ -33,7 +33,7 @@ final class WhiteboardConnectUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: on") { ghosts.tap() }
     sleep(1)
     // Two "words", then an arrow from the first's end to the second's start.
     point(app, 0.12, 0.30).press(forDuration: 0.05, thenDragTo: point(app, 0.25, 0.31))
@@ -82,7 +82,7 @@ final class WhiteboardConnectUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts off") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: off") { ghosts.tap() }
     sleep(2)
     point(app, 0.12, 0.30).press(forDuration: 0.05, thenDragTo: point(app, 0.25, 0.31))
     point(app, 0.60, 0.50).press(forDuration: 0.05, thenDragTo: point(app, 0.75, 0.51))

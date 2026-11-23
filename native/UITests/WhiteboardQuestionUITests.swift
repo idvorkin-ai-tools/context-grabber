@@ -55,7 +55,7 @@ final class WhiteboardQuestionUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: on") { ghosts.tap() }
     // A stroke and Larry's turn give the board its thread, where Larry then asks.
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.6))
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.6)))
