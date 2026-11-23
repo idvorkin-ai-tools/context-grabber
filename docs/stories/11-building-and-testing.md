@@ -1579,6 +1579,31 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1701:
+
+- **Summary:** The web board asks the app's own rules which lines look like headers
+- **Status:** in progress
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 9
+- **Issues:** Larry's list of the web board's rules still in JavaScript, 2026-11-23 (header candidates)
+
+#### Use Case:
+- **As Igor,** writing on the Cockpit's web ink board
+- **I want to** have the web board offer a faint H beside the same lines the iPad offers one beside
+- **so that** a line written big or underlined reads as a header on the web as it does on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** The offer through the module
+- **Given:** the module built by `just wasm` with an outline of four usual lines, a line written big, an underlined line and a header
+- **When:** `just wasm-test` asks for the candidates, then again with the big line's strokes declined
+- **Then:** the big line is offered as `big` at its middle and the underlined one as `underline`, the header is not; with its strokes declined the big line is not; with no outline it says so
+
+- **Scenario:** The same lines as the app
+- **Given:** the Cockpit's recorded boards and seeded boards of usual lines, big lines, underlines and headers
+- **When:** the host tests ask the export and the app's own outline
+- **Then:** every board gets the same candidates, in the same order, with the same boxes
+
+---
+
 ### User Story 1623:
 
 - **Summary:** The web board asks the app's own rules how much room a reply of Larry's opens when kept over ink written since its picture, and where a text of his set on ink lands

@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 8, `bw_info abi is 8: ${JSON.stringify(info)}`);
+check(info.abi === 9, `bw_info abi is 9: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -423,6 +423,33 @@ const textRoom = (box) => ask('bw_text_room', { box });
 check(same(textRoom([120, 190, 200, 220]), { cut: 190, dy: 80, sits: true, y: 190 }), `a text on ink: room under it: ${JSON.stringify(textRoom([120, 190, 200, 220]))}`);
 check(same(textRoom([120, 400, 200, 430]), { cut: 400, dy: 0, sits: false, y: 400 }), `a text on clear paper: none: ${JSON.stringify(textRoom([120, 400, 200, 430]))}`);
 check(textRoom(null).error === 'no box', 'no box says so');
+
+// Interface 9, story 1701 (spec, lines that look like headers): four usual lines of three letters 24 tall (each line's
+// box 27 tall, pen 3), a line of three letters 60 tall at 300 (box 98.5..229.5 by 298.5..361.5: half again his usual
+// line, letters 1.6 times his, wider than twice its height), a line at 420 with a flat stroke under it (box 98.5..169.5
+// by 418.5..445.5) and a big line at 520 that is a header already. The big line is offered at its middle, 330, the
+// underlined one at 432; the header is not.
+const letter = (id, x, y, w = 20, h = 24) => ({ id, width: 3, points: [[x, y + h], [x + w / 2, y], [x + w, y + h]] });
+const lettersAt = (p, y, w, h) => [0, 1, 2].map((i) => letter(`${p}${i}`, 100 + i * (w + 4), y, w, h));
+const candidateInk = {
+  strokes: [
+    ...[100, 140, 180, 220].flatMap((y, i) => lettersAt(`l${i}`, y, 20, 24)),
+    ...lettersAt('b', 300, 40, 60),
+    ...lettersAt('u', 420, 20, 24),
+    { id: 'under', width: 3, points: [[98, 450], [168, 450]] },
+    ...lettersAt('h', 520, 40, 60),
+  ],
+  boxes: [], groups: {}, headers: [{ id: 'H', ids: ['h0', 'h1', 'h2'] }],
+};
+check(call('bw_outline_load', candidateInk) === 22, `the candidates outline ${error() ?? ''}`);
+const big = { bottom: 361.5, left: 98.5, right: 229.5, top: 298.5, why: 'big', y: 330 };
+const underlined = { bottom: 445.5, left: 98.5, right: 169.5, top: 418.5, why: 'underline', y: 432 };
+const candidates = (body) => ask('bw_candidates', body);
+check(isDeepStrictEqual(candidates({}), { candidates: [big, underlined] }), `the big line and the underlined one: ${JSON.stringify(candidates({}))}`);
+check(isDeepStrictEqual(candidates({ declined: ['b1'] }), { candidates: [underlined] }), `the big line declined: ${JSON.stringify(candidates({ declined: ['b1'] }))}`);
+check(isDeepStrictEqual(candidates({}), { candidates: [big, underlined] }), 'asking leaves the outline as it was');
+check(candidates('[1]').error === 'the request is not a JSON object', 'a request that is no object says so');
+check(call('bw_outline_load', 'not json') === -1 && candidates({}).error === 'no outline is loaded', 'with no outline it says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
