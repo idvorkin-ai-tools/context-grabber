@@ -464,6 +464,15 @@ private struct HomeSettingsView: View {
           }
           .tint(.primary)
           .accessibilityIdentifier("home-settings-whats-new")
+          // Story 1217: every pen and shape PaperKit has, on a scratch page. The iPhone only looks at boards.
+          if UIDevice.current.userInterfaceIdiom != .phone {
+            NavigationLink {
+              PaperKitBoardView(log: model.log)
+            } label: {
+              Label("PaperKit board", systemImage: "pencil.tip.crop.circle")
+            }
+            .accessibilityIdentifier("home-paperkit-board")
+          }
           Button {
             showLinks = true
           } label: {
