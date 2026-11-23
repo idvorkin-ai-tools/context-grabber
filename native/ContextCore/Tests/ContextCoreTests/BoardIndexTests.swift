@@ -443,6 +443,16 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertNil(phone.whyNotOpen("a"))
   }
 
+  /// #1254, story 586: in a build with no iCloud (the Mac's own) another device's board never comes, and the problem
+  /// says so rather than "deleted, or not brought here yet".
+  func testABoardThatCantComeWithNoICloudSaysSo() {
+    let mac = BoardIndex()
+    XCTAssertEqual(
+      mac.whyNotOpen("ipads", iCloud: false),
+      "This board isn't on this device, and this build can't reach iCloud to bring it here: open it on the device"
+        + " that drew it.")
+  }
+
   /// Bead context-grabber-1jb4 (story 1090): a board from iCloud is out of the list until its first drawing has come
   /// down, so a failed first download never opens blank; one that arrived once stays while a newer version fails.
   func testABoardIsListedOnlyOnceItsDrawingIsHere() {

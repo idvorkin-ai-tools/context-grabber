@@ -1483,7 +1483,7 @@ apart."*
 
 - **Summary:** With no iCloud a Mac build's boards stay on the Mac
 - **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac, ad hoc: the boards list says iCloud is out of reach, a board opens, a problem report saves on the Mac, and nothing crashes. A signed Mac build, which would have iCloud, has not been built.
-- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638), [#1254](https://github.com/idvorkin/context-grabber/issues/1254)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
 #### Use Case:
@@ -1496,6 +1496,11 @@ apart."*
 - **Given:** a Mac build with no iCloud
 - **When:** I open the whiteboard
 - **Then:** the list says boards stay on this device, and a board opens
+
+- **Scenario:** A link to a board drawn on another device (#1254)
+- **Given:** a Mac build with no iCloud, and a board drawn on the iPad
+- **When:** I tap the board's link in a chat
+- **Then:** a copyable problem says the board isn't on this device and this build can't reach iCloud to bring it, so open it on the device that drew it; it files no automatic report
 
 ---
 

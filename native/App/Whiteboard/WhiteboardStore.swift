@@ -218,7 +218,7 @@ final class WhiteboardStore: ObservableObject {
       }
       if !answered { ask = .noAnswer }
     }
-    let why = index.whyNotOpen(id)
+    let why = index.whyNotOpen(id, iCloud: BoardCloud.entitled)
     let now = ProcessInfo.processInfo.systemUptime
     log.event(
       "whiteboard",
@@ -236,7 +236,9 @@ final class WhiteboardStore: ObservableObject {
       : syncNote ?? "ok"
     log.event(
       "whiteboard", ["action": "board_missing", "board": id, "listed": index.board(id) != nil, "sync": sync])
-    return .grabber(why, context: context, extra: ["board": .string(id), "sync": .string(sync)])
+    // #1254: with no iCloud in this build (the Mac's own) another device's board can never come; no fix can change it.
+    return .grabber(
+      why, context: context, extra: ["board": .string(id), "sync": .string(sync)], autoFile: BoardCloud.entitled)
   }
 
   /// A board's drawing; one that cannot be read is moved aside before the error goes up, or, when it can't be moved,
@@ -541,7 +543,7 @@ struct BoardCloud {
   /// made after the signature says the build has it. Every match of a key is tried: the key's text also sits in this
   /// file's own strings, which a release build puts in the executable ahead of the signature. ponytail: BugKit's
   /// `containers(inExecutable:)`, copied; ask bug-kit to make it public and use that.
-  private static let entitled: Bool = {
+  static let entitled: Bool = {
     guard let url = Bundle.main.executableURL, let data = try? Data(contentsOf: url, options: .alwaysMapped) else {
       return false
     }

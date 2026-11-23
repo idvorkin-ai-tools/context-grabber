@@ -112,10 +112,14 @@ public struct BoardIndex: Codable, Equatable, Sendable {
   }
 
   /// Why the board can't be opened as it is now (#603): not on this device, or its latest drawing not down from iCloud
-  /// yet; nil when it can. Asked once iCloud has been.
-  public func whyNotOpen(_ id: String) -> String? {
+  /// yet; nil when it can. Asked once iCloud has been. `iCloud`: false in a build that can't reach it (the Mac's own,
+  /// #1254), where another device's board never comes.
+  public func whyNotOpen(_ id: String, iCloud: Bool = true) -> String? {
     guard let board = board(id) else {
-      return "This board isn't on this device: it was deleted, or iCloud hasn't brought it here."
+      return iCloud
+        ? "This board isn't on this device: it was deleted, or iCloud hasn't brought it here."
+        : "This board isn't on this device, and this build can't reach iCloud to bring it here: open it on the device"
+          + " that drew it."
     }
     return board.current
       ? nil : "This board's latest drawing hasn't come down from iCloud, so it can't be opened as it is now."
