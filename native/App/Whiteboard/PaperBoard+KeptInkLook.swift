@@ -35,6 +35,7 @@ extension PaperBoardController {
       let expected = heldLater.isEmpty ? KeptColours() : self.expectedColours(made, box: box, ink: want)
       let part = WhiteboardKeptInk.partMissing(drawn: drawn, expected: expected, darkBefore: darkBefore, ink: want)
       let missing = inView && part != nil
+      let whose = missing ? self.keptStrokesDrawn(heldLater, ink: want) : [:]
       // context-grabber-z8o: a kept mark the view drew none of, whose strokes drawn alone show none of their colour either,
       // is a pen too thin to draw (#883), which no redraw brings back; said as `none`, where it used to read as whole.
       let none =
@@ -50,7 +51,7 @@ extension PaperBoardController {
           "expected_px": expected.ink, "expected_span": [expected.allWidth, expected.allHeight],
           "expected_ink_span": [expected.inkWidth, expected.inkHeight], "attempt": attempt,
           "missing": part ?? (none ? "none" : ""),
-        ])
+        ].merging(whose) { $1 })
       // A redraw in place first; the view a screen away and back only once that left it partly drawn.
       let how = missing && self.touchesDown == 0 ? WhiteboardKeptInk.heal(afterLook: attempt) : nil
       self.showKeptInkForTests(inView ? (part ?? (none ? "none" : "whole")) : "out", healed: how != nil)
@@ -155,15 +156,71 @@ extension PaperBoardController {
     return [r, g, b].map { Int(($0 * 255).rounded()) }
   }
 
-  /// The view's own picture at `spot`, sorted. Unread when none of it is in the view.
-  private func drawnColours(in spot: CGRect, ink: [Int]) -> KeptColours {
+  /// pbvt: which of a kept mark's strokes the view drew in what, when one looks cut or dark. A kept stroke of Larry's has
+  /// drawn black on the iPad simulator, whole, with PaperKit holding it purple, and neither heal brought it back.
+  /// `kept_strokes`: each held stroke in the order made, `[place in the markup, ink px, dark px]` at its own spot;
+  /// `layers`: each view inside PaperKit's over the spot drawn alone, `<class> ink <px> dark <px> a<alpha %>`;
+  /// `style`: light or dark, the view's and PaperKit's; `ink_space`: the first held stroke's colour space and components.
+  func keptStrokesDrawn(_ held: [PKStroke], ink want: [Int]) -> [String: Any] {
+    guard let markup = paper.markup else { return [:] }
+    let all = markup.inkDrawing.strokes
+    let places = held.map { stroke in
+      all.firstIndex { Self.keptMoment($0) == Self.keptMoment(stroke) && $0.renderBounds == stroke.renderBounds } ?? -1
+    }
+    var each: [[Int]] = []
+    for (place, stroke) in zip(places, held) {
+      let colours = drawnColours(in: keptSpot(stroke.renderBounds), ink: want)
+      each.append([place, colours.ink, colours.dark])
+    }
+    let spot = keptSpot(PKDrawing(strokes: held).bounds)
+    // Each view inside PaperKit's that covers the spot, drawn alone (its own subviews with it): which one draws the black.
+    // The handwriting reflow view has covered the whole board on the simulator (paper_touch's handwriting_at_start).
+    var layers: [String] = []
+    for found in Self.subviews(of: paper.view, covering: spot, in: view).prefix(12) {
+      let colours = drawnColours(in: spot, ink: want, only: found)
+      let shown = found.isHidden ? "hidden" : "a\(Int((found.alpha * 100).rounded()))"
+      layers.append("\(type(of: found)) ink \(colours.ink) dark \(colours.dark) \(shown)")
+    }
+    let style = { (trait: UITraitCollection) in trait.userInterfaceStyle == .dark ? "dark" : "light" }
+    var fields: [String: Any] = [
+      "kept_strokes": each, "layers": layers,
+      "style": [style(traitCollection), style(paper.traitCollection)],
+    ]
+    if let color = held.first?.ink.color.cgColor {
+      fields["ink_space"] = [
+        (color.colorSpace?.name as String?) ?? "", (color.components ?? []).map { ($0 * 1000).rounded() / 1000 },
+      ]
+    }
+    return fields
+  }
+
+  /// `root`'s subviews, at any depth, outermost first, whose frame in `space` covers `spot`.
+  static func subviews(of root: UIView, covering spot: CGRect, in space: UIView) -> [UIView] {
+    var out: [UIView] = []
+    var queue = root.subviews
+    while let next = queue.first {
+      queue.removeFirst()
+      if next.convert(next.bounds, to: space).intersects(spot) { out.append(next) }
+      queue += next.subviews
+    }
+    return out
+  }
+
+  /// The view's own picture at `spot`, sorted; with `only`, that view alone drawn where it sits. Unread when none of it
+  /// is in the view.
+  private func drawnColours(in spot: CGRect, ink: [Int], only: UIView? = nil) -> KeptColours {
     let box = spot.intersection(view.bounds)
     guard !box.isNull, !box.isEmpty else { return .unread }
     let format = UIGraphicsImageRendererFormat()
     format.scale = 1
     let picture = UIGraphicsImageRenderer(size: box.size, format: format).image { _ in
-      let whole = CGRect(origin: CGPoint(x: -box.minX, y: -box.minY), size: view.bounds.size)
-      view.drawHierarchy(in: whole, afterScreenUpdates: false)
+      if let only {
+        let frame = only.convert(only.bounds, to: view)
+        only.drawHierarchy(in: frame.offsetBy(dx: -box.minX, dy: -box.minY), afterScreenUpdates: false)
+      } else {
+        let whole = CGRect(origin: CGPoint(x: -box.minX, y: -box.minY), size: view.bounds.size)
+        view.drawHierarchy(in: whole, afterScreenUpdates: false)
+      }
     }
     return picture.cgImage.flatMap { sortedColours($0, ink: ink) } ?? .unread
   }
