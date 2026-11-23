@@ -645,6 +645,12 @@ size came in the middle of a stroke, outside it. Before anything changes, the lo
   by name, with the stroke count, what the change was, and how long it had been since the ink last changed.
 - **A quick change logs nothing more**, so the usual line for each stroke stays as it was.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.
+- **Time away is never a stall** (story 1221, bead context-grabber-55vm). The iPad logged the app's time asleep in the
+  background, minutes at a time, as the main thread stuck, which would hide a real hang. If the watch was still running
+  when the app was suspended, the first look, reply, or stop to see a gap of at least five seconds since the last look
+  records how long the watch was away and clears any pending stall. A normal stop before suspension and the next start
+  appear as `stopped` and `watching`. Each names the app's and its windows' states. A real stall while the watch keeps
+  looking is logged when it begins and ends.
 
 ### The log says what PaperKit's handwriting reflow was doing before it crashed (story 1188, #1256, #1255)
 
