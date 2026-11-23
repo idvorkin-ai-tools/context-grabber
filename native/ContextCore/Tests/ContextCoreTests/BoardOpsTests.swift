@@ -352,24 +352,6 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertEqual(BoardOps.readiness(penDown: false, liftedAt: now - .milliseconds(500), now: now), .now)
   }
 
-  func testTheLedgerKeepsRevHandledAndTexts() throws {
-    let defaults = try XCTUnwrap(UserDefaults(suiteName: "BoardOpsTests-\(UUID().uuidString)"))
-    let ledger = BoardOpLedger(defaults: defaults)
-    XCTAssertEqual(ledger.applier(board: "b1"), BoardOpApplier())
-    var applier = BoardOpApplier(rev: 7)
-    _ = applier.receive(batch([], rev: 1), board: "b1", editable: true, ready: true)
-    ledger.save(applier, board: "b1")
-    let back = ledger.applier(board: "b1")
-    XCTAssertEqual(back.rev, 7)
-    XCTAssertEqual(back.handled, ["m1"])
-    XCTAssertEqual(back.lastResult?.reason, "stale")
-    XCTAssertEqual(ledger.applier(board: "b2").rev, 0)
-    let text = BoardText(id: "t1", t: 99, text: "Plan", font: .plain, size: 18, color: "#ba39e6")
-    ledger.setTexts([text], board: "b1")
-    XCTAssertEqual(ledger.texts(board: "b1"), [text])
-    XCTAssertEqual(ledger.texts(board: "b2"), [])
-  }
-
   // MARK: What moves (stories 814, 815)
 
   func testAPushMovesOnlyWhatStartsAtOrBelowTheLine() {
@@ -509,16 +491,6 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertEqual(ids, BoardStrokeIDs())
     let ink = named([.zero, CGPoint(x: 3, y: 3)])
     XCTAssertEqual(ids.named([ink]), [ink], "nothing moved, nothing renamed")
-  }
-
-  func testTheNamesAreKeptPerBoard() throws {
-    let defaults = try XCTUnwrap(UserDefaults(suiteName: "BoardOpsTests-ids-\(UUID().uuidString)"))
-    let ledger = BoardOpLedger(defaults: defaults)
-    var ids = BoardStrokeIDs()
-    ids.moved(from: ["old1", "old2"], to: ["new1", "new2"])
-    ledger.setStrokeIDs(ids, board: "b1")
-    XCTAssertEqual(ledger.strokeIDs(board: "b1").stable("new2"), "old2")
-    XCTAssertEqual(ledger.strokeIDs(board: "b2"), BoardStrokeIDs())
   }
 
   func testAKeptTextsTimeMatchesItsGlyphsReadBack() {

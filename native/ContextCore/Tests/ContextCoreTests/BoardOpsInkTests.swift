@@ -198,16 +198,6 @@ final class BoardOpsInkTests: XCTestCase {
     XCTAssertEqual(wire.first?["meta"] as? NSDictionary, ["group": "g7"] as NSDictionary)
   }
 
-  func testTheNotesAreKeptPerBoard() throws {
-    let defaults = try XCTUnwrap(UserDefaults(suiteName: "BoardOpsInkTests-\(UUID().uuidString)"))
-    let ledger = BoardOpLedger(defaults: defaults)
-    var metas = BoardStrokeMeta()
-    metas.set(try XCTUnwrap(BoardMeta(["group": "g"])), for: "a")
-    ledger.setStrokeMeta(metas, board: "b1")
-    XCTAssertEqual(ledger.strokeMeta(board: "b1")["a"]?.group, "g")
-    XCTAssertTrue(ledger.strokeMeta(board: "b2").isEmpty)
-  }
-
   // MARK: What Larry hears (stories 843, 844)
 
   func testIgorsInkChangeIsToldByName() {

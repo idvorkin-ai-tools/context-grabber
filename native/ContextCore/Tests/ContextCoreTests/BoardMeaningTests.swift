@@ -137,15 +137,18 @@ final class BoardMeaningTests: XCTestCase {
   // MARK: The move from UserDefaults
 
   private func legacy() throws -> BoardOpLedger {
-    let ledger = BoardOpLedger(defaults: defaults)
+    // The keys as builds before the board's own file wrote them; nothing writes them now.
     let meaning = try sample()
-    ledger.save(meaning.applier, board: "b1")
-    ledger.setTexts(meaning.texts, board: "b1")
-    ledger.setStrokeIDs(meaning.strokeIDs, board: "b1")
-    ledger.setStrokeMeta(meaning.strokeMeta, board: "b1")
-    ledger.setHeaders(meaning.headers, board: "b1")
-    defaults.set(try JSONEncoder().encode(meaning.questions), forKey: "whiteboard_questions_b1")
-    return ledger
+    let applier = meaning.applier
+    let saved = BoardOpLedger.Saved(rev: applier.rev, handled: applier.handled, lastResult: applier.lastResult)
+    let encoder = JSONEncoder()
+    defaults.set(try encoder.encode(saved), forKey: "whiteboard_ops_b1")
+    defaults.set(try encoder.encode(meaning.texts), forKey: "whiteboard_texts_b1")
+    defaults.set(try encoder.encode(meaning.strokeIDs), forKey: "whiteboard_stroke_ids_b1")
+    defaults.set(try encoder.encode(meaning.strokeMeta), forKey: "whiteboard_stroke_meta_b1")
+    defaults.set(try encoder.encode(meaning.headers), forKey: "whiteboard_headers_b1")
+    defaults.set(try encoder.encode(meaning.questions), forKey: "whiteboard_questions_b1")
+    return BoardOpLedger(defaults: defaults)
   }
 
   func testTheOldKeysMoveIntoTheFileOnceAndGo() throws {

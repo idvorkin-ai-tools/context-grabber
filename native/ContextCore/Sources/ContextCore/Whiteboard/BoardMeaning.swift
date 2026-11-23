@@ -90,8 +90,8 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
 }
 
 /// One open board's meaning, as its model changes it: each change is told (`onChange`), so the model saves it with
-/// the drawing, and what was last written is remembered, so a save with nothing new writes nothing. The methods are
-/// `BoardOpLedger`'s, which this replaced; `board` must be the ledger's own.
+/// the drawing, and what was last written is remembered, so a save with nothing new writes nothing. The methods keep
+/// the names `BoardOpLedger`'s had, which this replaced; `board` must be the ledger's own.
 public final class BoardMeaningLedger: @unchecked Sendable {
   public let board: String
   public private(set) var meaning: BoardMeaning
