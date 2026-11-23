@@ -11,14 +11,15 @@
 extension BoardReview {
   /// Check 7: a selection taken from him comes back at once (stories 946, 949), or it is a bug.
   static func selectionLost(_ pass: Pass) -> [Finding] {
-    guard sight(7, pass.record.header.observes) != .notChecked else { return [] }
+    let sight = sight(7, pass.record.header.observes)
+    guard sight != .notChecked else { return [] }
     return pass.steps.enumerated().compactMap { i, step in
       guard step.kind == "selection_lost" else { return nil }
       let ids = step.aim?.ids ?? []
       let n = strokes(ids, in: pass.states[i])
       let back = step.seen?.heldAfter == true
       return pass.finding(
-        7, back ? .asDesigned : .bug, step: i, story: back ? 949 : 1256, ids: ids,
+        7, back ? .asDesigned : sight == .approximate ? .unclear : .bug, step: i, story: back ? 949 : 1256, ids: ids,
         back
           ? "a selection of \(many(n)) was taken by the \(step.by) and put back at once"
           : "a selection of \(many(n)) went with nothing of yours to end it",
@@ -43,7 +44,8 @@ extension BoardReview {
 
   /// Check 9: a kept mark draws whole and in its own colour once the surface's redraws have had their chance.
   static func keptDrawn(_ pass: Pass) -> [Finding] {
-    guard sight(9, pass.record.header.observes) != .notChecked else { return [] }
+    let sight = sight(9, pass.record.header.observes)
+    guard sight != .notChecked else { return [] }
     return pass.steps.enumerated().compactMap { i, step in
       guard step.kind == "keep", let looks = step.seen?.kept, let last = looks.last else { return nil }
       let bad = looks.map(keptWrong)
@@ -53,7 +55,8 @@ extension BoardReview {
       for (n, why) in bad.enumerated() { evidence.append(Evidence("look \(n)", why ?? "whole")) }
       if let why = keptWrong(last) {
         return pass.finding(
-          9, .bug, step: i, story: 1258, ids: ids, "a kept mark drew \(why) after \(looks.count - 1) redraws", evidence)
+          9, sight == .approximate ? .unclear : .bug, step: i, story: 1258, ids: ids,
+          "a kept mark drew \(why) after \(looks.count - 1) redraws", evidence)
       }
       return pass.finding(
         9, .asDesigned, step: i, story: 1258, ids: ids, "a kept mark drew cut at first and a redraw healed it",

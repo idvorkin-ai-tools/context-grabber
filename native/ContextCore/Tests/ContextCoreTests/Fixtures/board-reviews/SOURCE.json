@@ -19,7 +19,8 @@
     "check6-9bll": "context-grabber-9bll: an Undo after a drop put the ink back but the line drew cut",
     "check7-4nnh": "context-grabber-4nnh before its fix: a tapped group's selection taken by the popover and never put back",
     "check9-pbvt": "context-grabber-pbvt: a kept circle drawn black through every heal (dark_px 179, ink_px 0)",
-    "check9-dell": "context-grabber-dell: a kept group drawn cut through every heal (ink_span 19x23 of 66x25)"
+    "check9-dell": "context-grabber-dell: a kept group drawn cut through every heal (ink_span 19x23 of 66x25)",
+    "check5-unix-ms": "context-grabber-eysh again with real unix-millisecond step times, as a web board records them: the times in its evidence print whole on the 32-bit wasm"
   },
-  "synthetic": "the other check<n>-* records: each check firing, clean, and the deliberate version of its move (a selection dragged, a room asked for, a fold asked for)"
+  "synthetic": "the other check<n>-* records: each check firing, clean, and the deliberate version of its move (a selection dragged, a room asked for, a fold asked for); check6-hide-only is a hide and its Undo written as changes carrying only hidden; check7-approximate and check9-approximate are 4nnh and pbvt seen approximately by the web board, so unclear, never a bug"
 }

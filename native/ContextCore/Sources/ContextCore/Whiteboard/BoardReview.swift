@@ -236,7 +236,7 @@ public enum BoardReview {
     static func apply(_ step: BoardSessionRecord.Step, to state: State) -> State {
       var out = state
       for change in step.changes ?? [] {
-        if change.after == nil {
+        if change.after == nil, change.hidden == nil {
           out.units[change.id] = nil
           continue
         }
@@ -310,7 +310,7 @@ public enum BoardReview {
   /// A number as evidence shows it: one decimal at most, so the iPad and the 32-bit wasm print the same.
   static func num(_ v: Double) -> String {
     guard v.isFinite else { return "\(v)" }
-    let tenths = Int((v * 10).rounded())
+    let tenths = Int64((v * 10).rounded())
     let sign = tenths < 0 ? "-" : ""
     let a = abs(tenths)
     return a % 10 == 0 ? "\(sign)\(a / 10)" : "\(sign)\(a / 10).\(a % 10)"

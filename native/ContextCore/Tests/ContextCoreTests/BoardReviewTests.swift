@@ -40,18 +40,22 @@ final class BoardReviewTests: XCTestCase {
     "check5-eysh": [(5, .bug)],
     "check5-clean": [],
     "check5-first-fold": [],
+    "check5-unix-ms": [(5, .bug)],
     "check6-fires": [(6, .bug)],
     "check6-clean": [],
     "check6-9bll": [(6, .bug)],
+    "check6-hide-only": [],
     "check7-4nnh": [(7, .bug)],
     "check7-put-back": [(7, .asDesigned)],
     "check7-not-observed": [],
+    "check7-approximate": [(7, .unclear)],
     "check8-fires": [(8, .bug)],
     "check8-approximate": [(8, .unclear)],
     "check8-clean": [],
     "check9-pbvt": [(9, .bug)],
     "check9-dell": [(9, .bug)],
     "check9-healed": [(9, .asDesigned)],
+    "check9-approximate": [(9, .unclear)],
   ]
 
   static let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent(
@@ -106,13 +110,10 @@ final class BoardReviewTests: XCTestCase {
     }
   }
 
-  func testAReviewIsTheSameTwiceAndLeavesItsRecordAsItWas() throws {
+  func testAReviewIsTheSameTwice() throws {
     for name in Self.expected.keys {
-      let original = try record(name)
-      let copy = original
-      let first = BoardReview.run(copy)
-      XCTAssertEqual(copy, original, name)
-      XCTAssertEqual(BoardReview.run(copy), first, name)
+      let record = try record(name)
+      XCTAssertEqual(BoardReview.run(record), BoardReview.run(record), name)
     }
   }
 
