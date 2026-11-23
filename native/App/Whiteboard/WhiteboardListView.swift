@@ -99,7 +99,8 @@ struct WhiteboardListView: View {
       if phase == .active { Task { await store.sync(reason: "foreground") } }
     }
     // Story 233: the open board names the window (*Whiteboard · Board, Nov 22*), and its rename renames it.
-    .onChange(of: path, initial: true) { _, open in app.whiteboardOnScreen = open.last }
+    .onAppear { app.whiteboardOnScreen = path.last }
+    .onChange(of: path) { _, open in app.whiteboardOnScreen = open.last }
     .onChange(of: path.last.flatMap { store.index.board($0)?.title }) { _, _ in app.nameWindows() }
     .onDisappear { app.whiteboardOnScreen = nil }
     .alert(
