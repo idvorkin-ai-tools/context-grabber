@@ -52,7 +52,7 @@ let boardTests = [
 let boardTestsInContextCore = [
   "BoardDebugTimingTests.swift", "BoardOpsTests.swift", "BoardTouchReplayTests.swift",
   "WhiteboardLogArchiveTests.swift", "WhiteboardMarksTests.swift", "WhiteboardRequestsTests.swift",
-  "WhiteboardStrokesTests.swift",
+  "WhiteboardStrokesFileTests.swift", "WhiteboardStrokesTests.swift",
 ]
 
 // The platform-free half of the native app: everything here runs under `swift test` on the Mac (docs/TESTING.md).
