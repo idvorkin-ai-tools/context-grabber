@@ -35,7 +35,7 @@ let boardTests = [
   "PaperProbeOwnersApartTests.swift",
   "PaperProbePickupTests.swift", "PaperProbeReflowTests.swift", "PaperProbeTests.swift", "WhiteboardFingerTests.swift",
   "WhiteboardFrameTests.swift",
-  "WhiteboardGhostTurnsTests.swift", "WhiteboardInkTests.swift", "WhiteboardKeepGroupTests.swift",
+  "WhiteboardGhostTurnsTests.swift", "WhiteboardInkTests.swift", "WhiteboardKeepAllTests.swift",
   "WhiteboardKeptInkTests.swift",
   "WhiteboardLarryClockTests.swift", "WhiteboardLarryListeningTests.swift", "WhiteboardLarryTurnTests.swift",
   "WhiteboardLarryWaitTests.swift", "WhiteboardLostConnectionTests.swift", "WhiteboardMarkChoiceTests.swift",
