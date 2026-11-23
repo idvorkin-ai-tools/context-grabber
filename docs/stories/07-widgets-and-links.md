@@ -600,6 +600,33 @@ apart."*
 - **Then:** the drill stays shuffled and says so
 ---
 
+### User Story 238:
+
+- **Summary:** The drill's Stats pairs with Larry's box, from a pasted link or a code
+- **Status:** not implemented
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+Igor, 2026-11-23: the drill's *Stats* asked for pairing and there was nowhere to put a code; the ledger now checks
+keys against the keyring on Larry's box. The trainer's v0.3.9 has the field (its story 074); this app supplies the
+redeem and reads the phone's shared pairing.
+
+#### Use Case:
+- **As a** man practising his stack in Grabber Native
+- **I want to** paste Larry's pairing link, or type its code, into the drill's *Stats*
+- **so that** my answers reach the ledger with the phone's own key, shared with Think a Card, and I never paste a
+  URL or key
+
+#### Acceptance Criteria:
+- **Scenario:** Pair with code
+- **Given:** the phone is unpaired, its key expired or the ledger refused it, and Larry sent a fresh pairing link
+- **When:** I paste the link (or its 26-character code) into *Pair with code* in the drill's *Stats* and press *Pair*
+- **Then:** the phone redeems it with the keyring on Larry's box; *Stats* says *Paired as … until* the day and
+  loads the stats; the answers that waited go with the new key; Think a Card reads the same pairing; a failure
+  shows in place as a copyable error without the code; the 4-letter Cockpit approval code is turned away with a
+  message; the session log says paired or failed, never the code or the key
+
+---
+
 ### User Story 227:
 
 - **Summary:** A Stats load that fails in the drill is a copyable error

@@ -10,6 +10,9 @@
 	<string>https://github.com/idvorkin/context-grabber</string>
 	<key>GitBranch</key>
 	<string>$(GIT_BRANCH)</string>
+	<!-- Story 238: the shared pairing item's access group, with the team prefix the signed build fills in. -->
+	<key>PairedDeviceAccessGroup</key>
+	<string>$(AppIdentifierPrefix)com.idvorkin.paired-device</string>
 	<!-- #1012: only the system's own encryption (HTTPS), which is exempt; without this TestFlight asks about export
 	     compliance before every build can be tested. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
