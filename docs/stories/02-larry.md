@@ -2960,7 +2960,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1133:
 
 - **Summary:** An install link from the Cockpit is an *Install* chip that offers the build
-- **Status:** native app only: implemented on branch `native/install-chip-xwns`; `ChatLinksTests` (host: the Cockpit's link, an encoded manifest, another host, an `http` manifest, no or another `action`) pass and the Mac build compiles; not yet seen on the simulator (no simulator run while the whiteboard work holds the iPhone simulators) or the phone, where iOS's install prompt is the check
+- **Status:** native app only: implemented on branch `native/install-chip-xwns`; `ChatLinksTests` (host: the Cockpit's link, an encoded manifest, another host, an `http` manifest, no or another `action`, and that no install link is tappable in a message's words) pass and the Mac build compiles; not yet seen on the simulator (no simulator run while the whiteboard work holds the iPhone simulators) or the phone, where iOS's install prompt is the check
 - **Issues:** bead context-grabber-xwns
 - **Spec:** [Chat with Larry in Grabber Native — An install link is an Install chip](../superpowers/specs/2026-10-25-native-chat-design.md)
 
