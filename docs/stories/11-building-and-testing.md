@@ -238,8 +238,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 750:
 
 - **Summary:** A box with no Mac checks the whole app's Swift before anything reaches the Mac
-- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged; a missing kept build directory created in [7dae5d56](https://github.com/idvorkin/context-grabber/commit/7dae5d56) (#904), verified on the host rung by running the new block alone: a relative path not yet there made and resolved against the caller, an uncreatable one stops with exit 2 naming it; the full Linux rung was not run, as this Mac has no Linux box
-- **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung"); [#904](https://github.com/idvorkin/context-grabber/issues/904) (a kept build directory that did not exist yet failed the rung)
+- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged; a missing kept build directory created in [7dae5d56](https://github.com/idvorkin/context-grabber/commit/7dae5d56) (#904), verified on the host rung by running the new block alone: a relative path not yet there made and resolved against the caller, an uncreatable one stops with exit 2 naming it; the full Linux rung was not run, as this Mac has no Linux box; bare Apple-only imports caught on the Mac in [6b0bb364](https://github.com/idvorkin/context-grabber/commit/6b0bb364) and checked by the compiler's import scan in [f55f865e](https://github.com/idvorkin/context-grabber/commit/f55f865e) (bead context-grabber-cmk), verified on the host rung (`just native-test`: the check named BoardRoomBandTests and PaperProbeMoveAuditTests before their guards, passes after) and the Mac build
+- **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung"); [#904](https://github.com/idvorkin/context-grabber/issues/904) (a kept build directory that did not exist yet failed the rung); bead `context-grabber-cmk` (two board tests imported CoreGraphics bare and broke Linux's swift test)
 
 #### Use Case:
 - **As Igor,** with agents working on Linux boxes while the Mac is busy or locked
@@ -247,15 +247,10 @@ Part of the [user stories](README.md); persona and format are described there.
 - **so that** a type slip in a view or a broken ladder map shows up on the agent's box in minutes, not in the Mac's build an hour later
 
 #### Acceptance Criteria:
-- **Scenario:** An agent on Linux changes app code and a host test
-- **Given:** a Linux box with the Swift toolchain and the Darwin SDK, and no Mac
-- **When:** the agent runs the Linux rung
-- **Then:** ContextCore's tests run, the package and the app's sources (the app, the widgets, the share extension and the UI tests) are compiled for Apple, the ladder's map is checked, and each step says ok, failed or skipped and why
-
-- **Scenario:** An agent keeps the rung's build between runs in a folder that does not exist yet
-- **Given:** a build directory to keep, named by a path that is not there yet (relative to where the agent stands, or absolute)
-- **When:** the agent runs the Linux rung
-- **Then:** the folder is made and used, and when it cannot be made the rung stops at once, saying which folder and that it could not create it
+- **Scenario:** An agent checks a Swift change that must build on Linux
+- **Given:** a change to app code or package sources or tests, and a Linux box with Swift and the Darwin SDK
+- **When:** the change goes through the Mac host rung or the Linux rung
+- **Then:** the Mac host rung fails with the file and framework when an Apple-only import is reachable on Linux. A branch guarded by `#if canImport` or `#if os` passes when it excludes Linux. The Linux rung creates and uses a requested build directory (relative to the caller or absolute), or stops immediately and names it if creation fails. It runs ContextCore's tests, cross-compiles the package and the app, widgets, share extension and UI tests for Apple, then checks scripts including the ladder map and Linux imports. Each step reports success, failure or a skip with its reason.
 
 ---
 
@@ -488,7 +483,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 758:
 
 - **Summary:** What an iPhone does with boards is read from the smoke's log, not from a test class of its own
-- **Status:** implemented in [c9ec172](https://github.com/idvorkin/context-grabber/commit/c9ec172) and the review fix after it (the list's New board and the log's `new_board` read one rule); verified on the host (`BoardIndexTests`: a phone starts no board, draws on none, and the bar says to draw on the iPad; `scripts/native/test-ladder-map.sh`: a whiteboard change runs no iPhone class); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code. The Board menu, the ghosts button and Larry's turn are in the bar only on a board the log calls `editable`, so the smoke's `editable` false stands for them. No test looks at the phone's screen for the missing buttons any more, only at the rules they read, and *Send to Larry* still being there on a phone has no test
+- **Status:** implemented in [c9ec172](https://github.com/idvorkin/context-grabber/commit/c9ec172) and the review fix after it (the list's New board and the log's `new_board` read one rule); verified on the host (`BoardIndexTests`: a phone starts no board, draws on none, and the bar says to draw on the iPad; `scripts/native/test-ladder-map.sh`: a whiteboard change runs no iPhone class); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code. The smoke reads `editable` as described in [the grid launch hook](../TESTING.md). No test looks at the phone's screen for the missing buttons any more, only at the rules they read, and *Send to Larry* still being there on a phone has no test
 - **Issues:** the simulator assessment of 2026-11-12; stories 746, 770
 
 #### Use Case:
@@ -1411,3 +1406,80 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a call that went wrong filed a report less than ten minutes ago
 - **When:** a call the smoke expects to be clean goes wrong again and its report is held back by the window
 - **Then:** that call's check still fails
+
+---
+
+### User Story 1027:
+
+- **Summary:** One command puts main, development-signed, on the Cockpit's /builds page for the iPad
+- **Status:** implemented in a00720be. Host coverage in `scripts/native/test-ota.sh` covers recipe arguments, the dry run and destination selection. The real development export from 9ec60f90 listed the iPad in all three profiles, expiring 2027-11-20. A full `just ota` from the main checkout is owed after the merge
+- **Issues:** bead `context-grabber-omes` (Igor, 2026-11-22: staying on development builds; record and optimise the build loop)
+
+#### Use Case:
+- **As Igor,** staying on development builds and away from the Mac's cable
+- **I want to** have one command build main, sign it for development and put it on the Cockpit's /builds page
+- **so that** the iPad installs the newest main over the air, and I know exactly which build it is
+
+#### Acceptance Criteria:
+- **Scenario:** An over-the-air build
+- **Given:** a clean main and the Mac unlocked
+- **When:** `just ota` runs
+- **Then:** it archives main as `just testflight --export-only` does, exports it development-signed under the signing lock and the screen-lock guard, publishes the completed transfer as `grabber-<commit>.ipa`, and prints the version, build, commit, the start of its SHA-256 and each step's seconds
+- **And:** `--dry-run` prints that plan and builds, switches and copies nothing
+
+---
+
+### User Story 1028:
+
+- **Summary:** The over-the-air build refuses a package the iPad can't install, and never prints its id
+- **Status:** implemented in a00720be. Host coverage in `scripts/native/test-ota.sh` covers the local ID, masking, and a partially unreadable package. The Mac check against the real development export also rejected an ID absent from all three profiles
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** installing from /builds on the iPad
+- **I want to** have a build whose profile lacks the iPad stopped before it is published, and one ota at a time
+- **so that** /builds never offers a package that fails to install, and the public repo never carries a device id
+
+#### Acceptance Criteria:
+- **Scenario:** A profile without the iPad
+- **Given:** the iPad's id in the gitignored local file
+- **When:** the exported package's profiles (the app, the widgets, the share extension) are checked
+- **Then:** an unreadable profile or one that doesn't list the iPad stops the run before the copy. The command shows the ID only in masked form and prints readable profiles' expiry dates. A missing ID stops the run, and a second ota while one runs stops at once (exit 75)
+
+---
+
+### User Story 1029:
+
+- **Summary:** After each merge batch, main is built over the air and Igor's thread says what it holds
+- **Status:** implemented in a00720be. The host fixture in `scripts/native/test-ota.sh` exercises polling remote merges, a merge arriving before OTA selects the checkout, announcement retry across restart, and the build exit codes
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** whose agents merge several PRs in a row
+- **I want to** have a new over-the-air build made once a batch of merges settles, and told in my thread which PRs it holds
+- **so that** the iPad is never far behind main and I know when to install
+
+#### Acceptance Criteria:
+- **Scenario:** A batch of merges settles
+- **Given:** the watcher is running and main has merges since the last build
+- **When:** ten minutes pass with no newer merge
+- **Then:** it builds the checked commit, posts *New build on /builds: <version> (<build>) <commit>, with: <the PRs merged since the last build>* to `igor2-88g.1620`, and remembers the build outside the repository. A newer merge before the build is selected makes it wait again. A failed post is retried after a restart without rebuilding. Busy and locked builds are retried at the next poll, and other build failures stop the watcher with local diagnostics
+
+---
+
+### User Story 1500:
+
+- **Summary:** One document says how a build reaches each device, and what would make it faster
+- **Status:** implemented in a00720be. Verified by resolving both relative links from AGENTS.md and docs/TESTING.md to the deploy guide
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** or an agent about to deploy
+- **I want to** read one page covering the cable and network install, the over-the-air build, signing, renewing the profile, adding a device and iCloud's two environments
+- **so that** a deploy, a lost account or an expiring profile is handled the same way each time, and the next speed-up is chosen from measured numbers
+
+#### Acceptance Criteria:
+- **Scenario:** Before a deploy
+- **Given:** an agent or Igor needs a build on a device
+- **When:** they open the deploy document from the agent instructions or the testing guide
+- **Then:** it names the command for each path, what *unavailable* means, how to wait for a device, the signing rules, what to do before the profile expires, how to add a device, which iCloud environment each build uses, and a table of speed-ups with their estimated savings

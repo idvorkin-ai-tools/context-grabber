@@ -152,7 +152,7 @@ on a board just opened, its line is kept empty, so the paper doesn't jump when L
   *Listening…* with the mic open and nothing heard. When Igor's words don't fit, the end is kept and the start is
   cut, because the newest words are the ones he is checking. Larry's line keeps its start.
 - **Last: how many suggestions are showing** (*3 to keep*) and a chevron.
-- The note's other messages (a paste cut short, *Sent to Larry*, a look-only reason, Ghosts being off when the mic is
+- The note's other messages (a paste cut short, *Sent to Larry*, a look-only reason, *Ask at my pauses* being off when the mic is
   tapped) take the middle for a few seconds and give it back.
 - **A message about something still wrong stays**: *Ghosts: the Cockpit isn't answering* and *Larry's marks: the
   Cockpit isn't answering* hold the middle until the Cockpit answers again, however long that is.

@@ -792,7 +792,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The top bar
 - **Given:** a board on paper
 - **When:** I look at its bar
-- **Then:** the Ghosts switch, the mic, *Larry's turn*, *Send to Larry* and the paste button are there
+- **Then:** *Ask at my pauses*, the mic, *Larry's turn*, *Send to Larry* and the paste button are there
 
 ---
 
@@ -1090,7 +1090,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** A pause
-- **Given:** a board on paper with Ghosts on
+- **Given:** a board on paper with *Ask at my pauses* on
 - **When:** I draw a stroke and pause
 - **Then:** a faint orange shape appears, and the bar says *1 suggestion: tap one to keep it*
 
@@ -1358,8 +1358,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 627:
 
-- **Summary:** Ghosts off asks nothing on paper
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: `testGhostsOffAsksNothing`); since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`), the same model on paper as on the old canvas; since bead `context-grabber-y8r` no UI case on either canvas
+- **Summary:** Turning off *Ask at my pauses* stops asking on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: `testGhostsOffAsksNothing`); since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`), the same model on paper as on the old canvas. See [story 1171](10-whiteboard-boards.md#user-story-1171) for the current UI coverage
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1369,10 +1369,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** nothing interrupts me
 
 #### Acceptance Criteria:
-- **Scenario:** Ghosts off
-- **Given:** a board on paper with Ghosts off
+- **Scenario:** Ask at my pauses off
+- **Given:** a board on paper with *Ask at my pauses* off
 - **When:** I draw and pause
-- **Then:** nothing is asked and nothing appears
+- **Then:** the pause asks for no new suggestions
 
 ---
 

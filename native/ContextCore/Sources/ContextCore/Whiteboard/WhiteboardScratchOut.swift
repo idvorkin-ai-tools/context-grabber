@@ -11,6 +11,11 @@ public enum WhiteboardScratchOut {
   /// Turns back a scribble needs when it wanders along the word, its sweeps crossing only part of its length
   /// (context-grabber-4kj).
   public static let wanderingReversals = 5
+  /// A drifting scribble's typical sweep, in board points, at least: a letter's back-and-forth is narrower
+  /// (context-grabber-4kj, 2026-11-22).
+  static let driftSweep: CGFloat = 40
+  /// Jitter, in board points, that is no turn when a drifting scribble's sweeps are first measured.
+  static let jitter: CGFloat = 10
   /// Board points per millisecond, at least.
   public static let speed: Double = 0.5
   /// How near the zigzag a stroke's own line passes to be taken, beyond half its pen.
@@ -74,6 +79,9 @@ public enum WhiteboardScratchOut {
   /// than it is long, so *mmm* and *www*, whose humps march along, never qualify. A scribble with five or more turns
   /// whose sweeps cross half its length on average also qualifies, as it `wanders`: a hand scratching out a word drifts
   /// along it, so no sweep spans the whole scribble (context-grabber-4kj: Igor's on 2026-11-21 averaged 63% to 75%).
+  /// One that drifts further than its sweeps are long wanders too: its turns counted against its own sweeps, five or
+  /// more, its typical sweep `driftSweep` or longer, the pen going at least twice as far along as across, which loops
+  /// don't (4kj, 2026-11-22: 458 along, sweeps of 87 to 245, counted 4 turns).
   public static func shape(_ points: [CGPoint]) -> Shape {
     guard points.count >= 8 else { return Shape(ok: false, reversals: 0, why: "short") }
     var (tx, ty) = (CGFloat(0), CGFloat(0))
@@ -123,14 +131,71 @@ public enum WhiteboardScratchOut {
         hi = v
       }
     }
-    if turns < reversals { return Shape(ok: false, reversals: turns, why: "few turns") }
+    // Counted against its own sweeps rather than its whole length, for a scribble that drifts a long way.
+    func drifting(_ why: String) -> Shape {
+      let (own, sweep) = drift(points.map(along))
+      // Loops (*ooo*, *eee*) turn back too, but the pen goes as far across as along; a scribble's goes mostly along.
+      let across = alongY ? tx : ty
+      guard own >= wanderingReversals, sweep >= driftSweep, cross <= 0.8 * ext, across <= 0.5 * travel else {
+        return Shape(ok: false, reversals: turns, why: why)
+      }
+      return Shape(ok: true, reversals: own, why: nil, wanders: true)
+    }
+    if turns < reversals { return drifting("few turns") }
     let sweep = travel / CGFloat(turns + 1)
     let wanders = sweep < 0.8 * ext
-    if wanders && (turns < wanderingReversals || sweep < 0.5 * ext) {
-      return Shape(ok: false, reversals: turns, why: "short sweeps")
-    }
+    if wanders && (turns < wanderingReversals || sweep < 0.5 * ext) { return drifting("short sweeps") }
     if cross > 0.8 * ext { return Shape(ok: false, reversals: turns, why: "marches along") }
     return Shape(ok: true, reversals: turns, why: nil, wanders: wanders)
+  }
+
+  /// A scribble's turns and its typical sweep along its main axis (`values`), its turns counted against its own sweeps:
+  /// first with `jitter` as the hysteresis, then with a third of the typical sweep found, so a wobble is no turn.
+  static func drift(_ values: [CGFloat]) -> (turns: Int, sweep: CGFloat) {
+    let typical = median(sweeps(values, threshold: jitter))
+    let found = sweeps(values, threshold: max(jitter, 0.35 * typical))
+    // The first and the last sweep are only part of one: the pen comes down and lifts mid-sweep.
+    return (found.count - 1, median(Array(found.dropFirst().dropLast())))
+  }
+
+  /// The lengths of the sweeps along `values`, from the start through each turn back (by more than `threshold`) to the end.
+  static func sweeps(_ values: [CGFloat], threshold: CGFloat) -> [CGFloat] {
+    guard let first = values.first else { return [] }
+    var dir = 0
+    var (hi, lo) = (first, first)
+    var ends: [CGFloat] = [first]
+    for v in values {
+      if dir == 0 {
+        hi = max(hi, v)
+        lo = min(lo, v)
+        if hi - v > threshold {
+          ends = [hi]
+          (dir, lo) = (-1, v)
+        } else if v - lo > threshold {
+          ends = [lo]
+          (dir, hi) = (1, v)
+        }
+      } else if dir > 0 {
+        if v > hi {
+          hi = v
+        } else if hi - v > threshold {
+          ends.append(hi)
+          (dir, lo) = (-1, v)
+        }
+      } else if v < lo {
+        lo = v
+      } else if v - lo > threshold {
+        ends.append(lo)
+        (dir, hi) = (1, v)
+      }
+    }
+    if dir != 0 { ends.append(dir > 0 ? hi : lo) }
+    return zip(ends, ends.dropFirst()).map { abs($1 - $0) }
+  }
+
+  /// The middle of `values` (the upper one of two), 0 for none.
+  static func median(_ values: [CGFloat]) -> CGFloat {
+    values.isEmpty ? 0 : values.sorted()[values.count / 2]
   }
 
   public struct Outcome: Equatable, Sendable {

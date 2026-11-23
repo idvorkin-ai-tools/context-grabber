@@ -222,9 +222,8 @@ extension WhiteboardModel {
     }
   }
 
-  /// He stopped talking: the new words go now, or with the next turn if one is on its way. With Ghosts off nothing is
-  /// asked, and they aren't kept for later.
-  /// `end`: the silence that finished the phrase (story 1118); nil when the mic closed or switched.
+  /// Sends the new words now or holds them for the next turn if one is on its way. Discards them if the pause switch
+  /// is off. `end` records the silence that finished the phrase (story 1118) and is nil when the mic closed or switched.
   private func spoke(end: (ms: Int, why: BoardSpeechEnd.Why)? = nil) {
     guard let words = speech.takeNew() else { return }
     let went = turns.spoke(words)

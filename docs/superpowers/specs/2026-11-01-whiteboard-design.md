@@ -152,18 +152,18 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   the sparkle and hand icons do. There is a large empty gap between the palette and the mic in the right-hand group").
   - **Three groups.** The way back and *Undo*/*Redo* on the left; on the right the board's own things, the **Board**
     menu and **Paste**, in a group of their own like *Undo* and *Redo*; then the four that talk to Claude and Larry:
-    **Talk**, **Ghosts**, **Larry** and **Send**, evenly spaced, with no hole among them.
+    **Talk**, **Ask at my pauses**, **Larry** and **Send**, evenly spaced, with no hole among them.
   - **Paste shows only while the clipboard holds text.** The gap was the system's paste button with nothing to paste:
     iOS dims it to near nothing, so it read as an empty space. Looking whether the clipboard holds text never asks
     *Allow Paste?*. When it does, Paste appears beside the Board menu and the four on the far right don't move.
     It appears within about a second of text being copied, also from an app beside the board.
-  - **A long press names the button.** A long press on Talk, Ghosts, Larry or Send shows a small menu headed by the
-    button's one word (*Talk*, *Ghosts*, *Larry*, *Send*) with one row saying what a tap does (*Talk to Claude*, *Hide
-    Claude's suggestions*, *Hand Larry the board*, *Send the board to Larry*); that row does it, and a tap anywhere
-    else closes the menu. A plain tap does what it always did. The Board menu already opens on a tap and is headed
-    by its sections. VoiceOver reads each button's name as before. Talk's menu also picks the microphone, under its
-    one row, whether the mic is open or closed ([Which microphone, and what it hears](2026-11-01-whiteboard-shapes-design.md),
-    story 926).
+  - **A long press names the button.** A long press on Talk, Ask at my pauses, Larry or Send shows a small menu headed
+    by the button's name (*Talk*, *Ask at my pauses*, *Larry*, *Send*) with one row saying what a tap does (*Talk to
+    Claude*, *Stop asking Larry at my pauses* (substitute the board's responder by name, or use
+    *Ask … at my pauses* while the switch is off), *Hand Larry the board*, *Send the board to Larry*); that row does it,
+    and a tap anywhere else closes the menu. A plain tap does what it always did. The Board menu opens on a tap and
+    is headed by its sections. Talk's menu also picks the microphone, under its one row, whether the mic is open or
+    closed ([Which microphone, and what it hears](2026-11-01-whiteboard-shapes-design.md), story 926).
   - On a width as narrow as an iPhone's the Board menu stays at the bottom of the screen (below), and Paste with it in
     the top bar's right group.
   - **The board's name** sits in the middle of the bar. On a board that draws here a tap on it renames the board
@@ -340,11 +340,8 @@ drawing and why.
 (#636. The board's ghosts, Larry's turn and the mic, as *Whiteboard: Claude and Larry draw back* describes them, on a board on
 paper. That description is the requirement, and this lists only where paper needs saying.)
 
-- **The same bar.** A board on paper has the Ghosts switch, the mic, *Larry's turn* and *Send to Larry*, as any board does,
-  and paste: see *Paste on paper*.
-- **The same turns.** A pause after a stroke asks Claude, the Pencil touching down holds that pause until it lifts, words go
-  the same way, and Larry's marks arrive on their own, in his colour, where his picture was. Nothing about the Ghosts switch,
-  the fading, one turn at a time or the bar's words changes.
+- **The same bar and turns.** See *The top bar's groups and labels*, *Paste on paper* and
+  [Whiteboard: Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md).
 - **A ghost sits on the paper.** It moves and zooms with the board exactly as the ink does, because it lies on the same sheet:
   it can't drift off the ink or trail behind a scroll or a pinch.
 - **A ghost lies under the ink, as the page lines do.** Where one crosses ink, the ink is on top. On the old canvas it lay over
@@ -414,7 +411,7 @@ only where a page needs saying.)
 
 The log says what each ⌘V found on the clipboard and who took it, so the iPad can show what the simulator can't.
 
-### Scratch out (stories 890, 891, 898; Igor, 2026-11-16: "match Larry's web board")
+### Scratch out (stories 890, 891, 898, 1185; Igor, 2026-11-16: "match Larry's web board")
 
 As in Goodnotes and Notability, and as the Cockpit's web board (*/ink*) does it: a fast zigzag drawn over ink deletes the
 ink it covers, without picking up the eraser.
@@ -431,6 +428,14 @@ ink it covers, without picking up the eraser.
   times**, its sweeps crossing at least half its length on average, is a scratch-out when it lies over ink. Shading and
   hatching look the same, so a wandering scribble over bare paper, or beside ink rather than over it, stays as ink,
   without a word; a short wiggle of three or four turns still needs sweeps across most of its length.
+- **A scribble that drifts a long way counts too** (context-grabber-4kj, 2026-11-22). A scribble across a long word or a
+  phrase can drift further than its sweeps are long: on 2026-11-21, after the fix above, a fast scribble 458 points along
+  and 113 across swept back and forth eight times, each sweep 87 to 245 points, and stayed ink, as its turns were
+  counted against its whole length and the shorter early sweeps didn't count. Its turns are now also counted against its
+  own sweeps: a scribble that turns back at least **five times** that way, its typical sweep at least **40 points**, and
+  no wider across than it is long, and its pen going at least twice as far along it as across, is a wandering
+  scribble, under the same rule as above (it acts only over ink). Handwriting's back-and-forth is a letter wide, well
+  under 40 points, and is slow; a row of big loops (*ooo*) goes as far across as along, so it stays ink.
 - **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
   it doesn't touch stay, however close. What went stays gone as he writes on: only Undo brings it back (#999).
 - **Only the ink he can see is touched** (context-grabber-p5hy). Where the pixel eraser rubbed part of a stroke away, the
@@ -538,6 +543,8 @@ docks along the bottom and takes every tap there.
     or an ellipse.
   - *Larry's marks:* *Keep all* beside the count of marks keeps every one as ink, in order; *Tidy overlaps* in the Board
     menu moves kept labels off writing.
+  - *In the bar:* *Ask at my pauses* (the sparkles) explains
+    [what the switch does](2026-11-01-whiteboard-shapes-design.md).
   - *Feedback (the ladybug):* a note, a picture of the screen and the recent log; shaking the iPad does the same.
   It closes with *Done*, or a tap outside it on the iPad. A look-only board (an iPhone, or another device drawing it)
   shows no **?**: its gestures don't apply there.
@@ -755,10 +762,10 @@ built; the words and the sound (options 2 and 3) wait for his choice below.
   again. Playback never moves the board by itself: a finger pans it, and the label shows where to go.
 - **With the words (option 2):** while the mic is open, the words it heard are kept with the board, each line with the
   moment it was said. In playback the line being said shows above the bar as the ink of that moment draws, and a tap on
-  a stroke shows what he was saying as he drew it. The mic is still the one the board has today: open only with Ghosts
+  a stroke shows what he was saying as he drew it. The mic is still the one the board has today: open only with *Ask at my pauses*
   on, stopped by a call with Larry or a shake report, so words are kept only while it is open.
 - **With the sound (option 3):** a record button of its own, beside the mic, records the room while he draws, whether
-  Ghosts are on or not, with the time recorded showing while it runs. Playback plays the sound with the ink, and a tap on
+  *Ask at my pauses* is on or not, with the time recorded showing while it runs. Playback plays the sound with the ink, and a tap on
   a stroke plays what was said as he drew it. A call with Larry, or a shake report, stops the recording as it stops the
   mic, and he taps it again to go on. A board keeps a list of its recordings, each one deletable; deleting the board
   deletes them.

@@ -119,9 +119,9 @@ public struct BoardMicClock: Equatable, Sendable {
     off = t
   }
 
-  /// Words were taken at `t`: their timing, kept to go with the next picture unless `kept` is false (Ghosts off drops
-  /// them). Nil with no mic opened (a launch hook's words). Words said after, with the mic still open, are timed from
-  /// these.
+  /// Returns the timing of words taken at `t` and queues it for the next picture when `kept` is true.
+  /// Returns nil if the mic never opened, as with words from a launch hook. Later words from the same open mic are
+  /// timed from these.
   @discardableResult
   public mutating func taken(t: Int64, chars: Int, kept: Bool = true) -> BoardMicTiming? {
     guard let on, let since else { return nil }

@@ -468,7 +468,9 @@ failure, and it prints the seconds each rung took and which rung it stopped on. 
 skipped, and the output says why.
 
 - **Lint**: the layout of the Swift files the branch touched, and the smell check over the tree.
-- **Host**: the platform-free tests and the script checks.
+- **Host**: the platform-free tests and the script checks. On the Mac, the host rung flags imports of Apple-only
+  frameworks in the package's sources and tests when their conditional compilation branches can run on Linux.
+  The failure names the file and framework so the import can be guarded before the change reaches a Linux box.
 - **Mac**: the Mac build, because code written only for the Mac compiles nowhere else. It runs when the change
   touches anything that goes into that build, and not for words, tests or test scripts alone.
 - **Simulator**: the simulator build with its UI tests, then the UI test classes the change touches. Only chat and the

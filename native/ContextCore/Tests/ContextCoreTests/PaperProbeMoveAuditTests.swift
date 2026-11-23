@@ -1,9 +1,12 @@
 //  Story 1143 (bead context-grabber-eg7v): what a move of ink says against what the touch held and whose ink it was.
 
-import CoreGraphics
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 final class PaperProbeMoveAuditTests: XCTestCase {
   private func move(_ id: String, _ dx: CGFloat, _ dy: CGFloat, resized: Bool = false) -> PaperProbe.InkMove {

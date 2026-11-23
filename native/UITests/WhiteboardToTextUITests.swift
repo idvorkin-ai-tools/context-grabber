@@ -39,7 +39,7 @@ final class WhiteboardToTextUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: on") { ghosts.tap() }
     sleep(2)
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.5))
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)))

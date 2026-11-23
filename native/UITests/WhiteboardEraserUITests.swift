@@ -24,7 +24,7 @@ final class WhiteboardEraserUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
+    if ghosts.label.hasPrefix("Ask at my pauses: on") { ghosts.tap() }
     let pen = app.buttons["Pen"]
     XCTAssertTrue(pen.appears(within: 10), "the tool picker: \(app.debugDescription)")
     if pickPen { pen.tap() }

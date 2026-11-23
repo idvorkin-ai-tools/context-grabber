@@ -97,6 +97,8 @@ struct WhiteboardBoardMenu: View, Equatable {
       } label: {
         Label("Responder: \(model.responder.shown.name)", systemImage: "person.wave.2")
       }
+      // Story 1171: a UI test gives the board to Haiku here.
+      .accessibilityIdentifier("whiteboard-responder")
     } label: {
       Label("Board", systemImage: "paintpalette")
     }

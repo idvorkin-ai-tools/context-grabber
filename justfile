@@ -90,9 +90,15 @@ native-test-host:
     scripts/native/test-smoke-lock.sh
     # Stories 814-818: the fake Cockpit's board ops, which the whiteboard UI tests rely on.
     scripts/native/test-fake-cockpit-ops.py
+    # Stories 1173, 1174: the Cockpit's recorded board sessions are vendored scrubbed, and the fake Cockpit plays them back.
+    scripts/native/test-board-sessions.py
+    scripts/native/test-fake-cockpit-session.py
     # Stories 1012, 1013 (#1012): what just testflight refuses before it builds, from its dry run.
     scripts/native/test-testflight.sh
-    # #943: URL loading on Linux needs FoundationNetworking; the Mac's build can't see a file that forgot it.
+    # Stories 1027-1029 (bead context-grabber-omes): just ota's arguments and dry run; ota-watch's batch rule and post.
+    scripts/native/test-ota.sh
+    # #943: URL loading on Linux needs FoundationNetworking. Bead cmk: check Apple-only imports against Linux branches,
+    # including #if canImport and #if os, on the Mac host rung.
     scripts/native/test-linux-imports.sh
     # Story 789 (#993): every story ID is used once and sits in its journey's ranges in docs/stories/README.md.
     # Stories 791-794: reserve hands out free IDs against main, open PRs and a locked ledger; pre-merge catches a collision.
@@ -201,6 +207,19 @@ native-run-device: native-build-device
 # (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH, or the ignored scripts/native/testflight.local). --export-only needs no key.
 testflight *args: native-project
     scripts/native/testflight.sh {{args}}
+
+# A development build of main over the air (bead context-grabber-omes, stories 1027-1028; docs/DEPLOYING.md): archived as
+# testflight --export-only does, exported development-signed, checked that its profile lists the iPad, and copied to
+# the Cockpit's /builds as grabber-<sha>.ipa (OTA_HOST, OTA_DIR). --dry-run builds nothing; --check-ipa <ipa> only checks.
+[positional-arguments]
+ota *args:
+    scripts/native/ota.sh "$@"
+
+# Runs just ota after each merge batch (merges, then 10 quiet minutes) and posts the build to Igor's Cockpit thread
+# (story 1029, docs/DEPLOYING.md). Runs in the foreground.
+[positional-arguments]
+ota-watch *args:
+    scripts/native/ota-watch.sh "$@"
 
 # Native rung 1.5, the Mac app (#638), with no signing identity: no iCloud, nothing asked of Xcode's account.
 native-build-mac: native-project

@@ -25,8 +25,8 @@ final class WhiteboardPasteUITests: XCTestCase {
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
-    if ghosts.label.hasPrefix("Ghosts off") { ghosts.tap() }
-    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts on'"), ghosts, timeout: 5)
+    if ghosts.label.hasPrefix("Ask at my pauses: off") { ghosts.tap() }
+    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: on'"), ghosts, timeout: 5)
     return app
   }
 
@@ -50,7 +50,7 @@ final class WhiteboardPasteUITests: XCTestCase {
     let ghosts = app.buttons["whiteboard-ghosts"]
     // Ghosts off, so nothing else lands on the paper.
     ghosts.tap()
-    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts off'"), ghosts, timeout: 5)
+    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: off'"), ghosts, timeout: 5)
     sleep(2)
     // The first ink brings the next page, which on a phone moves the view: the paste comes after it.
     stroke(app)
@@ -66,7 +66,7 @@ final class WhiteboardPasteUITests: XCTestCase {
     wait(app, strokes: 1)
     // Ghosts back on: the setting outlives the launch, and the next test reads it as it opens (7 Nov: it began off).
     ghosts.tap()
-    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts on'"), ghosts, timeout: 5)
+    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: on'"), ghosts, timeout: 5)
   }
 
   /// Stories 390, 391: each letter is written in its strokes on the canvas, and a paste starts Claude's pause as a drawn stroke does.
@@ -77,6 +77,6 @@ final class WhiteboardPasteUITests: XCTestCase {
     XCTAssertTrue(app.buttons["whiteboard-paste"].appears(within: 5))
     wait(app, strokes: 8)
     let ghosts = app.buttons["whiteboard-ghosts"]
-    waitUntil(NSPredicate(format: "label == %@", "Ghosts on, 1 showing"), ghosts, timeout: 10)
+    waitUntil(NSPredicate(format: "label == %@", "Ask at my pauses: on, 1 showing"), ghosts, timeout: 10)
   }
 }

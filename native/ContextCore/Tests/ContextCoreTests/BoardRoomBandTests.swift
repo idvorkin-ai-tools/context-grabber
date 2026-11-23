@@ -1,8 +1,11 @@
 //  Stories 1044, 1038, 1039, 1042 (#1000): the band the room handle shows while held is what the lift will do.
 
 import ContextCore
-import CoreGraphics
 import XCTest
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 final class BoardRoomBandTests: XCTestCase {
   private func line(_ y: CGFloat) -> CGRect { CGRect(x: 40, y: y, width: 300, height: 30) }

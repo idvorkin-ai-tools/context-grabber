@@ -525,20 +525,40 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1055:
 
 - **Summary:** A long press on a bar button says its name
-- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Not yet seen on the iPad
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Renamed *Ask at my pauses*, its row naming the responder, in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac) (story 1171), the same test on the iPad simulator. Not yet seen on the iPad
 - **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
 
 #### Use Case:
 - **As someone** who sees a sparkle and a hand in the board's bar
 - **I want to** find out what each one does without trying it
-- **so that** I don't send Larry a picture or turn off Claude's suggestions by accident
+- **so that** I don't send Larry a picture or accidentally stop the board from asking at my pauses
 
 #### Acceptance Criteria:
 - **Scenario:** Long press the sparkle
-- **Given:** a board open with Ghosts on
+- **Given:** a board open with *Ask at my pauses* on
 - **When:** I press and hold the sparkle
-- **Then:** a small menu headed *Ghosts* shows one row, *Hide Claude's suggestions*, which does it if I tap it; Talk, Larry and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 926), and a plain tap on any of them does what it always did
+- **Then:** a small *Ask at my pauses* menu offers a row that toggles the switch and names the board's responder ([story 1171](#user-story-1171)); Talk, Larry and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 926), and a plain tap on any of them does what it always did
+
+---
+
+### User Story 1171:
+
+- **Summary:** The Ghosts switch is *Ask at my pauses*, for whoever answers the board
+- **Status:** implemented in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac); verified on the host (`WhiteboardGhostTurnsTests.testTheLinesNameTheSwitchForWhoeverAnswers`, the shared prefix of the two bar notices), the Mac build, and the iPad simulator (rung 2, the whole `test-whiteboard-ui.sh` suite on iPad Pro 11-inch (M5) before the rebase onto 5260449a: `WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard` sees the fake Cockpit's request count rise after a pause with the switch on for Larry and stay put after pauses with it off for either Larry or Haiku, reads the long press's row for each responder, the no-one-is-watching line and Larry's two marks staying; `testTheBarNamesItsButtonsAndHasNoHole` reads the new menu; `WhiteboardHelpFeedbackUITests` the help row; every other whiteboard UI test on the new label, 81 of 82 passing, the one failure `WhiteboardOnPaperUITests.testInkShowsInDarkMode`, unrelated, bead context-grabber-vsz9). No iPhone run (Igor, 2026-11-22). Not yet seen on the iPad
+- **Issues:** bead `context-grabber-4ic` (Igor, design board, 2026-11-22: "the switch becomes 'Ask at my pauses' for whoever answers"; labelled *Ghosts* / *Hide Claude's suggestions*, it read as Claude's alone, though on a Larry board, the default, it also stops Larry being asked and keeps the mic closed)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md); [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
+
+#### Use Case:
+- **As someone** drawing on a board that Larry or Claude answers
+- **I want to** see the switch named for what it does, asking whoever answers at my pauses
+- **so that** I don't turn it off thinking only Claude goes quiet and then write for minutes to a board Larry can't see
+
+#### Acceptance Criteria:
+- **Scenario:** Turning it off on a Larry board, and on a Haiku board
+- **Given:** a board open with *Ask at my pauses* on, Larry's marks showing, and its responder Larry (or Haiku)
+- **When:** I press and hold the sparkles, tap *Stop asking Larry at my pauses* (or *… Haiku …*), then write and pause
+- **Then:** VoiceOver reads *Ask at my pauses: off*, nothing is sent at the pause, the bar [says no one is watching](10-whiteboard-marks.md#user-story-1114), and Larry's marks stay. Talk [requires the switch to be on](10-whiteboard-turn.md#user-story-367), and the [help sheet](#user-story-950) lists the switch under *In the bar*
 
 ---
 
@@ -1016,7 +1036,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 950:
 
 - **Summary:** The board's cheat sheet is one tap away
-- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) the ? opened *How this board works* listing every gesture the test names; its close and the fixed test's full pass not yet seen (the Mac's screen was locked for the rerun); not yet seen on the iPad
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408) and [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c), verified on the host and the Mac build. The *Ask at my pauses* row was added in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac). On the iPad simulator, `WhiteboardHelpFeedbackUITests.testTheCheatSheetIsOneTap` checked that the sheet opens, lists the row and closes (see [story 1171](#user-story-1171) for the pre-rebase run). Not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 
 #### Use Case:
@@ -1030,7 +1050,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap **?** at the board's top right
 - **Then:** *How this board works* opens and lists the margin tap, the margin hold with a finger or the Pencil, the hold
   on the page, the Pencil on a word, scratch-out, the lasso's *To text*, the shape snap, *Keep all*, *Fold all* and the
-  levels, and Feedback; *Done* closes it and the board is as it was
+  levels, *Ask at my pauses* in the bar (story 1171), and Feedback; *Done* closes it and the board is as it was
 
 ---
 
@@ -1050,7 +1070,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The bar after the change
 - **Given:** a board drawn on this iPad
 - **When:** it opens
-- **Then:** the Board menu, Paste, the mic, Ghosts, Larry's turn and Send are in the top bar as before, and **?** and
+- **Then:** the Board menu, Paste, the mic, *Ask at my pauses*, Larry's turn and Send are in the top bar as before, and **?** and
   Feedback float at the board's top right; a look-only board shows Feedback only
 
 ---
@@ -1313,3 +1333,83 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board I drew on while talking (with the mic open for the words, or recording for the sound)
 - **When:** I play it back and tap a stroke I drew as I talked
 - **Then:** playback jumps there and shows the line I was saying then, or plays the sound from that moment
+
+---
+
+### User Story 1173:
+
+- **Summary:** Only a scrubbed copy of the Cockpit's recorded board sessions is kept in this public repo
+- **Status:** implemented on branch `native/board-sessions-09tx`; verified on the host (`test-board-sessions.py`, and the copy's own check against the source words when it was made from cockpit 9ca45fe)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A recorded board session replays too*
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As Igor,** whose real board conversations the Cockpit records
+- **I want to** have only a copy with nothing readable in it kept in the public repo
+- **so that** what I wrote and what Larry answered me stays private while the app's tests still replay it
+
+#### Acceptance Criteria:
+- **Scenario:** Making the copy
+- **Given:** the Cockpit's recorded sessions at a named commit
+- **When:** the copy is made
+- **Then:** every id, count, revision, frame, event, change and receipt is as recorded, every letter of any script is an x and every digit a 0, every stroke is a straight line across its own box, snapped out to a 40-point grid, and a field the copy doesn't know or a word of four letters or more from the writing left readable stops it with nothing written
+
+---
+
+### User Story 1182:
+
+- **Summary:** Larry's recorded batches get, on the Mac, the answers the iPad gave them
+- **Status:** implemented on branch `native/board-sessions-09tx`; verified on the host (`BoardSessionReplayTests`, `just board-ops --session ops-move`), `just native-test` and the Mac build
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A recorded board session replays too*
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As an agent** changing the board's rules for Larry's changes
+- **I want to** replay real recorded conversations with the board's own rules, the same ones the Cockpit replays
+- **so that** a change that would answer Larry differently than the iPad did shows in seconds, named, not on Igor's iPad
+
+#### Acceptance Criteria:
+- **Scenario:** The four recorded sessions replayed
+- **Given:** Larry's delete that came while Igor kept writing, and his room-making batch that came after Igor drew one more stroke
+- **When:** the sessions replay on the Mac (`just board-ops --session <name>`, or the host tests)
+- **Then:** the delete applies, rebased from his look, at the revision the iPad reported on its next turn, and the room-making batch, which the iPad of that night refused as stale, now applies rebased (story 961), the replay naming that difference instead of hiding it
+
+---
+
+### User Story 1183:
+
+- **Summary:** Each of my recorded board turns carries what the Cockpit told Larry about it
+- **Status:** implemented on branch `native/board-sessions-09tx`; verified on the host (`BoardSessionReplayTests` against the four sessions' recorded hints)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A recorded board session replays too*
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As an agent** changing what the board sends with a turn
+- **I want to** check each recorded turn's board fields against the hint the Cockpit woke Larry with
+- **so that** a field the app drops or renames shows before Larry is told less than he was
+
+#### Acceptance Criteria:
+- **Scenario:** Every turn of the four sessions
+- **Given:** each of Igor's recorded turns and the Cockpit's recorded hint for it
+- **When:** the session replays
+- **Then:** its revision, its last batch's answer, its number of events and its strokes count (new among them) are what the hint says, and a words-only message on the board's thread has no board hint
+
+---
+
+### User Story 1174:
+
+- **Summary:** The simulator's stand-in Cockpit plays a recorded board session back
+- **Status:** implemented on branch `native/board-sessions-09tx`; verified on the host (`test-fake-cockpit-session.py`: all four sessions' strokes answers, hints, Larry's rows and receipts); not yet driven by a UI test on the iPad simulator (the Board Lab, slice 4)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A recorded board session replays too*
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As an agent** testing the board on the simulator
+- **I want to** have the stand-in Cockpit answer the board as the real one did in a recorded session
+- **so that** a UI test sees Larry's real replies, marks and changes in their real order instead of made-up ones
+
+#### Acceptance Criteria:
+- **Scenario:** A session chosen
+- **Given:** the stand-in Cockpit with a recorded session chosen
+- **When:** the board posts its strokes and each turn of that session, in order
+- **Then:** each strokes post is answered with the counts the Cockpit gave that day, each turn gets Larry's next recorded reply (words, marks or a batch of changes) and the receipts recorded for it, and the hint the stand-in would wake Larry with is the Cockpit's recorded one

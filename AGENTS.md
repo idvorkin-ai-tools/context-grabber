@@ -21,6 +21,7 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
 |---|---|
 | [VISION.md](VISION.md) | what the app is for and who it serves: the humane mirror, the front door, the phone's line to Larry |
 | [docs/TESTING.md](docs/TESTING.md) | the test ladder (lint → host → Mac → simulator → phone), which change is verified where, the launch hooks, the real-data fixtures, what only the phone can show |
+| [docs/DEPLOYING.md](docs/DEPLOYING.md) | how a build reaches the phone and the iPad: the cable and network install, `just ota` and `ota-watch` over the air, signing, renewing the profile, adding a device, iCloud development vs production, what would make it faster |
 | [docs/DEBUGGING.md](docs/DEBUGGING.md) | the session log and its events, copyable errors, instrument before theorizing, how a bug goes from the phone to a closed issue |
 | [docs/stories/README.md](docs/stories/README.md) | the spec: user stories per journey, each with its status and commits |
 | [docs/superpowers/specs/](docs/superpowers/specs/) | the design spec behind each feature — functionality, not implementation; updated before the code |
@@ -149,6 +150,8 @@ just native-test-sim      # simulator build + the launch-hook smoke (scripts/nat
 just native-sim-health    # once per simulator: grant Health access (a UI test taps the sheet)
 just native-run-device    # build under the signing lock, install and launch on the iPhone
 just testflight           # the commit to TestFlight beside the cable (--export-only needs no key; docs/TESTING.md)
+just ota                  # main, development-signed, to the Cockpit's /builds for the iPad (docs/DEPLOYING.md)
+just ota-watch            # just ota after each merge batch, posted to Igor's thread (foreground; docs/DEPLOYING.md)
 just pull-logs            # session logs, reports and crashes from the phone (and the iPad)
 just bugs-check           # unfiled reports on every plugged-in device
 ```
