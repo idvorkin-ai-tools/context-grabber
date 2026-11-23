@@ -78,7 +78,8 @@ final class ChatAskSearchUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["ask-search-empty"].appears(within: 10), app.debugDescription)
     XCTAssertEqual(app.staticTexts["ask-search-empty"].label, "No asks match.")
     label(count, is: "0 open · 1 answered (tick to show)")
-    app.buttons["ask-search-all"].tap()
+    // A Toggle drawn as a button: a switch or a button to XCUITest, depending on the OS.
+    app.descendants(matching: .any).matching(identifier: "ask-search-all").firstMatch.tap()
     XCTAssertTrue(app.buttons["ask-search-row-igor2-88g.882"].appears(within: 10), app.debugDescription)
     label(count, is: "0 open · 1 answered")
 
