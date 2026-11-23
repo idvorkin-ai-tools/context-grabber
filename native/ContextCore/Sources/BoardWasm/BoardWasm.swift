@@ -1,8 +1,8 @@
 //  The board's rules behind a small C interface, for the Cockpit's web board (spec
-//  2026-11-22-board-rules-on-the-web-design.md, The interface, versions 1 and 2). The board stays loaded: `bw_load`
+//  2026-11-22-board-rules-on-the-web-design.md, The interface, versions 1 to 3). The board stays loaded: `bw_load`
 //  once, `bw_add_strokes` for new ink, `bw_cut_y` with plain numbers. Inputs are the host's buffers, read and never
 //  kept; every pointer returned is a new length-prefixed reply the host frees with `bw_free`. The outline's exports
-//  (rows and folds) are in BoardWasmOutline.swift.
+//  (rows and folds) are in BoardWasmOutline.swift, a paste's landing and a drop's room in BoardWasmRoom.swift.
 
 #if os(WASI)
   import BoardCore
