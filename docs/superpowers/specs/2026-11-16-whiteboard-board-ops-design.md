@@ -278,7 +278,9 @@ board differs, this says why.
 - **Making or unmaking a header is one Undo too**, so a stray margin tap costs one tap. A header made by a margin tap
   or *Make header* is undone as *Make header*, and *Not a header* as *Not a header*: Undo takes back only the header
   change (the ▾ goes, or comes back, and nothing else on the board changes, the stroke before it included), and Redo
-  makes it again. A header made by drawing its underline or # stays undone with that stroke, as one step.
+  makes it again. *Not a header* on a folded header opens its lines too, and its one Undo folds them back under the
+  header, never leaving them hidden with no header to open them. A header made by drawing its underline or # stays
+  undone with that stroke, as one step.
 - Folded ink is still on the board: it moves with its header, and a push never splits it from its header. Larry is
   told which strokes are folded under which header and how many lines, so folded ink is never taken for erased, nor
   for new when it unfolds.

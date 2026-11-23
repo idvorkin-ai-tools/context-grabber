@@ -1,6 +1,7 @@
 //  Stories 853, 855, 858, 900, 901 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a paste's Delete, a margin tap that makes a header and folds it, a fold's lines beside it, Larry's
-//  picture of a folded section (#1013), and the hold menu.
+//  picture of a folded section (#1013), the hold menu, and a header made or unmade as one Undo (bead
+//  context-grabber-ssl).
 //  Where things land, how a section ends and what a fold moves are `BoardRoomTests` and `BoardOutlineTests` on the
 //  host; these check the gestures reach them on paper.
 
@@ -108,13 +109,38 @@ final class WhiteboardOutlineUITests: XCTestCase {
     let redo = app.buttons["whiteboard-redo"]
     waitUntil(NSPredicate(format: "label CONTAINS %@", "Make header"), undo, timeout: 5)
     undo.tap()
-    waitUntil(NSPredicate(format: "exists == false"), marks(app, "Header").firstMatch, timeout: 5)
+    waitUntil(NSPredicate(format: "count == 0"), marks(app, "Header"), timeout: 5)
     wait(send(app), label: strokes(2))
     shot(app, "the header undone, the ink kept")
     waitUntil(NSPredicate(format: "isEnabled == true"), redo, timeout: 5)
     redo.tap()
     XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "Redo makes it again")
     wait(send(app), label: strokes(2))
+  }
+
+  /// Story 855 (bead context-grabber-ssl): *Not a header* on a folded header opens its lines and unmakes it, one Undo
+  /// that puts the header back folded, never the lines hidden with no header to open them.
+  func testNotAHeaderOnAFoldIsOneUndoThatPutsTheFoldBack() throws {
+    let app = try openBoard()
+    sleep(1)
+    write(app, x: 0.12, to: 0.4, y: 0.30)
+    write(app, x: 0.2, to: 0.5, y: 0.36)
+    wait(send(app), label: strokes(2))
+    point(app, margin, 0.305).tap()
+    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), app.debugDescription)
+    point(app, margin, 0.305).tap()
+    XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), app.debugDescription)
+    point(app, 0.7, 0.30).press(forDuration: 1.0)
+    let not = app.buttons["whiteboard-hold-not-header"]
+    XCTAssertTrue(not.appears(within: 5), "beside a header: Not a header \(app.debugDescription)")
+    not.tap()
+    waitUntil(NSPredicate(format: "count == 0"), marks(app, "Folded header"), timeout: 5)
+    XCTAssertEqual(marks(app, "Header").count, 0, "no header left")
+    let undo = app.buttons["whiteboard-undo"]
+    waitUntil(NSPredicate(format: "label CONTAINS %@", "Not a header"), undo, timeout: 5)
+    undo.tap()
+    XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), "folded again: \(app.debugDescription)")
+    shot(app, "Not a header undone: the fold back")
   }
 
   /// Story 1030 (#967): a line drawn under a line of writing makes it a header as it lands, no margin tap. The
