@@ -22,7 +22,8 @@ extension PaperBoardController {
       let newest = markup.subelements.strokes.firstIndex(where: { Self.key($0.elementID) == key })
     else { return }
     var made: BoardOutline.InkHeader?
-    _ = changeOutline("Make header") { outline in
+    // Story 1033: the header goes with its mark's own Undo, never one of its own.
+    _ = changeOutline("Make header", headerStep: false) { outline in
       made = outline.inkHeader(newest: newest, id: WhiteboardModel.newHeaderID())
       return made != nil
     }

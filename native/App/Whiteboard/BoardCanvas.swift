@@ -23,8 +23,8 @@ protocol BoardCanvas: AnyObject {
   /// logged as `why`. False when the canvas didn't take it, and the keep inks as ever.
   func keepMakingRoom(_ strokes: [PKStroke], push: BoardRoom.Push, why: String) -> Bool
   /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) as one undo named
-  /// `label`; false when nothing changed.
-  func changeOutline(named label: String, _ change: (inout BoardOutline) -> Bool) -> Bool
+  /// `label`, read once the change is made; false when nothing changed.
+  func changeOutline(named label: @autoclosure () -> String, _ change: (inout BoardOutline) -> Bool) -> Bool
   /// Story 896: the strokes at these places in the drawing moved down so far, one undo. False when there is no markup
   /// yet.
   func moveStrokes(_ moves: [Int: CGFloat]) -> Bool

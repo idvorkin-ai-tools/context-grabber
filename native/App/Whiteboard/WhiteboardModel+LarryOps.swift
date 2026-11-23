@@ -64,7 +64,7 @@ extension WhiteboardModel {
     guard editable else { return }
     var what = "nothing"
     let changed =
-      canvas?.changeOutline(named: "Fold") { outline in
+      canvas?.changeOutline(named: Self.marginStepName(what)) { outline in
         if let header = outline.header(at: y) {
           what = outline.isFolded(header) ? "unfold" : "fold"
           return outline.toggle(header.id)
@@ -74,6 +74,15 @@ extension WhiteboardModel {
       } ?? false
     log.event(
       "board_outline", ["action": "margin_tap", "board": board.id, "y": Double(y), "did": what, "changed": changed])
+  }
+
+  /// A margin tap's Undo, named for what it did (bead context-grabber-ssl).
+  static func marginStepName(_ what: String) -> String {
+    switch what {
+    case "header": "Make header"
+    case "unfold": "Unfold"
+    default: "Fold"
+    }
   }
 
   /// A header's id, as the Cockpit takes a stroke's.

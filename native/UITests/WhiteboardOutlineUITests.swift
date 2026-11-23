@@ -94,6 +94,29 @@ final class WhiteboardOutlineUITests: XCTestCase {
     XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "unfolded again")
   }
 
+  /// Story 855 (bead context-grabber-ssl): a margin tap's header is one Undo, named for it, that takes back the header
+  /// and no stroke; Redo makes it again.
+  func testAMarginTapsHeaderIsOneUndoThatLeavesTheInk() throws {
+    let app = try openBoard()
+    sleep(1)
+    write(app, x: 0.12, to: 0.4, y: 0.30)
+    write(app, x: 0.2, to: 0.5, y: 0.36)
+    wait(send(app), label: strokes(2))
+    point(app, margin, 0.305).tap()
+    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "a ▾ in the margin: \(app.debugDescription)")
+    let undo = app.buttons["whiteboard-undo"]
+    let redo = app.buttons["whiteboard-redo"]
+    waitUntil(NSPredicate(format: "label CONTAINS %@", "Make header"), undo, timeout: 5)
+    undo.tap()
+    waitUntil(NSPredicate(format: "exists == false"), marks(app, "Header").firstMatch, timeout: 5)
+    wait(send(app), label: strokes(2))
+    shot(app, "the header undone, the ink kept")
+    waitUntil(NSPredicate(format: "isEnabled == true"), redo, timeout: 5)
+    redo.tap()
+    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "Redo makes it again")
+    wait(send(app), label: strokes(2))
+  }
+
   /// Story 1030 (#967): a line drawn under a line of writing makes it a header as it lands, no margin tap. The
   /// "writing" is a slanted stroke, which no underline is; the indented line under it folds.
   func testAnUnderlineDrawnUnderALineMakesItAHeader() throws {
