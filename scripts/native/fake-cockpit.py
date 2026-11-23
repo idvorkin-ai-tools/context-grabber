@@ -50,6 +50,10 @@ abandons, POST /snooze snoozes; GET /fake/answers lists every one of those poste
 /act or /close appends Igor's row to the ask's thread ("Decided: <label>", "Closed: <reason>", "Abandoned[: <reason>]",
 "Dismissed[: <reason>]") and the answer gains chat {posted, thread, message, duplicate}, or {posted: false, thread, error}
 for an ask with no chat, as serve.py's post_decision_to_chat.
+Searching the asks (story 1132): GET /asks/search?q=<words>[&all=1] answers as the Cockpit's does (cockpit story 206) over
+the open asks /fake/asks made and one answered ask, igor2-88g.882 "Renew the passport?" (answered "Go to the downtown
+agency"), found only with all=1 but always counted: a /threads row each with matches; an empty q is a 400, and a q with
+the word "bdfail" the 502 of bd failing.
 Question cards on a board (stories 880-886): GET /asks?snoozed=1 is GET /asks; POST /fake/larry-asks {"ask": id} opens
 the asks as /fake/asks does (with "other" as there) and has Larry put a question card for that ask on the newest board thread ({kind: question,
 ask, x, y} in the picture's pixels, with its frame); GET /ink/answers?ids=a,b answers with the question and answer of the
@@ -220,6 +224,7 @@ def ask(aid, title, options, default="", expires_in=None, thread=None):
 
 def open_asks(on, other=False, board=None):
     ASKS.clear()
+    ANSWERED.clear()
     del ANSWERS[:]
     DECIDED.clear()
     for key in ASK_CHATS:
@@ -241,10 +246,70 @@ def open_asks(on, other=False, board=None):
     ASKS["igor2-88g.880"] = ask("igor2-88g.880", "Move the review to Monday?",
                                 [("move", "Move it", ""), ("keep", "Keep Friday", "")], expires_in=-3600,
                                 thread="igor2-88g.880")
+    at = "2026-10-20T10:00:00Z"
+    ANSWERED["igor2-88g.882"] = {"id": "igor2-88g.882", "title": "Renew the passport?", "thread": None,
+                                 "context": "Expires in March; the photo booth is downtown.", "options": [],
+                                 "answer": "Go to the downtown agency", "created_at": at, "updated_at": at}
     THREADS["igor2-88g.878"] = {"title": "Lunch on Friday", "seen": "", "messages": [
         row("igor2-88g.878", "larry", "Where should we eat on Friday?")]}
     THREADS["igor2-88g.880"] = {"title": "The review", "seen": "", "messages": [
         row("igor2-88g.880", "larry", "Can the review move?")]}
+
+
+ANSWERED = {}  # story 1132: id -> an answered ask, which GET /asks/search finds with all=1 and GET /asks never lists
+
+
+def search_matches(a, terms):
+    """threads.thread_matches as the fake reads it: each field past the title holding a term, at most three."""
+    title = a["title"].lower()
+    fields = [("context", a.get("context") or "")]
+    fields += [("option", o["label"] + (" — " + o["detail"] if o.get("detail") else "")) for o in a.get("options", [])]
+    fields += [("answer", a.get("answer") or "")]
+    chat = THREADS.get(a.get("thread") or a["id"])
+    fields += [("thread", m["text"]) for m in (chat["messages"] if chat else [])]
+    out = []
+    for field, text in fields:
+        text = " ".join(text.split())
+        low = text.lower()
+        hit = next((t for t in terms if t in low and t not in title), None)
+        if hit is None:
+            continue
+        at = max(0, low.index(hit) - 40)
+        snippet = text[at:at + 140]
+        out.append({"field": field, "snippet": ("…" if at else "") + snippet + ("…" if at + 140 < len(text) else "")})
+    return out[:3]
+
+
+def ask_search(query):
+    """GET /asks/search?q=<words>[&all=1] as serve.py's handle_ask_search answers it (cockpit story 206): every word
+    somewhere in the ask, case ignored; open asks first, answered behind all=1 but always counted; a /threads row each,
+    plus matches. A q holding "bdfail" is the 502 of bd failing."""
+    q = (query.get("q") or [""])[0]
+    terms = q.lower().split()
+    if not terms:
+        return 400, {"ok": False, "error": "q is required"}
+    if "bdfail" in terms:
+        return 502, {"ok": False, "error": "bd: database is locked"}
+    include = (query.get("all") or [""])[0] in ("1", "true")
+
+    def text(a):
+        chat = THREADS.get(a.get("thread") or a["id"])
+        parts = [a["title"], a.get("context") or "", a.get("answer") or ""]
+        parts += [o["label"] + " " + o["detail"] for o in a.get("options", [])]
+        parts += [m["text"] for m in (chat["messages"] if chat else [])]
+        return "\n".join(parts).lower()
+
+    def found(asks, open_):
+        return [{"key": a["id"], "needs_igor": open_, "open": open_, "last_ts": a["updated_at"], "topic": "",
+                 "root": {"kind": "ask", "id": a["id"], "title": a["title"], "ts": a["created_at"], "priority": 2},
+                 "items": [], "matches": search_matches(a, terms)}
+                for a in asks if all(t in text(a) for t in terms)]
+
+    waiting = found(ASKS.values(), True)
+    answered = found(ANSWERED.values(), False)
+    rows = waiting + (answered if include else [])
+    return 200, {"ok": True, "fetched_at": now(), "q": q, "terms": terms, "inbox": len(ASKS), "open": len(waiting),
+                 "answered": len(answered), "all": include, "count": len(rows), "threads": rows}
 
 
 def decide(path, data):
@@ -480,6 +545,8 @@ class Handler(BaseHTTPRequestHandler):
         with LOCK:
             if path == "/asks":
                 return self._json(200, {"ok": True, "fetched_at": now(), "asks": list(ASKS.values())})
+            if path == "/asks/search":
+                return self._json(*ask_search(urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)))
             if path == "/ink/answers":
                 query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
                 ids = [i for i in (query.get("ids") or [""])[0].split(",") if i]

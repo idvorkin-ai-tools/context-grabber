@@ -3191,3 +3191,44 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I tap the chevron beside its **⋯**, even while a request is on its way
 - **Then:** it becomes one line with the question and a downward chevron. Folding sends nothing, and the row's *Decision waiting* and *Decisions (N)* stay the same. The fold survives leaving the screen, opening the ask in its other place, and restarting the app on this device. Tapping the line brings back the whole card, including any context I expanded and any own answer I had begun under *Other…* on that screen, and keeps it open next time.
 
+### User Story 1132:
+
+- **Summary:** Search the asks on *Decisions* by title and content, the answered ones too
+- **Status:** native app: implemented in '2158881f' and '6a963e19', with its docs and screenshot in '446b4547', on branch `native/inbox-search-4dme`; verified on the host (`just native-test`: `ChatAskSearchTests`, the answer with empty and missing matches, the counts and the count line, the 400 and the 502, the request's escaping, the highlights, a row's tap; `test-fake-cockpit-ops.py`, the fake's `/asks/search`), the Mac build (`just native-build-mac`), and on the iPad Pro 11-inch (M5) simulator (`ChatAskSearchUITests`: an option's word finds the ask with its *option* line and *1 open · 0 answered*, an answered-only match says *No asks match.* and *0 open · 1 answered (tick to show)* and shows once *Answered too* is ticked, a 502 is a copyable problem, a tap opens the chat with the ask's card, and its kept screenshot shows the words marked in the option and context lines; `ChatDecisionUITests` 6/6 there too); not on the iPhone simulator (Igor's no-iPhone rule during the whiteboard work, 2026-11-22), nor on a device; Escape from a hardware keyboard is the system's search Cancel, not tested
+- **Issues:** bead context-grabber-4dme
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Searching the asks*
+
+#### Use Case:
+- **As** Igor looking for a decision I remember a few words of
+- **I want to** type them into the search box on *Decisions* and see the asks that say them, wherever they say them
+- **so that** I can find an ask, open or long answered, on the phone as on the Cockpit's Inbox
+
+#### Acceptance Criteria:
+- **Scenario:** A word only in the ask's body
+- **Given:** an open ask whose context, an option or its conversation says "ramen", and whose question does not
+- **When:** I type "ramen" in the box on *Decisions*
+- **Then:** once I pause, the list is that ask, with a line under its question saying where it matched (*option*) and
+  the word marked, and the count line reads *1 open · 0 answered*
+
+- **Scenario:** Several words, any order
+- **Given:** an ask titled "Reconnect the Kindle Scribe Drive token?"
+- **When:** I type "kindle reconnect"
+- **Then:** it is found: every word must appear somewhere, case ignored, and characters like `.` and `<` are just characters
+
+- **Scenario:** Only an answered ask matches
+- **Given:** the only ask that matches was answered last month
+- **When:** I search
+- **Then:** the list says *No asks match.* and the count reads *0 open · 1 answered (tick to show)*; ticking *Answered
+  too* shows it, after any open ones
+
+- **Scenario:** Opening a found ask
+- **Given:** a found row for an open ask Larry filed from a chat
+- **When:** I tap it
+- **Then:** that chat opens with the ask's card at the top; an answered ask opens its own chat, or its page on the Cockpit
+  when Chat doesn't have it
+
+- **Scenario:** The search fails
+- **Given:** the Cockpit can't read its beads (a 502), or can't be reached
+- **When:** I search
+- **Then:** a copyable problem shows in place of the rows, carrying the words and the status; emptying the box brings the
+  cards back as they were

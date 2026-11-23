@@ -45,7 +45,7 @@ float ... to maximize my available space"*; this replaces the opaque bar of #637
 around them, and the end of the list scrolls up clear of them, so no row is ever stuck beneath. A swipe can't start on a
 button itself, only on the rest of the row. The **+** starts a new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
 
-**Decision cards** (Igor, 2026-11-14, #878). Larry's asks — the Cockpit's Inbox of decisions — show in Chat: the card at the top of the chat the ask continues, *Decision waiting* on that thread's row, and *Decisions (N)* under Larry's pinned thread with every open ask as a card. A tap on an option answers it; the card's **⋯** snoozes, closes or abandons it. The whole behaviour is its own spec: [Decision cards in Chat](2026-11-14-chat-decision-cards-design.md).
+**Decision cards** (Igor, 2026-11-14, #878). Larry's asks — the Cockpit's Inbox of decisions — show in Chat: the card at the top of the chat the ask continues, *Decision waiting* on that thread's row, and *Decisions (N)* under Larry's pinned thread with every open ask as a card. A tap on an option answers it; the card's **⋯** snoozes, closes or abandons it. *Decisions* has a search box that finds asks, open or answered, by words anywhere in them, as the Cockpit's Inbox search does (Igor, 2026-11-22, bead context-grabber-4dme). The whole behaviour is its own spec: [Decision cards in Chat](2026-11-14-chat-decision-cards-design.md).
 
 **Archiving** (Igor, 2026-11-01: "Let me archive threads both via swipe and via buttons in chat overflow"; #589, the
 Cockpit's archive shipped first). Swiping a thread left in the list offers *Archive*; it folds under *Done* at once,
