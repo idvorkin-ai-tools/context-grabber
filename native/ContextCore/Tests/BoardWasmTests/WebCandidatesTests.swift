@@ -3,7 +3,7 @@ import XCTest
 
 @testable import BoardWasm
 
-/// Story 1701 (spec 2026-11-22-board-rules-on-the-web-design.md, The interface, version 9): `bw_candidates` offers the
+/// Story 1267 (spec 2026-11-22-board-rules-on-the-web-design.md, The interface, version 9): `bw_candidates` offers the
 /// lines the app's own outline offers, on the Cockpit's recorded boards and on seeded ones.
 final class WebCandidatesTests: XCTestCase {
   /// The app's candidates in the export's form.

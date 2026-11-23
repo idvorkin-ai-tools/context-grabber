@@ -424,7 +424,7 @@ check(same(textRoom([120, 190, 200, 220]), { cut: 190, dy: 80, sits: true, y: 19
 check(same(textRoom([120, 400, 200, 430]), { cut: 400, dy: 0, sits: false, y: 400 }), `a text on clear paper: none: ${JSON.stringify(textRoom([120, 400, 200, 430]))}`);
 check(textRoom(null).error === 'no box', 'no box says so');
 
-// Interface 9, story 1701 (spec, lines that look like headers): four usual lines of three letters 24 tall (each line's
+// Interface 9, story 1267 (spec, lines that look like headers): four usual lines of three letters 24 tall (each line's
 // box 27 tall, pen 3), a line of three letters 60 tall at 300 (box 98.5..229.5 by 298.5..361.5: half again his usual
 // line, letters 1.6 times his, wider than twice its height), a line at 420 with a flat stroke under it (box 98.5..169.5
 // by 418.5..445.5) and a big line at 520 that is a header already. The big line is offered at its middle, 330, the

@@ -244,7 +244,7 @@ whole lines until it is half a line under the lowest mark. `bw_info` says `"abi"
 
 ## The interface, version 9: lines that look like headers
 
-Story 1701. The faint H the web board offers beside a line written big or underlined is the iPad's offer: the same
+Story 1267. The faint H the web board offers beside a line written big or underlined is the iPad's offer: the same
 lines, for the same reasons, over the loaded outline. `bw_info` says `"abi": 9`; versions 1 to 8 are unchanged.
 
 | Export | Arguments | Returns |
