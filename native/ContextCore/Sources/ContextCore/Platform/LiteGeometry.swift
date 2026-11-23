@@ -1,4 +1,4 @@
-//  The wasm build only (bead context-grabber-pt1e, story 1700): CGFloat, CGPoint, CGSize and CGRect, which Linux
+//  The wasm build only (bead context-grabber-pt1e, story 1236): CGFloat, CGPoint, CGSize and CGRect, which Linux
 //  Foundation carries and FoundationEssentials does not. The same fields, arithmetic and edge rules as Linux
 //  Foundation's, which the wasm used before (a 32-bit target, where its CGFloat is a Float). LinuxGeometry.swift adds
 //  the vector and the transform on top, as it does on Linux.

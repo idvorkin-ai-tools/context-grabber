@@ -1,5 +1,5 @@
 //  The few Foundation pieces the board's rules use that FoundationEssentials lacks, written out so the board wasm
-//  links no ICU (bead context-grabber-pt1e, story 1700). Built everywhere and tested on the Mac against Foundation;
+//  links no ICU (bead context-grabber-pt1e, story 1236). Built everywhere and tested on the Mac against Foundation;
 //  only the wasm build (FOUNDATION_ESSENTIALS_ONLY) calls them, through FoundationLiteShims.swift, so the app keeps
 //  Foundation's own. Where Linux Foundation, which the wasm used before, differs from Apple's, they follow Linux's.
 

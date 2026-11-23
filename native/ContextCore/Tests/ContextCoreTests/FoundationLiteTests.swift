@@ -1,4 +1,4 @@
-// Story 1700 (bead context-grabber-pt1e): the board wasm's stand-ins for Foundation, which it links without ICU, give
+// Story 1236 (bead context-grabber-pt1e): the board wasm's stand-ins for Foundation, which it links without ICU, give
 // what Foundation gives on the same inputs. Where Linux Foundation (what the wasm ran before) differs from Apple's,
 // the expected text is Linux's, pinned from a run there.
 

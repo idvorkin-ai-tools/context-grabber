@@ -1685,3 +1685,22 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** any jump between a board and its chat
 - **When:** it happens
 - **Then:** the session log says where from, where to, how (slid in, went back, or brought forward) and whether any list was passed through
+
+---
+
+### User Story 1236:
+
+- **Summary:** The board's web rules load without Foundation's locale data
+- **Status:** implemented in [a3f54c22](https://github.com/idvorkin/context-grabber/commit/a3f54c226821b5bb6e117e20cc578778436030de). Verified on the Mac host by `FoundationLiteTests`, which compares each stand-in with Foundation, and by `just native-test`; the iPad and Mac apps keep full Foundation and build unchanged. Also verified on Linux in Docker with Swift 6.4.3 and its wasm SDK: the module dropped from 55.9 MB to 14.9 MB, and gzipped from 19.8 MB to 4.4 MB. `test-board-wasm` passed 168 of 168 checks. Every reply matches the old module's byte for byte, apart from the order inside one unordered debug dictionary.
+- **Issues:** bead context-grabber-pt1e
+
+#### Use Case:
+- **As Igor,** opening a board on the Cockpit's web page
+- **I want to** download board rules that leave out Foundation's ICU locale data, which they never use
+- **so that** the board opens quickly, even on the phone's connection
+
+#### Acceptance Criteria:
+- **Scenario:** The rules answer as before without the locale data
+- **Given:** the recorded board sessions
+- **When:** the board's rules are built as WebAssembly without Foundation's locale data and the sessions replay through them
+- **Then:** every check passes and every answer is the same as before

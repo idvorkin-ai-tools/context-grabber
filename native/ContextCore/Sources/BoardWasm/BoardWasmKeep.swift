@@ -3,7 +3,12 @@
 //  `bw_outline_load` keeps. Only the export is WASI's; the answer builds everywhere.
 
 import BoardCore
-import Foundation
+
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -59,7 +64,7 @@ enum WebKeep {
   public func bwLate(_ pointer: UnsafeRawPointer?, _ length: Int32) -> UnsafeMutableRawPointer {
     guard let loaded = outline else { return reply(json: ["error": "no outline is loaded"]) }
     guard let json = try? JSONSerialization.jsonObject(with: input(pointer, length)) as? [String: Any],
-      let seen = (json["seen"] as? NSNumber)?.int64Value
+      let seen = JSONNumber(json["seen"])?.int64Value
     else { return reply(json: ["error": "no marks and seen"]) }
     let marks = (json["marks"] as? [Any] ?? []).compactMap(WebConnectors.box)
     return reply(

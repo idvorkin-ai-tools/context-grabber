@@ -39,7 +39,7 @@ enum WebOutline {
       $0.union(CGRect(origin: $1, size: .zero))
     }
     return BoardOps.Stroke(
-      ids: [id], t: (entry["t"] as? NSNumber)?.int64Value, bounds: box.insetBy(dx: -width / 2, dy: -width / 2),
+      ids: [id], t: JSONNumber(entry["t"])?.int64Value, bounds: box.insetBy(dx: -width / 2, dy: -width / 2),
       hidden: entry["hidden"] as? Bool ?? false, points: points, pen: width)
   }
 
