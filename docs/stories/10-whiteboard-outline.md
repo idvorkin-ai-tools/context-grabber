@@ -110,6 +110,36 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1231:
+
+- **Summary:** Ink written under a folded header stays outside its fold
+- **Status:** in progress on branch native/fold-ink-below-header-eysh
+- **Issues:** context-grabber-eysh (Igor's board, 2026-11-23; Cockpit bead cockpit-9ik: 10 new strokes went into a 145-stroke fold)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** who folds a section and keeps writing just under its header
+- **I want to** have what I wrote stay out when I fold the section again
+- **so that** a fold never hides a new thought I didn't ask it to hide
+
+#### Acceptance Criteria:
+- **Scenario:** Written under the fold, then folded again
+- **Given:** a header whose lines aren't indented, folded, and a new line I wrote just under it while it was folded
+- **When:** I unfold it and fold it again
+- **Then:** the new line shows below the header, and only the section's own lines fold, as they did the first time
+
+- **Scenario:** Nothing written under the fold
+- **Given:** a folded header with nothing written under it
+- **When:** I unfold it and fold it again
+- **Then:** the fold hides the same lines as before, and the section ends where it always did
+
+- **Scenario:** The new ink erased
+- **Given:** a section ended by ink written under it while it was folded
+- **When:** I erase that ink
+- **Then:** the section runs on again as it did before
+
+---
+
 ### User Story 857:
 
 - **Summary:** Larry knows folded ink is folded, not erased

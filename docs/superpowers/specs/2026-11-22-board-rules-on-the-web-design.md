@@ -111,6 +111,10 @@ held apart from the board `bw_load` keeps:
 - Which strokes belong to one group (a text or a card is its own group).
 - The headers as the iPad keeps them: each header's strokes, its `#` mark and deeper marks, and, when it is folded,
   what its fold holds, what it hid itself, how far the rest slid, how many lines it hides and where its section ended.
+- With each header, the strokes written under it while it was folded, once it has been opened (story 1231): its
+  section ends where the first of them begins. The page records them when it unfolds a header, as the iPad does: the
+  strokes the opened section would take that the fold did not hold. Without them, ink written under a folded header
+  joins the section on the next fold.
 
 | Export | Arguments | Returns |
 |---|---|---|

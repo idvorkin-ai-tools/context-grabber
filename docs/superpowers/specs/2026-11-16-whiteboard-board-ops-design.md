@@ -303,6 +303,11 @@ existing text, I want it to move just like if I was to select text" (stories 969
   same indent or shallower. Blank paper never ends a section. When the line under a header isn't indented at all, the
   section runs to the next header at its indent or shallower. A deeper header inside a section is its own header, and
   folds on its own: folds nest.
+- **Ink written under a folded header stays outside its fold** (Igor, 2026-11-23, bead context-grabber-eysh).
+  Unfolding lands what he wrote under the folded header after the section's lines, and the section now ends where
+  that ink begins, as a rule ends it: the next fold hides only what the fold hid before, whatever the indents say.
+  Only ink the section would otherwise have taken counts; an unfold with nothing written under the fold changes no
+  section. Erasing that ink lets the section run on again. The web board follows the same rule.
 - **Folded lines hide and the board closes up.** What is below the section slides up to sit a line or two under the
   header, in whole lines. Unfolding puts it back; anything written under the folded header meanwhile moves down below
   the section rather than being drawn over.

@@ -33,13 +33,21 @@ public struct BoardHeader: Codable, Equatable, Sendable {
   public var mark: [String]?
   /// The strokes of each further # written beside the first (#1034): ## and ###. Nil for a level-1 header.
   public var deeper: [[String]]?
+  /// Ink written under it while it was folded (story 1231): the section ends where the first of it begins, as at a
+  /// rule, so the next fold leaves it out. Nil when an unfold found nothing new the section would have taken; a name
+  /// erased from the board no longer ends it.
+  public var ends: [String]?
 
-  public init(id: String, ids: [String], fold: Fold? = nil, mark: [String]? = nil, deeper: [[String]]? = nil) {
+  public init(
+    id: String, ids: [String], fold: Fold? = nil, mark: [String]? = nil, deeper: [[String]]? = nil,
+    ends: [String]? = nil
+  ) {
     self.id = id
     self.ids = ids
     self.fold = fold
     self.mark = mark
     self.deeper = deeper
+    self.ends = ends
   }
 
   /// The deepest a header's #s take it: ###.
@@ -253,7 +261,8 @@ public struct BoardOutline: Sendable {
   /// A section, by indent: the header's row down to the first line whose ink starts at or left of the header's own
   /// left edge (within half a line), or to the next header at the same indent or shallower, whichever comes first.
   /// Blank paper never ends one. A header whose next line isn't indented runs to the next header at its indent.
-  /// A rule drawn across the page ends it too, whatever its indent (#967).
+  /// A rule drawn across the page ends it too, whatever its indent (#967), and so does ink written under the header
+  /// while it was folded (story 1231).
   func section(_ id: String) -> Section? {
     guard let header = header(id), let hb = box(header) else { return nil }
     let us = units()
@@ -278,7 +287,13 @@ public struct BoardOutline: Sendable {
     let mine = header.level(live)
     let levelOf = { (u: Unit) in u.header.flatMap { levels[$0] } ?? 1 }
     var deeper = false
+    let ends = Set(header.ends ?? [])
+    let isEnd = { (u: Unit) in u.members.contains { self.strokes[$0].ids.contains(where: ends.contains) } }
     for line in lines {
+      if !ends.isEmpty, line.us.contains(where: isEnd) {
+        nextTop = line.top
+        break
+      }
       let writing = line.us.filter { !isRule($0) }
       let heads = writing.filter { $0.header != nil }
       let shallowHeader = heads.contains {
@@ -340,6 +355,13 @@ public struct BoardOutline: Sendable {
     let positions = index
     for name in fold.own { if let m = positions[name] { strokes[m].hidden = false } }
     headers[at].fold = nil
+    // Story 1231: what was written under the folded header, landed after its lines, ends the section from now on;
+    // only what the section would otherwise take, so an unfold with nothing new written changes no section.
+    let tucked = Set(fold.ids)
+    let new = (section(id)?.body ?? []).flatMap(\.members).filter { m in
+      !strokes[m].ids.contains(where: tucked.contains)
+    }
+    if !new.isEmpty { headers[at].ends = (headers[at].ends ?? []) + names(new) }
     return (top, fold.shift + extra)
   }
 
