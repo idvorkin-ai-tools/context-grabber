@@ -78,6 +78,8 @@ native-test-host:
     scripts/native/test-build-lane.sh
     # Stories 1505, 1506 (context-grabber-xmwp): the repo's own rung time limit stops a hang and all it started, exit 124.
     scripts/native/test-time-limit.sh
+    # Story 1508 (bead w7nl): a simulator driven only from the lane that owns it; a run outside a lane takes one.
+    scripts/native/test-sim-lane.sh
     # Stories 795, 797, 798 (context-grabber-mkd0): the host slots, six jobs on four, the wait, a killed holder.
     scripts/native/test-host-lane.sh
     # Where a UI test run's time went, from a real run's log.
@@ -167,6 +169,12 @@ native-build-sim: native-project
 native-sim-health: native-project
     #!/usr/bin/env bash
     set -uo pipefail
+    # Story 1508: in lane 1, under its lock: the named simulator is lane 1's, and the other lanes copy their Health
+    # access from it (`just native-sim-lanes refresh`).
+    if [ -z "${BUILD_LANE:-}" ]; then
+      mkdir -p ~/tmp/agent/locks
+      exec lockf -k -t "${BUILD_LANE_WAIT:-3600}" "$(scripts/native/build-lane.sh lock 1)" env BUILD_LANE=1 BUILD_LANES="$(scripts/native/build-lane.sh count)" BUILD_LANE_PORT_OFFSET=0 just native-sim-health
+    fi
     scripts/native/sim-boot.sh "{{native_sim}}" || exit  # the one booted simulator (story 980)
     scripts/native/xcodebuild-log.sh sim-health "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
@@ -183,6 +191,7 @@ native-sim-lanes *mode:
 # Native rung 2's smoke: the simulator build driven by launch hooks, judged from its session log. It waits while another
 # xcodebuild runs: a simulator run under contention counts as failed.
 # Only the features this branch touched (scripts/native/smoke-features.sh), the app silent; SMOKE_ONLY=all for every one.
+# The smoke takes the first free build lane itself and runs on that lane's own simulator (story 1508).
 native-test-sim: native-build-sim
     scripts/native/xcodebuild-idle.sh && SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{native_sim}}" {{native_bundle}} {{native_sim_app}}
 

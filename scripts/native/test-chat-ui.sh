@@ -7,7 +7,11 @@
 #   scripts/native/build-lane.sh run scripts/native/time-limit.sh 30 caffeinate -i \
 #     scripts/native/test-chat-ui.sh "iPhone 17"   (a name is the lane's own device: story 785)
 set -uo pipefail
-udid=$("$(dirname "$0")/sim-udid.sh" "${1:?simulator udid or name}") || exit 1
+# Story 1508: run outside a build lane, it takes the first free one and uses that lane's own simulator.
+# shellcheck source=scripts/native/sim-lane.sh
+. "$(dirname "$0")/sim-lane.sh"
+take_lane "$0" "$@"
+udid=$("$(dirname "$0")/sim-udid.sh" "$(lane_target "${1:?simulator udid or name}")") || exit 1
 port=${CHAT_PORT:-$((8798 + ${BUILD_LANE_PORT_OFFSET:-0}))}
 report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."

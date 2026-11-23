@@ -2,7 +2,12 @@
 # Rung 2 of the native test ladder: run the simulator build from launch hooks and judge it from the session log.
 # Usage: sim-smoke.sh <simulator name or udid> <bundle id> <app path>
 set -euo pipefail
-SMOKE_UDID=$("$(dirname "$0")/sim-udid.sh" "$1"); BUNDLE=$2; APP=$3  # one device, whatever runtimes share the name
+# Story 1508: only in a build lane, on that lane's own simulator; run outside one, it takes the first free lane.
+# shellcheck source=scripts/native/sim-lane.sh
+. "$(dirname "$0")/sim-lane.sh"
+take_lane "$0" "$@"
+SMOKE_UDID=$("$(dirname "$0")/sim-udid.sh" "$(lane_target "$1")"); BUNDLE=$2; APP=$3  # one device, whatever runtimes share the name
+sim_lane_guard "$SMOKE_UDID" "sim-smoke" || exit
 # The one booted simulator, left booted after (story 980). It boots on a locked Mac too; the smoke then skips its audio
 # checks (story 827 below).
 "$(dirname "$0")/sim-boot.sh" "$SMOKE_UDID"

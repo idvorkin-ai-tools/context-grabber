@@ -26,6 +26,7 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-ladder-map.sh`: the ladder's own map, which rungs and UI test classes a change gets, from the real script's dry run (story 683)
 - `scripts/native/test-build-lane.sh`: the build lanes, their locks and simulators, sim-boot and the xcodebuild wait per lane (story 785, #954)
 - `scripts/native/test-time-limit.sh`: the repo's own rung time limit, a hang and everything it started stopped (exit 124), a finished command's status kept, the lane count past it unchanged (stories 1505, 1506)
+- `scripts/native/test-sim-lane.sh`: a simulator driven only from the build lane that owns it: sim-boot and a test run refused outside it, a smoke or suite script taking a lane itself (story 1508, bead context-grabber-w7nl)
 - `scripts/native/test-host-lane.sh`: the host slots, six jobs on four, the wait, a killed holder (stories 795, 797, 798)
 - `scripts/native/test-ui-timings.sh`: the UI test timing digest against a real run's log
 - `scripts/native/test-device-build-check.sh`: the build each device last reported against the last install in the deploys ledger (match, mismatch, no session yet, over the air, unknown), and `just deploy` recording each installed device and checking its next session, with fakes (story 1511)
@@ -189,6 +190,16 @@ and zsh reads `~/.zshenv`, so the ladder passes the lane's `BUILD_LANES` past th
 what arrives. A suite script runs in a lane the same way, given the simulator's name so that it resolves the lane's
 own device inside the lane:
 `scripts/native/build-lane.sh run scripts/native/time-limit.sh 30 caffeinate -i scripts/native/test-chat-ui.sh "iPhone 17"`.
+
+**A simulator is driven only from the lane that owns it** (story 1508, bead context-grabber-w7nl). Lane N owns
+"<model> lane N", lane 1 the named models (`SIM`, `WHITEBOARD_SIM`, *iPhone 17*, *iPad Pro 11-inch (M5)*); any other
+simulator belongs to no lane. `sim-boot.sh`, and `xcodebuild-log.sh` for a `test` or `test-without-building` run on a
+simulator, refuse with exit 64 a simulator another lane owns, or a lane's simulator from a run that holds no lane, and
+say how to run it; a build for the simulator isn't refused. `sim-smoke.sh`, `test-chat-ui.sh` and
+`test-whiteboard-ui.sh` started outside a lane take the first free one themselves (`build-lane.sh run`) and use that
+lane's own simulator, reading a lane's udid they were given as its model. `just native-test-sim` therefore runs its smoke
+in a lane, and `just native-sim-health` in lane 1, whose simulator the other lanes copy Health access from. On
+2026-11-22 a smoke run by hand went to lane 1's iPad while lane 1 ran the whiteboard suite on it, and spoiled both.
 
 **Host builds and tests take a host slot** (stories 795, 797, 798; bead context-grabber-mkd0). Twenty agents' `just
 test` at once loaded the 18-core Mac to 281 (2026-11-22), and lanes only cover Xcode. So swift-format and SwiftLint

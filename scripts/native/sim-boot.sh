@@ -13,6 +13,10 @@
 set -uo pipefail
 here=$(dirname "$0")
 udid=$("$here/sim-udid.sh" "${1:?simulator name or udid}") || exit
+# Story 1508: never a simulator another build lane owns, nor a lane's from a run that holds no lane (exit 64).
+# shellcheck source=scripts/native/sim-lane.sh
+. "$here/sim-lane.sh"
+sim_lane_guard "$udid" "sim-boot" || exit
 lanes=$("$here/build-lane.sh" count)
 if [ "$lanes" -le 1 ]; then
   xcrun simctl list devices booted | grep -oE '\(([0-9A-F-]{36})\) \(Booted\)' | grep -oE '[0-9A-F-]{36}' |

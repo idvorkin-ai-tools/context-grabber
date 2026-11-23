@@ -1731,3 +1731,30 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the board's rules built as WebAssembly by `just wasm`, and the Cockpit's recorded board sessions vendored in the repo
 - **When:** `just wasm-test` loads the module under node and replays each session, then loads each session's last board whole and again in two halves
 - **Then:** every session replays as the app's own replay test expects (contract 1, no mismatch but ops-move's known one, each turn's hint the end of the recorded one), the board answers every cut the same whole or in halves, a cut with nothing loaded is NaN with a reason, and the one 32-bit midpoint case answers as pinned
+
+### User Story 1508:
+
+- **Summary:** A simulator is driven only from the build lane that owns it
+- **Status:** implemented in (this branch); verified on the host by `scripts/native/test-sim-lane.sh` (lane ownership, sim-boot and a test run refused with exit 64 outside the owning lane, a build allowed, a script outside any lane taking one); no simulator run (the Mac's screen was locked)
+- **Issues:** bead context-grabber-w7nl (2026-11-22 ~21:20: a dead-code lane's timer smoke, run outside any lane, went to lane 1's iPad while lane 1 ran the whiteboard suite on it: three smoke failures, each different, and the suite's own run spoiled)
+
+#### Use Case:
+- **As Igor,** with several agents running simulator checks on one Mac at once
+- **I want to** have every simulator run go to its own lane's simulator, never to one another job is testing on
+- **so that** a failure means the change broke something, not that two runs fought over one simulator
+
+#### Acceptance Criteria:
+- **Scenario:** A smoke started by hand
+- **Given:** no build lane is held
+- **When:** the simulator smoke or a UI suite script is started
+- **Then:** it takes the first free build lane, says so, and runs on that lane's own simulator, even when it was given another lane's simulator
+
+- **Scenario:** Another lane's simulator
+- **Given:** a run that holds build lane 2, or no lane
+- **When:** it boots, or runs tests on, the simulator build lane 1 owns
+- **Then:** it is refused with exit 64 before anything boots or builds, and the message names the simulator, its lane and how to run it in a lane
+
+- **Scenario:** A build, or a simulator of no lane
+- **Given:** no build lane is held
+- **When:** it builds for a lane's simulator, or tests on a simulator no lane owns
+- **Then:** it runs as before

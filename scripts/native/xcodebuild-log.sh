@@ -18,6 +18,20 @@
 set -uo pipefail
 name=$1 done=$2
 shift 2
+# Story 1508: a test run on a simulator only from the build lane that owns that simulator; refused with exit 64 when
+# this run holds no lane or another one, so a run started by hand can't drive another job's simulator.
+sim_dest= prev=
+for arg in "$@"; do
+  if [ "$prev" = -destination ] && [[ $arg == *"iOS Simulator"* ]]; then
+    if [[ $arg =~ (^|,)id=([^,]+) ]]; then sim_dest=${BASH_REMATCH[2]}; elif [[ $arg =~ (^|,)name=([^,]+) ]]; then sim_dest=${BASH_REMATCH[2]}; fi
+  fi
+  prev=$arg
+done
+if [ -n "$sim_dest" ] && printf '%s\n' "$@" | grep -qxE 'test|test-without-building'; then
+  # shellcheck source=scripts/native/sim-lane.sh
+  . "$(dirname "$0")/sim-lane.sh"
+  sim_lane_guard "$sim_dest" "xcodebuild-log.sh $name" || exit
+fi
 log=${NATIVE_LOG_DIR:-native/Build/logs}/$name.log  # tests keep theirs apart
 mkdir -p "${log%/*}"
 if command -v xcbeautify >/dev/null; then
