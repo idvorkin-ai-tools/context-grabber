@@ -33,7 +33,9 @@ New stories take their IDs from `scripts/native/story-ids.py reserve <journey> [
 free ID" read from one branch: it skips the IDs on main, in every open PR and reserved by another agent on this Mac,
 and `just pre-merge` checks them again against main right before merging (story 793). A journey that outgrows its
 range takes the next unused block above every journey's IDs and adds it to the end of its row; reserve's failure names
-the block and every journey's free IDs. A quiet journey takes twenty; one that adds stories daily, like the whiteboard,
+the block and every journey's free IDs. That block is added on purpose, never by an agent or the pipeline mid-PR to
+make room for its own story: they stop and report the full journey (bead context-grabber-1vvb). A quiet journey takes
+twenty; one that adds stories daily, like the whiteboard,
 takes hundreds (1160–1499, bead context-grabber-0e04). The IDs column is the allocation: no two journeys hold the same ID,
 and `just test` fails on an ID used twice or outside its own journey's IDs (`scripts/native/test-story-ids.sh`,
 story 789). A journey can span several files (the whiteboard's, by feature area, story 796): its row links each
