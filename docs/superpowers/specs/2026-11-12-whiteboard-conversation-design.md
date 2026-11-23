@@ -174,9 +174,13 @@ of the screen is just under the panel.
 - **It is small and keeps its size.** At most a fifth of the board tall, and never less room than about four lines;
   past that it doesn't grow, its messages scroll inside it (Igor, 2026-11-16, #917: "when chat expands it needs to
   scroll not grow"; at a third it covered nearly half the page). The status chip and *Open in Chat* stay at its foot,
-  under the messages, while the messages scroll.
-- **It shows the newest.** It opens scrolled to the bottom, the newest line in view, and a new line scrolls it back
-  there. A finger can scroll up to read older messages.
+  under the messages, while the messages scroll. What sits under the messages is bounded too, so nothing in the panel
+  can grow it past that size (Larry, 2026-11-22, bead context-grabber-97s): what the mic hears shows at most its last
+  two lines, its newest words, with the older ones cut at the front (*…*), and the status chip at most two lines.
+- **It shows the newest.** It opens scrolled to the bottom, the newest line in view, and while it is there a new
+  line keeps it there. A finger can scroll up to read older messages, and then a new line leaves it where Igor is
+  reading (bead context-grabber-97s): it doesn't jump back down under his finger. Scrolled back to the bottom, it
+  follows the newest again; closed and opened again, it opens at the newest.
 - **It is the conversation, not a log of turns.** Larry's words in full, newest at the bottom, up to the last ten
   messages; *Open in Chat* opens the whole thread. The thread's top bar has *Board*, which comes back to
   this board ([native chat, A board's thread opens its board](2026-10-25-native-chat-design.md); #1091). Igor's pictures that carried no words of his (the *Your turn on
@@ -358,6 +362,10 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
 - On an iPad in landscape, Larry's long reply wraps at about seventy characters.
 - With more messages than fit, the panel is a fifth of the board tall, shows the newest message at its bottom, and
   scrolls with a finger to the older ones; another reply arrives and the panel stays the same height, the reply in view.
+- Scroll the panel up to an older message, and another reply arrives: the panel stays where it was; scroll back down to
+  the newest and the next reply is in view again.
+- Speak a long sentence with the mic on and the panel open: what it hears is at most two lines, its newest words, and
+  the panel and the paper under it don't move.
 - Draw with the Pencil below the open panel: the stroke lands and the panel stays open.
 - Close the board with the panel open and open another: the panel is open there.
 - On an iPhone, tap the line on a board with a thread: Chat opens on that thread.
