@@ -239,8 +239,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Send to Larry** (top bar): sends a picture of everything drawn, on white, on the board's chat thread, titled with
   the board's name: the first send on a board starts the thread, and later ones go to it, so marks he
   draws in answer come back to the board. On a board drawn here it is Larry's turn, the one button that hands him
-  the board ([One Send](2026-11-01-whiteboard-shapes-design.md), story 1176): his clock shows, his marks arrive, and a
-  repeat tap with nothing new says *Larry already has this*.
+  the board ([One Send](2026-11-01-whiteboard-shapes-design.md), story 1176): his clock shows, his marks arrive, and once
+  he has the picture the button is dimmed until the next stroke (story 765).
   - On a board only looked at, the bar says *Sent to Larry: his reply shows in Chat*. One send makes one message: the
     button stays disabled until other pages are on screen, so a second tap never sends the same picture twice.
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back;
