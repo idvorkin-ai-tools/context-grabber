@@ -247,6 +247,40 @@ for k in 1 2 3 4 5 6; do STORY_IDS_HOLD=0.3 reserve "$tmp/race.json" 02-b.md >"$
 wait
 check "six reservations at once, each holding the ledger a while, get six different IDs" "$(cat "$tmp"/race.? | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
 
+# --- bead context-grabber-py4h: the Linux lane's IDs 1620–1639, unlisted until py4h's shared ledger lands.
+tree linux
+story linux 01-a.md 1
+story linux 02-b.md 10 1620
+expect "check accepts a story numbered in the Linux lane's 1620–1639 outside every journey's IDs" linux 0 ""
+mkdir -p "$tmp/lres" "$tmp/lmain"
+cat >"$tmp/lres/README.md" <<'F'
+| Journey | What it covers | IDs |
+|---|---|---|
+| [A](01-a.md) | the first | 001–009 |
+| [C](03-c.md) | wide | 1610–1650 |
+| [D](04-d.md) | full | 1590–1599 |
+F
+cp "$tmp/lres/README.md" "$tmp/lmain/"
+story lres 04-d.md 1590 1591 1592 1593 1594 1595 1596 1597 1598 1599
+lreserve() {  # lreserve <ledger> <args>...
+  local ledger=$1
+  shift
+  FAKE_PRS=$tmp/prs STORY_IDS_GH=$tmp/gh STORY_IDS_MAIN=$tmp/lmain STORY_IDS_LEDGER=$ledger STORY_IDS_NOW=$now \
+    STORY_IDS_BRANCH=b scripts/native/story-ids.py reserve "$@" --dir "$tmp/lres" 2>"$tmp/reserve.err"
+}
+check "reserve steps over 1620–1639 in a journey whose IDs run through them" \
+  "$(lreserve "$tmp/lledger.json" 03-c.md 12 | tr '\n' ' ')" "1610 1611 1612 1613 1614 1615 1616 1617 1618 1619 1640 1641 "
+check "reserve never hands out an ID in 1620–1639, however many are asked for" \
+  "$(lreserve "$tmp/lledger2.json" 03-c.md 20 | awk '$1 >= 1620 && $1 <= 1639' | wc -l | tr -d ' ')" "0"
+mkdir -p "$tmp/lres2"
+printf '| Journey | What it covers | IDs |\n|---|---|---|\n| [A](01-a.md) | the first | 001–009 |\n| [D](04-d.md) | full | 1590–1599 |\n' >"$tmp/lres2/README.md"
+cp "$tmp/lres/04-d.md" "$tmp/lres2/"
+story lres2 01-a.md 1
+out=$(FAKE_PRS=$tmp/prs STORY_IDS_GH=$tmp/gh STORY_IDS_MAIN=$tmp/lres2 STORY_IDS_LEDGER=$tmp/lledger3.json STORY_IDS_NOW=$now \
+  STORY_IDS_BRANCH=b scripts/native/story-ids.py reserve 04-d.md --dir "$tmp/lres2" 2>"$tmp/reserve.err")
+check "a full journey's next block skips 1600–1699, which would hold the Linux lane's IDs" \
+  "$out|$(grep -c 'next unused block, 1700–1799' "$tmp/reserve.err")" "|1"
+
 # --- pre-merge (story 793): two branches that each pass alone but add the same ID fail once merged with main.
 g() { git -c user.name=t -c user.email=t@t -c core.hooksPath=/dev/null -c init.defaultBranch=main "$@"; }
 repo=$tmp/repo

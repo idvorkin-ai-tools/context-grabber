@@ -37,6 +37,14 @@ from concurrent.futures import ThreadPoolExecutor
 HEADING = re.compile(r"^### User Story (\d+):")
 LINK = re.compile(r"\]\(([^)#]+\.md)\)")
 SPAN = re.compile(r"^(\d+)(?:\s*[–-]\s*(\d+))?$")
+# Bead context-grabber-py4h: until py4h's shared ledger lands, the Linux lane takes story IDs 1620–1639 unlisted
+# (Larry, 2026-11-23). This Mac never hands them out or suggests a block holding them, and check accepts them in any
+# journey. Delete this line, and its three uses, when py4h lands.
+LINUX_ONLY = (1620, 1639)
+
+
+def linux_only(sid):
+    return LINUX_ONLY[0] <= sid <= LINUX_ONLY[1]
 
 
 def fmt(spans):
@@ -120,7 +128,7 @@ def main(root):
                 count += 1
                 sid = int(m.group(1))
                 seen.setdefault(sid, []).append(f"{name}:{n}")
-                if own is not None and not any(a <= sid <= b for a, b in own):
+                if own is not None and not any(a <= sid <= b for a, b in own) and not linux_only(sid):
                     problems.append(f"{name}:{n}: story {sid} is outside its journey's IDs ({fmt(own)})")
     for sid in sorted(seen):
         if len(seen[sid]) > 1:
@@ -246,6 +254,8 @@ def full(root, name, n, have, ranges, labels, busy, main_ranges):
     """Why a journey can't give n IDs, and how to extend it (bead context-grabber-0e04)."""
     top = max([b for rs in (ranges, main_ranges) for spans in rs.values() for _, b in spans] + list(busy))
     start = (top // 100 + 1) * 100 if top % 100 else top + 1
+    if start <= LINUX_ONLY[1] and start + 99 >= LINUX_ONLY[0]:  # never a block holding the Linux lane's IDs
+        start = (LINUX_ONLY[1] // 100 + 1) * 100
     free = ", ".join(f"{labels[j]} {sum(1 for a, b in ranges[j] for i in range(a, b + 1) if i not in busy)}"
                      for j in sorted(ranges, key=lambda j: min(a for a, _ in ranges[j])))
     return (f"the journey {labels[name]!r} ({name}) has {have} free ID(s) of the {n} asked for in its IDs "
@@ -284,7 +294,7 @@ def reserve(root, query, n):
         got = []
         for a, b in ranges[name]:
             for i in range(a, b + 1):
-                if len(got) < n and i not in busy:
+                if len(got) < n and i not in busy and not linux_only(i):
                     got.append(i)
         if len(got) < n:
             raise RuntimeError(full(root, name, n, len(got), ranges, labels, busy, main_ranges))
