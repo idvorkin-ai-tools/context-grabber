@@ -1895,7 +1895,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 653:
 
 - **Summary:** Lines stay with their board on paper
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07); a new board starting with the grid, not none, in [c0e22ba](https://github.com/idvorkin/context-grabber/commit/c0e22ba) (story 410, #915), verified by host tests (`BoardLinesTests`)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, since story 757 part of `testANewBoardOpensWithTheGrid`; `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07); a new board starting with the grid, not none, in [c0e22ba](https://github.com/idvorkin/context-grabber/commit/c0e22ba) (story 410, #915), verified by host tests (`BoardLinesTests`)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#915](https://github.com/idvorkin/context-grabber/issues/915)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1935,7 +1935,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 655:
 
 - **Summary:** Lines and ghosts show on every colour
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour, an old-canvas test dropped 2026-11-07; on paper `testRuledLinesStayWithTheBoardUnderTheInk` keeps a board's colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour); since story 770 Lilac alone, the grid on Plain being `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, since story 757 part of `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`; `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour, an old-canvas test dropped 2026-11-07; on paper `testRuledLinesStayWithTheBoardUnderTheInk` keeps a board's colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour); since story 770 Lilac alone, the grid on Plain being `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1955,7 +1955,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 656:
 
 - **Summary:** Changing colour or lines leaves the ink
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`; `paper_ink_look` after each change); since bead `context-grabber-y8r` on Lilac and Plain; since story 770 on Lilac alone
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`, since story 757 part of `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, with a stroke where it pasted *HI*; `paper_ink_look` after each change); since bead `context-grabber-y8r` on Lilac and Plain; since story 770 on Lilac alone
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 

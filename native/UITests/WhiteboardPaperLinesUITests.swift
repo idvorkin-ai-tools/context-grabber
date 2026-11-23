@@ -137,8 +137,12 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     }
   }
 
-  /// Stories 434, 523, 538, 652, 654: ruled lines run across only, the grid both ways, one takes the other's place, and they
-  /// don't count as ink or as a step of undo.
+  /// Stories 434, 523, 538, 652, 654, 655, 656: ruled lines run across only, the grid both ways, one takes the other's place,
+  /// and they don't count as ink or as a step of undo; the lines show on the darkest colour, and changing the colour or the
+  /// lines leaves the ink where it was. One launch for all of it (story 757). The lines are one grey at one strength on
+  /// every colour, so they are hardest to see on the darkest paper: Lilac (`BoardPaper`'s light shades by luminance: Plain
+  /// 1.0, Cream 0.90, Sage 0.83, Grey 0.82, Lilac 0.81). Lilac stands for all five; each colour's own shade against the ink
+  /// is `BoardPaperTests`, on the host.
   func testRuledLinesAndTheGridAreOneChoiceAndNeverInk() throws {
     let app = try openBoard()
     stroke(app)
@@ -157,25 +161,40 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     let grid = Screen(app).lines(against: plain)
     XCTAssertGreaterThan(grid.across, 5, "the grid runs across")
     XCTAssertGreaterThan(grid.down, 3, "and down")
-
     let now = try XCTUnwrap(PaperScreen(app).ink, "the stroke still on screen")
     XCTAssertEqual(now.center.x, ink.center.x, accuracy: 0.01, "where it was")
     XCTAssertEqual(now.center.y, ink.center.y, accuracy: 0.01, "where it was")
-    XCTAssertEqual(send(app).label, "Send to Larry, 1 strokes", "lines aren't ink")
+
+    menu(app, "Lilac", expect: "Board, Lilac, grid on")
+    keep("grid on Lilac")
+    let lilacGrid = Screen(app)
+    let seen = try XCTUnwrap(PaperScreen(app).ink, "the stroke on Lilac, with the grid")
+    XCTAssertEqual(seen.center.x, ink.center.x, accuracy: 0.01, "Lilac: where it was")
+    XCTAssertEqual(seen.center.y, ink.center.y, accuracy: 0.01, "Lilac: where it was")
+
+    menu(app, "Grid lines", expect: "Board, Lilac")
+    let onLilac = lilacGrid.lines(against: Screen(app))
+    XCTAssertGreaterThan(onLilac.across, 5, "Lilac: the grid shows")
+    XCTAssertNotNil(PaperScreen(app).ink, "Lilac: the stroke with the grid off")
+    XCTAssertEqual(send(app).label, "Send to Larry, 1 strokes", "lines and colours aren't ink")
   }
 
-  /// Stories 403, 653: a board on paper keeps its colour and ruled lines, and a new board starts without them (bare, under
-  /// the UI tests' hook; the grid a new board really has is `testANewBoardOpensWithTheGrid`).
-  func testRuledLinesStayWithTheBoardUnderTheInk() throws {
-    let app = try openBoard()
+  /// Stories 410 (#915), 403, 653: a new board opens with the grid on; turning it off, a colour and ruled lines are
+  /// remembered for that board, under its ink; and the next new board starts as new boards do, not with the last one's
+  /// colour or lines. One launch for all of it (story 757). A board with nothing saved opening without a grid is
+  /// `BoardLinesTests`, on the host.
+  func testANewBoardOpensWithTheGrid() throws {
+    let app = try openBoard(bareNewBoards: false)
+    wait(board(app), label: "Board, Plain, grid on")
     stroke(app)
     wait(send(app), label: "Send to Larry, 1 strokes")
-    menu(app, "Cream", expect: "Board, Cream")
+    menu(app, "Cream", expect: "Board, Cream, grid on")
+    menu(app, "Grid lines", expect: "Board, Cream")
     menu(app, "Ruled lines", expect: "Board, Cream, ruled lines on")
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
     XCTAssertTrue(card.appears(within: 10), app.debugDescription)
-    card.tap()
+    card.tap()  // Newest first: the board just drawn on.
     XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
     wait(board(app), label: "Board, Cream, ruled lines on")
     XCTAssertNotNil(PaperScreen.settled(app) { $0.ink }, "the ink is back with its colour and lines")
@@ -185,47 +204,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertTrue(new.appears(within: 10), app.debugDescription)
     new.tap()
     XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
-    wait(board(app), label: "Board, Plain")
-  }
-
-  /// Story 410 (#915): a new board opens with the grid on, and turning it off is remembered for that board. A board with
-  /// nothing saved opening without one is `BoardLinesTests`, on the host.
-  func testANewBoardOpensWithTheGrid() throws {
-    let app = try openBoard(bareNewBoards: false)
     wait(board(app), label: "Board, Plain, grid on")
-    stroke(app)
-    wait(send(app), label: "Send to Larry, 1 strokes")
-    menu(app, "Grid lines", expect: "Board, Plain")
-    app.navigationBars.buttons.element(boundBy: 0).tap()
-    let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
-    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
-    card.tap()  // Newest first: the board just drawn on.
-    XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
-    wait(board(app), label: "Board, Plain")
-  }
-
-  /// Stories 655, 656: the colours show the page's end line and the grid, and changing either leaves pasted ink on screen.
-  /// The lines are one grey at one strength on every colour, so they are hardest to see on the darkest paper: Lilac
-  /// (`BoardPaper`'s light shades by luminance: Plain 1.0, Cream 0.90, Sage 0.83, Grey 0.82, Lilac 0.81). Lilac stands
-  /// for all five; the grid on Plain with the ink left where it was is `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`,
-  /// and each colour's own shade against the ink is `BoardPaperTests`, on the host.
-  func testEveryColourShowsItsLinesAndKeepsTheInk() throws {
-    // HI is written in four single strokes: H three, I one (#996).
-    let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
-    wait(send(app), label: "Send to Larry, 4 strokes")
-    let ink = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "dark letters on screen")
-    menu(app, "Lilac", expect: "Board, Lilac")
-    let bare = Screen(app)
-    let seen = try XCTUnwrap(PaperScreen(app).ink, "the letters on Lilac")
-    XCTAssertEqual(seen.center.x, ink.center.x, accuracy: 0.01, "Lilac: where they were")
-    XCTAssertEqual(seen.center.y, ink.center.y, accuracy: 0.01, "Lilac: where they were")
-
-    menu(app, "Grid lines", expect: "Board, Lilac, grid on")
-    keep("grid on Lilac")
-    let grid = Screen(app).lines(against: bare)
-    XCTAssertGreaterThan(grid.across, 5, "Lilac: the grid shows")
-    XCTAssertNotNil(PaperScreen(app).ink, "Lilac: the letters with a grid")
-    XCTAssertEqual(send(app).label, "Send to Larry, 4 strokes", "neither is ink")
   }
 
   /// Story 657: the first stroke after the menu draws, and after leaving the menu with no choice. One launch for the two.
