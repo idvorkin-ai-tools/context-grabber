@@ -18,6 +18,7 @@ args=()
 while [ $# -gt 0 ]; do
   case $1 in
     --only)
+      [ $# -ge 2 ] || { echo "deploy: --only needs a device" >&2; exit 2; }
       only=""
       IFS=, read -ra names <<<"${2:-}"
       for n in "${names[@]}"; do
@@ -61,7 +62,7 @@ deadline=$((SECONDS + wait_s))
 while :; do
   "$pull_logs" >/dev/null 2>&1 || true
   check=$("$here/device-build-check.py" "${devices[@]}"); code=$?
-  if ! grep -q 'NO SESSION YET\|UNKNOWN' <<<"$check" || [ $SECONDS -ge $deadline ]; then break; fi
+  if ! grep -q 'NO SESSION YET\|UNKNOWN\|MISMATCH' <<<"$check" || [ $SECONDS -ge $deadline ]; then break; fi
   sleep 15
 done
 echo "$check"

@@ -1582,7 +1582,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1511:
 
 - **Summary:** A build on Igor's device that isn't the one we installed is named, with both builds
-- **Status:** implemented in e26f71aa; verified on the host rung (`just test`): `scripts/native/test-device-build-check.sh` (a mismatch named with both builds and exit 1, a match, no session yet after an install, a build posted over the air, nothing recorded; `just deploy` with a fake deploy-all records the device that took the build, not the one that refused, and checks its next session). Run on the real ledger and logs of 2026-11-22 it reported both devices MISMATCH: no network install had been recorded since 11-21. Not yet run after a real install
+- **Status:** implemented in 4639bc68; verified on the host rung (`just test`): `scripts/native/test-device-build-check.sh` (a mismatch named with both builds and exit 1, a match, no session yet after an install, a build posted over the air, nothing recorded; `just deploy` with a fake deploy-all records the device that took the build, not the one that refused, and checks its next session). Run on the real ledger and logs of 2026-11-22 it reported both devices MISMATCH: no network install had been recorded since 11-21. Not yet run after a real install
 - **Issues:** bead `context-grabber-yfsz` part 1 (2026-11-22: an agent told Larry the iPad was on b3e9de18 while its board posts and session log said 5569178f, installed around 22:57 by an install nobody recorded)
 - **Spec:** [Knowing which build is on Igor's devices](../superpowers/specs/2026-11-22-device-build-check-design.md)
 
