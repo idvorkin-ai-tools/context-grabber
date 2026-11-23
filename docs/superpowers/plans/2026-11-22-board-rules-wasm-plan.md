@@ -42,9 +42,9 @@ main; a no-op one on PATH did here.) The Mac's `just native-test`, with SwiftLin
 
 - `just wasm` (`scripts/native/build-wasm.sh`): `swift build --swift-sdk <wasm SDK> --product BoardWasm -c release`
   with `--strip-all`, copied to `native/Build/wasm/BoardWasm.wasm`, then its size and sha256. `WASM_SDK` names
-  the SDK (default: the first `wasm` one `swift sdk list` shows), `WASM_LIB_DIR` a directory of libraries the
+  the SDK (default: the first `wasm` one `swift sdk list` shows), `LINUX_LIB_DIR` a directory of libraries the
   toolchain's `wasm-ld` needs (an Ubuntu 25.10 box lacks `libxml2.so.2`; SwiftPM drops `LD_LIBRARY_PATH` when it
-  runs the linker, so the script hands it a wrapper through a toolset file).
+  runs the linker, so the script hands it a wrapper that sets it, with `-Xswiftc -use-ld=<wrapper>`).
 - `just wasm-test` (`scripts/native/test-board-wasm.mjs` under node): instantiates the module with node's own WASI,
   replays the four recorded sessions in `Tests/ContextCoreTests/Fixtures/board-sessions` (vendored by
   `scripts/native/board-sessions.py`, #1240) and checks what `BoardSessionReplayTests` checks; then the load-whole

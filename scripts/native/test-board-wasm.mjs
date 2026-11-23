@@ -122,7 +122,7 @@ for (const name of names) {
   const whole = call('bw_load', board);
   check(whole > 0, `${name}: loads (${whole} boxes) ${error() ?? ''}`);
   const cuts = ys.map((y) => x.bw_cut_y(y));
-  check(cuts.every((c, i) => c === ys[i] || Math.abs(c - ys[i]) <= info.near + 1e3), `${name}: every cut is a number`);
+  check(cuts.every((c, i) => Number.isFinite(c) && c >= ys[i] - info.near), `${name}: every cut is the height, below it, or at most near above it`);
   const half = Math.floor(board.strokes.length / 2);
   const first = call('bw_load', { ...board, strokes: board.strokes.slice(0, half) });
   const added = call('bw_add_strokes', { strokes: board.strokes.slice(half) });
@@ -133,6 +133,8 @@ for (const name of names) {
   // A stroke it can't read leaves the board as it was.
   check(call('bw_add_strokes', { strokes: [{ points: [[0, 0]] }] }) === -1 && /no id/.test(error() ?? ''), `${name}: a stroke with no id is refused, saying why`);
   check(Object.is(x.bw_cut_y(ys[ys.length >> 1]), again[ys.length >> 1]), `${name}: and the board is as it was`);
+  check(call('bw_add_strokes', { strokes: {} }) === -1 && /no strokes list/.test(error() ?? ''), `${name}: strokes that are not a list are refused, saying why`);
+  check(Object.is(x.bw_cut_y(ys[ys.length >> 1]), again[ys.length >> 1]), `${name}: and the board is still as it was`);
   if (name === pinned.session) {
     const cut = x.bw_cut_y(pinned.y);
     check(cut === pinned.cut, `${name}: the 32-bit midpoint case, cut at ${pinned.y} lands on ${cut} (pinned ${pinned.cut})`);

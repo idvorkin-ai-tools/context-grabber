@@ -1552,7 +1552,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1503:
 
 - **Summary:** The Cockpit's web board runs the app's own board rules, built as WebAssembly
-- **Status:** implemented on branch `feat/board-wasm`; verified on the Linux rung only (no Mac here): ContextCore's tests under Linux Swift, 2,405 passed and none failed (two more cases than main, from the two split tests); the package and its tests cross-built for iOS, the iOS simulator and macOS (macOS with a no-op `codesign` on PATH, which main needs too since its executables link there), and the app's sources compiled for iOS; the board's rules built for WASI with the Swift 6.4.2 wasm SDK and `just wasm-test` passing 84 checks under node. The Mac's `just native-test`, SwiftLint and the Mac build are owed
+- **Status:** implemented in 21b61fb2, ad1d2a52, ebb536b7, 525da348, 76810a0f, 1fc93ef2 and this PR's review fixes; verified by the Linux rung (just test-linux: ContextCore's tests under Linux Swift, 2,405 passed; the board's rules built for WASI with the Swift 6.4.2 wasm SDK and `just wasm-test` passing under node), the Mac's host tests and lint (just native-test, 2026-11-22), the Mac build (just native-build-mac) and the iPad simulator (rung 2: WhiteboardTurnUITests, WhiteboardQuestionUITests, CockpitBackUITests, the nine chat classes and the whiteboard classes from Connect to Listening pass; WhiteboardLarryWaitUITests fails on main too, bead context-grabber-5ulm). The web board itself is not yet on the Cockpit.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md)
 
 #### Use Case:

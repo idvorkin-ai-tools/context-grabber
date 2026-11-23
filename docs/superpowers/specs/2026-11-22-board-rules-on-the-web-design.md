@@ -98,8 +98,8 @@ as one box.
 
 ## Precision: a known difference from the iPad
 
-In WebAssembly the rules' arithmetic is 32-bit (`CGFloat` is a `Float` on `wasm32`; the SDK has no 64-bit
-target), where the iPad's is 64-bit. Boxes agree to about 1e-4 points. A decision differs only when a height sits
+In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
+agree to about 1e-4 points. A decision differs only when a height sits
 within about 1e-4 points of the exact middle of a row, where the rule breaks a tie between the row's top and bottom:
 in the spike, 9 of about 4,600 queries on the recorded boards, 8 of them heights placed there on purpose and one from a
 plain 1.5-point sweep (the title-build board at 100). The module answers as the 32-bit rules do; the replay test pins

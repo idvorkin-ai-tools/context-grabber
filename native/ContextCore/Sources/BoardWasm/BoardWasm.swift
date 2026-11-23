@@ -94,7 +94,9 @@
     guard var loaded = board else { return failed("no board is loaded") }
     do {
       let json = try JSONSerialization.jsonObject(with: input(pointer, length)) as? [String: Any]
-      guard let strokes = json?["strokes"] else { return failed("the strokes could not be read: no strokes") }
+      guard let strokes = json?["strokes"] as? [Any] else {
+        return failed("the strokes could not be read: no strokes list")
+      }
       let added = try BoardSnapshot(json: ["board": loaded.board, "strokes": strokes])
       loaded.ink += added.ink
       loaded.texts += added.texts
