@@ -159,6 +159,7 @@ extension PaperBoardController {
         "action": "changed", "board": model.board.id, "label": label, "moved": plan.offsets.count,
         "hidden": plan.hidden.values.filter { $0 }.count, "shown": plan.hidden.values.filter { !$0 }.count,
         "headers": outline.headers.count, "folded": outline.headers.filter(outline.isFolded).count,
+        "declined": outline.declined.count,
         "pages": pages, "ms": ms(CACurrentMediaTime() - started),
       ])
     return true

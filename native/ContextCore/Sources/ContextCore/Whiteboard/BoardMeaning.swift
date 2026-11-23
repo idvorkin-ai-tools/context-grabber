@@ -24,6 +24,10 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   public var strokeMeta = BoardStrokeMeta()
   /// The board's headers and their folds (story 855).
   public var headers: [BoardHeader] = []
+  /// The stroke names of lines Igor said were not headers, never offered again (story 1034).
+  public var declined: [String] = []
+  /// The most declined names remembered per board; the oldest go first.
+  public static let mostDeclined = 4000
   /// The question cards (stories 880–886).
   public var questions = WhiteboardQuestions()
   /// The creation moments (ms) of kept labels and pastes, the ink *Tidy overlaps* lays out (story 896).
@@ -41,7 +45,8 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   public init() {}
 
   enum CodingKeys: String, CodingKey {
-    case version, rev, handled, lastResult, texts, strokeIDs, strokeMeta, headers, questions, labels, theirs, inkBytes
+    case version, rev, handled, lastResult, texts, strokeIDs, strokeMeta, headers, declined, questions, labels, theirs
+    case inkBytes
   }
 
   /// Every part optional, so a file from an older or newer build still reads.
@@ -55,6 +60,7 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     strokeIDs = try c.decodeIfPresent(BoardStrokeIDs.self, forKey: .strokeIDs) ?? BoardStrokeIDs()
     strokeMeta = try c.decodeIfPresent(BoardStrokeMeta.self, forKey: .strokeMeta) ?? BoardStrokeMeta()
     headers = try c.decodeIfPresent([BoardHeader].self, forKey: .headers) ?? []
+    declined = try c.decodeIfPresent([String].self, forKey: .declined) ?? []
     questions = try c.decodeIfPresent(WhiteboardQuestions.self, forKey: .questions) ?? WhiteboardQuestions()
     labels = try c.decodeIfPresent([Int64].self, forKey: .labels) ?? []
     theirs = try c.decodeIfPresent([Int64].self, forKey: .theirs) ?? []
@@ -124,6 +130,16 @@ public final class BoardMeaningLedger: @unchecked Sendable {
 
   public func headers(board: String) -> [BoardHeader] { meaning.headers }
   public func setHeaders(_ headers: [BoardHeader], board: String) { change(board) { $0.headers = headers } }
+
+  public func declined(board: String) -> Set<String> { Set(meaning.declined) }
+  /// The names now declined, kept in the order they were first declined, the oldest going first past the most.
+  public func setDeclined(_ declined: Set<String>, board: String) {
+    change(board) { meaning in
+      let kept = meaning.declined.filter(declined.contains)
+      let new = declined.subtracting(kept).sorted()
+      meaning.declined = Array((kept + new).suffix(BoardMeaning.mostDeclined))
+    }
+  }
 
   public func strokeMeta(board: String) -> BoardStrokeMeta { meaning.strokeMeta }
   public func setStrokeMeta(_ meta: BoardStrokeMeta, board: String) { change(board) { $0.strokeMeta = meta } }

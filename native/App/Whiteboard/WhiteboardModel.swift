@@ -76,6 +76,8 @@ final class WhiteboardModel: ObservableObject {
   var headers: [BoardHeader] {
     didSet { cachedLabelBoxes = nil }
   }
+  /// Story 1034: the stroke names of lines he said were not headers, never offered a faint H again.
+  var declined: Set<String> = []
   /// `labelBoxes()`'s answer for the ink and headers as they are.
   var cachedLabelBoxes: [CGRect]?
   /// Each element's ink hashes, to tell Larry what Igor added, erased and moved (story 843).
@@ -240,6 +242,7 @@ final class WhiteboardModel: ObservableObject {
     strokeIDs = opLedger.strokeIDs(board: board.id)
     strokeMeta = opLedger.strokeMeta(board: board.id)
     headers = opLedger.headers(board: board.id)
+    declined = opLedger.declined(board: board.id)
     problem = loadProblem
     drawing = loaded
     isEmpty = loaded.strokes.isEmpty

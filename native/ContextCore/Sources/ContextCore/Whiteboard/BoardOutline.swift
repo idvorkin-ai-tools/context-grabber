@@ -78,6 +78,9 @@ public struct BoardOutline: Sendable {
 
   public var strokes: [BoardOps.Stroke]
   public internal(set) var headers: [BoardHeader]
+  /// Story 1034: the names of lines Igor said were not headers (*Not a header*), never offered a faint H again until he
+  /// makes one a header himself.
+  public internal(set) var declined: Set<String>
   /// Strokes a fold's erase took (stories 902, 903), by place: still in `strokes`, so `plan` can name them, and in no
   /// unit.
   public internal(set) var erased: Set<Int> = []
@@ -85,9 +88,11 @@ public struct BoardOutline: Sendable {
   let groups: [String: String]
 
   public init(
-    strokes: [BoardOps.Stroke], headers: [BoardHeader], texts: [BoardText] = [], groups: [String: String] = [:]
+    strokes: [BoardOps.Stroke], headers: [BoardHeader], texts: [BoardText] = [], groups: [String: String] = [:],
+    declined: Set<String> = []
   ) {
     self.strokes = strokes
+    self.declined = declined
     self.texts = texts
     self.groups = groups
     let names = Set(strokes.flatMap(\.ids))
@@ -209,8 +214,21 @@ public struct BoardOutline: Sendable {
   @discardableResult
   public mutating func markHeader(at y: CGFloat, id: String) -> Bool {
     guard let row = row(at: y), row.header == nil, !row.names.isEmpty else { return false }
-    headers.append(BoardHeader(id: id, ids: row.names))
+    add(BoardHeader(id: id, ids: row.names))
     return true
+  }
+
+  /// A header made, by a margin tap, the menu or a mark in ink: its line is no longer declined (story 1034).
+  mutating func add(_ header: BoardHeader) {
+    headers.append(header)
+    declined.subtract(header.ids)
+  }
+
+  /// Story 1034, *Not a header*: no longer a header, and its line never offered as one again.
+  public mutating func decline(_ id: String) {
+    guard let header = header(id) else { return }
+    declined.formUnion(header.ids)
+    unmark(id)
   }
 
   /// No longer a header; folded, it opens first.
@@ -502,7 +520,9 @@ public struct BoardOutline: Sendable {
       } else {
         why = nil
       }
-      guard let why, let row = row(at: l.box.midY), row.header == nil, !row.names.isEmpty else { continue }
+      guard let why, let row = row(at: l.box.midY), row.header == nil, !row.names.isEmpty,
+        declined.isDisjoint(with: row.names)
+      else { continue }
       out.append(Candidate(y: l.box.midY, box: l.box, why: why))
     }
     return out

@@ -197,6 +197,38 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertTrue(o.headers.isEmpty)
   }
 
+  /// Story 1034 (bead context-grabber-2ul): after *Not a header* the line is never offered again, words added to it
+  /// later included, and the board remembers it when reopened; a margin tap still makes it a header.
+  func testNotAHeaderIsNeverOfferedAgainEvenAfterReopening() throws {
+    var strokes = word("h", x: 100, y: 100) + word("c", x: 100, y: 200)
+    strokes.append(line("under", from: CGPoint(x: 96, y: 128), to: CGPoint(x: 172, y: 129)))
+    var o = BoardOutline(strokes: strokes, headers: [])
+    XCTAssertEqual(o.candidates().map(\.why), [.underline], "an old underline is offered")
+    o.inkHeader(newest: place(o, "under"), id: "x")
+    o.decline("x")
+    XCTAssertTrue(o.headers.isEmpty)
+    XCTAssertTrue(o.candidates().isEmpty, "the declined line is offered no more")
+    var more = o
+    more.strokes += word("more", x: 180, y: 100)
+    more.strokes.append(line("under2", from: CGPoint(x: 96, y: 128), to: CGPoint(x: 252, y: 129)))
+    XCTAssertFalse(BoardOutline(strokes: more.strokes, headers: []).candidates().isEmpty, "undeclined, it would be")
+    XCTAssertTrue(more.candidates().isEmpty, "words written on the line later are its own")
+
+    // Reopened: the meaning as saved and read back.
+    let ledger = BoardMeaningLedger(board: "b1", meaning: BoardMeaning())
+    ledger.setHeaders(o.headers, board: "b1")
+    ledger.setDeclined(o.declined, board: "b1")
+    let back = try JSONDecoder().decode(BoardMeaning.self, from: JSONEncoder().encode(ledger.meaning))
+    var reopened = BoardOutline(
+      strokes: o.strokes, headers: back.headers,
+      declined: BoardMeaningLedger(board: "b1", meaning: back).declined(board: "b1"))
+    XCTAssertTrue(reopened.candidates().isEmpty, "still declined once reopened")
+
+    XCTAssertTrue(reopened.markHeader(at: 112, id: "y"), "a margin tap still makes it a header")
+    reopened.unmark("y")
+    XCTAssertEqual(reopened.candidates().map(\.why), [.underline], "made a header, it is judged like any line again")
+  }
+
   func testAFoldedHeaderKeepsItsFoldWhenItsUnderlineGoes() {
     var strokes = word("h", x: 100, y: 100) + word("a", x: 140, y: 140)
     strokes.append(line("under", from: CGPoint(x: 96, y: 128), to: CGPoint(x: 172, y: 129)))
