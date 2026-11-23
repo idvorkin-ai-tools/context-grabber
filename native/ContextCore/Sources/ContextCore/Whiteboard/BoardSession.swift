@@ -104,12 +104,13 @@ public struct BoardSession {
     /// What the iPad answered on its next turn; nil when the session ends before one.
     public var recorded: BoardOps.Result?
 
-    /// The fields Larry reads: label, ok, rev, reason, missing ids and the revision it was rebased from.
+    /// The fields Larry reads: label, ok, rev, reason, missing ids, the revision it was rebased from, and the room used
+    /// when the recording has it (story 1195; older recordings don't).
     public var matches: Bool {
       guard let replayed, let recorded else { return recorded == nil }
       return replayed.label == recorded.label && replayed.ok == recorded.ok && replayed.rev == recorded.rev
         && replayed.reason == recorded.reason && (replayed.missingIDs ?? []) == (recorded.missingIDs ?? [])
-        && replayed.rebasedFrom == recorded.rebasedFrom
+        && replayed.rebasedFrom == recorded.rebasedFrom && (recorded.rooms == nil || replayed.rooms == recorded.rooms)
     }
   }
 
@@ -290,7 +291,8 @@ public struct BoardSession {
     else { return nil }
     return BoardOps.Result(
       label: label, ok: ok, rev: rev, reason: json["reason"] as? String, missingIDs: json["missing_ids"] as? [String],
-      rebasedFrom: (json["rebased_from"] as? NSNumber)?.intValue, conflictIDs: json["conflict_ids"] as? [String])
+      rebasedFrom: (json["rebased_from"] as? NSNumber)?.intValue, conflictIDs: json["conflict_ids"] as? [String],
+      rooms: (json["room"] as? [Any])?.compactMap(BoardOps.Room.init(wire:)))
   }
 
   /// A step's `at` (ISO 8601, as the Cockpit stores it) in unix ms.

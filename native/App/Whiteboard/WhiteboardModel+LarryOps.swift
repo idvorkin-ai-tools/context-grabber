@@ -346,6 +346,11 @@ extension WhiteboardModel {
         })
     }
     if let from = batch.rebasedFrom { event["rebased_from"] = from }
+    // Story 1195: each make-room as asked and as made, "asked_y+asked_dy>y+dy".
+    if !plan.rooms.isEmpty {
+      event["room"] = plan.rooms.map { "\(Int($0.askedY))+\(Int($0.askedDy))>\(Int($0.y))+\(Int($0.dy))" }
+        .joined(separator: ",")
+    }
     var moves = plan.offsets.values.map(\.dy)
     moves.sort()
     let hiding = plan.hidden.values.filter { $0 }.count

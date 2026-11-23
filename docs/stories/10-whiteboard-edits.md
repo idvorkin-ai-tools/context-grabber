@@ -74,7 +74,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 814:
 
 - **Summary:** Larry makes room between my lines
-- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testAPushMovesOnlyWhatStartsAtOrBelowTheLine`, `testAPushThatNeedsAPageAddsOne`, `testAPushBelowTheLastInkMovesNothingAndAddsPaper`, `testATranslateBelowALine`; `just test`) and the Mac build (`just native-build-mac`). The one undo named for the change, page count included, is PaperKit's, in the board's view, with no host test; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysPushMovesTheInkBelowAndOneUndoPutsItBack`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1), [06c48a49](https://github.com/idvorkin/context-grabber/commit/06c48a49) (the snap, story 1195); verified by host tests (`BoardOpsTests`: `testAPushMovesOnlyWhatStartsAtOrBelowTheLine`, `testAPushThatNeedsAPageAddsOne`, `testAPushBelowTheLastInkMovesNothingAndAddsPaper`, `testATranslateBelowALine`; `just test`) and the Mac build (`just native-build-mac`). The one undo named for the change, page count included, is PaperKit's, in the board's view, with no host test; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysPushMovesTheInkBelowAndOneUndoPutsItBack`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
@@ -86,7 +86,67 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A push in the middle of the board
 - **Given:** a board with ink above and below a line, and Larry answers my turn with "make room below that line"
 - **When:** his answer lands with the Pencil up
-- **Then:** every stroke, kept mark and pasted line whose top is at or below the line moves straight down exactly that far, the ink above doesn't move, a page is added at the bottom if the push needs one, and one tap on Undo puts the board back as it was, page count included; Redo pushes it down again
+- **Then:** every stroke, kept mark and pasted line whose top is at or below the line moves straight down that far, the ink above doesn't move, a page is added at the bottom if the push needs one, and one tap on Undo puts the board back as it was, page count included; Redo pushes it down again. The line he names snaps to a clear line and the distance to whole lines first (story 1195)
+
+---
+
+### User Story 1195:
+
+- **Summary:** Larry's make-room lands between lines and moves whole lines
+- **Issues:** bead context-grabber-2gu (Igor, 2026-11-22, design board: "every cut lands between lines")
+- **Status:** implemented in [06c48a49](https://github.com/idvorkin/context-grabber/commit/06c48a49); verified by host tests (`BoardOpsTests`: `testLarrysRoomInsideALineCutsAtItsTopAndMovesWholeLines`, `testLarrysRoomNearALinesBottomCutsUnderIt`, `testLarrysRoomOnClearPaperStaysWhereHeAsked`, `testLarrysRoomNeverSplitsAGroupAcrossTheLine`, `testLarrysClosingRoomClosesBlankPaperOnlyInWholeLines`, `testHisNextTurnHearsTheRoomUsed`, `testTheBoardsOwnRoomStaysExact`, and `testOnTheRealBoardsEveryCutLandsBetweenLines` on the four real-board fixtures; `just test`), the Mac build (`just native-build-mac`), and on the iPad simulator (`WhiteboardPaperGhostsUITests`, all 21, Larry's push and its Undo among them). Not yet seen on the iPad, nor against the real Larry. Open, not decided: a push from an older look, after Igor opened room by hand since Larry looked, still snaps at the height Larry saw on the board as it is now, as before (the spec's *Larry makes room*)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** whose board Larry opens room in
+- **I want to** have his cut land between my lines and open whole lines, as every other push does
+- **so that** a line of my handwriting is never split and the room he opens is room I can write in
+
+#### Acceptance Criteria:
+- **Scenario:** He names a height inside a line of writing
+- **Given:** a line of my handwriting, and Larry asks for 50 points of room at a height a little way into it
+- **When:** his push lands
+- **Then:** the cut is at the clear line at the top of that line of writing (its bottom when that is nearer, or the top is more than two lines away), the whole line moves down 80 points (whole lines, rounded up), nothing of it stays behind, and a group of his across the height moves whole or stays whole
+
+---
+
+### User Story 1198:
+
+- **Summary:** Larry hears the room his make-room used
+- **Issues:** bead context-grabber-2gu
+- **Status:** implemented in [06c48a49](https://github.com/idvorkin/context-grabber/commit/06c48a49); verified by host tests (`BoardOpsTests`: `testHisNextTurnHearsTheRoomUsed`; `just test`) and the Mac build (`just native-build-mac`). Not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** whose board Larry opens room in
+- **I want to** have Larry told where his cut landed and how far it moved
+- **so that** what he says next matches the board, not the height he guessed
+
+#### Acceptance Criteria:
+- **Scenario:** He hears what was used
+- **Given:** his push was snapped (story 1195)
+- **When:** his next turn goes to him
+- **Then:** it says, for each make-room, the height and distance he asked for and the clear line and distance the board used
+
+---
+
+### User Story 1199:
+
+- **Summary:** Larry's closing room closes blank paper only, in whole lines
+- **Issues:** bead context-grabber-2gu
+- **Status:** implemented in [06c48a49](https://github.com/idvorkin/context-grabber/commit/06c48a49); verified by host tests (`BoardOpsTests`: `testLarrysClosingRoomClosesBlankPaperOnlyInWholeLines`; `just test`) and the Mac build (`just native-build-mac`). Not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** whose board Larry tidies
+- **I want to** have his closing of room take only blank paper, in whole lines
+- **so that** nothing of mine is ever closed over
+
+#### Acceptance Criteria:
+- **Scenario:** He asks to close room
+- **Given:** blank paper between two lines of writing, and Larry asks to close more than there is
+- **When:** his change lands
+- **Then:** only the blank paper closes, in whole lines, and nothing closes onto ink
 
 ---
 

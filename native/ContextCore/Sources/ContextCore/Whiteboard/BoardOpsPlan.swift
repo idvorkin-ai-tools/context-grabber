@@ -121,6 +121,8 @@ extension BoardOps {
     public var pagesAfter: Int
     /// Items that moved.
     public var moved = 0
+    /// Larry's make-rooms as asked and as made, in order (story 1195).
+    public var rooms: [Room] = []
     public var missingIDs: [String] = []
     /// Connectors drawn by the batch, drawn again on a new route, and turned plain ink as an end went (stories 910–916).
     public var connected: [String] = []
@@ -172,6 +174,11 @@ extension BoardOps {
       switch op {
       case .translateBelow(let y, let dy):
         push(y, dy)
+      case .makeRoom(let y, let dy):
+        // Story 1195: at the clear line nearest his height, in whole lines; what moves whole is never split.
+        let room = BoardRoom.larry(work.shownBoxes, at: y, dy: dy)
+        if room.dy != 0 { push(room.cut, room.dy) }
+        plan.rooms.append(Room(askedY: y, askedDy: dy, y: room.cut, dy: room.dy))
       case .translateIDs(let ids, let dx, let dy):
         var hit = Set<Int>()
         for id in ids {
@@ -309,6 +316,15 @@ extension BoardOps {
     func top(_ item: Int) -> CGFloat? { live(item).map { entries[$0].bounds.minY }.min() }
 
     var liveBounds: [CGRect] { entries.filter { !$0.gone }.map(\.bounds) }
+
+    /// The box of what shows of each item that moves whole, as the batch has left it, the ink it drew included: what a
+    /// make-room of Larry's never cuts through (story 1195).
+    var shownBoxes: [CGRect] {
+      items.indices.compactMap { item in
+        let shown = live(item).filter { !(entries[$0].hidden ?? entries[$0].folded) }
+        return shown.isEmpty ? nil : shown.map { entries[$0].bounds }.reduce(CGRect.null) { $0.union($1) }
+      }
+    }
 
     /// The board's ink from before the batch, by what moves whole, as the batch has left it: each item's box of what
     /// shows of it (nil when none does), and whether it is all canvas ink, nothing the batch drew or inked. What his text

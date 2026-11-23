@@ -177,7 +177,8 @@ public struct BoardOpApplier: Equatable, Sendable {
   @discardableResult
   public mutating func applied(_ batch: BoardOps.Batch, plan: BoardOps.Plan) -> BoardOps.Result {
     var result = BoardOps.Result(
-      label: batch.label, ok: true, rev: rev, missingIDs: plan.missingIDs.isEmpty ? nil : plan.missingIDs)
+      label: batch.label, ok: true, rev: rev, missingIDs: plan.missingIDs.isEmpty ? nil : plan.missingIDs,
+      rooms: plan.rooms.isEmpty ? nil : plan.rooms)
     result.rebasedFrom = batch.rebasedFrom
     lastResult = result
     return result

@@ -64,6 +64,17 @@ public enum BoardRoom {
     return d == 0 ? nil : Push(cut: at, dy: d)
   }
 
+  /// Larry's make-room (story 1195): every cut lands between lines, as every other push does. `y` snaps to the clear
+  /// line `cut` finds; a push rounds up to whole lines, and closing room (`dy` below zero) closes blank paper only, in
+  /// whole lines, as room by hand does. A distance of zero moves nothing.
+  public static func larry(_ ink: [CGRect], at y: CGFloat, dy: CGFloat) -> Push {
+    let others = ink.filter { !$0.isNull }
+    let at = cut(others, at: y)
+    guard dy < 0 else { return Push(cut: at, dy: (dy / line).rounded(.up) * line) }
+    let d = (-dy / line).rounded(.down) * line
+    return Push(cut: at, dy: -min(d, closable(others, at: at)))
+  }
+
   /// Room for ink dropped by hand at `block`, lifted from `from` (stories 969, 973–975): none when it sits on none of
   /// `ink` (touching an edge isn't sitting on it, nor is ink on the line it was lifted from); else, from the clear line
   /// nearest its top, what is below goes down by whole lines until the first of it is `air` under the block. `ink` is
