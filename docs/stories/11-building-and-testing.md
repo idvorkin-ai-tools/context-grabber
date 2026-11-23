@@ -1411,3 +1411,80 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a call that went wrong filed a report less than ten minutes ago
 - **When:** a call the smoke expects to be clean goes wrong again and its report is held back by the window
 - **Then:** that call's check still fails
+
+---
+
+### User Story 1027:
+
+- **Summary:** One command puts main, development-signed, on the Cockpit's /builds page for the iPad
+- **Status:** implemented in a00720be. Host coverage in `scripts/native/test-ota.sh` covers recipe arguments, the dry run and destination selection. The real development export from 9ec60f90 listed the iPad in all three profiles, expiring 2027-11-20. A full `just ota` from the main checkout is owed after the merge
+- **Issues:** bead `context-grabber-omes` (Igor, 2026-11-22: staying on development builds; record and optimise the build loop)
+
+#### Use Case:
+- **As Igor,** staying on development builds and away from the Mac's cable
+- **I want to** have one command build main, sign it for development and put it on the Cockpit's /builds page
+- **so that** the iPad installs the newest main over the air, and I know exactly which build it is
+
+#### Acceptance Criteria:
+- **Scenario:** An over-the-air build
+- **Given:** a clean main and the Mac unlocked
+- **When:** `just ota` runs
+- **Then:** it archives main as `just testflight --export-only` does, exports it development-signed under the signing lock and the screen-lock guard, publishes the completed transfer as `grabber-<commit>.ipa`, and prints the version, build, commit, the start of its SHA-256 and each step's seconds
+- **And:** `--dry-run` prints that plan and builds, switches and copies nothing
+
+---
+
+### User Story 1028:
+
+- **Summary:** The over-the-air build refuses a package the iPad can't install, and never prints its id
+- **Status:** implemented in a00720be. Host coverage in `scripts/native/test-ota.sh` covers the local ID, masking, and a partially unreadable package. The Mac check against the real development export also rejected an ID absent from all three profiles
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** installing from /builds on the iPad
+- **I want to** have a build whose profile lacks the iPad stopped before it is published, and one ota at a time
+- **so that** /builds never offers a package that fails to install, and the public repo never carries a device id
+
+#### Acceptance Criteria:
+- **Scenario:** A profile without the iPad
+- **Given:** the iPad's id in the gitignored local file
+- **When:** the exported package's profiles (the app, the widgets, the share extension) are checked
+- **Then:** an unreadable profile or one that doesn't list the iPad stops the run before the copy. The command shows the ID only in masked form and prints readable profiles' expiry dates. A missing ID stops the run, and a second ota while one runs stops at once (exit 75)
+
+---
+
+### User Story 1029:
+
+- **Summary:** After each merge batch, main is built over the air and Igor's thread says what it holds
+- **Status:** implemented in a00720be. The host fixture in `scripts/native/test-ota.sh` exercises polling remote merges, a merge arriving before OTA selects the checkout, announcement retry across restart, and the build exit codes
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** whose agents merge several PRs in a row
+- **I want to** have a new over-the-air build made once a batch of merges settles, and told in my thread which PRs it holds
+- **so that** the iPad is never far behind main and I know when to install
+
+#### Acceptance Criteria:
+- **Scenario:** A batch of merges settles
+- **Given:** the watcher is running and main has merges since the last build
+- **When:** ten minutes pass with no newer merge
+- **Then:** it builds the checked commit, posts *New build on /builds: <version> (<build>) <commit>, with: <the PRs merged since the last build>* to `igor2-88g.1620`, and remembers the build outside the repository. A newer merge before the build is selected makes it wait again. A failed post is retried after a restart without rebuilding. Busy and locked builds are retried at the next poll, and other build failures stop the watcher with local diagnostics
+
+---
+
+### User Story 1500:
+
+- **Summary:** One document says how a build reaches each device, and what would make it faster
+- **Status:** implemented in a00720be. Verified by resolving both relative links from AGENTS.md and docs/TESTING.md to the deploy guide
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** or an agent about to deploy
+- **I want to** read one page covering the cable and network install, the over-the-air build, signing, renewing the profile, adding a device and iCloud's two environments
+- **so that** a deploy, a lost account or an expiring profile is handled the same way each time, and the next speed-up is chosen from measured numbers
+
+#### Acceptance Criteria:
+- **Scenario:** Before a deploy
+- **Given:** an agent or Igor needs a build on a device
+- **When:** they open the deploy document from the agent instructions or the testing guide
+- **Then:** it names the command for each path, what *unavailable* means, how to wait for a device, the signing rules, what to do before the profile expires, how to add a device, which iCloud environment each build uses, and a table of speed-ups with their estimated savings

@@ -121,8 +121,8 @@ xcodebuild -resolvePackageDependencies -project native/GrabberNative.xcodeproj -
   echo "testflight: no BugKit signing guard at $guard (BugKit 0.3.3 or later)" >&2
   exit 69
 }
-rm -rf "$archive"
-scripts/native/xcodebuild-log.sh testflight-archive "ARCHIVE SUCCEEDED" lockf "$lock" "$guard" xcodebuild \
+scripts/native/xcodebuild-log.sh testflight-archive "ARCHIVE SUCCEEDED" lockf "$lock" "$guard" \
+  bash -c 'archive=$1; shift; rm -rf -- "$archive" && exec "$@"' bash "$archive" xcodebuild \
   -project native/GrabberNative.xcodeproj -scheme GrabberNative -configuration Release \
   -destination generic/platform=iOS -derivedDataPath native/Build -archivePath "$archive" \
   -allowProvisioningUpdates \
