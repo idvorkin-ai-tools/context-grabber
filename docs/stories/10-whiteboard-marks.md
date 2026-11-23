@@ -1609,7 +1609,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** A piece and a reply
-- **Given:** one mark of Larry's kept on its own with Keep, and a reply of his kept with Keep group or Keep all, no marks showing
+- **Given:** one mark of Larry's kept on its own with Keep, and a reply of his kept with Keep all (or with Keep group before #1224), no marks showing
 - **When:** I tap the single mark, and then a piece of the reply, with a finger
 - **Then:** the first tap selects that mark alone and the second selects the whole reply and nothing else of his or mine; each drags as one, and one Undo puts it back
 

@@ -39,7 +39,8 @@ Igor's picks on the design board, 2026-11-22. Each rule is stated here once; the
 What moves whole, and is never cut through by a push:
 
 - a mark of Larry's or Claude's kept on its own with **Keep**;
-- a whole reply kept with **Keep group** or **Keep all**: what he kept together moves together (story 1205);
+- a whole reply kept with **Keep all** (or with Keep group, before the two became one): what he kept together moves
+  together (story 1205);
 - a group Larry made himself;
 - a kept text or a paste, which can also be reworded;
 - a word of his that a connector is tied to;
@@ -53,8 +54,9 @@ fold is erased only by its words or its marker, never by its underline or its # 
 A finger tap is tried in this order, and the first that fits wins:
 
 1. **His own selection.** A tap inside it is always the selection's, whatever lies under the finger (story 1196).
-2. **What he kept together.** A piece of a reply kept with Keep group or Keep all picks up that reply; a mark kept on
-   its own with Keep picks up that mark alone; a group of Larry's picks up the group (stories 947, 1140, 1205).
+2. **What he kept together.** A piece of a reply kept with Keep all (or Keep group before it) picks up that reply; a
+   mark kept on its own with Keep picks up that mark alone; a group of Larry's picks up the group (stories 947, 1140,
+   1205).
 3. **A text.** The first tap selects it, ready to drag; the second opens its words (stories 940, 1197).
 
 The Pencil never selects with a tap: it draws. A Pencil held still on a word picks that word up (story 859).
@@ -67,7 +69,7 @@ a cut that always lands between rows of writing; writing Larry saw never moves f
 
 - **Igor**, by the margin handle or the hold menu.
 - **A paste or a dropped selection**, which first looks for clear paper and pushes only if there is none.
-- **A suggestion of Larry's**, when it is kept, by Keep, Keep group or Keep all alike (story 1149).
+- **A suggestion of Larry's**, when it is kept, by Keep or Keep all alike (story 1149).
 - **A change Larry makes to the board directly**, when it lands with the Pencil up. His own make-room cuts between
   rows and moves whole lines like every other push (story 1195).
 
@@ -82,19 +84,28 @@ is dropped, even on ink": a selection dropped onto writing pushes the writing do
 - The bar's switch is *Ask at my pauses*, for whoever answers (story 1171). There is one *Send to Larry* button, which
   waits when offline (story 1176), and a Send from any device goes to the board's one conversation (story 1158).
 
-### Built, and not yet
+### Built
 
-| Built (its stories carry the status) | Decided, not yet built (its bead) |
+Every rule above is built; its stories carry the status.
+
+| Built | Stories |
 |---|---|
-| Room by the margin handle and the hold menu (858, 930) | Keep all as a group that makes room (context-grabber-nrg) |
-| A paste finds clear paper or opens room (852, 869) | Larry's make-room between rows, whole lines (context-grabber-2gu) |
-| A kept reply makes room for newer writing (1004–1006) | A fold survives its underline being erased (context-grabber-bov) |
-| Larry's text from a change makes room (992) | A tap inside his selection is the selection's (context-grabber-nkh) |
-| Groups move whole (842, 947, 995–998) | Two taps to reword any text (context-grabber-awz) |
-| Connectors follow their ends and bend once (910–919) | *Ask at my pauses* (context-grabber-4ic) |
-| Headers, folds and nested sections (855, 856, 1030, 1031, 1065) | One Send button that waits offline (context-grabber-rtl) |
-| Rewording a kept text (940); the selection label (1095) | One conversation from any device (context-grabber-da1) |
-| Erasing part of a thing leaves plain ink (854, 871, 915) | |
+| Room by the margin handle and the hold menu | 858, 930 |
+| A paste finds clear paper or opens room | 852, 869 |
+| A kept reply makes room for newer writing | 1004–1006 |
+| Keep all as a group that makes room | 1149 |
+| Larry's text from a change makes room | 992 |
+| Larry's make-room between rows, whole lines | 1195 |
+| Groups move whole | 842, 947, 995–998 |
+| Connectors follow their ends and bend once | 910–919 |
+| Headers, folds and nested sections | 855, 856, 1030, 1031, 1065 |
+| A fold survives its underline being erased | 1170 |
+| A tap inside his selection is the selection's | 1196 |
+| Rewording a kept text; two taps to reword any text; the selection label | 940, 1197, 1095 |
+| Erasing part of a thing leaves plain ink | 854, 871, 915 |
+| *Ask at my pauses* | 1171 |
+| One Send button that waits offline | 1176 |
+| One conversation from any device | 1158 |
 
 Still design, with no decision: what principle 5 asks beyond a rigid push and today's folds (blank paper further down
 absorbing a push, a deleted line closing up, connectors stretching across a cut, showing or hiding a layer). That is bead context-grabber-0sf, to be proposed to Igor
@@ -472,8 +483,8 @@ look-only phone exactly as ink is today, with no extra work.
 #### How things become objects
 
 - **Keep** on a ghost makes the ink it makes today, and that ink is one object. One undo still takes it back whole.
-  **Keep group** and **Keep all** keep a whole reply, and the reply is one object (decided 2026-11-22: what he kept
-  together moves together).
+  **Keep all** keeps a whole reply (as Keep group did before the two became one), and the reply is one object
+  (decided 2026-11-22: what he kept together moves together).
 - **That is every kind of mark Larry or Claude can send**: a label, a box, a circle, an arrow, a line, an arc, a
   freehand curve. Each lands as its own object when kept, never as loose ink. A label is an object with words (Edit
   rewords it); a box, a circle and the rest are objects without words (select, move, delete). Igor, 2026-11-16:
@@ -677,8 +688,8 @@ A push is the last resort. In order:
 Reversed 2026-11-22. This section said Larry's room waits for a tap on a *Make room* tag. It no longer does: there is
 no tag.
 
-- **A suggestion** (a ghost in a reply) opens no room while it is a suggestion. Keeping it, with Keep, Keep group or
-  Keep all, makes room in the same step for writing Igor did after Larry's picture; one undo takes back both.
+- **A suggestion** (a ghost in a reply) opens no room while it is a suggestion. Keeping it, with Keep or Keep all,
+  makes room in the same step for writing Igor did after Larry's picture; one undo takes back both.
 - **A change Larry makes to the board directly** (a text, a make-room) opens its room when it lands, with the Pencil
   up, by the rule in *Making room: one rule*. One undo puts the board back.
 - If the gap was already big enough, nothing moves.
