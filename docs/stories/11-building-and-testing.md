@@ -1417,7 +1417,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1027:
 
 - **Summary:** One command puts main, development-signed, on the Cockpit's /builds page for the iPad
-- **Status:** implemented on branch `native/ota-omes`; verified on the host (`scripts/native/test-ota.sh` in `just native-test`: arguments, the dry run, the destination overridable) and on the Mac against a real package (`just ota --check-ipa` on the 9ec60f90 development export: all three profiles list the iPad, expiring 2027-11-20). A full `just ota` from the main checkout is owed after the merge
+- **Status:** implemented in 77168c5b; verified on the host (`scripts/native/test-ota.sh` in `just native-test`: arguments, the dry run, the destination overridable) and on the Mac against a real package (`just ota --check-ipa` on the 9ec60f90 development export: all three profiles list the iPad, expiring 2027-11-20). A full `just ota` from the main checkout is owed after the merge
 - **Issues:** bead `context-grabber-omes` (Igor, 2026-11-22: staying on development builds; record and optimise the build loop)
 
 #### Use Case:
@@ -1437,7 +1437,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1028:
 
 - **Summary:** The over-the-air build refuses a package the iPad can't install, and never prints its id
-- **Status:** implemented on branch `native/ota-omes`; verified on the host (`scripts/native/test-ota.sh`: no iPad id stops it with exit 78, the id shown only masked) and on the Mac (`just ota --check-ipa` with an id not in the profile names each of the three profiles and exits 78)
+- **Status:** implemented in 77168c5b; verified on the host (`scripts/native/test-ota.sh`: no iPad id stops it with exit 78, the id shown only masked) and on the Mac (`just ota --check-ipa` with an id not in the profile names each of the three profiles and exits 78)
 - **Issues:** bead `context-grabber-omes`
 
 #### Use Case:
@@ -1456,7 +1456,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1029:
 
 - **Summary:** After each merge batch, main is built over the air and Igor's thread says what it holds
-- **Status:** implemented on branch `native/ota-omes`; verified on the host (`scripts/native/test-ota.sh`: a throwaway history with merges at chosen times, a fake ota and a fake `larry`: the first run, an open batch, a finished batch, the post, a restart, a batch that ended while no watcher ran, busy, failed and stopped builds); the real watcher against main in a dry run
+- **Status:** implemented in 77168c5b; verified on the host (`scripts/native/test-ota.sh`: a throwaway history with merges at chosen times, a fake ota and a fake `larry`: the first run, an open batch, a finished batch, the post, a restart, a batch that ended while no watcher ran, busy, failed and stopped builds); the real watcher against main in a dry run
 - **Issues:** bead `context-grabber-omes`
 
 #### Use Case:
@@ -1475,7 +1475,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1500:
 
 - **Summary:** One document says how a build reaches each device, and what would make it faster
-- **Status:** implemented on branch `native/ota-omes` (docs/DEPLOYING.md, linked from AGENTS.md and docs/TESTING.md)
+- **Status:** implemented in 77168c5b (docs/DEPLOYING.md, linked from AGENTS.md and docs/TESTING.md)
 - **Issues:** bead `context-grabber-omes`
 
 #### Use Case:
