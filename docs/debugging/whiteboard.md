@@ -7,6 +7,11 @@ is added are in [DEBUGGING.md](../DEBUGGING.md); this file only says what each w
 **Adding a line here**: a new event or action is a new bullet under its area (or a new area), and a new field is added
 to that event's own bullet; never join two events on one line.
 
+## Between a board and its chat (stories 1206–1208, 1223–1226, bead context-grabber-dbku; spec 2026-10-25-native-chat-design.md, *Between a board and its chat*)
+
+- `jump`, one per hop between a board and its thread: from (thread_board — a thread's *Board* —, picture — *Jump to board* on a picture —, board_panel, board_note, list_bubble — the boards list's chat bubble), to: board / thread, board, thread, how: slid_in (pushed over where he was; *Back* returns) / went_back (the target was the screen he jumped from, so one step back) / brought_forward (a board open elsewhere, opened the link's way), and through_list: true only for brought_forward
+- `whiteboard` action: aside_for_chat with board and strokes — the board saved and its mic stopped as its thread slides in over it; back_from_chat with board — the board on screen again; closed_under_chat with board — the whiteboard taken down with the thread, or anything pushed from it, still over the board, so the board closes as it would on leaving
+
 ## The Board Lab (story 1501, spec 2026-11-22-board-lab-design.md)
 
 - `board_lab` action: session with name (the recorded session asked for), status (the fake Cockpit's HTTP answer, 0 when the request failed) and error (the request's error, empty when it was sent): whether the fake Cockpit accepted the lab's request to play a recorded session on the first board message's thread, once per launch that asks for one
