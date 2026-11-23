@@ -89,22 +89,19 @@ extension WhiteboardModel {
   /// Story 896: kept labels and pastes that sit on other ink laid out again, top to bottom; his ink stays. One undo.
   func tidyOverlaps() {
     guard editable else { return }
-    let known = opLedger.labels(board: board.id)
-    var labels: [String: [[CGPoint]]] = [:]
-    var members: [String: [Int]] = [:]
-    var ink: [[CGPoint]] = []
-    for (i, stroke) in drawing.strokes.enumerated() where !stroke.isFolded {
-      let points = Self.points(stroke)
-      let made = Self.moment(stroke)
-      if known.contains(made) {
-        labels["\(made)", default: []].append(points)
-        members["\(made)", default: []].append(i)
-      } else {
-        ink.append(points)
-      }
-    }
-    let moves = WhiteboardTidy.tidy(labels, among: ink)
-    log.event("whiteboard", ["action": "tidy", "board": board.id, "labels": labels.count, "moved": moves.count])
+    // Bead context-grabber-cg3: a label in one of Larry's groups stays with its group, as ink.
+    let all = drawing.strokes
+    let laid = WhiteboardTidy.laid(
+      opStrokes(all).strokes, known: opLedger.labels(board: board.id), texts: texts, groups: strokeMeta.groups,
+      folded: Set(all.indices.filter { all[$0].isFolded }))
+    let members = laid.labels
+    let labels = members.mapValues { $0.map { Self.points(all[$0]) } }
+    let moves = WhiteboardTidy.tidy(labels, among: laid.ink.map { Self.points(all[$0]) })
+    log.event(
+      "whiteboard",
+      [
+        "action": "tidy", "board": board.id, "labels": labels.count, "moved": moves.count, "grouped": laid.grouped,
+      ])
     guard !moves.isEmpty else {
       pasteNote = "Nothing overlaps"
       return
