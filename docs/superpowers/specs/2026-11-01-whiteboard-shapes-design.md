@@ -432,7 +432,9 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
   - A picture that can't reach him frees the turn, and its words wait for the next one. *Ask at my pauses* off forgets
     what the pauses kept; a turn already out stays out.
   - While the board's *Send* waits in the outbox, a pause, his answer to an earlier picture and the three-minute wait
-    send nothing, so it can't start a second thread or go twice (story 1176).
+    send nothing, so it can't start a second thread or go twice (story 1176). What a pause hears meanwhile is kept, as
+    for any turn out, even while that Send is the one that will start the board's thread: the words go with the next
+    picture once he has answered it, or with the next Send if it can't go (story 1202).
 - The first stroke with the switch off puts *Ask at my pauses is off, so no one is watching: turn it on for a look*
   in the bar's note. It stays there, past the note's usual few seconds, until the switch comes back on. The session
   log notes that first unwatched stroke. (Bead context-grabber-bozm: a tap meant for the mic landed on Ghosts beside

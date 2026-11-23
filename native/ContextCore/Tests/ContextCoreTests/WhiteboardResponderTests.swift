@@ -186,9 +186,10 @@ final class WhiteboardResponderTests: XCTestCase {
 
   private func handOff(
     _ answered: WhiteboardResponder?, _ answer: WhiteboardTurn.Answer = .shapes([]), stale: Bool = false,
-    waiting: Bool = false
+    waiting: Bool = false, turnHolds: Bool = false
   ) -> WhiteboardResponder.HandOff {
-    WhiteboardResponder.handOff(answered: answered, answer: answer, stale: stale, firstSendWaiting: waiting)
+    WhiteboardResponder.handOff(
+      answered: answered, answer: answer, stale: stale, firstSendWaiting: waiting, turnHolds: turnHolds)
   }
 
   func testALarryBoardsPauseGoesToHisThread() {
@@ -208,6 +209,12 @@ final class WhiteboardResponderTests: XCTestCase {
   func testALarryBoardIsntHandedOnAStaleTurnOrBeforeItsThreadExists() {
     XCTAssertEqual(handOff(.larry, stale: true), .skipped("stale"))
     XCTAssertEqual(handOff(.larry, waiting: true), .skipped("first_send_waiting"))
+  }
+
+  /// Bead context-grabber-8lsj: the board's own first Send waiting is its turn out, which holds the pause and its words.
+  func testAPauseWhileTheBoardsOwnFirstSendWaitsGoesToTheTurn() {
+    XCTAssertEqual(handOff(.larry, waiting: true, turnHolds: true), .hand)
+    XCTAssertEqual(handOff(.larry, stale: true, waiting: true, turnHolds: true), .skipped("stale"))
   }
 
   // MARK: The pause and the timings

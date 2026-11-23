@@ -929,7 +929,27 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** No network
 - **Given:** no network
 - **When:** I tap *Send to Larry*, then pause and tap it again
-- **Then:** the note reads *Waiting to send · 0:00* and counts, the button is dimmed, nothing fails and nothing more is queued; when the network is back the picture goes once, the note reads *Larry · 0:00*, and his marks arrive with no further tap
+- **Then:** the note reads *Waiting to send · 0:00* and counts, the button is dimmed, nothing fails and nothing more goes to the outbox; when the network is back the picture goes once, the note reads *Larry · 0:00*, and his marks arrive with no further tap
+
+---
+
+### User Story 1202:
+
+- **Summary:** Words spoken while the first Send waits are kept for the next picture
+- **Status:** implemented in [2b950639](https://github.com/idvorkin/context-grabber/commit/2b950639); verified by host tests (`WhiteboardResponderTests`: a pause on a board whose own first Send waits goes to the turn; `WhiteboardOneSendTests`: the words held through the Send going and carried by the picture after his answer, or kept when it can't go) and the Mac build; owed on the iPad simulator, as the fake Cockpit can't hold a Send in the outbox.
+- **Issues:** bead context-grabber-8lsj (review of PR #1236: words spoken at a pause while the board's first Send waited were dropped)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *One Send*
+
+#### Use Case:
+- **As someone** talking through a picture whose first Send waits for the network
+- **I want to** have what I say at a pause kept
+- **so that** Larry hears it with the next picture instead of losing it
+
+#### Acceptance Criteria:
+- **Scenario:** Words spoken while the first Send waits
+- **Given:** a Larry board with no thread yet, its first Send waiting in the outbox
+- **When:** I speak at a pause
+- **Then:** nothing more goes while it waits, and once the Send has gone and Larry answers, the next picture carries my words; if the Send can't go, they wait for the next one
 
 ---
 
