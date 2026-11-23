@@ -221,6 +221,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board renamed to a name longer than the bar has room for
 - **When:** I look at the bar
 - **Then:** the name is cut short and every button stays on the bar
+
 ---
 
 ### User Story 378:
