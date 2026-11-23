@@ -12,12 +12,25 @@ extension XCUIElement {
     } while Date() < deadline
     return exists
   }
+
+  /// The other way round: true once the element is gone, looking every 0.1 s (bead context-grabber-u76). `waitUntil`
+  /// reads a missing element as "not yet", so it can't wait for a disappearance, and XCTest's predicate expectation
+  /// looks about once a second.
+  func disappears(within timeout: TimeInterval) -> Bool {
+    let deadline = Date().addingTimeInterval(timeout)
+    repeat {
+      if !exists { return true }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    } while Date() < deadline
+    return !exists
+  }
 }
 
 extension XCTestCase {
   /// Waits for `predicate` to hold for `object`, looking every 0.1 s, and fails the test at `timeout` as
   /// `waitForExpectations` would. XCTest's predicate expectation looks about once a second, so each of its waits costs
-  /// up to a second more than the app takes (story 673).
+  /// up to a second more than the app takes (story 673). A missing element reads as "not yet": to wait for one to
+  /// go away, use `disappears(within:)`.
   func waitUntil(
     _ predicate: NSPredicate, _ object: Any?, timeout: TimeInterval, file: StaticString = #filePath, line: UInt = #line
   ) {
