@@ -173,8 +173,8 @@ makes the board change. `bw_info` says `"abi": 4`; versions 1 to 3 are unchanged
 
 ## The interface, version 5: what a hold is on
 
-Story 1620. A Pencil held still picks up what `BoardOutline.word(at:)` says, and a finger held still brings up the
-menu `holdMenu(at:)` makes: *Select* and *Delete* the thing under it (no *Delete* on a header's row), then the rows
+Story 1620. A Pencil held still picks up the same word the iPad's Pencil hold picks up, and a finger held still brings
+up the same menu a finger hold brings up on the iPad: *Select* and *Delete* the thing under it (no *Delete* on a header's row), then the rows
 for its line. Both over the loaded outline; `bw_info` says `"abi": 5`; versions 1 to 4 are unchanged.
 
 | Export | Arguments | Returns |
@@ -185,8 +185,7 @@ for its line. Both over the loaded outline; `bw_info` says `"abi": 5`; versions 
 - A choice is named by its id (`select`, `delete`, `make-room`, `paste`, `make-header`, `not-header`, `fold-all`,
   `level-1` to `level-3`, `unfold-all`); `header` is the header *Not a header* takes. `on` is `header-mark`,
   `header`, `group`, `ink` or `paper`; `names` are what *Select* and *Delete* take.
-- Each box the Cockpit sends (a kept text or a card) is a kept text to the outline, so a hold anywhere inside it is on
-  it, as on the iPad. A box's time is one no stroke has, so it owns no glyphs.
+- A hold anywhere inside a box the Cockpit sends (a kept text or a card) is on that box, as on the iPad.
 
 ## Precision: a known difference from the iPad
 
