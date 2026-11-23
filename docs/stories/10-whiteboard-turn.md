@@ -868,7 +868,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** No network on Larry's turn
 - **Given:** no network
-- **When:** I tap *Larry's turn*
+- **When:** a pause hands him the picture on a Larry board
 - **Then:** a copyable error says Larry couldn't be reached, and nothing is queued
 
 ---
