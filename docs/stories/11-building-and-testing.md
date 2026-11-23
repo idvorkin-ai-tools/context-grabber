@@ -1735,7 +1735,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1508:
 
 - **Summary:** A simulator is driven only from the build lane that owns it
-- **Status:** implemented in [479a652d](https://github.com/idvorkin/context-grabber/commit/479a652d); verified on the host by `scripts/native/test-sim-lane.sh` (lane ownership, sim-boot and a test run refused with exit 64 outside the owning lane, a build allowed, a script outside any lane taking one); no simulator run (the Mac's screen was locked)
+- **Status:** implemented in [bdfebd7e](https://github.com/idvorkin/context-grabber/commit/bdfebd7e); verified on the host by `scripts/native/test-sim-lane.sh` (lane ownership, sim-boot and a test run refused with exit 64 outside the owning lane, a build allowed, a script outside any lane taking one); no simulator run (the Mac's screen was locked)
 - **Issues:** bead context-grabber-w7nl (2026-11-22 ~21:20: a dead-code lane's timer smoke, run outside any lane, went to lane 1's iPad while lane 1 ran the whiteboard suite on it: three smoke failures, each different, and the suite's own run spoiled)
 
 #### Use Case:
