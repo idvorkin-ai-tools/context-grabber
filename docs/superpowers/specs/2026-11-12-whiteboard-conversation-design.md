@@ -48,19 +48,21 @@ the longest wait.
 - **VoiceOver** reads the state as *Larry has been looking for 42 seconds*, when asked, not on every tick.
 - **The Pencil keeps drawing** throughout; the clock never takes a touch.
 
-## A repeat tap sends nothing (Igor, 2026-11-12; changes story 662)
+## A repeat tap sends nothing (Igor, 2026-11-12; changes story 662; dimmed until the next stroke, Igor 2026-11-22)
 
 Six taps on *Larry's turn* and one on *Send to Larry* in twelve seconds each sent Larry the same picture. He had to
 say so himself.
 
-- **While Larry is looking at a picture and nothing has changed since it went** (no new ink, no words waiting, the
-  same part of the board on screen), *Send to Larry* sends nothing.
-- **The tap is answered.** For two seconds the note's state reads **Larry already has this · 0:12**, then goes back to
-  the clock.
-- **Anything new and the tap sends as before**: new ink, waiting words or another part of the board on screen go at
-  once as a fresh picture and the clock restarts.
-- **With no turn out, *Send to Larry* always sends**, new ink or not: asking him to look again is a real request
-  (*Larry's turn* and *Send to Larry* are one button since story 1176).
+- **Once Larry has a picture and nothing has changed since it went** (no new ink, no words waiting, the same part of
+  the board on screen), *Send to Larry* is dimmed, until the next stroke (Igor, 2026-11-22, bead context-grabber-x3tm,
+  reverting story 1176's *with no turn out a tap always sends*). That holds while he looks and after he has answered:
+  he already has this picture, so there is nothing to send. VoiceOver's hint says *Larry already has this board*.
+- **Anything new lights it again**: new ink, waiting words or another part of the board on screen, and a tap sends a
+  fresh picture at once and the clock restarts.
+- **What lights it without anything new**: a picture that didn't reach him (refused, deleted from the Inbox, or never
+  taken), and *Interrupt*, which makes the next tap a fresh ask (story 805).
+- **A tap that somehow arrives anyway sends nothing** and is answered: for two seconds the note's state reads **Larry
+  already has this · 0:12**, then goes back to the clock.
 - **Every tap changes something on screen within a quarter of a second**: the clock appears or restarts, or the note
   says why nothing went.
 
@@ -80,7 +82,7 @@ state here and decides the controls in *After 20 seconds*, below.
   seconds it is stuck (below).
 - **His answer ends the wait** whatever the mark said: an answer with no *seen* before it is still an answer.
 - **The other states are unchanged and say more than the mark**: *Cockpit not answering* shows as before (the mark
-  can't be read then, so the state keeps what it last knew), *Larry already has this* still answers a repeat tap, and
+  can't be read then, so the state keeps what it last knew), *Send to Larry* is still dimmed while he has the board as it is, and
   *Larry didn't answer* still comes at three minutes. Its copied state now also says where the picture was.
 - **VoiceOver** says *Sent 3 seconds ago, not picked up yet* or *Larry has been looking for 42 seconds*.
 - **The panel's live row** says the same as the line.

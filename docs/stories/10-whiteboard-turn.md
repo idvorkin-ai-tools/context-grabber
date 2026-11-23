@@ -30,7 +30,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** One send, one message
 - **Given:** I have just sent the board to Larry and he is looking at it
 - **When:** I tap Send to Larry again before drawing anything more
-- **Then:** nothing is sent, and the note says *Larry already has this* (story 765); on a board I only look at, the button is disabled until other pages are on screen. Since story 1176 Send on a board I draw on is Larry's turn
+- **Then:** the button is dimmed and nothing can be sent until I draw, speak or bring other pages on screen (story 765); on a board I only look at, the button is disabled until other pages are on screen. Since story 1176 Send on a board I draw on is Larry's turn
 
 ---
 
@@ -991,10 +991,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I open the board again
 - **Then:** the note reads *Waiting to send* again; when it goes Larry's clock starts and *Interrupt* is offered, and if it can't go what I said with it waits for the next picture
 
-- **Scenario:** A repeat tap after the reopened Send goes
+- **Scenario:** Send after the reopened Send goes
 - **Given:** a board reopened while its Send waited, and the Send has now gone
-- **When:** I tap *Send to Larry* with nothing drawn since the Send and the same pages on screen
-- **Then:** the note says *Larry already has this* and no second copy goes; had I drawn after the Send, before closing the board or since opening it, or moved to other pages, a fresh picture goes
+- **When:** I look at *Send to Larry* with nothing drawn since the Send and the same pages on screen
+- **Then:** it is dimmed and no second copy can go (story 765); had I drawn after the Send, before closing the board or since opening it, or moved to other pages, it is lit and a tap sends a fresh picture
 
 ---
 
@@ -1486,21 +1486,31 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 765:
 
-- **Summary:** A repeat tap doesn't send Larry the same picture again
+- **Summary:** Send to Larry is dimmed once Larry has this picture, until the next stroke
 - **Status:** implemented in [61761b8](https://github.com/idvorkin/context-grabber/commit/61761b8); verified by host tests (`WhiteboardLarryTurnTests`: a repeat tap with nothing new sends nothing, a pause that sent counts too, a stroke, waiting words or another part of the board on screen send, with no turn out a tap always sends, a failed picture lets the same board go again; `WhiteboardLarryClockTests.testARepeatTapIsAnsweredForTwoSeconds`; `just native-test`) and the Mac build (`just native-build-mac`). The whiteboard's UI classes passed on the iPad simulator with it in (`just test-ladder`, at 98878ae), though none of them makes a repeat tap. Another part of the board on screen sending was added after that run and is verified on the host only. Not yet seen on the iPad; *Larry's turn* and *Send to Larry* made one button (story 1176) in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552), verified by host tests and the whiteboard UI tests on the iPad simulator
-- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) (seven identical pictures in twelve seconds)
+- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) (seven identical pictures in twelve seconds); bead context-grabber-x3tm (Igor, 2026-11-22: dimmed until the next stroke once Larry has this picture, reverting story 1176's *with no turn out a tap always sends*)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *A repeat tap sends nothing*
 
 #### Use Case:
 - **As someone** waiting on Larry and not sure my tap took
-- **I want to** be told he already has the picture
-- **so that** his thread isn't filled with copies and I know the tap was heard
+- **I want to** see that he already has the picture
+- **so that** his thread isn't filled with copies and I know there is nothing to send
 
 #### Acceptance Criteria:
 - **Scenario:** Nothing new since the picture
 - **Given:** Larry is looking at a picture, I have drawn and said nothing since, and the same part of the board is on screen
-- **When:** I tap *Send to Larry* (one button since story 1176)
-- **Then:** no picture goes, and the note says *Larry already has this* with the clock for two seconds; had I drawn a stroke, said something or scrolled to another page, a fresh picture would go at once and the clock restart
+- **When:** I look at *Send to Larry* (one button since story 1176)
+- **Then:** it is dimmed, and VoiceOver's hint says Larry already has this board; had I drawn a stroke, said something or scrolled to another page, it would light and a tap would send a fresh picture at once and restart the clock
+
+- **Scenario:** He has answered
+- **Given:** Larry has answered the picture, and I have drawn and said nothing since, with the same part of the board on screen
+- **When:** I look at *Send to Larry*
+- **Then:** it is still dimmed, until my next stroke, words or other pages on screen
+
+- **Scenario:** A picture that didn't reach him, or Interrupt
+- **Given:** a Send refused or deleted from the Inbox, or a turn I interrupted (story 805)
+- **When:** I look at *Send to Larry* with nothing new drawn
+- **Then:** it is lit, and a tap sends the picture
 
 ---
 
