@@ -66,17 +66,9 @@ public final class HealthCache: @unchecked Sendable {
       [.text(metric.rawValue), .text(dateKey), .text(data.stringify()), .int(Int64(now))])
   }
 
-  public func computed(_ metric: MetricKey, _ dateKeys: [String]) throws -> [String: JSValue] {
-    try entries("health_computed_cache", metric, dateKeys).mapValues(\.value)
-  }
-
   /// The computed days with when each was written, for `partition`.
   public func computedEntries(_ metric: MetricKey, _ dateKeys: [String]) throws -> [String: CachedDay] {
     try entries("health_computed_cache", metric, dateKeys)
-  }
-
-  public func raw(_ metric: MetricKey, _ dateKeys: [String]) throws -> [String: JSValue] {
-    try entries("health_raw_cache", metric, dateKeys).mapValues(\.value)
   }
 
   private func entries(_ table: String, _ metric: MetricKey, _ dateKeys: [String]) throws -> [String: CachedDay] {

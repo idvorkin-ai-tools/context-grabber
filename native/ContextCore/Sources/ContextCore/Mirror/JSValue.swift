@@ -180,7 +180,6 @@ extension JSValue {
   public var double: Double? { if case .number(let n) = self { return n } else { return nil } }
   public var string: String? { if case .string(let s) = self { return s } else { return nil } }
   public var array: [JSValue]? { if case .array(let a) = self { return a } else { return nil } }
-  public var isNull: Bool { self == .null }
 }
 
 /// A small strict JSON reader that keeps object key order (JSONSerialization does not).

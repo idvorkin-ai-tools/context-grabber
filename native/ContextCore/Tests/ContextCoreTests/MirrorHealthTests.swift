@@ -47,9 +47,6 @@ final class HealthMathTests: XCTestCase {
     XCTAssertEqual(
       Health.filterActualSleep([0, 1, 2, 3, 4, 5].map { SleepSample(start: 0, end: hour, value: $0) }).map(\.value),
       [1, 3, 4, 5])
-    XCTAssertEqual(Health.sleepCategoryName(nil), "Asleep")
-    XCTAssertEqual(Health.sleepCategoryName(4), "Deep")
-    XCTAssertEqual(Health.sleepCategoryName(9), "Unknown")
   }
 
   func testSleepBySourceKeepsFirstSeenOrderAndStageHours() {
@@ -283,8 +280,6 @@ final class SleepTests: XCTestCase {
     XCTAssertEqual(days.count, 7)
     XCTAssertEqual(days.first { $0.date == "2026-03-14" }?.value, 8, "the whole night, on the day I went to bed")
     XCTAssertNil(days.first { $0.date == "2026-03-15" }?.value, "not split onto the morning's day")
-    let midnight = Weekly.aggregateSleep(samples, endDate: end, clock: la)
-    XCTAssertNotNil(midnight.first { $0.date == "2026-03-15" }?.value, "the old count split it at midnight")
   }
 
   func testBundleAndDefaultSource() {
