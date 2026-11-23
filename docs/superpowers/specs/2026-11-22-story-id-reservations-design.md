@@ -66,6 +66,11 @@ went back to picking IDs by hand, one of them reusing an ID an open PR already h
 never by an agent or the pipeline's review or document step mid-PR to make room for its own story: they stop and
 report the full journey (bead `context-grabber-1vvb`).
 
+Until a ledger shared between machines lands (bead `context-grabber-py4h`), the Linux lane numbers its stories
+1620–1639 without a row in the journey table. This Mac never reserves one of those IDs, in any journey, and never
+suggests a new block that holds them; the story ID check accepts them in any journey. The exception goes when the
+shared ledger lands.
+
 ## The pre-merge check
 
 A recipe, run in the branch's checkout immediately before merging its PR: it fetches main and the branch as pushed
@@ -86,6 +91,8 @@ host rung does. It passes, and says so, otherwise.
   file list GitHub cuts short of its changed files, is named in a warning, and the other IDs are handed out.
 - With too few free IDs, it prints no ID; its message names the journey by its row's name, the next unused block
   above every journey's IDs and the free IDs every journey has left.
+- Until bead `context-grabber-py4h` lands, 1620–1639 are never reserved nor inside a suggested block, and a story
+  numbered in that range passes the story ID check in any journey.
 - Two branches that each pass the story ID check alone, but add the same ID, fail the pre-merge check; one that
   doesn't collide passes; one whose pushed commits add the colliding ID fails even when the checkout is behind them.
 - The agent instructions say: new stories take their IDs from the reserve command, and the pre-merge check runs
