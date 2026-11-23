@@ -1949,7 +1949,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 775:
 
 - **Summary:** A picture that hasn't reached the Cockpit in 20 seconds offers Retry
-- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098), [4d8a67e](https://github.com/idvorkin/context-grabber/commit/4d8a67e) (bead `context-grabber-stl`), reconciled with story 773 in [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); verified by host tests (`WhiteboardLarryWaitTests`: `testNoMarkAtTwentySecondsIsStuckWithRetryAndDismiss`, `testNoMarkIsStuckOnlyOnACockpitThatMarks`, `testTheMarkIsFoundByTheMessagesId`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad, nor against a hung Cockpit. Retry itself, a Cockpit that marks nothing and a picture that lands after all are stories 802–804; seen on the iPad simulator in [#1242](https://github.com/idvorkin/context-grabber/pull/1242) (`WhiteboardLarryWaitUITests.testAStuckPictureOffersRetryAndARetryLands`, against the fake Cockpit's stuck picture: *Retry* and *Dismiss* showing, no *Interrupt*)
+- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098), [4d8a67e](https://github.com/idvorkin/context-grabber/commit/4d8a67e) (bead `context-grabber-stl`), reconciled with story 773 in [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); verified by host tests (`WhiteboardLarryWaitTests`: `testNoMarkAtTwentySecondsIsStuckWithRetryAndDismiss`, `testNoMarkIsStuckOnlyOnACockpitThatMarks`, `testTheMarkIsFoundByTheMessagesId`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad, nor against a hung Cockpit. Retry itself, a Cockpit that marks nothing and a picture that lands after all are stories 802–804; seen on the iPad simulator in [#1242](https://github.com/idvorkin/context-grabber/pull/1242) (`WhiteboardLarryWaitUITests.testAStuckPictureOffersRetryAndARetryLands`, against the fake Cockpit's stuck picture: *Retry* and *Dismiss* showing, no *Interrupt*); since story 1176 that test's picture is a *Send*, so it is now `testASlowSendOffersNoRetry` (bead context-grabber-x3tm): no *Retry* or *Dismiss* while the Cockpit holds it, and his answer lands once it is taken. A pause's own stuck picture is held on the host only
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
 
 #### Use Case:
@@ -1962,6 +1962,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a picture sent to Larry, with no mark from the Cockpit on its message
 - **When:** twenty seconds pass
 - **Then:** the bar shows *Larry hasn't got the picture* as a problem I can copy, with *Retry* and *Dismiss* beside it, and the canvas is not covered
+
+- **Scenario:** A Send the Cockpit is slow to take (story 1176; Igor, 2026-11-22: Interrupt only, no Retry beside it)
+- **Given:** I tapped *Send to Larry* and the Cockpit hasn't taken the picture after twenty seconds
+- **When:** I look at the bar
+- **Then:** there is no *Retry* and no *Dismiss*: the Send is the outbox's to retry, and it goes by itself once the Cockpit takes it; *Retry* is only for a picture the board handed him itself after a pause
 
 ---
 
