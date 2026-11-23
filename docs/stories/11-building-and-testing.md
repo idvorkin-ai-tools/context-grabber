@@ -1546,3 +1546,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a UI test is waiting for a button or sheet to go away
 - **When:** it goes
 - **Then:** the test moves on in well under a second
+
+---
+
+### User Story 1503:
+
+- **Summary:** The Cockpit's web board runs the app's own board rules, built as WebAssembly
+- **Status:** implemented on branch `feat/board-wasm`; verified on the Linux rung only (no Mac here): ContextCore's tests under Linux Swift (the same count as before plus the two split cases), the board's rules built for WASI with the Swift 6.4.2 wasm SDK, and `just wasm-test` replaying the four recorded sessions through the module under node. The Mac's `just native-test` and build, and the Darwin cross-builds, are owed
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md)
+
+#### Use Case:
+- **As Igor,** drawing on the Cockpit's web ink board as well as on the iPad
+- **I want to** have the web board ask the app's own board rules where a cut lands, not a copy of them in JavaScript
+- **so that** a board answers the same on the web as on the iPad, and a rule fixed once is fixed in both
+
+#### Acceptance Criteria:
+- **Scenario:** The recorded sessions through the WebAssembly module
+- **Given:** the board's rules built as WebAssembly by `just wasm`, and the Cockpit's recorded board sessions vendored in the repo
+- **When:** `just wasm-test` loads the module under node and replays each session, then loads each session's last board whole and again in two halves
+- **Then:** every session replays as the app's own replay test expects (contract 1, no mismatch but ops-move's known one, each turn's hint the end of the recorded one), the board answers every cut the same whole or in halves, a cut with nothing loaded is NaN with a reason, and the one 32-bit midpoint case answers as pinned
