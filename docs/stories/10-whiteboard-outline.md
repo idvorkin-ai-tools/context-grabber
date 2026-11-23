@@ -113,7 +113,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1231:
 
 - **Summary:** Ink written under a folded header stays outside its fold
-- **Status:** in progress on branch native/fold-ink-below-header-eysh
+- **Status:** implemented in [755549f3](https://github.com/idvorkin/context-grabber/commit/755549f3); verified by host tests (`BoardFoldWrittenUnderTests`, from the Cockpit's .ink repro: 21 hidden, 31 before the fix; the header's JSON round trip; an unfold with nothing written; the new ink erased), `just native-test`, the Mac build (rung 1.5) and `WhiteboardOutlineUITests` on the iPad simulator (rung 2, 2026-11-23, 9/9); not yet seen with the Pencil on the iPad. The web board needs its unfold to record the header's `ends` (spec, board rules on the web)
 - **Issues:** context-grabber-eysh (Igor's board, 2026-11-23; Cockpit bead cockpit-9ik: 10 new strokes went into a 145-stroke fold)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
