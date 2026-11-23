@@ -306,6 +306,28 @@ final class WhiteboardOutlineUITests: XCTestCase {
     XCTAssertFalse(app.buttons["whiteboard-hold-make-room"].exists, "a drag is room, not the menu")
   }
 
+  /// Stories 1186, 1187 (context-grabber-y4y): a finger held on ink offers Select and Delete for that thing first;
+  /// Delete takes it, and only it.
+  func testAHoldOnInkOffersSelectAndDeleteForIt() throws {
+    let app = try openBoard()
+    sleep(1)
+    write(app, x: 0.12, to: 0.4, y: 0.30)
+    write(app, x: 0.12, to: 0.4, y: 0.45)
+    wait(send(app), label: strokes(2))
+    point(app, 0.26, 0.30).press(forDuration: 1.0)
+    let delete = app.buttons["whiteboard-hold-delete"]
+    XCTAssertTrue(delete.appears(within: 5), "on ink: \(app.debugDescription)")
+    XCTAssertTrue(app.buttons["whiteboard-hold-select"].exists)
+    XCTAssertTrue(app.buttons["whiteboard-hold-make-room"].exists, "the line's rows stay")
+    shot(app, "the hold menu on ink")
+    delete.tap()
+    wait(send(app), label: strokes(1))
+    XCTAssertFalse(delete.exists, "the menu goes once chosen")
+    point(app, 0.7, 0.60).press(forDuration: 1.0)
+    XCTAssertTrue(app.buttons["whiteboard-hold-paste"].appears(within: 5))
+    XCTAssertFalse(app.buttons["whiteboard-hold-delete"].exists, "off ink, nothing to delete")
+  }
+
   /// Story 900 (#1013): Send on a folded board gives Larry the folded lines whole and shaded, the picture taller by
   /// them, with where they are beside its frame; the board on the iPad stays folded.
   func testLarrysPictureShowsAFoldedSectionWholeAndShaded() throws {

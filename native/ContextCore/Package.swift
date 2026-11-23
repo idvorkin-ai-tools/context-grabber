@@ -17,7 +17,9 @@ let boardSources = ["Whiteboard", "Platform/LinuxGeometry.swift"]
 let boardTests = [
   "BoardBlockedEditTests.swift", "BoardCanvasOutcomeTests.swift", "BoardConnectorsTests.swift",
   "BoardDissolveTests.swift", "BoardEventsCapTests.swift", "BoardFindTests.swift", "BoardFoldEraseTests.swift",
-  "BoardFoldMarkerTests.swift", "BoardFoldPictureTests.swift", "BoardHeaderMarksTests.swift", "BoardIndexTests.swift",
+  "BoardFoldMarkerTests.swift", "BoardFoldPictureTests.swift", "BoardHeaderMarksTests.swift",
+  "BoardHoldMenuTests.swift",
+  "BoardIndexTests.swift",
   "BoardInkHeadersTests.swift", "BoardKeepingTests.swift", "BoardLabelOneLineTests.swift",
   "BoardLetteringTests.swift", "BoardLinesTests.swift", "BoardMarginHoldTests.swift", "BoardMarksReplayTests.swift",
   "BoardMeaningTests.swift", "BoardMicMenuTests.swift", "BoardOpsControlsTests.swift", "BoardOpsInkTests.swift",

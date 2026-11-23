@@ -355,6 +355,20 @@ existing text, I want it to move just like if I was to select text" (stories 969
   *Make room here* (three lines, at the clear line nearest the finger), *Paste*, and *Make header* beside a line of
   ink (*Not a header* beside a header). Held on a header's mark, the menu is the outline: *Fold all*, *1*, *2*, *3*,
   *Unfold all*.
+- **The menu is about what the finger is on** (Larry, 2026-11-22, bead context-grabber-y4y: "press-and-hold on the
+  board should open a useful menu"). Igor's iPad logs from 11-16 to 11-22 show the menu came up 26 times and a row
+  was chosen 3 times: held on his own writing, it offered nothing about that writing. So a finger held still **on ink**
+  on the page (within a fingertip of it: the word under it, a group of Larry's, a kept text or a header's row whole,
+  as the Pencil's pick-up finds it) puts the rows for that thing first:
+  - *Select*: that thing is selected, as if lassoed, with its label and *To text* beside it, ready to drag or for the
+    selection's own menu (Copy, Delete and the rest).
+  - *Delete*: it goes, one Undo named *Delete*, and Larry hears it erased. Not offered on a header's row: rubbing a
+    header out has its own rules, above.
+  - then *Make room here*, *Paste* and *Make header* (or *Not a header*), as before.
+  Held **off ink** on the page, or in the margin, the menu is as before. The rows stand in a column, each with its
+  icon, beside the finger and kept on screen; a tap anywhere else closes it. A finger that draws leaves no dot where
+  it held for the menu. Each menu shown and each row chosen is in
+  the session log with what the finger was on.
 - **The Pencil held still on ink for 400 ms picks up the word under it**: the strokes on that line chained while the
   gap between them is under 16 points (a group of Larry's, a kept text or a header row whole). The same stroke drags
   it, and where the Pencil lifts it lands; the Pencil's own stroke is not kept. One Undo, named *Move*. Held still

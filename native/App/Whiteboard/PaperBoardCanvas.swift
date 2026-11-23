@@ -118,67 +118,65 @@ private struct MarkChoiceButtons: View {
   }
 }
 
-/// Story 858: what a held finger offers.
+/// Story 858: what a held finger offers; its rows by what the finger is on (stories 1186, 1187), from ContextCore.
 struct HoldMenu: Equatable {
-  enum Item: Equatable {
-    case makeRoom, paste, makeHeader, foldAll, unfoldAll
-    case notHeader(String)
-    case level(Int)
-
-    var id: String {
-      switch self {
-      case .makeRoom: "make-room"
-      case .paste: "paste"
-      case .makeHeader: "make-header"
-      case .notHeader: "not-header"
-      case .foldAll: "fold-all"
-      case .unfoldAll: "unfold-all"
-      case .level(let n): "level-\(n)"
-      }
-    }
-
-    var title: String {
-      switch self {
-      case .makeRoom: "Make room here"
-      case .paste: "Paste"
-      case .makeHeader: "Make header"
-      case .notHeader: "Not a header"
-      case .foldAll: "Fold all"
-      case .unfoldAll: "Unfold all"
-      case .level(let n): "\(n)"
-      }
-    }
-  }
+  typealias Item = BoardHoldChoice
 
   /// Where the finger was, in the board view's points, and board `y`.
   var spot: CGPoint
   var y: CGFloat
   var items: [Item]
+  /// The thing under the finger, by its strokes' names, that Select and Delete take.
+  var names: [String] = []
+  var on = "paper"
 }
 
+/// The hold menu's rows in a column beside the finger, each with its icon, kept on screen (stories 874, 1186).
 private struct HoldMenuButtons: View {
   let controller: PaperBoardController
   let menu: HoldMenu?
+  private static let width: CGFloat = 200
+  private static let rowHeight: CGFloat = 44
 
   var body: some View {
     GeometryReader { geometry in
       if let menu {
-        let width: CGFloat = menu.items.count > 4 ? 300 : 340
-        HStack(spacing: 4) {
+        let levels = menu.items.filter { $0.symbol == nil }
+        let rows = menu.items.filter { $0.symbol != nil }
+        let height = CGFloat(rows.count + (levels.isEmpty ? 0 : 1)) * Self.rowHeight + 12
+        VStack(alignment: .leading, spacing: 0) {
           ForEach(menu.items, id: \.id) { item in
-            Button(item.title) { controller.chose(item) }
+            if let symbol = item.symbol {
+              Button(role: item == .delete ? .destructive : nil) {
+                controller.chose(item)
+              } label: {
+                Label(item.title, systemImage: symbol)
+                  .frame(maxWidth: .infinity, minHeight: Self.rowHeight, alignment: .leading)
+                  .contentShape(Rectangle())
+              }
               .accessibilityIdentifier("whiteboard-hold-\(item.id)")
+            } else if item == levels.first {
+              HStack(spacing: 4) {
+                ForEach(levels, id: \.id) { level in
+                  Button(level.title) { controller.chose(level) }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("whiteboard-hold-\(level.id)")
+                }
+              }
+              .frame(minHeight: Self.rowHeight)
+            }
           }
         }
         .font(.subheadline.weight(.semibold))
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .padding(6)
-        .background(.regularMaterial, in: Capsule())
-        .fixedSize()
+        .buttonStyle(.plain)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
+        .frame(width: Self.width)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .shadow(radius: 6)
         .position(
-          x: min(max(menu.spot.x, width / 2), geometry.size.width - width / 2),
-          y: max(menu.spot.y - 44, 30))
+          x: min(max(menu.spot.x + Self.width / 2 + 16, Self.width / 2 + 8), geometry.size.width - Self.width / 2 - 8),
+          y: min(max(menu.spot.y, height / 2 + 8), geometry.size.height - height / 2 - 8))
       }
     }
   }

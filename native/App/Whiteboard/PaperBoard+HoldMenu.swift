@@ -15,6 +15,7 @@ extension PaperBoardController {
     switch hold.state {
     case .began:
       holdMenu = nil
+      holdBegan = Date(timeIntervalSinceNow: -hold.minimumPressDuration - 0.2)
       if marginTry?.tool == .finger { marginTry?.held = true }
       if at.x < BoardMargin.width,
         model.outline(of: paper.markup.map { opStrokes($0).strokes } ?? []).header(at: at.y) == nil
@@ -29,7 +30,10 @@ extension PaperBoardController {
       guard let grip else { return }
       roomBandMoved(dy: (spot.y - grip.spot.y) / max(screenScale, 0.01))
     case .ended, .cancelled, .failed:
-      guard let grip else { return }
+      guard let grip else {
+        holdLifted(at: at)
+        return
+      }
       self.grip = nil
       scrolls(true)
       let dy = (spot.y - grip.spot.y) / max(screenScale, 0.01)
@@ -53,33 +57,30 @@ extension PaperBoardController {
     for scroll in scrollViews(paper.view) { scroll.panGestureRecognizer.isEnabled = on }
   }
 
+  /// Stories 874, 1186, 1187: the rows are ContextCore's, by what the finger is on.
   private func showHoldMenu(at point: CGPoint, spot: CGPoint) {
     let outline = model.outline(of: paper.markup.map { opStrokes($0).strokes } ?? [])
-    var items: [HoldMenu.Item] = []
-    if point.x < BoardMargin.width, outline.header(at: point.y) != nil {
-      items = [.foldAll, .level(1), .level(2), .level(3), .unfoldAll]
-    } else {
-      items = [.makeRoom, .paste]
-      if let row = outline.row(at: point.y) {
-        if let header = row.header {
-          items.append(.notHeader(header))
-        } else if !row.names.isEmpty {
-          items.append(.makeHeader)
-        }
-      }
-    }
-    holdMenu = HoldMenu(spot: spot, y: point.y, items: items)
+    let menu = outline.holdMenu(
+      at: point, inMargin: point.x < BoardMargin.width, slop: 22 / max(screenScale, 0.01))
+    holdMenu = HoldMenu(spot: spot, y: point.y, items: menu.choices, names: menu.names, on: menu.on)
     log.event(
       "board_outline",
-      ["action": "hold_menu", "board": model.board.id, "y": Double(point.y), "items": items.map(\.id)])
+      [
+        "action": "hold_menu", "board": model.board.id, "y": Double(point.y), "x": Double(point.x),
+        "items": menu.choices.map(\.id), "on": menu.on, "strokes": menu.names.count,
+      ])
   }
 
   /// A choice from the hold menu.
   func chose(_ item: HoldMenu.Item) {
     guard let menu = holdMenu else { return }
     holdMenu = nil
-    log.event("board_outline", ["action": "hold_chose", "board": model.board.id, "item": item.id])
+    log.event(
+      "board_outline",
+      ["action": "hold_chose", "board": model.board.id, "item": item.id, "on": menu.on, "strokes": menu.names.count])
     switch item {
+    case .select: holdSelect(menu.names)
+    case .delete: holdDelete(menu.names)
     case .makeRoom: room(at: menu.y, dy: 3 * BoardRoom.line, why: "menu")
     case .paste: paste(from: "hold")
     case .makeHeader:

@@ -63,6 +63,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   var foldErasing: FoldErasing?
   /// Story 858: the menu a held finger brought up, in this view's points; nil with none.
   @Published var holdMenu: HoldMenu?
+  /// About when the finger that brought the menu went down, so the dot a drawing finger leaves is told as its own.
+  var holdBegan: Date?
   /// A finger held in the margin: where it went down, board `y`, and in this view.
   var grip: (y: CGFloat, spot: CGPoint)?
   /// Story 933: the touch that went down in the margin, for its log line when it lifts, and whether the finger's hold

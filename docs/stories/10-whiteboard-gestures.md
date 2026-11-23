@@ -312,7 +312,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 874:
 
 - **Summary:** A hold on the page brings a menu
-- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f); verified by host tests (`BoardRoomTests.testRoomByHandOpensWholeLinesAndClosesOnlyBlankPaper`); a simulator UI test, `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)), and again with HI as four single strokes after [e647a4f9](https://github.com/idvorkin/context-grabber/commit/e647a4f9) (#996; rung 2, 2026-11-20); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f); verified by host tests (`BoardRoomTests.testRoomByHandOpensWholeLinesAndClosesOnlyBlankPaper`); a simulator UI test, `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)), and again with HI as four single strokes after [e647a4f9](https://github.com/idvorkin/context-grabber/commit/e647a4f9) (#996; rung 2, 2026-11-20); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad; the menu by what the finger is on, in a column with icons (stories 1186, 1187, bead context-grabber-y4y) in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c), the class again on the iPad simulator (rung 2, 2026-11-22)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
 
 #### Use Case:
@@ -324,7 +324,47 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Hold for the menu
 - **Given:** a finger held still on the page, or in the margin without dragging
 - **When:** the hold is long enough
-- **Then:** a menu offers Make room here, Paste, and Make header (or Not a header) beside a line
+- **Then:** a menu offers Make room here, Paste, and Make header (or Not a header) beside a line, in a column with an icon on each row; held on ink, Select and Delete for what is under the finger come first (stories 1186, 1187)
+
+---
+
+### User Story 1186:
+
+- **Summary:** A finger held on ink offers to select what is under it
+- **Issues:** bead context-grabber-y4y (Larry, 2026-11-22: "press-and-hold on the board should open a useful menu"; the iPad's logs, 11-16 to 11-22: the menu came up 26 times and a row was chosen 3 times)
+- **Status:** implemented in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c); verified by host tests (`BoardHoldMenuTests`), `just native-test` and the Mac build (`just native-build-mac`); `WhiteboardOutlineUITests.testAHoldOnInkOffersSelectAndDeleteForIt` passes on the iPad simulator with the rest of the class (rung 2, 2026-11-22); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** writing with my finger
+- **I want to** hold a finger on a word and choose Select
+- **so that** I can drag it, turn it to text or use the selection's menu without drawing a lasso
+
+#### Acceptance Criteria:
+- **Scenario:** Select from the hold menu
+- **Given:** two words on a line
+- **When:** I hold a finger still on the first and choose Select
+- **Then:** that word alone is selected, as a lasso round it would leave it, with its label and To text beside it; on a group of Larry's the whole group is, and on a header's row the row is
+
+---
+
+### User Story 1187:
+
+- **Summary:** A finger held on ink offers to delete what is under it
+- **Issues:** bead context-grabber-y4y (Larry, 2026-11-22: "press-and-hold on the board should open a useful menu")
+- **Status:** implemented in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c); verified by host tests (`BoardHoldMenuTests`), `just native-test` and the Mac build (`just native-build-mac`); `WhiteboardOutlineUITests.testAHoldOnInkOffersSelectAndDeleteForIt` passes on the iPad simulator with the rest of the class (rung 2, 2026-11-22); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** fixing a word I wrote
+- **I want to** hold a finger on it and choose Delete
+- **so that** it goes without picking up the eraser
+
+#### Acceptance Criteria:
+- **Scenario:** Delete from the hold menu
+- **Given:** two lines of writing
+- **When:** I hold a finger still on the first line's word and choose Delete
+- **Then:** that word goes and the other line stays, one Undo named Delete brings it back, and Larry hears it erased; the hold itself left no dot, even with a finger that draws; held on a header's row there is no Delete, and held off ink there is none either
 
 ---
 
