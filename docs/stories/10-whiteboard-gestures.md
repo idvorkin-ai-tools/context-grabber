@@ -906,19 +906,46 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A finger tap on a kept text rewords it in place
 - **Issues:** bead context-grabber-yfrl (the UI test read the old words before the new ones were drawn: a flake, not the app)
-- **Status:** implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testATapOnAKeptTextRewordsItInPlace`, rung 2); the test waits for the new words before reading them in [cafe6cc1](https://github.com/idvorkin/context-grabber/commit/cafe6cc1) (context-grabber-yfrl), passing 3 runs of 3 on the iPad simulator (rung 2); a text of Larry's opens at the second tap in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5) (#1171, story 1141), host tests and the Mac build; not yet seen on the iPad
+- **Status:** the first tap selects and the second opens since story 1197 (context-grabber-awz); implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testATapOnAKeptTextRewordsItInPlace`, rung 2); the test waits for the new words before reading them in [cafe6cc1](https://github.com/idvorkin/context-grabber/commit/cafe6cc1) (context-grabber-yfrl), passing 3 runs of 3 on the iPad simulator (rung 2); a text of Larry's opens at the second tap in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5) (#1171, story 1141), host tests and the Mac build; not yet seen on the iPad
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
 
 #### Use Case:
 - **As someone** with one of Larry's texts, a To text result or my own typed text on the board
-- **I want to** tap it and change its words where it is
+- **I want to** tap it twice and change its words where it is
 - **so that** fixing a word doesn't mean erasing the whole text and starting again
 
 #### Acceptance Criteria:
 - **Scenario:** A word changed
-- **Given:** a kept text of my own (typed, or a To text result) reading "hello" on a board drawn on here, and no marks of Larry's showing; a text of Larry's, or one inside a group, is selected by the first tap and opens at the second (stories 1141, 947)
-- **When:** I tap it with a finger, change the words to "hello world" and press Return
+- **Given:** a kept text (my own typed or To text text, one of Larry's, or one inside a group) reading "hello" on a board drawn on here, and no marks of Larry's showing
+- **When:** I tap it with a finger once to select it (story 1197), tap it again, change the words to "hello world" and press Return
 - **Then:** the text shows "hello world" from the same top-left in its own lettering, size and colour, wrapped by word to its width; one undo brings "hello" back
+
+---
+
+### User Story 1197:
+
+- **Summary:** The first tap on any kept text selects it; the second rewords it
+- **Status:** in progress on branch `native/second-tap-rewords-awz`
+- **Issues:** bead context-grabber-awz (Igor, design board, 2026-11-22: "a second tap rewords a text"). The bead named this story 1154; 1197 was reserved for it.
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *The first finger tap on any kept text selects it; the second opens it*
+
+#### Use Case:
+- **As someone** with my own typed or To text text on the board
+- **I want to** a first tap to pick it up and a second to open its words, as Larry's and grouped texts already do
+- **so that** I can move a text with a tap and a drag without the keyboard coming up, and every text behaves the same
+
+#### Acceptance Criteria:
+- **Scenario:** First tap selects, second rewords
+- **Given:** a kept text of my own on a board drawn on here, nothing selected and no marks of Larry's showing
+- **When:** I tap it with a finger
+- **Then:** the text alone is selected and its label says *Text · tap to reword*; no field opens
+- **When:** I tap it again
+- **Then:** the field opens over it with its words in it
+
+- **Scenario:** A drag after the first tap moves it
+- **Given:** a kept text of mine selected by one tap
+- **When:** I drag it with a finger
+- **Then:** it moves, and no field opens
 
 ---
 
