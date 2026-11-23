@@ -1207,7 +1207,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** A reply of Larry's kept as a group moves as one
 - **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
-- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942); bead context-grabber-1xdh (the iPad, 2026-11-22, log grabber-20261122-151404: a finger drag on the handwriting view moved 102 of a kept reply's 120 strokes and left the rest)
+- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942); bead context-grabber-1xdh (the iPad, 2026-11-22, log grabber-20261122-151404: a finger drag on the handwriting view moved 102 of a kept reply's 120 strokes and left the rest); [#1266](https://github.com/idvorkin/context-grabber/issues/1266) (same session: a tap selected the whole group, the system's convert popover emptied the selection before he could press and drag it, so the drag fell to the handwriting view; the popover is put away and the selection put back by #1210, story 945)
 
 #### Use Case:
 - **As someone** who kept Larry's drawing as a group
