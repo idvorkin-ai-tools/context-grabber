@@ -105,6 +105,17 @@ final class WhiteboardLarryTurnTests: XCTestCase {
     XCTAssertEqual(turn.tapped(version: 1, now: at(13)), .alreadyHas, "and again")
   }
 
+  // Stories 970–972 (beads context-grabber-ts8a, kxzk): the blocked chip's Retry hands Larry the board even when he
+  // has this picture; only the Send button is refused then.
+  func testABlockedEditsRetryHandsOverTheBoardLarryAlreadyHas() {
+    var turn = WhiteboardLarryTurn()
+    XCTAssertEqual(turn.tapped(version: 1, now: at(0)), .send(words: nil))
+    XCTAssertEqual(turn.tapped(version: 1, now: at(5)), .alreadyHas, "Send still answers he has it")
+    XCTAssertEqual(turn.tapped(version: 1, handOver: true, now: at(8)), .send(words: nil), "Retry goes")
+    XCTAssertEqual(turn.state, .awaiting(since: at(8), sent: 1), "and his clock restarts")
+    XCTAssertNil(turn.alreadyHasAt, "a picture that went clears the note")
+  }
+
   func testAPauseThatSentCountsToo() {
     var turn = WhiteboardLarryTurn()
     _ = turn.paused(version: 4, words: nil, now: at(0))

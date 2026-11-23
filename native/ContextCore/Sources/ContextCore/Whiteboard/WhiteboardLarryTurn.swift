@@ -111,9 +111,13 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
 
   /// Igor tapped *Send to Larry*: the picture goes now, whatever was waiting, with the words that waited. When he
   /// already has the board at `version` (`hasThis`), turn out or not, nothing goes (story 765, bead
-  /// context-grabber-x3tm): the button is dimmed then, so this answers a tap that arrives anyway.
-  public mutating func tapped(version: Int, moved: Bool = false, now: ContinuousClock.Instant) -> Tap {
-    if hasThis(version: version, moved: moved) {
+  /// context-grabber-x3tm): the button is dimmed then, so this answers a tap that arrives anyway. `handOver` is the
+  /// blocked chip's *Retry* (stories 970–972, beads context-grabber-ts8a and kxzk): it always hands Larry the board,
+  /// with what came of his change, whether or not he has this picture.
+  public mutating func tapped(
+    version: Int, moved: Bool = false, handOver: Bool = false, now: ContinuousClock.Instant
+  ) -> Tap {
+    if !handOver, hasThis(version: version, moved: moved) {
       alreadyHasAt = now
       return .alreadyHas
     }

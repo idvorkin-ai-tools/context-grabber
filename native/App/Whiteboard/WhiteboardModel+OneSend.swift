@@ -14,20 +14,26 @@ extension WhiteboardModel {
     items.contains { $0.whiteboard?.board == board.id && $0.status == .waiting }
   }
 
-  /// The bar's *Send to Larry*.
-  func sendToLarry() {
-    guard editable else { return send() }
-    guard !larrySending, !sendWaiting(in: inbox.items) else { return }
+  /// The bar's *Send to Larry*; `handOver` is the blocked chip's *Retry*, which goes even when Larry has this picture
+  /// (stories 970–972). True when a picture went.
+  @discardableResult
+  func sendToLarry(handOver: Bool = false) -> Bool {
+    guard editable else {
+      send()
+      return true
+    }
+    guard !larrySending, !sendWaiting(in: inbox.items) else { return false }
     let moved = pictureFrame().map { larryFrame?.moved(to: $0.rect) ?? true } ?? false
-    guard case .send(let words) = larry.tapped(version: ops.rev, moved: moved, now: .now) else {
-      return alreadyHas(from: "send")
+    guard case .send(let words) = larry.tapped(version: ops.rev, moved: moved, handOver: handOver, now: .now) else {
+      alreadyHas(from: "send")
+      return false
     }
     let turn = larry.state
     // Story 1112: spoken words waiting go among this picture's events.
     micTimingsGo()
     guard var out = larryPicture(said: words) else {
       larry.failed(turn, words: words)
-      return
+      return false
     }
     let thread = threadKey
     var draft = InboxDraft()
@@ -46,7 +52,7 @@ extension WhiteboardModel {
       problem = .grabber(
         "The board could not go to Larry: \(error.localizedDescription)", context: "WhiteboardView.send",
         extra: ["board": .string(board.id), "bytes": .int(out.jpeg.count)])
-      return
+      return false
     }
     // A reply that lands before the first look at a new thread is still his answer (story 662).
     if thread == nil { marks.threadStarted() }
@@ -68,6 +74,7 @@ extension WhiteboardModel {
     followSend(inbox.items)
     checkLarryWait()
     logLarryHas(why: "send")
+    return true
   }
 
   /// The board on screen: a *Send* of this board still in the outbox is waiting again, and the Inbox is watched for when
