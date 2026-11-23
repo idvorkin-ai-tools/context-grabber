@@ -601,6 +601,20 @@ the log has to settle that.
   (each word moved its own way). A selection made during the touch counts as not held.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.
 
+### The log says what held the board up while Igor wrote (story 1168, bead context-grabber-uktm)
+
+On the iPad, writing on a board of about a thousand strokes, the board stopped answering for one to one and a half
+seconds at a time, a few times in a session: the main-thread watch logged each stall, and the board's line for the
+stroke that had just landed said the board's own handling of it took 963, 1,475 and 1,348 ms, where the strokes either
+side took about 50. Nothing in the log says which part of that handling took the time, and a fourth stall of the same
+size came in the middle of a stroke, outside it. Before anything changes, the log has to settle where the time goes.
+
+- **A slow change to the ink names its slow parts.** When the board's handling of one change to the ink takes a
+  quarter of a second or more, the log gets one line saying how long the whole of it took and how long each part took,
+  by name, with the stroke count, what the change was, and how long it had been since the ink last changed.
+- **A quick change logs nothing more**, so the usual line for each stroke stays as it was.
+- Nothing Igor sees changes: this is the evidence for the fix, not the fix.
+
 ### The log says which tool Igor picked (story 1064, #1078; Igor, 2026-11-21: "Switched to eraser still drew normally")
 
 Igor picked the eraser and the Pencil went on drawing. The log couldn't say why: every touch it has ever written names a

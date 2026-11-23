@@ -48,6 +48,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Story 910: the lassoed arrow Connect would join, in this view's points, and its elements by key; nil with none.
   @Published var connectFrame: CGRect?
   var connectKeys: Set<String> = []
+  /// Story 1168: when the ink last changed, for a slow change's `since_ink_ms`.
+  var lastInkAt: CFTimeInterval?
   var following: Task<Void, Never>?
   var selectedNewestForTests = false
   var marking: Task<Void, Never>?
@@ -376,14 +378,21 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   func paperMarkupViewControllerDidChangeMarkup(_ controller: PaperMarkupViewController) {
     guard !quiet, let markup = controller.markup else { return }
     let started = CACurrentMediaTime()
+    // Story 1168: a slow change names its slow parts, once all below has run, the deferred step too.
+    let laps = StepLaps()
     let frames = markup.strokeFrames
     let previous = inkFrames
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
+    laps.lap("frames")
+    defer { logSlowInk(laps, change: change) }
     let consumed =
-      takesBackTapDot(change, markup: markup, frames: frames) || marginHeld(change, markup: markup)
-      || pickedUp(change, markup: markup, before: previous) || scratchesOut(change, markup)
+      laps.time("tap_dot") { takesBackTapDot(change, markup: markup, frames: frames) }
+      || laps.time("margin_hold") { marginHeld(change, markup: markup) }
+      || laps.time("pick_up") { pickedUp(change, markup: markup, before: previous) }
+      || laps.time("scratch") { scratchesOut(change, markup) }
     snapNoticed(change, consumed: consumed)
+    laps.lap("snap")
     if consumed { return }
     inkHeaderSoon(change)
     if !change.isEmpty {
@@ -391,12 +400,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       showMarksSoon()
       followSoon()
     }
+    laps.lap("soon")
     defer {
       // Story 843: after the model's revision has moved on.
       if !change.isEmpty {
         model.inkElements(
           updated: Self.hashes(of: Set(change.added + change.moved.map(\.id)), in: markup), removed: change.removed,
           report: true)
+        laps.lap("elements")
       }
     }
     run?.facts.inkAdded += change.added.count
@@ -414,6 +425,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let drawing = markup.inkDrawing
     model.changed(drawing)
+    laps.lap("model")
     if change.added.count > 0 {
       pressSoonForTests()
       goToPageSoonForTests()
@@ -423,6 +435,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let wanted = board.pages(
       after: pages, inkMaxY: drawing.strokes.isEmpty ? nil : drawing.bounds.maxY,
       redoWaiting: controller.undoManager?.canRedo ?? false)
+    laps.lap("pages")
     var event: [String: Any] = [
       "action": "paper_ink", "board": model.board.id, "strokes": frames.count, "pages": pages, "wanted": wanted,
       "added": change.added.count, "moved": change.moved.count, "removed": change.removed.count,
@@ -439,12 +452,15 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       if back > 0 { event["came_back"] = back }
     }
     log.event("whiteboard", event)
+    laps.lap("audits")
     showLines()
     showPageNumber()
     showToText()
+    laps.lap("show")
     // Not from inside PaperKit's own callback.
     if wanted > pages { Task { @MainActor [weak self] in self?.grow(to: wanted) } }
     pushesOnMove(change, markup: markup, undo: controller.undoManager)
+    laps.lap("push")
   }
 
   /// Stories 973–975: a lasso selection dragged onto ink pushes what is below down clear of it, as a paste's room

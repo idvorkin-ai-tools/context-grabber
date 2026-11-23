@@ -216,6 +216,32 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1168:
+
+- **Summary:** The log names the parts of a slow change to the ink
+- **Status:** implemented (the logging alone) in PENDING
+- **Issues:** bead context-grabber-uktm (#946's "I think I just hung": still not reproduced; the iPad, 2026-11-22, build 565acfe0, board 8f986938 of about 1,000 strokes: `main_stall` began at t=3360294, 4244301 and 4250044, each just after a stroke whose `paper_ink` took 963, 1,475 and 1,348 ms against about 50 for the strokes either side; none followed a `scratch`, `hold_stroke` or `board_word` line; a fourth, at t=4261015, came mid-stroke with that stroke's `paper_ink` at 50 ms)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The log says what held the board up while Igor wrote*
+
+#### Use Case:
+- **As someone** whose board froze for a second now and then while I wrote on a full page
+- **I want to** have the log say which part of the board's handling of my stroke took the time
+- **so that** the fix goes at the slow part instead of guessing at it
+
+#### Acceptance Criteria:
+- **Scenario:** A slow change to the ink
+- **Given:** a board whose handling of a change to the ink takes a quarter of a second or more
+- **When:** the change has been handled
+- **Then:** the log has one line with the whole time and each part's time by name, the stroke count, how many strokes the change added, moved and removed, and the time since the ink last changed
+- **And:** nothing I see changes
+
+- **Scenario:** A quick change to the ink
+- **Given:** a board whose handling of a change takes less than a quarter of a second
+- **When:** the change has been handled
+- **Then:** no such line is written
+
+---
+
 ### User Story 1143:
 
 - **Summary:** The log says what a moving touch began on and held, what the board changed under it, and whose ink moved
