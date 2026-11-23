@@ -271,7 +271,9 @@ the simulator's boot included, is under a minute) is stopped and fails with exit
 as the likely cause and saying whether the screen is locked now (story 783). A plain `test` compiles first, so it isn't
 watched for its start. The timing summary counts a
 retried case once and names every case that passed only on its retry: that is a flake to fix, not a pass to forget, so
-the run fails for it with exit 65 even though xcodebuild called it a success (story 1017). A known flake someone is
+the run fails for it with exit 65 even though xcodebuild called it a success (story 1017). If the timing summary can't
+read the log, a run in which any try failed fails too, saying the flakes weren't checked; a run with no failed try still
+passes (bead `context-grabber-z8p7`). A known flake someone is
 chasing goes in `scripts/native/ui-quarantine.txt`, one `Class[.test] <bead or #issue> <why>` per line (a line with no
 tracker is ignored): it still runs, retries and is named as quarantined, but doesn't fail the run. Take its line out
 when the bead closes. A run asked to repeat a passing case (`-test-iterations N`) repeats it; repeats are not retries.

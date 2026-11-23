@@ -147,6 +147,16 @@ out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1)
 status=$?
 case "$status $out" in "65 "*"ui-timings could not read"*) ok "and when ui-timings can't read the run, the failed suite stays a failed run";;
   *) bad "a failed suite after a hang, with ui-timings failing, exited $status: $out";; esac
+# Bead context-grabber-z8p7: with ui-timings failing, a passing run whose case failed a try fails closed, unchecked.
+out=$(flake env)
+status=$?
+case "$status $out" in "65 "*"ui-timings couldn't read the run, so whether it passed only on its retry"*)
+  ok "a retried pass that ui-timings couldn't check fails the run, not passes it";;
+  *) bad "a retried pass with ui-timings failing exited $status: $out";; esac
+out=$(PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
+  UI_QUARANTINE="$dir/quarantine" scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" xcodebuild -scheme X test 2>&1 >/dev/null)
+[ $? -eq 0 ] && ok "but a run where no try failed still passes when ui-timings fails" ||
+  bad "a clean run with ui-timings failing failed: $out"
 echo "SynthUITests.testFlaky because it is flaky" >"$dir/quarantine"
 flake env >/dev/null
 [ $? -eq 65 ] && ok "a quarantine without the bead that tracks it quarantines nothing" || bad "an untracked quarantine let it pass"

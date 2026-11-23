@@ -321,6 +321,15 @@ fi
 # Story 1017: a run that would pass, with a case that passed only on its retry, fails: a flake is a failure to fix, not a
 # pass to forget. A known one, chased under its bead, goes in the quarantine file instead.
 pass() {
+  # Bead context-grabber-z8p7: without ui-timings' flake list a retried-only pass can't be told from a clean one, so a run
+  # in which any try failed fails closed; a run where no try failed has nothing a flake list could change.
+  if [ -z "$timed" ] && grep -qE "^Test Case '.+' failed \(" "$log"; then
+    locked_failure
+    echo "a try failed and ui-timings couldn't read the run, so whether it passed only on its retry (a flake, story" \
+      "1017) wasn't checked: the run fails rather than pass unchecked; the whole log: $log" >&2
+    [ -n "$bundle" ] && bundle_written && echo "the failed tries' screenshots: $bundle" >&2
+    exit 65
+  fi
   if [ -s "$flaky" ]; then
     locked_failure
     echo "passed only on its retry, so the run fails (a flake: fix the race, or quarantine it with its bead in" \
