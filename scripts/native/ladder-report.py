@@ -92,8 +92,11 @@ def from_ledger(events):
         rid = e.get("run_id")
         if not rid:
             continue
+        # A climb whose start line was dropped or interleaved away (several lanes append to one ledger, and an
+        # unparseable line is skipped) still has its other lines: it keeps area "unknown" and says it had no start.
         r = runs.setdefault(rid, {"run_id": rid, "source": "ledger", "steps": [], "rungs": [], "lanes": [],
-                                  "destination_skips": [], "outcome": "censored"})
+                                  "destination_skips": [], "outcome": "censored", "area": "unknown",
+                                  "no_start": True})
         kind = e.get("event")
         if kind == "start":
             r.update(at=e.get("at"), sha=e.get("sha"), base=e.get("base"), fork=e.get("fork"),
@@ -101,6 +104,7 @@ def from_ledger(events):
                      destinations=e.get("destinations", {}), host_only=e.get("host_only", []),
                      unknown=e.get("unknown", []), flags=e.get("flags", {}))
             r["area"] = area_of(r["classes"], r["host_only"], r["unknown"], r["changed"])
+            r["no_start"] = False
         elif kind == "lane":
             r["lanes"].append(e)
         elif kind == "step":
@@ -356,6 +360,7 @@ def report(runs, table, classes=()):
         ff = r.get("first_failure")
         out.append(
             f"  {r['run_id']}  {r['area']}  #{r.get('attempt', 1)}  {r['outcome']}"
+            + (" (no start line)" if r.get("no_start") else "")
             + (f" (first at rung {ff.get('rung')}{' ' + ff['step'] if ff.get('step') else ''})" if ff else "")
             + f"  queue {fmt(r.get('queue_s'))}  exec {fmt(r.get('exec_s'))}"
             + f"  retried {len(r.get('retried', []))}  flaky {len(r.get('flaky', []))}"

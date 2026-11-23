@@ -840,10 +840,11 @@ share with a known delivery, and the rank: climbs times avoidable lane minutes (
 interrupted attempt's execution, and retried cases). A climb that failed on cases that passed only on their retry and
 nothing else is `flaky`: a failed attempt, its flakes and quarantined cases named (story 1017). Retries and flakes
 are read from each logged run's states, not the lines' old `retry` flag, which also marked a repeat asked for. A climb that could not run (a locked screen, interrupted, never
-finished) is counted apart and does not use up an attempt. The timing lines no climb claims are summed by class, which is where the flakes'
+finished) is counted apart and does not use up an attempt. A climb whose `start` line is missing (dropped, or interleaved away by another lane's
+append) is still listed, under area `unknown` and marked `(no start line)`. The timing lines no climb claims are summed by class, which is where the flakes'
 minutes show, with each class's passes only on retry apart from its repeats. `--sample N` takes the latest N climbs; `--json` writes it all. `scripts/native/test-ladder-report.sh`
 pins it on a fixture with a retry, a flaky climb and a quarantined flake, a wrong-device skip, a missing deploy, an
-upload alone, a censored climb, and a failure on the rerun after a locked screen.
+upload alone, a censored climb, a failure on the rerun after a locked screen, and a climb with no start line.
 
 ## The phone
 

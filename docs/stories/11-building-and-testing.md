@@ -1198,8 +1198,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1016:
 
 - **Summary:** A change can be followed from what the ladder chose, through the lanes, to the phone
-- **Status:** implemented on branch `native/ladder-ledger-1038`; verified on the host rung: `scripts/native/test-ladder-map.sh` reads the ledger a climb with fakes writes (one run id across the lane's process, the start's selection and simulators, the lane and its wait, the device, a warm or cold build, each rung, a pass, a failure's first rung, a locked screen as unavailable, a skip on the iPad, the timing lines' run id, none for a dry run or `off`), and `scripts/native/test-ladder-report.sh` holds a fixture's retry, wrong-device skip, missing deploy, upload alone, interrupted and censored climbs apart and records an install through the recorder. Two real climbs on 2026-11-21 wrote the ledger (lint passed; rung 2 on a locked screen: lane 1, no wait, unavailable). The sample of the 20 latest climbs from the logs already on this Mac: the whiteboard's 11 climbs ran a median of 611 s (p90 2,178 s, 9 known) with 7 first-pass failures and 106 avoidable lane minutes, chat's 5 ran 262 s (p90 442 s) with 2, and not one change had a known delivery: no install had ever been recorded
-- **Issues:** [#1038](https://github.com/idvorkin/context-grabber/issues/1038); bead `context-grabber-qawx`
+- **Status:** implemented on branch `native/ladder-ledger-1038`; verified on the host rung: `scripts/native/test-ladder-map.sh` reads the ledger a climb with fakes writes (one run id across the lane's process, the start's selection and simulators, the lane and its wait, the device, a warm or cold build, each rung, a pass, a failure's first rung, a locked screen as unavailable, a skip on the iPad, the timing lines' run id, none for a dry run or `off`), and `scripts/native/test-ladder-report.sh` holds a fixture's retry, wrong-device skip, missing deploy, upload alone, interrupted and censored climbs apart and records an install through the recorder. Two real climbs on 2026-11-21 wrote the ledger (lint passed; rung 2 on a locked screen: lane 1, no wait, unavailable). The sample of the 20 latest climbs from the logs already on this Mac: the whiteboard's 11 climbs ran a median of 611 s (p90 2,178 s, 9 known) with 7 first-pass failures and 106 avoidable lane minutes, chat's 5 ran 262 s (p90 442 s) with 2, and not one change had a known delivery: no install had ever been recorded. A climb with no start line is listed under area unknown, marked `(no start line)`, instead of stopping the report in [9d84db3b](https://github.com/idvorkin/context-grabber/commit/9d84db3b) (bead `context-grabber-o9sv`); verified on the host rung (`scripts/native/test-ladder-report.sh`'s orphan fixture)
+- **Issues:** [#1038](https://github.com/idvorkin/context-grabber/issues/1038); bead `context-grabber-qawx`; bead `context-grabber-o9sv`
 
 #### Use Case:
 - **As Igor,** deciding whether the next hour goes into test selection, a slow test, lane capacity or getting builds onto the phone
@@ -1211,6 +1211,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** climbs of the ladder that failed and then passed on a second attempt with a case retried, one whose iPad test skipped, one that never finished, and a change that was merged but never installed or only uploaded to TestFlight
 - **When:** I run `just ladder-report`
 - **Then:** each climb shows as itself (its attempt, its outcome and first failure, the retried case, the skipped coverage, a delivery that is unknown, only uploaded, or the install that delivered it), and by kind of change I see the median and slowest-tenth queue and execution times with their counts, the first-pass failures, the skipped coverage, the share delivered, and the kinds ranked by the lane minutes they could save
+
+- **Scenario:** A climb whose start line is missing
+- **Given:** a climb in the ledger with its other lines but no start line (dropped, or interleaved away by another lane)
+- **When:** I run `just ladder-report`
+- **Then:** the report still runs, that climb is listed under area unknown and said to have no start line, and the climbs beside it are reported as before
 
 ---
 

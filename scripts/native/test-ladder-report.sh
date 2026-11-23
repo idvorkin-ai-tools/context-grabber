@@ -97,4 +97,12 @@ chat = json.load(open(sys.argv[1]))["by_area"][0]
 # The failed rerun's 300 s and the timed-out climb's 1,800 s: 35 min; the locked screen ran nothing.
 assert chat["first_pass_failures"] == 2 and chat["not_run"] == 1 and chat["avoidable_min"] == 35.0, chat
 PY
+# context-grabber-o9sv: a climb whose start line was dropped or interleaved away (several lanes append to one ledger)
+# is still reported, under area unknown and said to have no start line, and the rest of the report still runs.
+"$here/ladder-report.py" --ledger "$fx/orphan.jsonl" --logs '' --timings '' --deploys '' --repo "$dir" >"$out" 2>&1
+status=$?
+if [ "$status" -eq 0 ]; then ok "an orphan climb: the report runs"; else bad "an orphan climb: the report runs, exit $status"; fi
+has "an orphan climb: reported, area unknown, no start line" "r-orphan  unknown  #1  fail (no start line) (first at rung 2)"
+has "an orphan climb: the climb beside it is still reported" "r-ok  chat  #1  pass"
+has "an orphan climb: counted under unknown" "unknown      1  queue 15/15 (n=1)"
 exit $fail
