@@ -41,6 +41,8 @@ start_limit=${XCODEBUILD_START_SECONDS:-180}
 lock_poll=${XCODEBUILD_LOCK_POLL:-2}
 # shellcheck source=scripts/native/smoke-lock.sh
 . "$(dirname "$0")/smoke-lock.sh"
+# shellcheck source=scripts/native/own-child.sh
+. "$(dirname "$0")/own-child.sh"
 watch_start=0 start_watchdog= lock_watch= is_test=0 bundle=
 # Story 790: after its last suite closes, xcodebuild writes the result bundle, quietly: about 5 s on a good run, 30 s or
 # more with failures and their screenshots. Stopped before it finishes, the bundle can't be opened (no Info.plist, only
@@ -189,10 +191,10 @@ fi
 "$@" 2>&1 | sed -u -E 's/(X-Apple-GS-Token|DSESSIONID)([:=] *)[^ ;]+/\1\2<filtered>/g' | tee "$log" | "${show[@]}"
 # A wrapper may fail a build that printed its done line: BugKit's signing guard exits 78 on "No Accounts".
 status=${PIPESTATUS[0]}
+# Bead context-grabber-tne1: only those still ours. One that ended by itself (the start watchdog, once the first suite
+# started) left a number that may since belong to another process.
 for w in "$watchdog" ${start_watchdog:+"$start_watchdog"} ${lock_watch:+"$lock_watch"}; do
-  pkill -P "$w" 2>/dev/null
-  kill "$w" 2>/dev/null
-  wait "$w" 2>/dev/null
+  kill_own_child "$w"
 done
 if [ -e "$lock_stopped" ]; then
   rm -f "$lock_stopped"

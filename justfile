@@ -88,6 +88,8 @@ native-test-host:
     # Story 790: the hang stop waits for the result bundle to be written, so failed tests' screenshots survive.
     # Story 783: a run of built tests whose first suite never starts (a dark or locked Mac) is stopped, exit 75.
     scripts/native/test-xcodebuild-log.sh
+    # Bead context-grabber-tne1: the wrapper stops only watchdogs still its own, never a reused process number.
+    scripts/native/test-own-child.sh
     # Story 827 (#419): the smoke's audio checks are skipped, and said to be, on a locked Mac.
     scripts/native/test-smoke-lock.sh
     # Stories 814-818: the fake Cockpit's board ops, which the whiteboard UI tests rely on.

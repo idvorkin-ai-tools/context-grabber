@@ -30,6 +30,7 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-ui-timings.sh`: the UI test timing digest against a real run's log
 - `scripts/native/test-ladder-report.sh`: the ladder report keeping a retry, a wrong-device skip and a missing deploy apart, on a fixture (#1038, story 1016)
 - `scripts/native/test-xcodebuild-log.sh`: the UI test run wrapper's time limit, retry, flake gate and quarantine (story 1017, after a hang too), hang stop (which waits for the result bundle to be written, story 790) start watchdog, a failure after the screen locked (story 1018), and the locked-screen wait and mid-run stop (stories 1022, 1023) against a fake xcodebuild
+- `scripts/native/test-own-child.sh`: the wrapper stops a watchdog at the end of a run only while it is still the wrapper's own child, so a number a watchdog left long ago, since given to another process on a busy Mac, isn't killed (bead context-grabber-tne1)
 - `scripts/native/test-smoke-lock.sh`: the smoke's audio checks skipped, and said to be, on a locked Mac (story 827, #419)
 - `scripts/native/test-fake-cockpit-ops.py`: the fake Cockpit's board ops, which the whiteboard UI tests rely on (stories 814–818)
 - `scripts/native/test-board-sessions.py`: the Cockpit's recorded board sessions, vendored scrubbed (stories 1173, 1174)
