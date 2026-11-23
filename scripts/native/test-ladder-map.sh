@@ -511,11 +511,12 @@ status=$?
 if [ "$status" -eq 2 ]; then ok "no time limit: the rung refuses"; else bad "no time limit: the rung refuses, exit $status"; fi
 says "no time limit: says which" "no time limit at $tmp/no-such-time-limit: rung 1.5 not started, as a hang would hold build lane 1"
 if [ -e "$MARKS/xcodebuild" ]; then bad "no time limit: nothing built"; else ok "no time limit: nothing built"; fi
-run SMOKE_LOCK_PROBE="$fakes/locked" SIM_LOCK_WAIT=0 -- --changed native/UITests/CardUITests.swift
+# Bead context-grabber-wm8y: a locked screen no longer holds rung 2 back; the wrapper skips the tests that open the mic.
+run SMOKE_LOCK_PROBE="$fakes/locked" -- --changed native/UITests/CardUITests.swift
 status=$?
-if [ "$status" -eq 75 ]; then ok "a locked screen: rung 2 refuses"; else bad "a locked screen: refuses, exit $status"; fi
-says "a locked screen: says why" "the Mac's screen is locked: UI tests don't start on a locked screen, so rung 2 didn't start; unlock it and rerun"
-if [ -e "$MARKS/xcodebuild" ]; then bad "a locked screen: nothing built"; else ok "a locked screen: nothing built"; fi
+if [ "$status" -eq 0 ]; then ok "a locked screen: rung 2 runs"; else bad "a locked screen: rung 2 runs, exit $status"; fi
+says "a locked screen: says it skips the mic tests" "the Mac's screen is locked: rung 2 runs, skipping the tests that open the mic (scripts/native/mic-tests.txt)"
+if grep -q "only-testing:GrabberNativeUITests/CardUITests" "$MARKS/xcodebuild"; then ok "a locked screen: its class ran"; else bad "a locked screen: its class ran"; fi
 
 run -- --changed native/UITests/WhiteboardPasteUITests.swift
 status=$?
@@ -680,9 +681,6 @@ run FAKE_JUST_FAILS=native-test-host -- --changed native/App/Chat/ChatViews.swif
 ledger_says "the ledger: a failure, and the rung it first failed on" \
   'f = by["finish"][-1]; assert f["outcome"] == "fail" and f["status"] == 7 and f["first_failure"] == {"rung": "1"}, f
 assert "lane" not in kinds'
-run SMOKE_LOCK_PROBE="$fakes/locked" SIM_LOCK_WAIT=0 -- --changed native/UITests/CardUITests.swift
-ledger_says "the ledger: a climb that could not start is unavailable, not failed" \
-  'f = by["finish"][-1]; assert f["outcome"] == "unavailable" and f["status"] == 75, f'
 run FAKE_SKIPS=IPadUITests -- --changed native/UITests/IPadUITests.swift
 ledger_says "the ledger: a skip on the iPad is a destination skip" \
   'd = by["destination_skip"][0]; assert d["classes"] == "IPadUITests" and d["skipped"] == 1 and d["udid"].endswith("1"), d

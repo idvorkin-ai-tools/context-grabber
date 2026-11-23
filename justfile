@@ -92,6 +92,8 @@ native-test-host:
     scripts/native/test-own-child.sh
     # Story 827 (#419): the smoke's audio checks are skipped, and said to be, on a locked Mac.
     scripts/native/test-smoke-lock.sh
+    # Bead context-grabber-wm8y: every UI test that touches a mic control is listed as opening the mic or not.
+    scripts/native/test-mic-tests.sh
     # Stories 814-818: the fake Cockpit's board ops, which the whiteboard UI tests rely on.
     scripts/native/test-fake-cockpit-ops.py
     # Stories 1173, 1174: the Cockpit's recorded board sessions are vendored scrubbed, and the fake Cockpit plays them back.
@@ -189,8 +191,7 @@ native-test-sim: native-build-sim
 native-test-contracts: native-project
     #!/usr/bin/env bash
     set -uo pipefail
-    # Story 1022: not on a locked Mac; wait for an unlock before taking a lane (sim-boot and the wrapper look again in it).
-    . scripts/native/smoke-lock.sh && { wait_unlocked "the contract tests" || exit 75; }
+    # Bead context-grabber-wm8y: no test here opens the mic, so it runs on a locked Mac too (the wrapper skips any that did).
     scripts/native/build-lane.sh run bash -c 'name=$(scripts/native/build-lane.sh sim "${CONTRACT_SIM:-iPad Pro 11-inch (M5)}") && udid=$(scripts/native/sim-udid.sh "$name") && scripts/native/sim-boot.sh "$udid" && UI_TEST_RETRY=0 scripts/native/xcodebuild-log.sh contracts "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" -only-testing:GrabberNativeContractTests -only-testing:GrabberNativeUITests/PaperKitTouchContractUITests test'
 
 # Stops a phone recipe with how to name the phone when it has no id

@@ -1,0 +1,25 @@
+# The UI tests that open the mic (bead context-grabber-wm8y, stories 1022 and 1023). A locked Mac starves the
+# simulator's audio server, and a test that opens the mic then aborts the app in Apple's audio toolbox (beads 2v63,
+# 208e); every other UI test runs on a locked Mac as on an unlocked one (2026-11-21 19:00:19–19:02:34 and the
+# experiment of 2026-11-22 22:42, ~/tmp/agent/notes/lock-experiment/run1.log). So on a locked screen the wrapper skips
+# the `mic` lines (xcodebuild -skip-testing) and names them, and a lock mid-run stops a run only while one of them is
+# still to run.
+#
+# `reviewed` lines touch a mic control or a call but never open the mic: they run on a locked Mac. scripts/native/
+# mic-tests.py check (in `just test`) fails when a UI test touches one and is on neither list, or a listed test is gone.
+#
+# mic <Target>/<Class>/<test>  # why it opens the mic
+# reviewed <Class>/<test>      # why it doesn't
+
+mic GrabberNativeUITests/ChatNewThreadUITests/testTheVoiceButtonOpensANewChatWithItsMicTapped  # the voice button starts dictation; the crashes of beads 2v63 and 208e
+mic GrabberNativeUITests/CockpitBackUITests/testBackAndCockpitLeaveAPageTheDashboardOpenedAndItsCallStaysInTheApp  # dials a real call, whose prepare switches on voice processing on the mic's input node
+
+reviewed ChatDecisionUITests/testOtherAnswersInIgorsOwnWords  # looks at the mic beside Send, types the answer
+reviewed ChatNewThreadUITests/testALiveCallKeepsTheMicFromTheVoiceButton  # a synthetic call (GRABBER_CALL_AUDIO=synthetic: no audio hardware), and the voice button is refused while it's live
+reviewed IPadUITests/testHomeFillsTheIPadAndEachLauncherOpensInLandscape  # opens the Call screen and looks for Call Larry; never dials
+reviewed ReportDictationUITests/testTheMicrophoneSitsBesideTheNote  # looks at the dictation button, never taps it
+reviewed WhiteboardPaperGhostsUITests/testAGhostShowsOnThePaperAndKeepMakesItInk  # looks for the mic button on the bar
+reviewed WhiteboardQuestionUITests/testLarrysQuestionLandsAnswersAndFolds  # looks at the card's mic beside Send, types the answer
+reviewed WhiteboardTurnUITests/testHoldingTheMicPicksTheMicrophone  # GRABBER_WHITEBOARD_SAY: the mic's hearing is faked; Find microphones is looked at, not tapped
+reviewed WhiteboardTurnUITests/testSpeakingOnAnEmptyBoardBringsAGhostWithoutAStroke  # GRABBER_WHITEBOARD_SAY: the mic's hearing is faked
+reviewed WhiteboardTurnUITests/testTheBarNamesItsButtonsAndHasNoHole  # measures the mic button on the bar
