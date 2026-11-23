@@ -225,13 +225,15 @@ puts the plan on its own board. `bw_info` says `"abi": 7`; versions 1 to 6 are u
 
 ## The interface, version 8: the room a late reply opens
 
-Story 1623. A reply of Larry's kept over ink Igor wrote after its picture opens room by `BoardRoom.late`: the marks
+Story 1623. A text of Larry's set on ink lands as a paste or a drop does: on its own lines, with the writing below
+making room (`BoardRoom.text`). A reply of Larry's kept over ink Igor wrote after its picture opens room by `BoardRoom.late`: the marks
 stay where he drew them, and from the top of the line of writing the newer ink starts in, everything below goes down
 whole lines until it is half a line under the lowest mark. `bw_info` says `"abi": 8`; versions 1 to 7 are unchanged.
 
 | Export | Arguments | Returns |
 |---|---|---|
 | `bw_late` | `{"marks": [[left, top, right, bottom]], "seen"}`: the marks' boxes, and when the picture was taken, unix ms | a reply: `{"push": {"cut", "dy"} \| null, "covered"}`; `{"error"}` with no outline or no `seen` |
+| `bw_text_room` | `{"box": [left, top, right, bottom]}`: where a text of Larry's, or anything landing, is set | a reply: `{"sits", "y", "cut", "dy"}`: whether it overlaps what shows, where its top lands, the clear line nearest its top and how far everything from there goes down (0 for none); `{"error"}` with no outline or no box |
 
 - A stroke's `t` in the outline (`bw_outline_load`, `bw_outline_add`) is when it was made, unix ms: what tells ink
   newer than the picture. A stroke without one is taken as seen.

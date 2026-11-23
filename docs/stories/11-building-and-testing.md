@@ -1581,7 +1581,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 1623:
 
-- **Summary:** The web board asks the app's own rules how much room a reply of Larry's opens when kept over ink written since its picture
+- **Summary:** The web board asks the app's own rules how much room a reply of Larry's opens when kept over ink written since its picture, and where a text of his set on ink lands
 - **Status:** implemented in 5b3cfd12; verified by `just wasm-test` (153 checks, a hand-worked late room among them), the Linux rung (894 tests) and the Cockpit's comparison (recorded, 60 seeded and its five real boards: 9,732 keeps, 3,034 opening room, 0 differences), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 8
 - **Issues:** bead `context-grabber-edl`
@@ -1594,8 +1594,8 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** A late reply's room through the module
 - **Given:** the module built by `just wasm` with an outline of two lines, one written after the picture and one before
-- **When:** `just wasm-test` asks for the room a mark over the newer line opens, with the picture taken before it and after it, and for a mark on clear paper
-- **Then:** over the newer line the room is two lines from that line's top, so it is half a line under the mark; with the picture after it, and on clear paper, there is none; with no `seen` it says so
+- **When:** `just wasm-test` asks for the room a mark over the newer line opens, with the picture taken before it and after it, and for a mark on clear paper; and where a text set on the newer line and one on clear paper land
+- **Then:** over the newer line the room is two lines from that line's top, so it is half a line under the mark; with the picture after it, and on clear paper, there is none; with no `seen` it says so; the text on the line lands where it is and the line goes down two lines, the one on clear paper sits on nothing; with no box it says so
 
 ---
 
