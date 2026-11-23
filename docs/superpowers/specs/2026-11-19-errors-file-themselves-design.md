@@ -57,8 +57,9 @@ he sees, he does not have time to report, so they are never fixed.
 - The same kind again within 10 minutes saves nothing; the log has `bug_report_auto_skipped`.
 - An error shown while offline, or *Health is not available*, saves nothing; the log has `bug_report_auto_skipped`
   with `auto_file: false`.
-- A chat read that fails once with HTTP 502 (or 503, 504, a timeout, a refused or dropped connection) and then reads fine saves
-  nothing; its error showed with Copy error, and the log has `bug_report_auto_skipped` with `auto_file: false`.
+- A chat read that fails once with HTTP 502 (or any 5xx, a timeout, a refused or dropped connection) and then reads fine saves
+  nothing; a thread that had loaded shows no banner for that one blip (the chat spec's *Cockpit not answering*), and the
+  log has `chat` `cockpit_outage` `ended` with `filed: false`.
 - Chat reads that keep failing that way for 2 minutes save one automatic report for the outage, and none more until a
   read gets through; the log has `chat` `cockpit_outage` with `filed` and the outage's length and failures, and
   `ended` when a read gets through.

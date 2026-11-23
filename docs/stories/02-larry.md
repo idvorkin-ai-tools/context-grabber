@@ -3332,7 +3332,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** A Cockpit that blinks files no report
-- **Given:** a chat thread is open, the device is online, and the Cockpit just answered HTTP 502 (or 503, 504, or the read timed
+- **Given:** a chat thread is open, the device is online, and the Cockpit just answered HTTP 502 (or any 5xx, or the read timed
   out, could not connect or lost its connection)
 - **When:** the next poll reads the thread
 - **Then:** no automatic report was saved (a thread that had loaded shows no banner for one blip, story 1606), and the log
@@ -3415,7 +3415,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** The chat list keeps trying while the Cockpit is away
-- **Given:** the chat list is on screen and shows a Cockpit error of the kind story 1136 names
+- **Given:** the chat list is on screen and its last read failed the way story 1136 names, whether or not the banner of story 1604 shows yet
 - **When:** 15 seconds pass
 - **Then:** the list is read again, and again every 15 seconds until it reads or leaves the screen
 

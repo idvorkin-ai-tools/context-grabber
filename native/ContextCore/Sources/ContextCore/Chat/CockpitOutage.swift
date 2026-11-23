@@ -1,5 +1,5 @@
 //  Story 1136 (#1245–#1253, #1259, #1268): a chat read that fails because the Cockpit can't be reached for a moment
-//  (its proxy answering 502, 503 or 504, a timeout, a refused or dropped connection) shows its error but files no
+//  (it or its proxy answering any 5xx, a timeout, a refused or dropped connection) shows its error but files no
 //  automatic report until such failures have gone on, with no read getting through, for two minutes; then one report
 //  for that outage. A read failing because the device's own connection is down never files.
 
