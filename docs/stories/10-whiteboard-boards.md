@@ -1439,7 +1439,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1217:
 
 - **Summary:** I try every pen and shape PaperKit has on a scratch page before the board takes any of them
-- **Status:** in progress on branch `native/paperkit-board-spike-0xrz`
+- **Status:** implemented in [c89c6a11](https://github.com/idvorkin/context-grabber/commit/c89c6a11); verified by lint and host tests (`just native-test`) and the Mac build (`just native-build-mac`, which compiles the page); not yet opened on the iPad simulator (the Mac's screen was locked) or drawn on with the Pencil on the iPad. No iPhone runs
 - **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
 - **Issues:** bead context-grabber-0xrz
 
