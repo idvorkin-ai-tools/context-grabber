@@ -67,7 +67,9 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   never reaches the paper. Nothing on the board has moved; the chip only says so.
 - **Retry hands Larry the board again**: it is *Larry's turn* at once, the picture of the board as it is now with what
   happened to his last change, so he looks again and sends a fresh one. It is never a replay of the refused change.
-  The chip goes when Retry is tapped.
+  Retry sends even when Larry already has this picture: only *Send to Larry* dims for that (beads context-grabber-ts8a,
+  context-grabber-kxzk). The chip goes once a picture has gone; while one is still on its way, Retry sends nothing
+  more and the chip stays, so Retry can be tapped again.
 - **×** puts the chip away and asks nothing.
 - The chip goes by itself when a later change of Larry's applies, and a newer refusal replaces it (one chip, never a
   pile). Leaving the board forgets it. A change dropped because the board closed shows nothing, as nobody is there.
@@ -546,7 +548,7 @@ whiteboard skill and here, so a change to the wire on one side shows as a failur
 - Larry's plain text arrives as a ghost, keeps on a tap, reads in a plain typeface, shows in the next picture Larry
   gets, and moves with a later push.
 - The session log has one line per applied or refused change, with what moved and why, for a phone check.
-- A refused change of Larry's shows *Larry's edit blocked · Retry*; Retry sends his turn and the chip goes; × only
+- A refused change of Larry's shows *Larry's edit blocked · Retry*; Retry sends his turn, even when he already has this picture, and the chip goes once it has gone; × only
   puts it away; a change that applies afterwards clears it.
 - Check the [drop and Undo cases](#dropping-ink-onto-writing-makes-room) for each pickup method.
 - Larry draws two strokes, erases one of Igor's and replaces another: all of it shows at once, one Undo takes all of
