@@ -132,7 +132,7 @@ final class ChatAskSearchTests: XCTestCase {
     guard case .web(let page) = ChatAskSearch.opens(answered, asks: [ask], known: []) else {
       return XCTFail("the Cockpit's page")
     }
-    XCTAssertEqual(page, ChatCockpitLink.webURL("igor2-88g.902"))
+    XCTAssertEqual(page.absoluteString, "https://c-5004.squeaker-teeth.ts.net/#thread/igor2-88g.902")
   }
 
   func testTheLogNeverHoldsTheWords() {
