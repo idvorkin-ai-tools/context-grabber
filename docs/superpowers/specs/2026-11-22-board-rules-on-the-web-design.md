@@ -51,8 +51,11 @@ It imports 34 `wasi_snapshot_preview1` functions and nothing else: `args_get`, `
 `fd_prestat_dir_name`, `fd_prestat_get`, `fd_read`, `fd_readdir`, `fd_seek`, `fd_sync`, `fd_tell`,
 `fd_write`, `path_create_directory`, `path_filestat_get`, `path_filestat_set_times`, `path_link`,
 `path_open`, `path_readlink`, `path_remove_directory`, `path_rename`, `path_symlink`, `path_unlink_file`,
-`poll_oneoff`, `proc_exit` and `random_get`. The rules use the clock, random numbers and the environment; the file
-calls are Foundation's and are never made, so a browser's stand-in can answer them with an error. All numbers are wasm
+`poll_oneoff`, `proc_exit` and `random_get`. Measured under node over the whole test (the four replays,
+loads, new ink, cuts and refusals), only six are called: `random_get`, `args_sizes_get`, `args_get` and
+`environ_sizes_get` while `_initialize` runs, then `clock_time_get`, and `fd_prestat_get` once, answered "bad
+descriptor" (8): there is no directory to open. A browser's stand-in answers those six and can answer every other
+import with an error. All numbers are wasm
 `i32` unless marked `f64`.
 
 **Memory.** The host writes input into the module's `memory` through a buffer it asks for with `bw_alloc`, and
@@ -70,7 +73,7 @@ before.
 | `bw_load` | pointer, length of a board | the number of boxes, or `-1` |
 | `bw_add_strokes` | pointer, length of `{"strokes": [...]}` | the number of boxes now, or `-1` |
 | `bw_cut_y` | `y` (`f64`, board points) | the clear line (`f64`), or NaN |
-| `bw_error` | none | a reply holding why the last call failed (plain text), or `0` when it did not |
+| `bw_error` | none | a reply holding why the last `bw_load`, `bw_add_strokes` or `bw_cut_y` failed (plain text), or `0` when it did not |
 | `bw_replay` | pointer, length of a recorded session (JSONL) | a reply: the replay (below). For tests |
 
 - `bw_info`: `abi` is this interface's version; it goes up when an export's arguments, results or JSON shapes
