@@ -86,7 +86,7 @@ extension PaperBoardController {
       _ = changeOutline("Make header") { $0.markHeader(at: menu.y, id: WhiteboardModel.newHeaderID()) }
     case .notHeader(let id):
       _ = changeOutline("Not a header") { outline in
-        outline.unmark(id)
+        outline.decline(id)
         return true
       }
     case .foldAll:

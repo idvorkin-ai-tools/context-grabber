@@ -97,7 +97,7 @@ extension BoardOutline {
       let row = row(at: l.box.midY), row.header == nil, !row.names.isEmpty
     else { return nil }
     let mark = s.ids
-    headers.append(BoardHeader(id: id, ids: Self.union(row.names, mark), mark: mark))
+    add(BoardHeader(id: id, ids: Self.union(row.names, mark), mark: mark))
     return .underline(header: id, y: l.box.midY, mark: mark)
   }
 
@@ -197,7 +197,7 @@ extension BoardOutline {
     let box = four.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
     guard let row = row(at: box.midY), row.header == nil else { return nil }
     let mark = four.flatMap { strokes[$0].ids }
-    headers.append(BoardHeader(id: id, ids: Self.union(row.names, mark), mark: mark))
+    add(BoardHeader(id: id, ids: Self.union(row.names, mark), mark: mark))
     return .hash(header: id, y: box.midY, mark: mark)
   }
 

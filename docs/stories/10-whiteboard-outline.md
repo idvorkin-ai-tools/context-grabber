@@ -446,10 +446,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** Not a header keeps my underline as ink and the board never makes it a header again
 - **Status:** implemented in [fda25548](https://github.com/idvorkin/context-grabber/commit/fda25548), [6bb7c2ab](https://github.com/idvorkin/context-grabber/commit/6bb7c2ab); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
-- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967); bead `context-grabber-2ul` (the faint H came straight back)
 
 #### Use Case:
-- **As someone** who who underlined for emphasis and wants to keep the line
+- **As someone** who underlined for emphasis and wants to keep the line
 - **I want** to keep my underline but not the header
 - **so that** the board stops treating that line as a header for good
 
@@ -458,6 +458,13 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a line made a header by an underline
 - **When:** I choose *Not a header* from the hold menu and go on drawing elsewhere
 - **Then:** the underline stays as ink, there is no ▾, and the line never becomes a header again on its own
+- **And:** no faint H comes back beside the line, words I add to it later included, and the board still remembers
+  after I close and reopen it
+
+- **Scenario:** Making it a header after all
+- **Given:** a line I said was not a header
+- **When:** I tap the margin beside it
+- **Then:** it becomes a header, as any line does
 
 ---
 

@@ -129,7 +129,10 @@ Igor, 2026-11-20 (decision O2): "Keep [the #967 ink header design]; build ## and
   left as they were. A folded header keeps its fold until it is unfolded: erasing its underline never springs or loses
   a fold.
 - ***Not a header*** (the hold menu beside a header, as today) keeps the underline or # as ink and makes the line
-  plain. The board never makes it a header again on its own: only a newly drawn underline or # makes one.
+  plain. The board never makes it a header again on its own: only a newly drawn underline or # makes one. Nor does
+  it offer the line again: no faint H comes back beside it, words written on that line later included, and the board
+  remembers this when it is closed and opened again. A margin tap or *Make header* still makes the line a header, and
+  then it is offered and judged like any other line again.
 - A wrong rule is erased or undone like any stroke, and the section runs on as before.
 
 ### Larry sees the headers
@@ -166,6 +169,8 @@ Larry saw plain strokes).
   lines above the rule, the last one included even when the rule touches it, and the rule slides up under the header.
 - One Undo after an underline or a # that made a header takes its last stroke and the ▾; Redo brings both back.
 - *Not a header* on an underlined header leaves the underline and no ▾, and drawing elsewhere never brings it back.
+- After *Not a header* the line shows no faint H either, nor after the board is closed and opened again; a margin
+  tap beside it still makes it a header.
 - A board opened with underlines drawn before this build shows them as they were: faint H, no header.
 - Larry's picture labels an open header "▾ header" just past the end of its line, clear of the ink and inside the
   picture however far in the line starts.

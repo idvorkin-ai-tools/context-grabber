@@ -82,11 +82,16 @@ extension WhiteboardModel {
   /// The outline over `strokes` (the canvas's, by default the drawing's), with the board's headers.
   func outline(of strokes: [BoardOps.Stroke]? = nil) -> BoardOutline {
     BoardOutline(
-      strokes: strokes ?? opStrokes(drawing.strokes).strokes, headers: headers, texts: texts, groups: strokeMeta.groups)
+      strokes: strokes ?? opStrokes(drawing.strokes).strokes, headers: headers, texts: texts, groups: strokeMeta.groups,
+      declined: declined)
   }
 
   /// The canvas applied an outline change.
   func outlineChanged(_ outline: BoardOutline) {
+    if outline.declined != declined {
+      declined = outline.declined
+      opLedger.setDeclined(declined, board: board.id)
+    }
     // Stories 902–904: a header whose ink is gone stays, so the Undo that brings the ink back brings it back folded.
     let kept = BoardOutline.keeping(outline.headers, previous: headers, live: outline.liveNames)
     guard kept != headers else { return }
