@@ -3194,7 +3194,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1132:
 
 - **Summary:** Search the asks on *Decisions* by title and content, the answered ones too
-- **Status:** native app: STATUS_TBD
+- **Status:** native app: implemented in '193dbcce' and 'c9b8b4bb', on branch `native/inbox-search-4dme`; verified on the host (`just native-test`: `ChatAskSearchTests`, the answer with empty and missing matches, the counts and the count line, the 400 and the 502, the request's escaping, the highlights, a row's tap; `test-fake-cockpit-ops.py`, the fake's `/asks/search`), the Mac build (`just native-build-mac`), and on the iPad Pro 11-inch (M5) simulator (`ChatAskSearchUITests`: an option's word finds the ask with its *option* line and *1 open · 0 answered*, an answered-only match says *No asks match.* and *0 open · 1 answered (tick to show)* and shows once *Answered too* is ticked, a 502 is a copyable problem, a tap opens the chat with the ask's card; `ChatDecisionUITests` 6/6 there too); not on the iPhone simulator (Igor's no-iPhone rule during the whiteboard work, 2026-11-22), nor on a device; Escape from a hardware keyboard is the system's search Cancel, not tested
 - **Issues:** bead context-grabber-4dme
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Searching the asks*
 
