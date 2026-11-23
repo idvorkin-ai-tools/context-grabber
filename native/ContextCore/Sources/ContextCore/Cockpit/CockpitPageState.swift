@@ -52,6 +52,13 @@ extension CockpitPage {
       return false
     }
 
+    /// Story 233: a page of the Cockpit's own, any of its views: the start address's host. A link can take the web
+    /// view elsewhere; that page's title is not the Cockpit's name for a view.
+    public func isCockpit(_ url: URL) -> Bool {
+      guard let host = start?.host else { return false }
+      return url.host == host
+    }
+
     /// The dashboard's own page: the start address's host and path (the query carries the client tag).
     public func isStartPage(_ url: URL) -> Bool {
       guard let start else { return false }

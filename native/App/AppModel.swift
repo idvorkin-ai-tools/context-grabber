@@ -81,6 +81,8 @@ final class AppModel: ObservableObject {
   @Published var whiteboardLink: String?
   /// #722, story 724: the Mac's New Board asked for a board; the boards open one as they come up, or at once if up.
   @Published var whiteboardNewBoard = false
+  /// Story 233: the board open on the Whiteboard (its list's top), so its window can carry the board's name.
+  @Published var whiteboardOnScreen: String?
 
   /// Made on the first open and kept for the launch, so closing the Cockpit hides the page rather than closing it.
   /// `GRABBER_COCKPIT_URL` points it elsewhere (a URL, or a page in the app bundle) for the simulator's checks and a
@@ -90,6 +92,7 @@ final class AppModel: ObservableObject {
       log: log, override: LaunchHooks.current.cockpitURL,
       openInBrowserWhenShown: LaunchHooks.current.cockpitOpenInBrowser)
     cockpit.onAppRoute = { [weak self] route, source in self?.open(route: route, from: source) }
+    cockpit.onTitleChange = { [weak self] in self?.nameWindows() }  // story 233
     return cockpit
   }()
   /// The eulogy song, played in the app (story 137); it outlives its sheet.
@@ -135,6 +138,8 @@ final class AppModel: ObservableObject {
   var ledger = WindowLedger()
   /// #661: any change here can change what a window should be called.
   private var windowNames: AnyCancellable?
+  /// Story 233: a thread opened, closed or retitled in Chat renames its window; Chat's changes aren't this model's.
+  private var chatWindowNames: AnyCancellable?
   /// #634, #661: a window goes when its scene does; its views also disappear under a full-screen cover.
   private var windowDisconnects: AnyCancellable?
   var openWindowAction: OpenWindowAction?
@@ -260,6 +265,8 @@ final class AppModel: ObservableObject {
       self?.reporter.autoReport(reason: reason, context: context, files: files)
     }
     windowNames = objectWillChange.receive(on: RunLoop.main).sink { [weak self] _ in self?.nameWindows() }
+    chatWindowNames = chat.$openThread.map { _ in () }.merge(with: chat.$threads.map { _ in () })
+      .receive(on: RunLoop.main).sink { [weak self] _ in self?.nameWindows() }
     windowDisconnects = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
       .compactMap { ($0.object as? UIScene)?.session.persistentIdentifier }
       .sink { [weak self] window in self?.windowGone(window) }
