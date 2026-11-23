@@ -332,7 +332,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A finger held on ink offers to select what is under it
 - **Issues:** bead context-grabber-y4y (Larry, 2026-11-22: "press-and-hold on the board should open a useful menu"; the iPad's logs, 11-16 to 11-22: the menu came up 26 times and a row was chosen 3 times)
-- **Status:** implemented in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c); verified by host tests (`BoardHoldMenuTests`), `just native-test` and the Mac build (`just native-build-mac`); `WhiteboardOutlineUITests.testAHoldOnInkOffersSelectAndDeleteForIt` passes on the iPad simulator with the rest of the class (rung 2, 2026-11-22); not yet seen on the iPad
+- **Status:** implemented in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c); verified by host tests (`BoardHoldMenuTests`), `just native-test` and the Mac build (`just native-build-mac`); `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom` (with the hold on ink since bead context-grabber-3k6) passes on the iPad simulator with the rest of the class (rung 2, 2026-11-22); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
 
 #### Use Case:
@@ -352,7 +352,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A finger held on ink offers to delete what is under it
 - **Issues:** bead context-grabber-y4y (Larry, 2026-11-22: "press-and-hold on the board should open a useful menu")
-- **Status:** implemented in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c); verified by host tests (`BoardHoldMenuTests`), `just native-test` and the Mac build (`just native-build-mac`); `WhiteboardOutlineUITests.testAHoldOnInkOffersSelectAndDeleteForIt` passes on the iPad simulator with the rest of the class (rung 2, 2026-11-22); not yet seen on the iPad
+- **Status:** implemented in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c); verified by host tests (`BoardHoldMenuTests`), `just native-test` and the Mac build (`just native-build-mac`); `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom` (with the hold on ink since bead context-grabber-3k6) passes on the iPad simulator with the rest of the class (rung 2, 2026-11-22); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
 
 #### Use Case:

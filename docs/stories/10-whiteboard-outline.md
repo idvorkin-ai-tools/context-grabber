@@ -34,7 +34,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1179:
 
 - **Summary:** A header made or unmade by a tap is one Undo of its own
-- **Status:** implemented in [28d35f89](https://github.com/idvorkin/context-grabber/commit/28d35f89) and [f9034ae2](https://github.com/idvorkin/context-grabber/commit/f9034ae2), with one Larry report per grouped Undo in [616275fb](https://github.com/idvorkin/context-grabber/commit/616275fb). `just test` and `just native-build-mac` passed. On the iPad simulator (rung 2, 2026-11-22), `WhiteboardOutlineUITests` passed, including `testAMarginTapsHeaderIsOneUndoThatLeavesTheInk` and `testNotAHeaderOnAFoldIsOneUndoThatPutsTheFoldBack`, as did `WhiteboardScratchOutUITests`.
+- **Status:** implemented in [28d35f89](https://github.com/idvorkin/context-grabber/commit/28d35f89) and [f9034ae2](https://github.com/idvorkin/context-grabber/commit/f9034ae2), with one Larry report per grouped Undo in [616275fb](https://github.com/idvorkin/context-grabber/commit/616275fb). `just test` and `just native-build-mac` passed. On the iPad simulator (rung 2, 2026-11-22), `WhiteboardOutlineUITests` passed, including `testAMarginTapsHeaderIsOneUndoThatLeavesTheInk` (since bead context-grabber-3k6 it also checks *Not a header* on a fold, once a test of its own), as did `WhiteboardScratchOutUITests`.
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 - **Issues:** bead `context-grabber-ssl` (a header made or unmade alone was no Undo step: Undo took back the stroke before it and left the ▾)
 
@@ -248,7 +248,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 901:
 
 - **Summary:** A folded header says on the board how many lines it holds
-- **Status:** implemented in [568bd4a](https://github.com/idvorkin/context-grabber/commit/568bd4a); verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); the simulator (`WhiteboardOutlineUITests`, 197 s), `testAFoldShowsItsLinesBesideTheHeader`; not yet seen on the iPad
+- **Status:** implemented in [568bd4a](https://github.com/idvorkin/context-grabber/commit/568bd4a); verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); the simulator (`WhiteboardOutlineUITests`, 197 s), `testAMarginTapMakesAHeaderAndAnotherFoldsIt` (its own test until bead context-grabber-3k6 folded it into the margin tap's); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
 #### Use Case:
