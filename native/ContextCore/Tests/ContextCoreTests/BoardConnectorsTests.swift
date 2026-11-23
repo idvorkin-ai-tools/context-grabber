@@ -177,6 +177,25 @@ final class BoardConnectorsTests: XCTestCase {
     XCTAssertEqual(c.route.first, CGPoint(x: 130, y: 110), "it leaves the whole word's right side")
   }
 
+  /// Story 947, bead context-grabber-3iz (Igor, 2026-11-22, card igor2-88g.1620.5: "a connected word is one thing; a
+  /// tap takes it whole"): once an arrow joins a word of his, a finger tap on any of its strokes takes the whole word,
+  /// as for Larry's groups; his word no arrow joins is still plain ink to a tap.
+  func testAFingerTapOnAConnectedWordOfIgorsTakesTheWholeWord() {
+    let word = [box("h1", 100, 100, w: 8, h: 20), box("h2", 112, 100, w: 8, h: 20), box("i1", 126, 100, w: 4, h: 20)]
+    let other = [box("o1", 100, 200, w: 8, h: 20), box("o2", 112, 200, w: 8, h: 20)]
+    let strokes = word + other + [box("B", 500, 300)]
+    let plan = BoardOps.plan(
+      [.connector(.init(id: "k1", from: .point(CGPoint(x: 118, y: 125)), to: .id("gB")))], strokes: strokes,
+      metas: grouped([("B", "gB")]), pages: 1)
+    var groups = ["B": "gB"]
+    for (name, meta) in plan.metas { if let group = meta.group { groups[name] = group } }
+    let outline = BoardOutline(strokes: strokes, headers: [], groups: groups)
+    let tapped = outline.group(at: CGPoint(x: 100, y: 110), slop: 22)
+    XCTAssertEqual(tapped?.group, "k1-from")
+    XCTAssertEqual(tapped?.names.sorted(), ["h1", "h2", "i1"], "the whole word, from a tap on one stroke of it")
+    XCTAssertNil(outline.group(at: CGPoint(x: 100, y: 210), slop: 22), "his word no arrow joins stays his ink")
+  }
+
   func testAWordStaysPlainInkWhenNoConnectorIsDrawn() {
     let word = [box("h1", 100, 100, w: 8, h: 20), box("h2", 112, 100, w: 8, h: 20), box("i1", 126, 100, w: 4, h: 20)]
     let onTheWord = CGPoint(x: 118, y: 125)
