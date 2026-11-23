@@ -197,6 +197,14 @@ check "a journey with too few free IDs hands out none and says to add a block" "
 check "a full journey's message names the journey as its row does (bead context-grabber-0e04)" \
   "$(grep -c "the journey 'A' (01-a.md) has 1 free ID(s) of the 2 asked for in its IDs (1–9, 20)" "$tmp/reserve.err")" "1"
 check "a full journey's message gives every journey's free IDs" "$(grep -c 'Free IDs per journey: A 1, B 9$' "$tmp/reserve.err")" "1"
+printf 'diff --git a/docs/stories/02-b.md b/docs/stories/02-b.md\n+### User Story 250:\n' >"$tmp/prs/42.diff"
+out=$(reserve "$tmp/ledger.json" 01-a.md 2)
+check "a full journey's next block starts above an ID an open PR adds past every row" "$(grep -c 'next unused block, 300–399' "$tmp/reserve.err")" "1"
+sed -i.bak 's/| 010–019 |/| 010–019, 500–599 |/' "$tmp/main/README.md"
+out=$(reserve "$tmp/ledger.json" 01-a.md 2)
+check "a full journey's next block starts above a block main's table holds that the branch's doesn't" "$(grep -c 'next unused block, 600–699' "$tmp/reserve.err")" "1"
+mv -f "$tmp/main/README.md.bak" "$tmp/main/README.md"
+rm -f "$tmp/prs/42.diff"
 out=$(reserve "$tmp/ledger3.json" the)
 check "a word that names two journeys fails" "$out|$?|$(grep -c 'names 2 journeys' "$tmp/reserve.err")" "|1|1"
 out=$(FAKE_GH_FAIL=1 reserve "$tmp/ledger3.json" second)

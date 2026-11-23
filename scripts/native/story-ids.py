@@ -41,44 +41,46 @@ def fmt(spans):
     return ", ".join(str(a) if a == b else f"{a}–{b}" for a, b in spans)
 
 
-def table(root, problems):
+def table(root, problems, text=None):
     """The journey table: (journey -> spans, file -> journey, journey -> its row but the IDs column, journey -> its name)."""
     ranges = {}  # journey (its first file) -> spans
     journey = {}  # file -> its journey
     titles = {}  # journey -> its row but the IDs column, for reserve's journey words
     labels = {}  # journey -> its name as its row gives it ("The whiteboard"), for reserve's messages
-    with open(os.path.join(root, "README.md"), encoding="utf-8") as fh:
-        for n, line in enumerate(fh, 1):
-            line = line.rstrip("\n").strip()
-            if not (line.startswith("|") and line.endswith("|")):
+    if text is None:
+        with open(os.path.join(root, "README.md"), encoding="utf-8") as fh:
+            text = fh.read()
+    for n, line in enumerate(text.splitlines(), 1):
+        line = line.rstrip("\n").strip()
+        if not (line.startswith("|") and line.endswith("|")):
+            continue
+        cells = [c.strip() for c in line[1:-1].split("|")]
+        files = LINK.findall(cells[0]) if len(cells) >= 2 else []
+        if not files:
+            continue
+        name, column = files[0], cells[-1]
+        titles[name] = " ".join(cells[:-1])
+        labels[name] = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", cells[0]).split(":")[0].strip()
+        spans = []
+        for part in column.split(","):
+            s = SPAN.match(part.strip())
+            if not s:
+                problems.append(f"README.md:{n}: {name}: can't read {part.strip()!r} in its IDs column")
                 continue
-            cells = [c.strip() for c in line[1:-1].split("|")]
-            files = LINK.findall(cells[0]) if len(cells) >= 2 else []
-            if not files:
-                continue
-            name, column = files[0], cells[-1]
-            titles[name] = " ".join(cells[:-1])
-            labels[name] = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", cells[0]).split(":")[0].strip()
-            spans = []
-            for part in column.split(","):
-                s = SPAN.match(part.strip())
-                if not s:
-                    problems.append(f"README.md:{n}: {name}: can't read {part.strip()!r} in its IDs column")
-                    continue
-                a = int(s.group(1))
-                b = int(s.group(2) or a)
-                if b < a:
-                    problems.append(f"README.md:{n}: {name}: range {a}–{b} runs backwards")
-                spans.append((a, b))
-            if name in ranges:
-                problems.append(f"README.md:{n}: {name} has two rows")
-            ranges[name] = spans
-            for f in files:
-                if f in journey and not (f == name and journey[f] == name):
-                    problems.append(f"README.md:{n}: {f} is listed twice")
-                journey.setdefault(f, name)
-                if not os.path.isfile(os.path.join(root, f)):
-                    problems.append(f"README.md:{n}: {f} is listed but not there")
+            a = int(s.group(1))
+            b = int(s.group(2) or a)
+            if b < a:
+                problems.append(f"README.md:{n}: {name}: range {a}–{b} runs backwards")
+            spans.append((a, b))
+        if name in ranges:
+            problems.append(f"README.md:{n}: {name} has two rows")
+        ranges[name] = spans
+        for f in files:
+            if f in journey and not (f == name and journey[f] == name):
+                problems.append(f"README.md:{n}: {f} is listed twice")
+            journey.setdefault(f, name)
+            if not os.path.isfile(os.path.join(root, f)):
+                problems.append(f"README.md:{n}: {f} is listed but not there")
     return ranges, journey, titles, labels
 
 
@@ -156,16 +158,17 @@ def run(cmd, cwd=None):
 
 
 def main_ids(root):
-    """The story IDs on main: origin/main fetched now, or STORY_IDS_MAIN's dir for the tests."""
+    """The story IDs and the journey table on main: origin/main fetched now, or STORY_IDS_MAIN's dir for the tests."""
     fake = os.environ.get("STORY_IDS_MAIN")
     if fake:
-        return tree_ids(fake)
+        with open(os.path.join(fake, "README.md"), encoding="utf-8") as fh:
+            return tree_ids(fake), fh.read()
     top = run(["git", "rev-parse", "--show-toplevel"], cwd=root).strip()
     rel = os.path.relpath(os.path.realpath(root), os.path.realpath(top))
     run(["git", "fetch", "-q", "origin", "main"], cwd=top)
     names = run(["git", "ls-tree", "--name-only", "origin/main", rel + "/"], cwd=top).split()
     texts = [run(["git", "show", f"origin/main:{n}"], cwd=top) for n in names if n.endswith(".md") and not n.endswith("README.md")]
-    return ids_in(texts)
+    return ids_in(texts), run(["git", "show", f"origin/main:{rel}/README.md"], cwd=top)
 
 
 def pr_ids():
@@ -189,9 +192,9 @@ def find_journey(query, ranges, journey, titles):
     raise RuntimeError(f"{query!r} names {len(hits)} journeys{': ' + ', '.join(hits) if hits else ''}; give one of its story files")
 
 
-def full(root, name, n, have, ranges, labels, busy):
+def full(root, name, n, have, ranges, labels, busy, main_ranges):
     """Why a journey can't give n IDs, and how to extend it (bead context-grabber-0e04)."""
-    top = max(b for spans in ranges.values() for _, b in spans)
+    top = max([b for rs in (ranges, main_ranges) for spans in rs.values() for _, b in spans] + list(busy))
     start = (top // 100 + 1) * 100 if top % 100 else top + 1
     free = ", ".join(f"{labels[j]} {sum(1 for a, b in ranges[j] for i in range(a, b + 1) if i not in busy)}"
                      for j in sorted(ranges, key=lambda j: min(a for a, _ in ranges[j])))
@@ -205,7 +208,8 @@ def reserve(root, query, n):
     problems = []
     ranges, journey, titles, labels = table(root, problems)
     name = find_journey(query, ranges, journey, titles)
-    on_main = main_ids(root)
+    on_main, main_readme = main_ids(root)
+    main_ranges = table(root, [], main_readme)[0]
     in_prs, n_prs = pr_ids()
     taken = on_main | in_prs | tree_ids(root)
     ledger = os.path.expanduser(os.environ.get("STORY_IDS_LEDGER", "~/tmp/agent/locks/story-ids.json"))
@@ -233,7 +237,7 @@ def reserve(root, query, n):
                 if len(got) < n and i not in busy:
                     got.append(i)
         if len(got) < n:
-            raise RuntimeError(full(root, name, n, len(got), ranges, labels, busy))
+            raise RuntimeError(full(root, name, n, len(got), ranges, labels, busy, main_ranges))
         live += [{"id": i, "journey": name, "branch": branch, "at": now,
                   "until": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now + DAY))} for i in got]
         tmp = f"{ledger}.{os.getpid()}.tmp"

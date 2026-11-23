@@ -51,7 +51,7 @@ this fixes), when the journey names no row or more than one, and when the journe
 
 When a journey has too few free IDs, the message names the journey as its row does (its name, not only its first
 file), its IDs column, and how to extend it: add an unused block to the end of its row's IDs column in the journey
-table, the next block above every ID any journey holds (it says which, a hundred wide), then reserve again. It also
+table, the next block above every ID any journey holds in the journey table, on the branch or on main, and above every ID taken on main, in an open PR or reserved (it says which, a hundred wide), then reserve again. It also
 lists how many free IDs every journey has left, so a second journey running low is seen at the same time. A journey
 that adds stories quickly, like the whiteboard, takes a large block (hundreds) rather than twenty at a time, so it
 does not run out again within the week (bead `context-grabber-0e04`: the whiteboard ran out on 2026-11-22 and agents
