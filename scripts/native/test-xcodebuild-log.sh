@@ -121,6 +121,18 @@ case $out in *"passed only on its retry, so the run fails"*"SynthUITests.testFla
   *) bad "a retried-only pass said: $out";; esac
 out=$(flake env FAKE_HANG=1 XCODEBUILD_IDLE_SECONDS=1)
 [ $? -eq 65 ] && ok "and so it does after a hang that is stopped" || bad "a retried-only pass after a hang: $out"
+# Bead context-grabber-36f: the suite line says failed when any try failed, even one its retry passed. After a stopped
+# hang the log decides, so a case whose last try passed is judged a pass on retry, not a failed run.
+out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1)
+status=$?
+case "$status $out" in "65 "*"passed only on its retry, so the run fails"*"SynthUITests.testFlaky"*)
+  ok "a suite failed only by a retried case, after a hang, is judged a flake, not a failed run";;
+  *) bad "a retried-only pass in a failed suite after a hang exited $status: $out";; esac
+echo "SynthUITests.testFlaky context-grabber-test1 the race is being chased" >"$dir/quarantine"
+out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1)
+[ $? -eq 0 ] && ok "and a quarantined one passes there" || bad "a quarantined retried pass in a failed suite after a hang: $out"
+out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed FAKE_EARLY_FAIL=1 XCODEBUILD_IDLE_SECONDS=1)
+[ $? -eq 65 ] && ok "but a case whose last try failed still fails it" || bad "a failed case beside a quarantined flake passed: $out"
 echo "SynthUITests.testFlaky because it is flaky" >"$dir/quarantine"
 flake env >/dev/null
 [ $? -eq 65 ] && ok "a quarantine without the bead that tracks it quarantines nothing" || bad "an untracked quarantine let it pass"

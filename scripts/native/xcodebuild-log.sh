@@ -7,7 +7,8 @@
 # whose first suite doesn't start in time is stopped too, and fails with exit 75 (story 783). Without xcbeautify the
 # screen gets the error and result lines instead. A test run's result bundle, with the screenshots its failed tests
 # kept, is native/Build/logs/<name>.xcresult unless the command names its own (story 790). A test run that would pass
-# fails with exit 65 when a case passed only on its retry, unless scripts/native/ui-quarantine.txt names it (story 1017).
+# fails with exit 65 when a case passed only on its retry, unless scripts/native/ui-quarantine.txt names it (story 1017);
+# after a hang, a suite that failed only on tries its retry passed is judged that way too, not as a failed run (bead 36f).
 # A test run that fails after the Mac's screen was seen locked during it exits 75, asking for a rerun unlocked (story 1018).
 # A test run on a simulator doesn't start while the screen is locked (it waits up to 2 minutes, then exits 75), and one
 # whose tests are still running when the screen locks is stopped, the app ended on the simulator, and exits 75 (stories 1022, 1023).
@@ -255,6 +256,17 @@ pass() {
   [ -s "$locked_at" ] && echo "the Mac's screen locked during the run (first seen locked at $(cut -d' ' -f1 "$locked_at")); it passed anyway" >&2
   exit 0
 }
+# Every case that failed passed on its last try, and at least one did: the suite failed only for tries its retry passed.
+retried_to_pass() {
+  grep -E "^Test Case '.+' (passed|failed) \(" "$log" | awk '
+    { c = $0; sub(/^Test Case \047/, "", c); sub(/\047 (passed|failed) \(.*$/, "", c)
+      r = ($0 ~ /\047 failed \(/) ? "failed" : "passed"
+      if (r == "failed") once[c] = 1
+      last[c] = r }
+    END { n = 0
+      for (c in last) { if (last[c] == "failed") exit 1; if (once[c]) n++ }
+      exit n ? 0 : 1 }'
+}
 if [ -e "$stopped" ]; then
   rm -f "$stopped"
   echo "xcodebuild hung after the tests finished, so it was stopped; the log has the result: $log" >&2
@@ -263,6 +275,10 @@ if [ -e "$stopped" ]; then
     echo "its result bundle wasn't written in full $bundle_limit s after the tests finished, so it can't be opened: $bundle" >&2
   fi
   last=$(grep -E "^Test Suite '(All|Selected) tests' (passed|failed)" "$log" | tail -1)
+  # Bead context-grabber-36f: the suite line says failed when any try of a case failed, even one its retry then passed,
+  # where xcodebuild's own end would have called the run a success. So a failed suite whose failures were all retried
+  # to a pass is judged as passed here, and pass() then fails it for the flake unless it is quarantined (story 1017).
+  if [ "${last##* failed}" != "$last" ] && retried_to_pass; then last=" passed"; fi
   case $last in
     *" passed"*) pass ;;
     *)
