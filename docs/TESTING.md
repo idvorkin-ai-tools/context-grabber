@@ -822,11 +822,13 @@ they name, the deploys ledger and the ladder logs, and writes `data.json` and a 
 minutes: asked, first commit, opened, merged, on a device. The ledger is `LEAD_TIMES_DEPLOYS` (default
 `~/tmp/agent/notes/lead-times/deploys.jsonl`), the ladder logs are `*ladder*.log` in `LEAD_TIMES_LADDER_LOGS` (default
 `~/tmp/agent/notes`), and the output goes to `LEAD_TIMES_OUT` (default `~/tmp/agent/notes/lead-times`), never the repo.
-Only a cable install (`cable`) or a build TestFlight offers (`testflight_available`) counts as on a device; an upload
+Only a cable or network install (`cable`, `network`) or a build TestFlight offers (`testflight_available`) counts as on
+a device; an upload
 (`testflight_upload`) has its own column (#1038).
 
 The ledger is written by `scripts/native/record-deploy.sh <phone|ipad|testflight> <sha> [kind]`: `just
-native-run-device` records each cable install, `just testflight` its upload, and the day TestFlight offers the build
+native-run-device` records each cable install, `just deploy` each network install, `just ota` the build it posts
+(`ota_posted`, story 1511), `just testflight` its upload, and the day TestFlight offers the build
 is recorded by hand with `testflight_available`. Until 2026-11-21 the recorder was a mac-driver script that was never
 checked out on this Mac, so no install had been recorded.
 

@@ -12,7 +12,7 @@ While the whiteboard work is in progress (Igor, 2026-11-22), nothing is deployed
 | Path | Command | Build | Gets there | Logs back with `just pull-logs` |
 |---|---|---|---|---|
 | Cable or network, one device | `just native-run-device` (`DEVICE=<udid>` for the iPad) | Debug, development-signed | about a minute after the build; the device unlocked, on the cable or the same network | yes |
-| Cable or network, every device | `~/gits/bug-kit/scripts/deploy-all.sh context-grabber --only <device>` | Debug, development-signed, built once | the same | yes |
+| Cable or network, every device | `just deploy --only <device>` (BugKit's `deploy-all.sh`) | Debug, development-signed, built once | the same | yes |
 | Over the air | `just ota`, or `just ota-watch` after each merge batch | Release, development-signed | the iPad installs it from the Cockpit's /builds page, anywhere | yes (a development build) |
 | TestFlight | `just testflight` | Release, App Store-signed | the TestFlight app, 5-30 minutes after the upload | no |
 
@@ -75,7 +75,8 @@ install:
 - **UNKNOWN**: no install recorded, or no logs pulled for the device.
 
 `just deploy` runs it itself after an install, pulling the logs until the session its launch starts shows up (up to
-`DEPLOY_CHECK_WAIT`, 120 s), and exits 1 on a mismatch. **Before telling Igor or Larry which build a device is on,
+`DEPLOY_CHECK_WAIT`, 120 s; a mismatch is polled through too, since an older session can be pulled first), and exits 1
+if it still mismatches at the deadline. **Before telling Igor or Larry which build a device is on,
 run it** rather than relying on memory.
 
 ## Over the air: `just ota`
