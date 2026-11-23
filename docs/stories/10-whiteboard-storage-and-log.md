@@ -238,6 +238,36 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1188:
+
+- **Summary:** The log says what PaperKit's handwriting reflow was doing before it crashed
+- **Status:** implemented (the logging alone) in [bb831923](https://github.com/idvorkin/context-grabber/commit/bb831923); verified by host tests (`PaperProbeReflowTests`; `just native-test`) and the Mac build (`just native-build-mac`); the simulator never shows PaperKit's reflow, so the iPad's own `paper_reflow` lines are owed (rung 3)
+- **Issues:** [#1256](https://github.com/idvorkin/context-grabber/issues/1256) and [#1255](https://github.com/idvorkin/context-grabber/issues/1255), one crash (the iPad, 2026-11-22 23:21:23Z, build 8df171a9, session log grabber-20261122-151404, board c4daf842): `CALayerInvalidGeometry`, "CALayer position contains NaN" on a 347×159 word picture, thrown from `-[CALayer setFrame:]` called by PaperKit's `ReflowTextView.stepAnimation()` on a display link (symbolicated against the 27.2.1 (24B156) PaperKit); MetricKit's report is the same abort. The last lines: ten finger taps on Larry's kept group with the system's handwriting popover coming back over it, a finger drag that panned, then a touch beginning on `HandwritingReflowView` about 20 ms before the log ends. Build 8df171a9 predates the popover's put-away (story 945)
+
+#### Use Case:
+- **As someone** whose board crashed inside the system's handwriting reflow
+- **I want to** have the log say what the reflow showed, where, and what had just touched it
+- **so that** the fix goes at what put the reflow in that state instead of guessing at it
+
+#### Acceptance Criteria:
+- **Scenario:** The reflow comes, changes and goes
+- **Given:** a board on paper on the iPad
+- **When:** PaperKit's reflow of handwriting shows, moves, changes or goes
+- **Then:** the log has one line saying what it is, where it sits, how many pictures it holds and how many have a place or size that is not a number, endless or empty, with what was selected, whether the system's popover was up and the last touch
+- **And:** nothing I see changes
+
+- **Scenario:** A touch on the reflow
+- **Given:** PaperKit's reflow showing on a board
+- **When:** a touch begins on it
+- **Then:** the log has that line at once, before the touch ends
+
+- **Scenario:** Quiet otherwise
+- **Given:** a board with no reflow showing, or one that hasn't changed
+- **When:** time passes
+- **Then:** no such line is written
+
+---
+
 ### User Story 1143:
 
 - **Summary:** The log says what a moving touch began on and held, what the board changed under it, and whose ink moved
