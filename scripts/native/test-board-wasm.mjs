@@ -55,7 +55,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 3, `bw_info abi is 3: ${JSON.stringify(info)}`);
+check(info.abi === 4, `bw_info abi is 4: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -233,6 +233,61 @@ check(same(reply(x.bw_drop(300, 300, 400, 320, 300, 600, 400, 620)), { push: nul
 check(same(reply(x.bw_drop(50, 95, 150, 105, 50, 95, 150, 105)), { push: null }), 'a drop back on the line it was lifted from opens nothing');
 check(call('bw_load', 'not json') === -1 && reply(x.bw_place(10, 10, 0, 0, 820, 1000)).error === 'no board is loaded' &&
   reply(x.bw_drop(0, 0, 1, 1, 0, 0, 1, 1)).error === 'no board is loaded', 'with nothing loaded, a paste and a drop say so');
+
+// Interface 4 (spec, headers in ink, Fold all and Collapse): over the outline, each on a copy.
+// A line of two zigzag words (98..202 across, 88..112 down, its middle at 100) and a flat stroke under it (95..205,
+// 119..121): an underline under most of the line and not far past it, so the line becomes header H, the underline its
+// mark and one of its strokes.
+const zig = (id, x0) => ({ id, width: 4, points: [0, 1, 2, 3, 4].map((i) => [x0 + 10 * i, i % 2 ? 110 : 90]) });
+const inked = { strokes: [zig('a', 100), zig('b', 160), { id: 'u', width: 2, points: [[96, 120], [204, 120]] }], boxes: [], groups: {}, headers: [] };
+check(call('bw_outline_load', inked) === 3, `the inked outline ${error() ?? ''}`);
+check(same(ask('bw_ink_header', { name: 'u', id: 'H' }),
+  { after: { id: 'H', ids: ['a', 'b', 'u'], mark: ['u'] }, ink: { header: 'H', kind: 'underline', mark: ['u'], y: 100 } }),
+  `an underline makes its line a header: ${JSON.stringify(ask('bw_ink_header', { name: 'u', id: 'H' }))}`);
+check(same(ask('bw_ink_header', { name: 'a', id: 'H' }), { ink: null }), 'a word of writing makes no header');
+check(same(ask('bw_ink_header', { name: 'nobody', id: 'H' }), { ink: null }), 'no such stroke: nothing');
+check(ask('bw_ink_header', { name: 'u' }).error === 'no stroke name and header id', 'no header id says so');
+check(rowAt(100).header === undefined && same(rowAt(100).names, ['a', 'b']), `asking leaves the outline as it was (the line is no header yet): ${JSON.stringify(rowAt(100))}`);
+// Fold all: the rows-and-folds outline above with the line at 300 made header N over an indented line at 340. From
+// the lowest up: N tucks the line at 340 (338..342, 40 under its row's 302; nothing below, so nothing slides), then H
+// tucks its two lines and the rest slides up 120 as before (N's row, its fold under it, still starts at 298).
+const two = { ...outline, strokes: [...outline.strokes, { ...line('n2', 340), points: [[60, 340], [200, 340]] }], boxes: [],
+  groups: {}, headers: [{ id: 'H', ids: ['h1'] }, { id: 'N', ids: ['n'] }] };
+check(call('bw_outline_load', two) === 5, `two headers ${error() ?? ''}`);
+const allFolds = [
+  { bottom: 40, id: 'N', ids: ['n2'], lines: 1, own: ['n2'], shift: 0 },
+  { bottom: 80, id: 'H', ids: ['b1', 'b2'], lines: 2, own: ['b1', 'b2'], shift: 120 },
+];
+check(same(ask('bw_fold_plan', {}), { folds: allFolds, levels: { H: 1, N: 1 }, open: false }), `Fold all: ${JSON.stringify(ask('bw_fold_plan', {}))}`);
+check(same(ask('bw_fold_plan', { to: 1 }), { folds: allFolds, levels: { H: 1, N: 1 }, open: true }), `Collapse to 1, both at level 1: ${JSON.stringify(ask('bw_fold_plan', { to: 1 }))}`);
+check(same(ask('bw_fold_plan', { to: 2 }), { folds: allFolds, levels: { H: 1, N: 1 }, open: true }), 'Collapse to 2: shallower headers with nothing under them fold too');
+check(same(ask('bw_fold', { id: 'H' }).fold.shift, 120), 'and the outline is as it was: H still folds on its own');
+// A header inside another's section: H at 100, N indented to 60 at 140 (in H's section, so level 2), a line indented
+// further to 120 at 180 (N's), and a line back at the margin at 300 that ends both. Collapse to 1 folds only H (its
+// section the two lines under it, the rest sliding up 120 as before); Collapse to 2 folds only N and leaves H open, a
+// header with a header under it (N tucks the line at 180, 40 under its row's 142; 300 - 142 = 158, three whole lines
+// less one = 80). Fold all folds N as Collapse to 2 does, then H: its section is N's row alone now (the margin line
+// slid to 218), one line, 40 under its row, the rest sliding up 218 - 102 = 116, two lines less one = 40.
+const nested = { strokes: [line('h1', 100), { ...line('n', 140), points: [[60, 140], [200, 140]] },
+  { ...line('c', 180), points: [[120, 180], [200, 180]] }, line('e', 300)], boxes: [], groups: {},
+  headers: [{ id: 'H', ids: ['h1'] }, { id: 'N', ids: ['n'] }] };
+check(call('bw_outline_load', nested) === 4, `nested headers ${error() ?? ''}`);
+const foldN = { bottom: 40, id: 'N', ids: ['c'], lines: 1, own: ['c'], shift: 80 };
+check(same(ask('bw_fold_plan', { to: 1 }), { folds: [{ bottom: 80, id: 'H', ids: ['n', 'c'], lines: 2, own: ['n', 'c'], shift: 120 }],
+  levels: { H: 1, N: 2 }, open: true }), `Collapse to 1 folds the outer header only: ${JSON.stringify(ask('bw_fold_plan', { to: 1 }))}`);
+check(same(ask('bw_fold_plan', { to: 2 }), { folds: [foldN], levels: { H: 1, N: 2 }, open: true }),
+  `Collapse to 2 folds the inner header and leaves its parent open: ${JSON.stringify(ask('bw_fold_plan', { to: 2 }))}`);
+check(same(ask('bw_fold_plan', {}), { folds: [foldN, { bottom: 40, id: 'H', ids: ['n', 'c'], lines: 1, own: ['n'], shift: 40 }],
+  levels: { H: 1, N: 2 }, open: false }), `Fold all folds the inner header, then the outer: ${JSON.stringify(ask('bw_fold_plan', {}))}`);
+check(ask('bw_fold_plan', { to: '2' }).error && ask('bw_fold_plan', { to: 1.5 }).error && ask('bw_fold_plan', 'not json').error,
+  'a level that is no whole number, or no request, says so rather than folding all');
+// A fold left on a header whose lines show again (an Undo opened it) is no fold made: a header with nothing under it
+// does not fold, so Fold all lists nothing.
+check(call('bw_outline_load', { strokes: [line('x', 100)], boxes: [], groups: {},
+  headers: [{ id: 'X', ids: ['x'], fold: { ids: ['x'], own: ['x'], shift: 0, lines: 1, bottom: 40 } }] }) === 1, `an undone fold ${error() ?? ''}`);
+check(same(ask('bw_fold_plan', {}).folds, []), `an undone fold that does not fold again is not listed: ${JSON.stringify(ask('bw_fold_plan', {}))}`);
+check(call('bw_load', 'not json') === -1 && call('bw_outline_load', 'not json') === -1 && ask('bw_fold_plan', {}).error === 'no outline is loaded' &&
+  ask('bw_ink_header', { name: 'u', id: 'H' }).error === 'no outline is loaded', 'with no outline, both say so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

@@ -150,6 +150,27 @@ iPad's would, and a selection dropped on writing pushes it down by the iPad's ru
 - For a drop the loaded board is everything but what was dropped: the Cockpit loads that board before asking.
 - The Cockpit moves the writing; the module only answers where and how far.
 
+## The interface, version 4: headers written in ink, Fold all and Collapse
+
+Story 1512. The next step: an underline or a # the principal writes makes a header by the iPad's rule for headers
+written in ink, and Fold all and Collapse to a level fold the headers the iPad's Fold all and Collapse fold. Both are
+asked of the outline `bw_outline_load` keeps, each on a copy: the loaded outline stays as it was, and the Cockpit
+makes the board change. `bw_info` says `"abi": 4`; versions 1 to 3 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_ink_header` | `{"name", "id"}`: the stroke just drawn (already in the outline) and the name a new header takes | a reply: `{"ink": null}` when the stroke does nothing for headers, else `{"ink": {"kind", "header", ...}, "after": the header as it now is}`; `{"error"}` with no outline or no name and id |
+| `bw_fold_plan` | `{}` for Fold all, `{"to": n}` for Collapse to level n | a reply: `{"open", "levels", "folds": [{"id", "ids", "own", "shift", "lines", "bottom"}]}`; `{"error"}` with no outline, a request that is not a JSON object, or a `to` that is not a whole number |
+
+- `kind` is `underline` or `hash` (the line became header `id`; with `y`, the line's middle, and `mark`, the strokes
+  that made it), `grew` (the stroke was written on a header's line and joined it; with `names`) or `deeper` (a #
+  finished beside a # header's #s took it a level deeper; with `level`, `y` and `mark`). `after` is the header as
+  the iPad keeps it.
+- `folds` are in the order the iPad makes them, the lowest header first, each as `bw_fold` describes one, and only
+  the headers that fold now (one already folded, or one that does not fold, is not listed). `open` says every fold
+  was opened first (Collapse does that; Fold all does not). `levels` is each header's level with everything open.
+- The Cockpit makes the folds one after another by its own fold, given each fold's strokes and shift.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
