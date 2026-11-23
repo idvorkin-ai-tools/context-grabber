@@ -187,6 +187,19 @@ for its line. Both over the loaded outline; `bw_info` says `"abi": 5`; versions 
   `header`, `group`, `ink` or `paper`; `names` are what *Select* and *Delete* take.
 - A hold anywhere inside a box the Cockpit sends (a kept text or a card) is on that box, as on the iPad.
 
+## The interface, version 6: a connector's route
+
+Story 1621. A connector's shaft runs where `BoardConnectors.route` says: straight from one end's side to the other's,
+unless that crosses a box in the way; then one orthogonal elbow that crosses nothing (across then down, else down
+then across); else straight anyway. `bw_info` says `"abi": 6`; versions 1 to 5 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_route_connector` | `{"from", "to": [left, top, right, bottom], "fromSide", "toSide": "top" \| "bottom" \| "left" \| "right" \| "center", "obstacles": [box]}` | a reply: `{"points": [[x, y], ...]}`, two or three; `{"error"}` without both boxes |
+
+- No board is loaded: the Cockpit sends the two ends' boxes and the boxes of the other things that could be in the
+  way, and draws the head itself.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

@@ -55,7 +55,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 5, `bw_info abi is 5: ${JSON.stringify(info)}`);
+check(info.abi === 6, `bw_info abi is 6: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -317,6 +317,16 @@ check(same(holdAt(30, 100, true), { choices: ['fold-all', 'level-1', 'level-2', 
 check(same(holdAt(30, 200, true), { choices: ['make-room', 'paste', 'make-header'], names: [], on: 'paper' }), 'in the margin beside a line: its rows');
 check(call('bw_outline_load', 'not json') === -1 && reply(x.bw_word_at(0, 0, 10)).error === 'no outline is loaded' &&
   reply(x.bw_hold_menu(0, 0, 0, 22)).error === 'no outline is loaded', 'with no outline, both say so');
+
+// Interface 6 (spec, a connector's route): straight from a's right to b's left when nothing is in the way; with a box
+// across the straight line, one elbow, across then down: a's right (100, 20) along to above b (350, 20), then down to
+// b's top (350, 200), clear of the box and of both ends.
+const route = (body) => ask('bw_route_connector', body);
+check(same(route({ from: [0, 0, 100, 40], to: [300, 0, 400, 40], fromSide: 'right', toSide: 'left', obstacles: [] }), { points: [[100, 20], [300, 20]] }),
+  `nothing in the way: straight: ${JSON.stringify(route({ from: [0, 0, 100, 40], to: [300, 0, 400, 40], fromSide: 'right', toSide: 'left' }))}`);
+const around = { from: [0, 0, 100, 40], to: [300, 200, 400, 240], fromSide: 'right', toSide: 'left', obstacles: [[180, 100, 220, 140]] };
+check(same(route(around), { points: [[100, 20], [350, 20], [350, 200]] }), `a box in the way: one elbow round it: ${JSON.stringify(route(around))}`);
+check(route({ from: [0, 0, 1] }).error === 'no from and to boxes', 'no boxes: says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
