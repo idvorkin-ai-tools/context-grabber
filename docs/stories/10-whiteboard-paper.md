@@ -2008,4 +2008,4 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board I drew on the old canvas, on this device
 - **and Given:** the app has only paper
 - **When:** I open it
-- **Then:** its ink shows on the first page, every stroke where it was relative to the others and none scaled, the bar says *Drawn on the old canvas: look only*, and there are no tools, no Board menu and no Send, so nothing draws on it or changes its file
+- **Then:** its ink shows on the first page, every stroke where it was relative to the others and none scaled, the bar says *Drawn on the old canvas: look only*, and there are no tools, no Board menu and no Send, so nothing draws on it or changes its file; the same holds wherever it opens, another device's or an iPhone's note in the bar (story 1200)

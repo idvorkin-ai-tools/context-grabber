@@ -194,8 +194,9 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-ghosts")
         }
       }
-      // An old-canvas board's ink sits where the column put it, not where it's saved: nothing to frame for Larry (story 658).
-      if !model.oldCanvas {
+      // Every board but an old-canvas one, wherever it opens: that one's ink sits where the column put it, not where it's
+      // saved, so there's nothing to frame for Larry (stories 658, 1200).
+      if model.sendable {
         ToolbarItem(placement: .topBarTrailing) {
           named(
             "Send", does: "Send the board to Larry", action: { model.sendToLarry() },

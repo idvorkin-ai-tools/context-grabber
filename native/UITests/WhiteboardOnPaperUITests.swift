@@ -192,11 +192,44 @@ final class WhiteboardOnPaperUITests: XCTestCase {
       XCTAssertTrue(copyError(app).appears(within: 10), "the \(time) open says so" + app.debugDescription)
       let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'look only'")).firstMatch
       XCTAssertTrue(note.appears(within: 5), "and is look only" + app.debugDescription)
+      // Story 1200: Send is there, dimmed: nothing was read to send.
+      let send = app.buttons["whiteboard-send"]
+      XCTAssertTrue(send.exists, "Send stays on a board that couldn't be read" + app.debugDescription)
+      XCTAssertFalse(send.isEnabled, "dimmed, with nothing read to send")
       keep(app, "an unreadable board, the \(time) open")
       // No stroke: a finger drag across a look-only board is the system's swipe back, and that nothing is saved over
       // the file is the host's to show.
       app.navigationBars.buttons.element(boundBy: 0).tap()
       XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 10), app.debugDescription)
+    }
+  }
+
+  /// Story 1200 (bead context-grabber-xg3): another device's board says whose it is and has Send; the same board drawn
+  /// on the old canvas says the same and has none, as no board from the old canvas has.
+  func testEveryLookOnlyBoardButTheOldCanvassHasSend() {
+    let tag = String(UUID().uuidString.prefix(6))
+    for old in [false, true] {
+      let name = (old ? "Old " : "Studio ") + tag
+      var environment = [
+        "GRABBER_BOARD_FIXTURE": "board-xg3-\(old ? "old" : "paper")-\(tag)", "GRABBER_BOARD_FIXTURE_FROM": name,
+      ]
+      if old { environment["GRABBER_BOARD_FIXTURE_OLD_INK"] = "20" }
+      let app = launch(environment)
+      let card = row(app, "Drawn on \(name)")
+      XCTAssertTrue(card.appears(within: 20), app.debugDescription)
+      card.tap()
+      let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Drawn on \(name): look only"))
+        .firstMatch
+      XCTAssertTrue(note.appears(within: 10), "the bar says whose it is" + app.debugDescription)
+      keep(app, old ? "another device's old-canvas board: no Send" : "another device's board: Send")
+      let send = app.buttons["whiteboard-send"]
+      if old {
+        sleep(2)
+        XCTAssertFalse(send.exists, "no Send on a board from the old canvas" + app.debugDescription)
+      } else {
+        XCTAssertTrue(send.appears(within: 10), "Send on another device's board" + app.debugDescription)
+      }
+      app.terminate()
     }
   }
 

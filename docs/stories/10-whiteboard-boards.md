@@ -953,7 +953,27 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** an iPhone whose list holds a board it drew earlier and a board drawn on the iPad
 - **and Given:** the list has no *+ New board*
 - **When:** I open either board
-- **Then:** it opens to pan and pinch with no tool picker, no Board menu and no ghosts, *Send to Larry* still there to talk about it, and the bar says *Look only on iPhone: draw on the iPad*
+- **Then:** it opens to pan and pinch with no tool picker, no Board menu and no ghosts, *Send to Larry* still there to talk about it (not on a board from the old canvas: story 1200), and the bar says *Look only on iPhone: draw on the iPad*
+
+---
+
+### User Story 1200:
+
+- **Summary:** Every look-only board says why, and all but the old canvas's can be sent
+- **Status:** STATUS_PENDING
+- **Issues:** bead context-grabber-xg3 (stories 746 and 658 disagreed on whether a look-only board has Send)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Which look-only boards can be sent*
+
+#### Use Case:
+- **As someone** opening a board I can't draw on here
+- **I want to** be told why, and still send it to Larry when he can see it as it is
+- **so that** I can talk about any board, and never send one whose ink isn't where it is saved
+
+#### Acceptance Criteria:
+- **Scenario:** Each kind of look-only board
+- **Given:** on the iPad, a board drawn on another iPad, the same kind drawn there on the old canvas, a board of this iPad's from the old canvas, and a board that could not be read; and on an iPhone, any board
+- **When:** I open each
+- **Then:** the bar says *Drawn on <that iPad>: look only* with Send to Larry there; *Drawn on <that iPad>: look only* with no Send; *Drawn on the old canvas: look only* with no Send; *Couldn't be read: look only* with Send dimmed; and on the iPhone *Look only on iPhone: draw on the iPad* with Send there (a board from the old canvas, there too, has none)
 
 ---
 

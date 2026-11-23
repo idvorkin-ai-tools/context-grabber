@@ -524,6 +524,27 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(BoardIndex.lookOnlyNote(theirsOld, on: "ipad"), "Drawn on iPhone: look only")
   }
 
+  /// Story 1200: every look-only board says why, and all but the old canvas's have Send, whichever note shows.
+  func testEveryLookOnlyBoardButTheOldCanvassCanBeSent() {
+    var index = BoardIndex()
+    let mine = index.add(id: "mine", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
+    let old = index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
+    let theirs = index.add(id: "theirs", at: aDate, device: "ipad2", deviceName: "Studio iPad", onPages: true)
+    let theirsOld = index.add(id: "theirs-old", at: aDate, device: "ipad2", deviceName: "Studio iPad")
+    let cases: [(BoardEntry, String, Bool, String?, Bool)] = [
+      (mine, "ipad", false, nil, true),
+      (theirs, "ipad", false, "Drawn on Studio iPad: look only", true),
+      (theirsOld, "ipad", false, "Drawn on Studio iPad: look only", false),
+      (old, "ipad", false, "Drawn on the old canvas: look only", false),
+      (theirs, "iphone", true, "Look only on iPhone: draw on the iPad", true),
+      (old, "iphone", true, "Look only on iPhone: draw on the iPad", false),
+    ]
+    for (board, device, onPhone, note, sendable) in cases {
+      XCTAssertEqual(BoardIndex.lookOnlyNote(board, on: device, onPhone: onPhone), note, board.id)
+      XCTAssertEqual(BoardIndex.sendable(board), sendable, "\(board.id) on \(device)")
+    }
+  }
+
   /// Story 746: on a phone every board is look-only, its own on paper too, and the bar says to draw on the iPad.
   func testNothingIsDrawnOnAPhone() {
     var index = BoardIndex()
