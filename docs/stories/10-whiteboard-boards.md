@@ -1499,7 +1499,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1206:
 
 - **Summary:** *Open in Chat* on a board slides its thread in over the board, and *Back* brings back the board as he left it
-- **Status:** in progress on branch `native/jump-direct-dbku`
+- **Status:** implemented in [b7a96ee3](https://github.com/idvorkin/context-grabber/commit/b7a96ee3) (its UI test reaching Open in Chat on the iPad: [f891eb79](https://github.com/idvorkin/context-grabber/commit/f891eb79)); verified by host tests and lint (`just native-test`, `BoardChatJumpTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked, the lock probe overridden on Igor's word: `ChatImageUITests` 9 of 9, `testOpenInChatSlidesTheThreadInAndBoardGoesBack` among them); not yet seen on the iPad; no iPhone runs (whiteboard work, Igor 2026-11-22)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*; [The board's conversation](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md)
 - **Issues:** bead context-grabber-dbku (Igor, 2026-11-22: "when I click Jump to board or Jump to chat, it seems to go through a main list. I want it deeply integrated to the board")
 
@@ -1529,7 +1529,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1207:
 
 - **Summary:** A jump back to where I came from goes back, rather than opening a second copy
-- **Status:** in progress on branch `native/jump-direct-dbku`
+- **Status:** implemented in [b7a96ee3](https://github.com/idvorkin/context-grabber/commit/b7a96ee3) (its UI test reaching Open in Chat on the iPad: [f891eb79](https://github.com/idvorkin/context-grabber/commit/f891eb79)); verified by host tests and lint (`just native-test`, `BoardChatJumpTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked, the lock probe overridden on Igor's word: `ChatImageUITests` 9 of 9, `testOpenInChatOnABoardFromItsThreadGoesBack` and `testAPictureFromABoardJumpsToIt` among them); not yet seen on the iPad; no iPhone runs (whiteboard work, Igor 2026-11-22)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
 - **Issues:** bead context-grabber-dbku
 
@@ -1554,7 +1554,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1208:
 
 - **Summary:** A board already open elsewhere is brought forward, and every hop is in the session log
-- **Status:** in progress on branch `native/jump-direct-dbku`
+- **Status:** implemented in [b7a96ee3](https://github.com/idvorkin/context-grabber/commit/b7a96ee3); verified by host tests (`just native-test`, `BoardChatJumpTests` for the hop's session-log event) and the iPad simulator's `ChatImageUITests` (9 of 9, 2026-11-22); not yet seen on the iPad
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
 - **Issues:** bead context-grabber-dbku
 
