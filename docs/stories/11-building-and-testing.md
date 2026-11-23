@@ -1579,6 +1579,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1622:
+
+- **Summary:** The web board asks the app's own rules what Larry's batch of board changes does
+- **Status:** implemented on branch `feat/board-wasm-ops-plan`; verified by `just wasm-test` (hand-worked batch: a refusal, the names used, a whole-line make-room, a group moved whole, a missing name, a text on clear paper) and the Cockpit's comparison (35 batches against its old JavaScript port: 29 the same, 6 differing by this app's rules, each named), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 7
+- **Issues:** Cockpit bead `cockpit-ang` (ops lane, slice 2)
+
+#### Use Case:
+- **As Igor,** letting Larry change my Cockpit web ink board as he changes the iPad's
+- **I want to** have the web board read his batch and work out each move, erase, group and text with the app's own rules
+- **so that** his changes land the same way on the web as on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's batch through the module
+- **Given:** the module built by `just wasm`
+- **When:** `just wasm-test` sends a batch with an unknown op, then a make-room, a move of a grouped stroke with a missing name and a text, on a small board
+- **Then:** the first is refused as `unknown_op`; the make-room opens whole lines; the group moves whole, the missing name is listed and the text stays where he put it
+
+---
+
 ### User Story 1621:
 
 - **Summary:** The web board asks the app's own rules where a connector's shaft runs

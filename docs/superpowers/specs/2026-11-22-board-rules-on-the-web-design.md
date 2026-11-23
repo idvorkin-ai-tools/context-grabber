@@ -200,6 +200,26 @@ then across); else straight anyway. `bw_info` says `"abi": 6`; versions 1 to 5 a
 - No board is loaded: the Cockpit sends the two ends' boxes and the boxes of the other things that could be in the
   way, and draws the head itself.
 
+## The interface, version 7: Larry's ops
+
+Story 1622. The web board reads Larry's batch and works out what it does with the app's own `BoardOps.batch` and
+`BoardOps.plan`, then puts the plan on its own board. `bw_info` says `"abi": 7`; versions 1 to 6 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_ops_plan` | `{"batch": the message's ops, "key": its id, "board"?: {"strokes", "boxes", "metas": {name: notes}, "folds": {name: "h:<header>"}, "ghosts": [text], "measured": {text id: [width, height]}, "pages"}}` | a reply: `{"batch": {"refusal", "label", "board", "base_rev", "ops", "names_used"}, "plan"?}`; `{"error"}` when it can't be read |
+
+- Without a board it only reads the batch: its refusal as the iPad names it, and the names it uses (what a batch from
+  an older look conflicts on).
+- The board is sent with each ask, as `bw_outline_load` reads strokes and boxes; a box's name is the one Larry knows it
+  by. Nothing is kept between asks.
+- The plan names what it touches, never a canvas place: `moves` {name: [dx, dy]}, `erase`, `hidden` {name: bool},
+  `added` (his strokes where the batch leaves them), `metas`, `forget`, `select`, `texts` and `dismissed` (his ghosts),
+  `inked`, `missing_ids`, `rooms`, `moved`, `pages_after`, `connected`, `rerouted`, `loosened`.
+- `measured` is the box each of his texts takes as the Cockpit draws it: text measuring is compiled out on WASI, so
+  where his text lands and the room it opens are worked from the host's sizes (`BoardOps.Text.measured`; the iPad
+  never sets it).
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

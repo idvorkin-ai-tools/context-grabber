@@ -35,8 +35,10 @@ enum WebOps {
   }
 
   static func text(_ t: BoardOps.Text) -> [String: Any] {
-    ["id": t.id, "x": Double(t.x), "y": Double(t.y), "text": t.text, "font": t.font.rawValue, "size": Double(t.size),
-     "color": hex(t.color)]
+    [
+      "id": t.id, "x": Double(t.x), "y": Double(t.y), "text": t.text, "font": t.font.rawValue, "size": Double(t.size),
+      "color": hex(t.color),
+    ]
   }
 
   /// The batch as read: its refusal, label, base revision and the names its ops use (what an older look conflicts on).
@@ -50,7 +52,9 @@ enum WebOps {
 
   /// `{"batch": the message's ops JSON, "key", "board"?}` → `{"batch": batchWire, "plan"?}`. `board`, when given, is
   /// `{"strokes": [ink], "boxes": [kept texts and cards], "metas": {name: notes}, "folds": {name: "h:<header>"},
-  /// "ghosts": [text], "pages"}`: ink and boxes as `bw_outline_load` reads them, a box's name the one Larry knows it by.
+  /// "ghosts": [text], "measured": {text id: [width, height]}, "pages"}`: ink and boxes as `bw_outline_load` reads them,
+  /// a box's name the one Larry knows it by; `measured`, the box each of his texts (ghosts and `add_text`s) takes as
+  /// the Cockpit draws it, since text measuring is compiled out on WASI.
   /// The plan names what it touches; nothing is placed by canvas index.
   static func plan(_ json: Any?) throws -> [String: Any] {
     guard let json = json as? [String: Any] else { throw WebOutlineUnreadable(description: "ops ask for an object") }
@@ -66,28 +70,43 @@ enum WebOps {
     for (name, raw) in board["metas"] as? [String: Any] ?? [:] {
       if let meta = BoardMeta(raw) { metas.set(meta, for: name) }
     }
-    let ghosts = (board["ghosts"] as? [Any] ?? []).compactMap(ghost)
+    let measured = (board["measured"] as? [String: Any] ?? [:]).compactMapValues { any -> CGSize? in
+      guard let wh = any as? [Any], wh.count == 2, let w = number(wh[0]), let h = number(wh[1]) else { return nil }
+      return CGSize(width: w, height: h)
+    }
+    let ghosts = (board["ghosts"] as? [Any] ?? []).compactMap(ghost).map { g -> BoardOps.Text in
+      var g = g
+      g.measured = measured[g.id]
+      return g
+    }
+    let ops = batch.ops.map { op -> BoardOps.Op in
+      guard case .addText(var text) = op else { return op }
+      text.measured = measured[text.id]
+      return .addText(text)
+    }
     let plan = BoardOps.plan(
-      batch.ops, strokes: strokes, metas: metas, folds: board["folds"] as? [String: String] ?? [:], ghosts: ghosts,
+      ops, strokes: strokes, metas: metas, folds: board["folds"] as? [String: String] ?? [:], ghosts: ghosts,
       pages: (board["pages"] as? NSNumber)?.intValue ?? 1)
     let name = { (i: Int) in strokes[i].ids[0] }
-    out["plan"] = [
-      "moves": Dictionary(
-        plan.offsets.map { (name($0.key), [Double($0.value.dx), Double($0.value.dy)]) }, uniquingKeysWith: { a, _ in a }),
-      "erase": plan.erase.sorted().map(name),
-      "hidden": Dictionary(plan.hidden.map { (name($0.key), $0.value) }, uniquingKeysWith: { a, _ in a }),
-      "added": plan.added.map { s -> [String: Any] in
-        [
-          "id": s.id, "points": s.points.map { [Double($0.x), Double($0.y)] }, "width": Double(s.width),
-          "color": hex(s.color), "meta": s.meta?.object ?? NSNull(), "hidden": s.hidden,
-        ]
-      },
-      "metas": plan.metas.mapValues(\.object), "forget": plan.forgetMetas.sorted(), "select": plan.select,
-      "texts": plan.texts.map(text), "dismissed": plan.dismissed, "inked": plan.inked.map(text),
-      "missing_ids": plan.missingIDs, "rooms": plan.rooms.map(\.wire), "moved": plan.moved,
-      "pages_after": plan.pagesAfter, "connected": plan.connected, "rerouted": plan.rerouted,
-      "loosened": plan.loosened,
-    ] as [String: Any]
+    out["plan"] =
+      [
+        "moves": Dictionary(
+          plan.offsets.map { (name($0.key), [Double($0.value.dx), Double($0.value.dy)]) },
+          uniquingKeysWith: { a, _ in a }),
+        "erase": plan.erase.sorted().map(name),
+        "hidden": Dictionary(plan.hidden.map { (name($0.key), $0.value) }, uniquingKeysWith: { a, _ in a }),
+        "added": plan.added.map { s -> [String: Any] in
+          [
+            "id": s.id, "points": s.points.map { [Double($0.x), Double($0.y)] }, "width": Double(s.width),
+            "color": hex(s.color), "meta": s.meta?.object ?? NSNull(), "hidden": s.hidden,
+          ]
+        },
+        "metas": plan.metas.mapValues(\.object), "forget": plan.forgetMetas.sorted(), "select": plan.select,
+        "texts": plan.texts.map(text), "dismissed": plan.dismissed, "inked": plan.inked.map(text),
+        "missing_ids": plan.missingIDs, "rooms": plan.rooms.map(\.wire), "moved": plan.moved,
+        "pages_after": plan.pagesAfter, "connected": plan.connected, "rerouted": plan.rerouted,
+        "loosened": plan.loosened,
+      ] as [String: Any]
     return out
   }
 }

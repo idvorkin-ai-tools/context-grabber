@@ -55,7 +55,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 6, `bw_info abi is 6: ${JSON.stringify(info)}`);
+check(info.abi === 7, `bw_info abi is 7: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -327,6 +327,27 @@ check(same(route({ from: [0, 0, 100, 40], to: [300, 0, 400, 40], fromSide: 'righ
 const around = { from: [0, 0, 100, 40], to: [300, 200, 400, 240], fromSide: 'right', toSide: 'left', obstacles: [[180, 100, 220, 140]] };
 check(same(route(around), { points: [[100, 20], [350, 20], [350, 200]] }), `a box in the way: one elbow round it: ${JSON.stringify(route(around))}`);
 check(route({ from: [0, 0, 1] }).error === 'no from and to boxes', 'no boxes: says so');
+
+// Interface 7 (spec, Larry's ops): the batch read as the iPad reads it, and planned on a board sent with it. A make-room
+// at 200 of 50 opens whole lines (80) at the clear line under a (98.5..101.5), so b and the box move 80; a stroke of a
+// group moves its group; a name the board lacks is missing; his text on clear paper stays where he put it.
+const opsBoard = {
+  strokes: [{ id: 'a', points: [[100, 100], [200, 100]], width: 3 }, { id: 'b', points: [[100, 300], [200, 300]], width: 3 },
+    { id: 'c', points: [[100, 340], [200, 340]], width: 3 }],
+  boxes: [{ id: 'x', box: [0, 500, 50, 540] }], metas: { b: { group: 'g' }, c: { group: 'g' } }, ghosts: [],
+  measured: { t1: [60, 40] },
+};
+const ops = (list, board) => ask('bw_ops_plan', { batch: { board: 'ink', base_rev: 3, label: 'l', list }, key: 'm1', ...(board ? { board } : {}) });
+const refused = ops([{ op: 'translate', ids: ['b'], dy: 10 }, { op: 'nope' }]);
+check(same(refused, { batch: { base_rev: 3, board: 'ink', label: 'l', names_used: [], ops: 0, refusal: 'unknown_op' } }), `a bad op refuses the batch: ${JSON.stringify(refused)}`);
+const used = ops([{ op: 'delete', ids: ['a'] }, { op: 'select', ids: ['g'] }]).batch.names_used;
+check(same(used, ['a', 'g']), `the names a batch uses: ${JSON.stringify(used)}`);
+const room = ops([{ op: 'translate', below_y: 200, dy: 50 }], opsBoard).plan;
+check(same(room.moves, { b: [0, 80], c: [0, 80], x: [0, 80] }) && room.rooms[0].dy === 80, `a make-room of whole lines: ${JSON.stringify(room)}`);
+const moved = ops([{ op: 'translate', ids: ['b', 'gone'], dx: 5, dy: 10 }, { op: 'add_text', id: 't1', x: 300, y: 700, text: 'hi' }], opsBoard).plan;
+check(same(moved.moves, { b: [5, 10], c: [5, 10] }) && same(moved.missing_ids, ['gone']) && moved.texts.length === 1 &&
+  moved.texts[0].y === 700, `a group moves whole, a missing name, his text on clear paper: ${JSON.stringify(moved)}`);
+check(ask('bw_ops_plan', 'not json').error !== undefined, 'unreadable: says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

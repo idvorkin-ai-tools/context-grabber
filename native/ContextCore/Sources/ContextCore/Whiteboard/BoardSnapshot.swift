@@ -248,9 +248,10 @@ extension BoardOps.Text {
     return out
   }
 
-  /// The box its letters take on the board: their outlines' where the system has the font, else an estimate from its
-  /// size (a host without fonts, `just test-linux`).
+  /// The box its letters take on the board: as the host that draws it measured it when it says, else their outlines'
+  /// where the system has the font, else an estimate from its size (a host without fonts, `just test-linux`).
   public var box: CGRect {
+    if let measured { return CGRect(origin: CGPoint(x: x, y: y), size: measured) }
     let lines = WhiteboardTurn.lines(shape, frame: .zero, scale: 1)
     let drawn = WhiteboardMarkChoice.bounds(lines)
     if !drawn.isNull { return CGRect(x: x, y: y, width: max(drawn.maxX - x, 1), height: max(drawn.maxY - y, size)) }
