@@ -86,7 +86,7 @@ is dropped, even on ink": a selection dropped onto writing pushes the writing do
 
 ### Built
 
-Every rule above is built; its stories carry the status.
+Every decided rule above is built; its stories carry the status. What principle 5 leaves open is below.
 
 | Built | Stories |
 |---|---|
