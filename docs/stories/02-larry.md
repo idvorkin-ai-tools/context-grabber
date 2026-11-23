@@ -3238,7 +3238,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1134:
 
 - **Summary:** Every message I send Larry says which build of the app sent it
-- **Status:** native app: implemented on branch `native/build-on-posts-esw3`; verified on the host (`just native-test`: `AppBuildTests`, the stamp read from a stamped Info.plist and not from the test runner's, a new chat and a reply, a board picture beside its own build line, every decision verb, a board's events, and an unstamped build sending neither) and the Mac build (`just native-build-mac`); a wire change with nothing on screen, so no simulator run; the real build number and sha on a live post are the phone's and the iPad's to show once deployed, and Larry seeing them waits on the Cockpit keeping them with the message
+- **Status:** native app: implemented in 42ac560a; verified on the host (`just native-test`: `AppBuildTests`, the stamp read from a stamped Info.plist and not from the test runner's, a new chat and a reply, a board picture beside its own build line, every decision verb, a board's events, and an unstamped build sending neither) and the Mac build (`just native-build-mac`); a wire change with nothing on screen, so no simulator run; the real build number and sha on a live post are the phone's and the iPad's to show once deployed, and Larry seeing them waits on the Cockpit keeping them with the message
 - **Issues:** bead context-grabber-esw3 (Larry, 2026-11-22, Cockpit thread igor2-88g.1620: Igor asked *"confirm I'm running it"* and Larry couldn't tell; only board posts carried a build)
 - **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md), *Every post says which build sent it*
 
@@ -3251,9 +3251,4 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A message goes to Larry
 - **Given:** a build stamped with its build number and short commit
 - **When:** I send a chat message (a new chat or a reply), reply from the Inbox, share something from another app, send a board's picture, or answer, close, abandon or snooze a decision
-- **Then:** what reaches the Cockpit carries the build number and the short commit, under the same two names on every kind of message; a board picture also keeps the build line it already sent
-
-- **Scenario:** A build with no stamp
-- **Given:** a build that knows neither its build number nor its commit
-- **When:** it sends a message
-- **Then:** the message goes as before, with neither name rather than an empty one
+- **Then:** what reaches the Cockpit carries the build number and the short commit, under the same two names on every kind of message; a board picture also keeps the build line it already sent; and a build that knows neither fact sends the message as before, with neither name rather than an empty one

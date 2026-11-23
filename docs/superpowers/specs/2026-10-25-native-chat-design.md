@@ -673,6 +673,7 @@ asked him to confirm the build and he couldn't tell; only board pictures said).
 - It changes nothing Igor sees on the phone. Whether Larry shows it is the Cockpit's to decide: it has to keep the two
   facts with the message.
 
+## Explaining itself
 
 - `inbox` added says whether a share starts a chat or names its thread, and what the card's list held when Igor sent
   it (how many chats, still reading, or why it failed): the card itself cannot write to the session log.
