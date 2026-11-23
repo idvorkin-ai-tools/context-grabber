@@ -31,8 +31,10 @@ it before every push. In order, it:
    `#if targetEnvironment(macCatalyst)` isn't compiled (the Mac rung does);
 4. runs the host rung's portable script checks: the ladder's map (`test-ladder-map.sh`), the breath clips and the UI
    timing digest, and that every `ContextCore` file with URL loading imports `FoundationNetworking` on Linux
-   (`test-linux-imports.sh`, #943: two files forgot it and nothing on the Mac could tell, as this rung runs only on a
-   Linux box, so the Mac's rung 1 runs that check too), and the story IDs (`test-story-ids.sh`). The asset catalog check needs `actool` and the signing guard
+   and that every import of an Apple-only framework (CoreGraphics, CoreText, ImageIO, UIKit, ...) in the package's
+   sources and tests sits behind `#if canImport` (`test-linux-imports.sh`, #943 and bead `context-grabber-cmk`: files
+   forgot each and nothing on the Mac could tell, as this rung runs only on a Linux box, so the Mac's rung 1 runs that
+   check too), and the story IDs (`test-story-ids.sh`). The asset catalog check needs `actool` and the signing guard
    BugKit's script, so they stay the Mac's.
 
 It prints each step's count or result. It needs a Swift 6 Linux toolchain and SQLite (`libsqlite3-dev`, found through

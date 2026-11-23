@@ -257,6 +257,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** the agent runs the Linux rung
 - **Then:** the folder is made and used, and when it cannot be made the rung stops at once, saying which folder and that it could not create it
 
+- **Scenario:** A test or source imports a framework Linux does not have
+- **Given:** a file in the package (the app's core, the board's, the chat wire's, or one of their tests) that imports CoreGraphics, CoreText or another Apple-only framework outside an `#if canImport` guard
+- **When:** the host rung runs on the Mac (or the Linux rung runs)
+- **Then:** it fails, naming the file, the line and the framework, before the Linux box's build would have broken on it
+
 ---
 
 ### User Story 688:
