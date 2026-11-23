@@ -11,14 +11,18 @@ struct ChatDecisionSlot: View {
   let key: String
   let voice: ChatVoiceModel
   let logger: BugLogger
+  /// Story 1135: the card's cap under its heading, from the thread's height.
+  var bodyCap: CGFloat?
 
   var body: some View {
     if let ask = decisions.ask(on: key) {
-      ChatDecisionFoldable(decisions: decisions, ask: ask, place: "thread", voice: voice, logger: logger)
-        .id(ask.id)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color(.systemGroupedBackground))
+      ChatDecisionFoldable(
+        decisions: decisions, ask: ask, place: "thread", voice: voice, logger: logger, bodyCap: bodyCap
+      )
+      .id(ask.id)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 6)
+      .background(Color(.systemGroupedBackground))
     } else if let line = decisions.line(on: key) {
       ChatDecisionLine(text: line)
         .padding(.horizontal, 12)
@@ -56,6 +60,8 @@ struct ChatDecisionCard: View {
   /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
   let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
   let fold: () -> Void
+  /// Story 1135: how tall the card under its heading may grow before it scrolls; nil draws it whole.
+  let bodyCap: CGFloat?
   @Binding private var draft: Draft
   @State private var closing = false
   @State private var closeReason = ""
@@ -64,7 +70,7 @@ struct ChatDecisionCard: View {
 
   init(
     decisions: ChatDecisionsModel, ask: ChatAsk, place: String, voice: ChatVoiceModel?, logger: @escaping BugLogger,
-    ownAnswer: (() -> Void)? = nil, draft: Binding<Draft>, fold: @escaping () -> Void,
+    ownAnswer: (() -> Void)? = nil, draft: Binding<Draft>, fold: @escaping () -> Void, bodyCap: CGFloat? = nil,
     done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
   ) {
     self.decisions = decisions
@@ -75,6 +81,7 @@ struct ChatDecisionCard: View {
     self.ownAnswer = ownAnswer
     self._draft = draft
     self.fold = fold
+    self.bodyCap = bodyCap
     self.done = done
   }
 
@@ -95,60 +102,65 @@ struct ChatDecisionCard: View {
         menu
           .disabled(state.sending)
       }
-      if !ask.context.isEmpty {
-        Text(ask.context)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .lineLimit(draft.contextOpen ? nil : 3)
-          .onTapGesture { draft.contextOpen.toggle() }
-          .accessibilityIdentifier("decision-context")
-      }
-      ForEach(ask.options) { option in
-        Button {
-          switch ChatDecisions.tap(option) {
-          case .answer(let verb): go(verb)
-          case .openOther: openOther()
+      // Story 1135: at the top of its thread, everything under the heading scrolls inside a bounded height.
+      ChatDecisionCappedBody(cap: bodyCap) {
+        VStack(alignment: .leading, spacing: 8) {
+          if !ask.context.isEmpty {
+            Text(ask.context)
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+              .lineLimit(draft.contextOpen ? nil : 3)
+              .onTapGesture { draft.contextOpen.toggle() }
+              .accessibilityIdentifier("decision-context")
           }
-        } label: {
-          HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 2) {
-              Text(option.label).font(.body.weight(.semibold))
-              if !option.detail.isEmpty {
-                Text(option.detail).font(.caption).foregroundStyle(.secondary)
+          ForEach(ask.options) { option in
+            Button {
+              switch ChatDecisions.tap(option) {
+              case .answer(let verb): go(verb)
+              case .openOther: openOther()
               }
+            } label: {
+              HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                  Text(option.label).font(.body.weight(.semibold))
+                  if !option.detail.isEmpty {
+                    Text(option.detail).font(.caption).foregroundStyle(.secondary)
+                  }
+                }
+                Spacer(minLength: 8)
+                if let mark = ask.marked, mark.key == option.key {
+                  Text(mark.word).font(.caption2.weight(.semibold)).padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(Color.accentColor.opacity(0.15), in: Capsule())
+                }
+              }
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .multilineTextAlignment(.leading)
             }
-            Spacer(minLength: 8)
-            if let mark = ask.marked, mark.key == option.key {
-              Text(mark.word).font(.caption2.weight(.semibold)).padding(.horizontal, 6).padding(.vertical, 2)
-                .background(Color.accentColor.opacity(0.15), in: Capsule())
+            .buttonStyle(.bordered)
+            .disabled(state.sending)
+            .accessibilityIdentifier("decision-option-\(option.key)")
+          }
+          if let voice {
+            if ChatDecisions.addsOther(ask) {
+              ChatDecisionOtherButton(action: openOther).disabled(state.sending)
+            }
+            if draft.otherOpen {
+              ChatDecisionOtherField(
+                voice: voice, ask: ask, words: $draft.otherWords, sending: state.sending, logger: logger
+              ) { go(.ownWords(draft.otherWords)) }
             }
           }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .multilineTextAlignment(.leading)
+          if let expiry = ChatDecisions.expiry(ask.expiresAt, now: Date()) {
+            Text(expiry.text).font(.caption).foregroundStyle(expiry.expired ? Color.orange : .secondary)
+              .accessibilityIdentifier("decision-expiry")
+          }
+          if let note = state.note {
+            Text(note).font(.footnote).foregroundStyle(.orange).accessibilityIdentifier("decision-note")
+          }
+          if let problem = state.problem {
+            BugProblemView(problem: problem, logger: logger)
+          }
         }
-        .buttonStyle(.bordered)
-        .disabled(state.sending)
-        .accessibilityIdentifier("decision-option-\(option.key)")
-      }
-      if let voice {
-        if ChatDecisions.addsOther(ask) {
-          ChatDecisionOtherButton(action: openOther).disabled(state.sending)
-        }
-        if draft.otherOpen {
-          ChatDecisionOtherField(
-            voice: voice, ask: ask, words: $draft.otherWords, sending: state.sending, logger: logger
-          ) { go(.ownWords(draft.otherWords)) }
-        }
-      }
-      if let expiry = ChatDecisions.expiry(ask.expiresAt, now: Date()) {
-        Text(expiry.text).font(.caption).foregroundStyle(expiry.expired ? Color.orange : .secondary)
-          .accessibilityIdentifier("decision-expiry")
-      }
-      if let note = state.note {
-        Text(note).font(.footnote).foregroundStyle(.orange).accessibilityIdentifier("decision-note")
-      }
-      if let problem = state.problem {
-        BugProblemView(problem: problem, logger: logger)
       }
     }
     .padding(12)

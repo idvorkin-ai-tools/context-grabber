@@ -676,6 +676,8 @@ struct ChatThreadView: View {
   @State private var boardProblem: BugProblem?
   /// Bead context-grabber-dbku: the board slid in over this thread by *Board* or a picture's *Jump to board*.
   @State private var boardJump: BoardJump?
+  /// Story 1135: the thread's height, which bounds its decision card.
+  @State private var threadHeight: CGFloat = 0
   @Environment(\.dismiss) private var dismiss
   /// Story 1207: the board this thread was slid in over, so *Board* on it goes back rather than opening a second copy.
   private var cameFromBoard: String?
@@ -768,7 +770,9 @@ struct ChatThreadView: View {
       VStack(spacing: 0) {
         if let key {
           // #878: the ask whose bead this thread is, pinned above the links.
-          ChatDecisionSlot(decisions: chat.decisions, key: key, voice: voice, logger: logger)
+          ChatDecisionSlot(
+            decisions: chat.decisions, key: key, voice: voice, logger: logger,
+            bodyCap: ChatDecisions.threadCardBodyCap(threadHeight: threadHeight).map { CGFloat($0) })
           ThreadLinksStrip(chat: chat, thread: key, links: chat.withStates(chat.rowLinks[key] ?? []))
         }
         if let problem = chat.archiveProblem {
@@ -803,6 +807,11 @@ struct ChatThreadView: View {
       ) {
         newThread.send(at: target)
       }
+    }
+    .onGeometryChange(for: CGFloat.self) {
+      $0.size.height
+    } action: {
+      threadHeight = $0
     }
     .navigationTitle(title)
     .navigationBarTitleDisplayMode(.inline)

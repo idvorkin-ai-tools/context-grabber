@@ -49,6 +49,7 @@ Decision cards (#878): POST /fake/asks {"open": true} adds (and resets, with wha
 Cockpit's normalize_ask with its `thread` (cockpit-7fr): igor2-88g.881 filed from chat igor2-88g.878 (thread names its
 parent's chat), igor2-88g.879 on no chat (thread null), and igor2-88g.880 on a chat of its own bead, whose answer is always
 refused (502, as bd failing); with "other": true too, igor2-88g.879 also has Larry's own option keyed "other", labelled "Something else" (stories 1129, 1130);
+with "long": true too, igor2-88g.881's context runs to 80 lines, longer than any screen (story 1135);
 {"open": false} removes them and their chats, so no other test sees an extra row. POST /act
 answers one (409 already closed, or changed with the fresh ask when base_updated_at is stale), POST /close closes or
 abandons, POST /snooze snoozes; GET /fake/answers lists every one of those posted. With "post_to_chat": true, a decided
@@ -246,7 +247,7 @@ def ask(aid, title, options, default="", expires_in=None, thread=None):
             "seconds_left": expires_in, "expired": bool(expires_in is not None and expires_in < 0), "thread": thread}
 
 
-def open_asks(on, other=False, board=None):
+def open_asks(on, other=False, board=None, long=False):
     ASKS.clear()
     ANSWERED.clear()
     del ANSWERS[:]
@@ -262,6 +263,8 @@ def open_asks(on, other=False, board=None):
         "Larry asks about lunch.\nTacos are near the office.\nRamen is a short walk.\n"
         "Friday works for both.\nWe can meet at noon.\nEither place takes reservations."
     )
+    if long:
+        ASKS["igor2-88g.881"]["context"] = "\n".join(f"Line {n} of what Larry found about lunch." for n in range(1, 81))
     ASKS["igor2-88g.879"] = ask("igor2-88g.879", "Renew the gym for a year?",
                                 [("yes", "Renew", ""), ("no", "Let it lapse", "")]
                                 + ([("other", "Something else", "Type your own answer")] if other else []))
@@ -791,7 +794,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, responder_answer(data["board"]))
         if path == "/fake/asks":
             with LOCK:
-                open_asks(bool(data.get("open")), other=bool(data.get("other")), board=data.get("board"))
+                open_asks(bool(data.get("open")), other=bool(data.get("other")), board=data.get("board"),
+                          long=bool(data.get("long")))
             return self._json(200, {"ok": True, "asks": len(ASKS)})
         if path in ("/act", "/close", "/snooze"):
             self._report({"body": data, "origin": self.headers.get("Origin")})

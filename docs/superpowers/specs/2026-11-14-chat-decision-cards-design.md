@@ -92,6 +92,17 @@ this device: the card stays folded when Igor leaves the thread and comes back, w
 after the app restarts, until he opens it again. Another device's cards are not folded by it. Once the ask is finished
 the fold no longer matters; the app forgets the oldest folds once it holds a few hundred.
 
+**A long card at the top of its thread** (Larry, 2026-11-22, bead context-grabber-o2i2: *"an expanded chat
+message/card grows to its full height instead of scrolling within a bounded height"*). The card at the top of a thread
+stays put while the conversation scrolls under it, so a card opened in full (its context opened, a long list of
+options, *Other…* open, a problem under it) used to grow past the screen: the conversation and the message bar went
+under it, and its own last options could not be reached. There the card stops at about 60% of the thread's height
+(never less than a few lines' worth), and what is past that scrolls inside the card. Its heading row, the question
+with the fold chevron and the **⋯**, stays at the top of the card and is never scrolled away, so the card can always
+be folded; the conversation and the message bar keep the rest of the screen. A tap on the opened context still closes
+it to its first few lines, and the card shrinks back to fit. A card short enough to fit is drawn as before, at its own
+height, with nothing to scroll. On *Decisions*, which scrolls as a whole, a card is not bounded.
+
 **When it fails.** A refused or failed answer, snooze, close or abandon leaves the card as it was, buttons live again,
 with a copyable problem under it saying what was tried and what the Cockpit said (or that it couldn't be reached, or that
 the phone is offline). Nothing is retried by itself.
@@ -182,6 +193,9 @@ problem carries. Every problem is copyable, naming the screen, the operation and
   receives its bare label (*DECISION: Something else*) or an empty answer from it, only Igor's words.
 - *Snooze*, *Close…* and *Abandon* from the card's menu do what they do on the Cockpit, and the card leaves; a close or
   an abandon is also Igor's message in the ask's chat.
+- A card at the top of its thread, opened in full with a context longer than the screen, is no taller than about
+  60% of the thread: its question, fold chevron and **⋯** stay visible, the rest scrolls inside the card down to its
+  last option, the conversation and the message bar stay on screen, and a tap on the context closes it again.
 - Every card, in its thread and on *Decisions*, folds to one line from a visible control without answering; a tap on
   the line opens it again; the fold is still there after leaving the thread or restarting the app, and in the ask's
   other place; the row's mark and the count are unchanged by it.
