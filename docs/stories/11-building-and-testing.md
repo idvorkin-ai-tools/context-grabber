@@ -642,7 +642,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 795:
 
 - **Summary:** At most four host builds and tests at once, machine-wide
-- **Status:** implemented in HOSTSHA; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`): six jobs on four slots, never more than four running, all six run; the slot count from the cores and from `HOST_LANES`
+- **Status:** implemented in bed95057; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`) and by `just test` and `just native-build-mac` passing through the slots: six jobs on four slots, never more than four running, all six run; the slot count from the cores and from `HOST_LANES`
 - **Issues:** context-grabber-mkd0 (2026-11-22: about twenty agents ran `swift build` and `swift test` at once, 27 swift-frontend processes, load 281 on the 18-core Mac, from Larry's five-minute check; the Xcode builds queued in build lanes, the host builds didn't)
 
 #### Use Case:
@@ -661,7 +661,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 797:
 
 - **Summary:** A host job waiting for a slot says so, and gives up after an hour
-- **Status:** implemented in HOSTSHA; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`): the queued jobs say they are waiting for a host slot; every slot held past the wait is exit 75 with nothing run; the command's own exit 75 is its own
+- **Status:** implemented in bed95057; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`) and by `just test` and `just native-build-mac` passing through the slots: the queued jobs say they are waiting for a host slot; every slot held past the wait is exit 75 with nothing run; the command's own exit 75 is its own
 - **Issues:** context-grabber-mkd0 (2026-11-22: about twenty agents ran `swift build` and `swift test` at once, 27 swift-frontend processes, load 281 on the 18-core Mac, from Larry's five-minute check; the Xcode builds queued in build lanes, the host builds didn't)
 
 #### Use Case:
@@ -680,7 +680,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 798:
 
 - **Summary:** A host slot whose holder died is free at once
-- **Status:** implemented in HOSTSHA; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`): a holder killed with `kill -9` frees its slot, and the next job runs in it without waiting though its lock file is still there
+- **Status:** implemented in bed95057; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`) and by `just test` and `just native-build-mac` passing through the slots: a holder killed with `kill -9` frees its slot, and the next job runs in it without waiting though its lock file is still there
 - **Issues:** context-grabber-mkd0 (2026-11-22: about twenty agents ran `swift build` and `swift test` at once, 27 swift-frontend processes, load 281 on the 18-core Mac, from Larry's five-minute check; the Xcode builds queued in build lanes, the host builds didn't)
 
 #### Use Case:
