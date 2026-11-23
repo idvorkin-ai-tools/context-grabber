@@ -1691,7 +1691,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1236:
 
 - **Summary:** The board's web rules load without Foundation's locale data
-- **Status:** implemented in [a3f54c22](https://github.com/idvorkin/context-grabber/commit/a3f54c226821b5bb6e117e20cc578778436030de). Verified on the Mac host by `FoundationLiteTests`, which compares each stand-in with Foundation, and by `just native-test`; the iPad and Mac apps keep full Foundation and build unchanged. Also verified on Linux in Docker with Swift 6.4.3 and its wasm SDK: the module dropped from 55.9 MB to 14.9 MB, and gzipped from 19.8 MB to 4.4 MB. `test-board-wasm` passed 168 of 168 checks. Every reply matches the old module's byte for byte, apart from the order inside one unordered debug dictionary.
+- **Status:** implemented in [627dae2f](https://github.com/idvorkin/context-grabber/commit/627dae2fe7abcda0ee71daac8bd8c34c1e52c1ef) and [18898b90](https://github.com/idvorkin/context-grabber/commit/18898b90a23c99916da46069cf3157e49709a0f3). Verified on the Mac host by `FoundationLiteTests`, which compares each stand-in with Foundation, and by `just native-test`; the iPad and Mac apps keep full Foundation and build unchanged. Also verified on Linux in Docker with Swift 6.4.3 and its wasm SDK: the module dropped from 55.9 MB to 14.9 MB, and gzipped from 19.8 MB to 4.4 MB. `test-board-wasm` passed 168 of 168 checks. Every reply matches the old module's byte for byte, apart from the order inside one unordered debug dictionary.
 - **Issues:** bead context-grabber-pt1e
 
 #### Use Case:
