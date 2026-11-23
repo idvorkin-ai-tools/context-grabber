@@ -4,20 +4,10 @@
 
 import Foundation
 
-public enum CockpitPage {
-  /// Igor's decision Cockpit, served only on the tailnet: reaching the host at all is the authentication.
-  public static let url = "https://c-5004.squeaker-teeth.ts.net"
-  public static let host = "c-5004.squeaker-teeth.ts.net"
-
+// The Cockpit's address and the Origin a POST sends sit in ChatWireKit, beside the chat wire that uses them.
+extension CockpitPage {
   /// The app's own URL schemes, as the page opens them (its ☎ hands the call to the app as `grabber://call`).
   public static let appSchemes: Set<String> = ["grabber", "com.idvorkin.contextgrabber"]
-
-  /// What a native POST sends as its `Origin`: the Cockpit's own, since the write boundary wants a browser's
-  /// Origin and no token is set up (the Inbox and the archive both send it).
-  public static func origin(of url: URL) -> String {
-    let port = url.port.map { ":\($0)" } ?? ""
-    return "\(url.scheme ?? "https")://\(url.host ?? "")\(port)"
-  }
 
   /// The URL with `client=context-grabber&v=<build>` on its query, before any `#route`. The native app says
   /// context-grabber too: it becomes Context Grabber at the cutover, and the build tells the two apart.

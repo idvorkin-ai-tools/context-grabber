@@ -28,6 +28,11 @@ public struct ChatAsk: Decodable, Equatable, Sendable, Identifiable {
   public struct Mark: Equatable, Sendable {
     public let key: String
     public let word: String
+
+    public init(key: String, word: String) {
+      self.key = key
+      self.word = word
+    }
   }
 
   public let id: String
@@ -257,7 +262,7 @@ public enum ChatDecisions {
     request.timeoutInterval = 15
     // The write boundary answers 415 to a POST that isn't JSON, and refuses one from a foreign origin.
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
     return request
   }
