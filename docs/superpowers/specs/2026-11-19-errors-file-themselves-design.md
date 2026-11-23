@@ -26,7 +26,9 @@ he sees, he does not have time to report, so they are never fixed.
   - every error shown while the phone has no network: offline, a failed send or load is expected, not a bug;
   - *Health is not available on this device*: the device has no Health, which no fix can change;
   - a chat read that failed because the device's own connection was down (*The Internet connection appears to be
-    offline*), even when the app had not yet noticed it was offline (#1268: the iPad waking).
+    offline*), even when the app had not yet noticed it was offline (#1268: the iPad waking);
+  - a board link that can't open because this build has no iCloud (the Mac's own build): the board lives on the device
+    that drew it, which no fix in the app can change (#1254).
 - **The Cockpit away for a moment files nothing; away for minutes files once.** A read of the chat list or a thread
   that fails because the Cockpit can't be reached (it answered a server error, 502, 503 or 504, from the proxy in front
   of it; or the request timed out, could not connect, or lost its connection midway) shows its error with Copy error as always, and the app keeps

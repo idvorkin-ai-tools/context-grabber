@@ -68,6 +68,11 @@ written on the Mac waits on the Mac until it goes.
 report stays in the app's folder. The whiteboard says its sync is off, as in any build without it. A build signed with
 Igor's team has iCloud too.
 
+A link to a board drawn on another device (Larry's *Board* link in a chat, say) can't open in such a build: the board
+never reaches the Mac. The problem says that plainly — the board isn't on this device and this build can't reach iCloud
+to bring it, so open it on the device that drew it — and, because no fix in the app can change it, it files no
+automatic report (#1254). A build with iCloud says what it always did: deleted, or not brought here yet.
+
 **Enter sends** (#683). Wherever the app asks Igor to type and then confirm, Enter confirms, on the Mac: chat's bar
 (where Command+Enter sends too and Shift+Enter is a new line, see the chat spec), renaming a board, adding a place, and
 naming one. A
