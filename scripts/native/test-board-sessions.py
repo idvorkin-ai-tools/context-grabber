@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Story 1173: the vendored board sessions are scrubbed, and the scrub fails closed. The committed copies hold no free
 text and no stroke that isn't a straight line (board-sessions.py check); and on made-up sessions, a field the scrub
-doesn't know stops it, an unscrubbed text or a drawn stroke fails the check, and a word left readable is found."""
+doesn't know stops it, an unscrubbed text, a drawn stroke or a hint's own writing fails the check, and a word left readable is found."""
 
 import importlib.util
 import json
@@ -91,8 +91,26 @@ try:
     check(any("not flattened" in p for p in bs.check(tmp)), "a drawn stroke fails the check")
     write([header, bs.scrub(post)], {"contexts": {}, "render": []})
     check(any("only contexts" in p for p in bs.check(tmp)), "a golden with the render fails the check")
-    write([header, bs.scrub(post)], {"contexts": {"m-1": "x · op_result ok for 'Lunch with Pat' at rev 3"}})
+    on_board = ("cockpit · chat · %s · #thread/t-1 · board b-1 · draw back: chat.py reply --shapes"
+                " · op_result ok for %s at rev 3")
+    write([header, bs.scrub(post)], {"contexts": {"m-1": on_board % ("Board, t-1", "'Xxxxx xxxx Xxx'")}})
+    check(bs.check(tmp) == [], "a hint with the host's own title and a scrubbed label passes the check")
+    write([header, bs.scrub(post)], {"contexts": {"m-1": on_board % ("Board, t-1", "'Lunch with Pat'")}})
     check(any("unscrubbed label" in p for p in bs.check(tmp)), "an unscrubbed label in a hint fails the check")
+    write([header, bs.scrub(post)], {"contexts": {"m-1": on_board % ("Dana offsite plan", "'Xxxxx'")}})
+    check(any("unscrubbed title" in p for p in bs.check(tmp)), "a thread title Igor wrote in a hint fails the check")
+    write([header, bs.scrub(post)], {"contexts": {"m-1": "cockpit · chat · Board, t-1 · #thread/t-1 · see Dana at noon"}})
+    check(any("doesn't know" in p for p in bs.check(tmp)), "a hint holding more than the Cockpit's hint fails the check")
 finally:
     shutil.rmtree(tmp)
+check(bs.scrub_golden({"contexts": {"m-1": on_board % ("Dana offsite plan", "\"Move 'Pat' up\"")}})["contexts"]["m-1"]
+      == on_board % ("Xxxx xxxxxxx xxxx", "\"Xxxx 'Xxx' xx\""),
+      "a hint's own title and its label are scrubbed; the host's words and ids stay")
+check(bs.scrub_golden({"contexts": {"m-1": on_board % ("Board, t-1", "'x'")}})["contexts"]["m-1"]
+      == on_board % ("Board, t-1", "'x'"), "the host's own title stays as the Cockpit gave it")
+try:
+    bs.scrub_golden({"contexts": {"m-1": "cockpit · chat · Board, t-1 · #thread/t-1 · see Dana at noon"}})
+    check(False, "a hint the scrub doesn't know stops it")
+except bs.Unknown:
+    check(True, "a hint the scrub doesn't know stops it")
 sys.exit(1 if failed else 0)

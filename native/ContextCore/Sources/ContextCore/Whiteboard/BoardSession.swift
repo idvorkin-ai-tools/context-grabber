@@ -242,7 +242,8 @@ public struct BoardSession {
   }
 
   /// A batch on the board Larry looked at, at the revision the board had when it arrived, with Igor's moves and
-  /// erasures since his look (story 961), and the answer the iPad sent on its next turn. When it arrived is what that
+  /// erasures since his look (story 961), and the answer the iPad sent on its next turn (not the last one it sent
+  /// before the reply, which it repeats on every turn until it fetches the batch). When it arrived is what that
   /// answer says (a refusal names the board's revision, an applied change the one after it): the Cockpit's clock says
   /// when Larry wrote the batch, not when the iPad fetched it. With no answer, the newest of Igor's changes before the
   /// reply's time.
@@ -252,8 +253,9 @@ public struct BoardSession {
   ) -> Batch {
     let label = ops["label"] as? String ?? ""
     let base = (ops["base_rev"] as? NSNumber)?.intValue ?? lastRev ?? 0
+    let repeated = steps[..<index].last(where: isChat).flatMap { Self.result(body($0)["op_result"]) }
     let recorded = steps[(index + 1)...].lazy.filter(isChat).compactMap { Self.result(body($0)["op_result"]) }
-      .first { $0.label == label }
+      .first { $0.label == label && $0 != repeated }
     let before = changes.filter { change in at.map { change.t <= $0 } ?? false }.map(\.rev).max()
     let arrived =
       recorded.map { $0.ok ? max(base, $0.rev - 1) : $0.rev } ?? max(lastRev ?? base, before ?? base)

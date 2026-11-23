@@ -77,6 +77,18 @@ final class BoardSessionReplayTests: XCTestCase {
     XCTAssertEqual(batches.last?.replayed?.ok, true)
   }
 
+  func testAResendIsNotPairedWithTheRefusalTheIPadRepeatsBeforeFetchingIt() throws {
+    let data = try Data(contentsOf: url("ops-move.jsonl"))
+    let lines = String(decoding: data, as: UTF8.self).split(separator: "\n").map(String.init)
+    let refusing = try XCTUnwrap(lines.last { $0.contains("\"op_result\"") })
+    let again = refusing.replacingOccurrences(
+      of: "8aa9b297-181e-4d35-9251-45796cef9ef6", with: "00000000-0000-0000-0000-000000000001")
+    let session = try BoardSession(jsonl: Data((lines + [again]).joined(separator: "\n").utf8))
+    let resend = try XCTUnwrap(session.replay().batches.last)
+    XCTAssertNil(resend.recorded)
+    XCTAssertEqual(resend.replayed?.ok, true)
+  }
+
   func testADeleteWhileIgorKeptWritingAppliesRebasedFromHisLook() throws {
     let batch = try XCTUnwrap(session("question-card").replay().batches.first)
     XCTAssertEqual(batch.replayed?.ok, true)

@@ -12,7 +12,8 @@ temporary directory outside it, scrubbed there, and only the result is written.
   scripts/native/board-sessions.py check [DIR]                      the vendored files hold nothing unscrubbed
 
 The scrub fails closed: a string field it doesn't know aborts it, and so does a path of points anywhere but a stroke
-or Larry's own shapes, so a new field in a later contract can't slip writing through. Letters of every script become x
+or Larry's own shapes, so a new field in a later contract can't slip writing through. A golden's hint must be the
+Cockpit's hint whole, or the scrub aborts: its thread title (but for the host's own) and its label are scrubbed. Letters of every script become x
 and digits 0. vendor also checks the output against the raw sessions: no word of four letters or more from their free
 texts may appear anywhere in it, unless the raw sessions also use that word in a field that is not free text (an id,
 a kind, a key) or it is one of the words of the Cockpit's hint to Larry. check needs no raw sessions: every free text in the vendored files must be x's, digits and punctuation,
@@ -147,16 +148,53 @@ def leaked(free, struct, out):
     return (set().union(set(), *map(words, free)) - struct - HINT_WORDS) & words(out)
 
 
-def scrub_golden(golden, labels):
-    """The golden's hints only (the render digest is the server's picture of the raw strokes); a label in a hint is
-    scrubbed as the label itself is."""
-    contexts = {}
-    for k, v in golden["contexts"].items():
-        # The Cockpit quotes a label as Python does: in double quotes when it holds a single one.
-        for label in sorted(labels, key=len, reverse=True):
-            v = v.replace(label, letters_to_x(label))
-        contexts[k] = v
-    return {"contexts": contexts}
+_HID = r"[A-Za-z0-9_.#-]+"
+# The Cockpit's hint to Larry, whole (board contract, *What wakes the agent*): its title and a quoted label are the only
+# free text in it.
+HINT = re.compile(
+    r"cockpit · chat · (?P<title>.*?) · #thread/(?P<thread>{id})"
+    r"( · board {id} · draw back: chat\.py reply --shapes"
+    r"( · rev \d+ \(move it: chat\.py reply --ops, base_rev \d+\))?"
+    r"( · op_result (ok|refused \([a-z_]+\)) for (?P<label>.*?) at rev \d+(, \d+ ids missing)?)?"
+    r"( · \d+ events: whiteboard_events\.py show {id} --thread {id})?"
+    r"( · strokes \d+ \(\d+ new\): whiteboard_strokes\.py render {id} {id} --thread {id} --out <png>)?)?".format(
+        id=_HID))
+
+
+def host_title(thread):
+    """The title the Cockpit's host gives a thread it makes: no writing of Igor's."""
+    return "Board, " + thread
+
+
+def scrub_hint(hint):
+    """A hint with its title (unless the host's own) and its label scrubbed; Unknown on one that isn't the hint."""
+    m = HINT.fullmatch(hint)
+    if not m:
+        raise Unknown("a hint the scrub doesn't know (%r...): add its shape to HINT on purpose" % hint[:40])
+    out, end = [], 0
+    for group in ("title", "label"):
+        if m.group(group) is None or (group == "title" and m.group(group) == host_title(m.group("thread"))):
+            continue
+        out += [hint[end:m.start(group)], letters_to_x(m.group(group))]
+        end = m.end(group)
+    return "".join(out) + hint[end:]
+
+
+def hint_problem(hint):
+    """What in a hint isn't scrubbed, if anything."""
+    m = HINT.fullmatch(hint)
+    if not m:
+        return "a hint the check doesn't know"
+    if m.group("title") != host_title(m.group("thread")) and unscrubbed(m.group("title")):
+        return "an unscrubbed title"
+    if m.group("label") is not None and unscrubbed(m.group("label")):
+        return "an unscrubbed label"
+    return None
+
+
+def scrub_golden(golden):
+    """The golden's hints only (the render digest is the server's picture of the raw strokes), scrubbed."""
+    return {"contexts": {k: scrub_hint(v) for k, v in golden["contexts"].items()}}
 
 
 def gh_raw(path, sha):
@@ -184,9 +222,8 @@ def vendor(sha, out):
             for step in steps:
                 lines.append(json.dumps(scrub(step, free=free), ensure_ascii=False, sort_keys=True))
                 struct |= structural_words(step)
-            labels = {s for s in free if s}
             text = "\n".join(lines) + "\n"
-            gold = json.dumps(scrub_golden(golden, labels), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+            gold = json.dumps(scrub_golden(golden), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
             leaks = leaked(free, struct, text + gold)
             if leaks:
                 raise Unknown("%s: the scrubbed copy still holds %d of its free words, e.g. %s" % (
@@ -242,9 +279,9 @@ def check(out):
         if set(g) != {"contexts"}:
             problems.append("%s: a golden holds only contexts, not %s" % (os.path.basename(gold), sorted(g)))
         for k, v in g.get("contexts", {}).items():
-            for label in re.findall(r"op_result \S+(?: \([^)]*\))? for (.*?) at rev", v):
-                if unscrubbed(label):
-                    problems.append("%s: an unscrubbed label in %s's hint" % (os.path.basename(gold), k))
+            problem = hint_problem(v)
+            if problem:
+                problems.append("%s: %s in %s's hint" % (os.path.basename(gold), problem, k))
     return problems
 
 
