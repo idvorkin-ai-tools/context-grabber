@@ -212,7 +212,7 @@ check(reply(x.bw_row_at(100)).error === 'no outline is loaded', 'and nothing is 
 // The outline is apart from the board: bw_load's board still answers cuts.
 check(call('bw_load', hand) === 3 && x.bw_cut_y(99) === 98, 'the board and the outline are held apart');
 
-// Interface 3, story 1512 (spec, paste and drop): where a paste lands and the room a drop opens, over the hand board
+// Interface 3, story 1513 (spec, paste and drop): where a paste lands and the room a drop opens, over the hand board
 // above (its boxes: the line at 98..102 across -2..202, the text at 200..240 across 0..100, the group at 399..481).
 // Worked by hand from the spec's rules: a clear patch with half a line of air round it nearest the view's middle, on a
 // 20-point grid from the margin's air (84); else room at the clear line nearest the view's middle.
