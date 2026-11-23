@@ -175,8 +175,8 @@ of the screen is just under the panel.
   past that it doesn't grow, its messages scroll inside it (Igor, 2026-11-16, #917: "when chat expands it needs to
   scroll not grow"; at a third it covered nearly half the page). The status chip and *Open in Chat* stay at its foot,
   under the messages, while the messages scroll. What sits under the messages is bounded too, so nothing in the panel
-  can grow it past that size (Larry, 2026-11-22, bead context-grabber-97s): what the mic hears shows at most its last
-  two lines, its newest words, with the older ones cut at the front (*…*), and the status chip at most two lines.
+  can grow it past that size (Larry, 2026-11-22, bead context-grabber-97s): what the mic hears shows at most two
+  lines, ending on its newest words, with older words dropped at an *…*, and the status chip at most two lines.
 - **It shows the newest.** It opens scrolled to the bottom, the newest line in view, and while it is there a new
   line keeps it there. A finger can scroll up to read older messages, and then a new line leaves it where Igor is
   reading (bead context-grabber-97s): it doesn't jump back down under his finger. Scrolled back to the bottom, it

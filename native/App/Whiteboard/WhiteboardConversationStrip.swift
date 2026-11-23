@@ -207,7 +207,7 @@ struct WhiteboardConversationPanel: View {
           } else {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
               Text("\(row.who):").bold()
-              // Story 1184: what the mic hears, its last two lines, the newest words kept.
+              // Story 1184: what the mic hears, at most two lines, ending on the newest words.
               Text(row.text).lineLimit(2).truncationMode(.head)
             }
           }

@@ -1606,8 +1606,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A long sentence
 - **Given:** the panel is open on an iPad and the mic is on
 - **When:** I say something that runs past two lines of the panel
-- **Then:** its *Hearing* row shows the last two lines, my newest words, cut at the front with *…*; the status chip is
-  at most two lines; the panel keeps its height and the paper under it doesn't move
+- **Then:** its *Hearing* row is at most two lines, ending on my newest words, older ones dropped at an *…*; the
+  status chip is at most two lines; the panel keeps its height and the paper under it doesn't move
 
 ---
 

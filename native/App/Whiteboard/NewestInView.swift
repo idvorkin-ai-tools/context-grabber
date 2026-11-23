@@ -37,6 +37,7 @@ final class NewestInView: UITextView {
     }
     layoutIfNeeded()
     contentOffset.y = min(max(offset.y, -adjustedContentInset.top), end)
+    following = WhiteboardNote.followsNewest(offset: Double(contentOffset.y), end: Double(end))
   }
 
   override func layoutSubviews() {
