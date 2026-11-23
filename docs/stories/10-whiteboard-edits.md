@@ -55,7 +55,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Larry's change from before the app restarted still applies when I only wrote new strokes since
 - **Issues:** bead context-grabber-fuw0 (found checking drop rule C, 2026-11-22: the board's memory of its changes lived only for one run, so after a relaunch a batch based on an earlier revision was refused as stale even when Igor had only added strokes)
-- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07); verified on the host (`BoardMeaningTests`: a push from before a relaunch applies over new strokes and says `rebased_from`, one naming a stroke moved before the relaunch is still stale with `conflict_ids`, Larry's own change before a relaunch still makes an older look stale, a file from before this remembers nothing older) and the Mac build (`just native-build-mac`). The review round also re-checks a batch held for the Pencil on the lift (host: `BoardMeaningTests` refuses one whose stroke was erased while it waited; `BoardOpsTests` and `BoardCanvasOutcomeTests` still let one through when nothing it names moved), counts a fold or connectors following as moving everything, and forgets the memory when a save was cut off. Those last two, and the app's handling of a refusal on the lift, are compiled (Mac build) but not host-tested. Not run on a simulator or the iPad
+- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07) and [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891); verified on the host (`BoardMeaningTests`: a push from before a relaunch applies over new strokes and says `rebased_from`, one naming a stroke moved before the relaunch is still stale with `conflict_ids`, Larry's own change before a relaunch still makes an older look stale, a file from before this remembers nothing older) and the Mac build (`just native-build-mac`). The review round also re-checks a batch held for the Pencil on the lift (host: `BoardMeaningTests` refuses one whose stroke was erased while it waited; `BoardOpsTests` and `BoardCanvasOutcomeTests` still let one through when nothing it names moved), counts a fold or connectors following as moving everything, and forgets the memory when a save was cut off. Those last two, and the app's handling of a refusal on the lift, are compiled (Mac build) but not host-tested. Not run on a simulator or the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
@@ -75,7 +75,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Then:** it is refused as stale and nothing moves
 
 - **Scenario:** The app stopped while saving
-- **Given:** the board's drawing was saved but what it remembers of my changes was not
+- **Given:** the board's drawing was saved but what it remembers of my changes was not, and the drawing's size changed (a save cut off after a change that kept the size, such as a moved stroke, isn't noticed yet: follow-up to bead context-grabber-fuw0)
 - **When:** a change of Larry's from an earlier look arrives
 - **Then:** it is refused as stale
 
