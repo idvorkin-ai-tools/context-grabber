@@ -239,7 +239,7 @@ to that event's own bullet; never join two events on one line.
 
 Not session-log lines: fields on what the board sends, so the Cockpit's GET /debug/board can show what only the iPad knows. Each is kept by the Cockpit as sent (the events land in `whiteboard-events/<board>.jsonl`, a turn's on its `via: "turn"` row).
 
-- `build` (`<sha> <branch>`) on every board picture's chat message (the hand-off and *Send to Larry*) and on every `POST /whiteboard/events`
+- `build` (`<sha> <branch>`) on every board picture's chat message (the hand-off and *Send to Larry*) and on every `POST /whiteboard/events`; both also carry `app_build` and `app_sha`, as every post to the Cockpit does (story 1134)
 - `board_title` (the board's name when the picture was taken) on every board picture's chat message and its `POST /whiteboard/strokes`, not only the first that starts the chat; a Cockpit since a248425 retitles an app-named chat *Board: <name>* when it changes and shows it on the debug page (story 1101, bead context-grabber-8rei)
 - a `post` event among each hand-off's events: t (unix ms the message left), build, from (button, responder, retry, …), render_ms, encode_ms, strokes_ms, upload_ms and bytes; a *Retry* carries its own
 - a `mic` event for each spoken stretch taken for a turn: t (mic on, unix ms), words_t, off_t (absent while the mic stayed open), text_t, sent_t, to_words_ms, on_to_off_ms, off_to_text_ms, text_to_sent_ms and chars (never the words); it rides with the next picture handed to Larry, or the next events batch
