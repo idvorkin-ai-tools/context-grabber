@@ -56,6 +56,8 @@ enum WebOutline {
   /// "own", "shift", "lines", "bottom"}}]`.
   static func headers(_ any: Any?) throws -> [BoardHeader] {
     guard let any else { return [] }
+    // JSONSerialization traps, not throws, on a top-level value that is not a list or an object.
+    guard any is [Any] else { throw WebOutlineUnreadable(description: "the headers could not be read: not a list") }
     do {
       return try JSONDecoder().decode([BoardHeader].self, from: JSONSerialization.data(withJSONObject: any))
     } catch {
