@@ -444,7 +444,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1034:
 
 - **Summary:** Not a header keeps my underline as ink and the board never makes it a header again
-- **Status:** implemented in [fda25548](https://github.com/idvorkin/context-grabber/commit/fda25548), [6bb7c2ab](https://github.com/idvorkin/context-grabber/commit/6bb7c2ab); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); not yet seen on the iPad
+- **Status:** implemented in [fda25548](https://github.com/idvorkin/context-grabber/commit/fda25548), [6bb7c2ab](https://github.com/idvorkin/context-grabber/commit/6bb7c2ab), [48b14b30](https://github.com/idvorkin/context-grabber/commit/48b14b30) (no faint H after *Not a header*, remembered across a reopen); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19 and 2026-11-22); not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967); bead `context-grabber-2ul` (the faint H came straight back)
 
