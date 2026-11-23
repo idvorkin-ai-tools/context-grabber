@@ -3272,3 +3272,47 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a build stamped with its build number and short commit
 - **When:** I send a chat message (a new chat or a reply), reply from the Inbox, share something from another app, send a board's picture, or answer, close, abandon or snooze a decision
 - **Then:** what reaches the Cockpit carries the build number and the short commit, under the same two names on every kind of message; a board picture also keeps the build line it already sent; and a build that knows neither fact sends the message as before, with neither name rather than an empty one
+
+---
+
+### User Story 1136:
+
+- **Summary:** A Cockpit that blinks files no report; one that stays away files one
+- **Issues:** [#1245](https://github.com/idvorkin/context-grabber/issues/1245), [#1246](https://github.com/idvorkin/context-grabber/issues/1246), [#1247](https://github.com/idvorkin/context-grabber/issues/1247), [#1248](https://github.com/idvorkin/context-grabber/issues/1248), [#1249](https://github.com/idvorkin/context-grabber/issues/1249), [#1250](https://github.com/idvorkin/context-grabber/issues/1250), [#1251](https://github.com/idvorkin/context-grabber/issues/1251), [#1252](https://github.com/idvorkin/context-grabber/issues/1252), [#1253](https://github.com/idvorkin/context-grabber/issues/1253), [#1259](https://github.com/idvorkin/context-grabber/issues/1259), [#1268](https://github.com/idvorkin/context-grabber/issues/1268), [#1269](https://github.com/idvorkin/context-grabber/issues/1269)
+- **Status:** in progress
+- **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md), [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the developer reading the automatic reports
+- **I want to** get no report when the Cockpit's proxy answers 502 to one poll and the next one reads fine, and one
+  report when it stays away
+- **so that** a chat that heals in four seconds does not become ten issues, and a real outage is still seen
+
+#### Acceptance Criteria:
+- **Scenario:** One poll fails, the next reads
+- **Given:** a chat thread is open and the device is online
+- **When:** the Cockpit answers HTTP 502 (or 503, 504, or the read times out or can't connect), and the next poll reads
+  the thread
+- **Then:** the error showed with Copy error, no automatic report was saved, and the log has
+  `bug_report_auto_skipped` with `auto_file: false`, then `chat` `cockpit_outage` `ended` with `filed: false`
+
+- **Scenario:** The Cockpit stays away
+- **Given:** a chat thread is open and the device is online
+- **When:** every read fails that way for 2 minutes, and later a read gets through
+- **Then:** one automatic report is saved for the outage, saying how long it has lasted and how many reads failed; no
+  other is saved while it lasts; the log has `cockpit_outage` `filed`, then `ended` with `filed: true`
+
+- **Scenario:** The device's own connection is down
+- **Given:** the app has not yet noticed the device is offline (the iPad waking, #1268)
+- **When:** a chat read fails with *The Internet connection appears to be offline*
+- **Then:** it shows *The Cockpit isn't answering* with Copy error and saves no report, however long it lasts
+
+- **Scenario:** Any other failed read
+- **Given:** a chat thread is open
+- **When:** the Cockpit answers HTTP 404, or an answer the app cannot read
+- **Then:** it files at once, as story 155 says
+
+- **Scenario:** The list keeps trying
+- **Given:** the chat list is on screen and shows a Cockpit error of this kind
+- **When:** 15 seconds pass
+- **Then:** the list is read again, and again every 15 seconds until it reads or leaves the screen

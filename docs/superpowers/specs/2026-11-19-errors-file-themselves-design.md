@@ -24,7 +24,18 @@ he sees, he does not have time to report, so they are never fixed.
   chat message) files at most once every 10 minutes, even across a relaunch. A repeat is noted in the session log and files nothing.
 - **Errors that are expected file nothing.** They still show, with Copy error, exactly as before:
   - every error shown while the phone has no network: offline, a failed send or load is expected, not a bug;
-  - *Health is not available on this device*: the device has no Health, which no fix can change.
+  - *Health is not available on this device*: the device has no Health, which no fix can change;
+  - a chat read that failed because the device's own connection was down (*The Internet connection appears to be
+    offline*, the connection lost), even when the app had not yet noticed it was offline (#1268: the iPad waking).
+- **The Cockpit away for a moment files nothing; away for minutes files once.** A read of the chat list or a thread
+  that fails because the Cockpit can't be reached (it answered a server error, 502, 503 or 504, from the proxy in front
+  of it; or the request timed out or could not connect) shows its error with Copy error as always, and the app keeps
+  reading again. It files no automatic report unless such failures go on, with no read getting through, for 2 minutes;
+  then it files one report for that outage, saying how long it has lasted and how many reads failed, and no more until
+  a read gets through. Any read that gets through ends the outage. A pause of over a minute with no read (the thread
+  closed, the app in the background) starts the count again. Why: on 2026-11-22 the Cockpit answered 502 to one poll
+  in a hundred for hours, each blip healed on the next poll 4 seconds later, and each filed a report (#1245–#1253,
+  #1259). Any other failed read (the Cockpit answered 404, or an answer the app can't read) files at once, as before.
 - **The share sheet.** An error on the share card files too (the first was its mic's, #1135, before the mic was taken
   off the card). The share sheet is its own small
   program with no network of its own, so it keeps the report in the space it shares with the app; the next time the
@@ -44,5 +55,11 @@ he sees, he does not have time to report, so they are never fixed.
 - The same kind again within 10 minutes saves nothing; the log has `bug_report_auto_skipped`.
 - An error shown while offline, or *Health is not available*, saves nothing; the log has `bug_report_auto_skipped`
   with `auto_file: false`.
+- A chat read that fails once with HTTP 502 (or 503, 504, a timeout, a refused connection) and then reads fine saves
+  nothing; its error showed with Copy error, and the log has `bug_report_auto_skipped` with `auto_file: false`.
+- Chat reads that keep failing that way for 2 minutes save one automatic report for the outage, and none more until a
+  read gets through; the log has `chat` `cockpit_outage` with `filed` and the outage's length and failures, and
+  `ended` when a read gets through.
+- A chat read that fails because the device's own connection is down saves nothing, however long it lasts.
 - An error on the share card is saved in the shared space; the app's next launch or foreground takes it into its own
   reports (`bug_report_adopted` in the app's log), and it is queued for iCloud like any report.

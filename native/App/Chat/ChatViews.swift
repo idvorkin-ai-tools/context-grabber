@@ -100,7 +100,9 @@ struct ChatListView: View {
       }
       if let problem = chat.listProblem, !inbox.offline {
         BugProblemView(
-          problem: .grabber(problem, context: "ChatListView.refresh", extra: ["cockpit": .string(chat.cockpit)]),
+          problem: .grabber(
+            problem, context: "ChatListView.refresh", extra: ["cockpit": .string(chat.cockpit)],
+            autoFile: !chat.listQuiet),
           logger: logger)
       }
       if !chat.pendingThreads.isEmpty {
@@ -685,7 +687,9 @@ struct ChatThreadView: View {
         LazyVStack(alignment: .leading, spacing: 10) {
           if let key, let problem = chat.threadProblem[key], !inbox.offline {
             BugProblemView(
-              problem: .grabber(problem, context: "ChatThreadView.load", extra: ["thread": .string(key)]),
+              problem: .grabber(
+                problem, context: "ChatThreadView.load", extra: ["thread": .string(key)],
+                autoFile: !chat.threadQuiet.contains(key)),
               logger: logger)
           }
           let answerFailed = ChatWire.answerFailed(messages)
