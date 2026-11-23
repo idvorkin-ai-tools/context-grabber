@@ -1582,7 +1582,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1620:
 
 - **Summary:** The web board asks the app's own rules what a Pencil hold picks up and what a finger hold offers
-- **Status:** implemented in ffb3bc76; verified by `just wasm-test` (145 checks, a hand-worked board of a header, a word, a far stroke, a group and a kept text among them), the Linux rung (894 tests) and the Cockpit's comparison (every recorded board and 60 seeded ones, 40,498 Pencil holds and 42,038 finger holds: 0 differences; where its own older pick goes another way than the app, counted apart), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Status:** implemented in ada3676b; verified by `just wasm-test` (145 checks, a hand-worked board of a header, a word, a far stroke, a group and a kept text among them), the Linux rung (894 tests) and the Cockpit's comparison (every recorded board and 60 seeded ones, 40,498 Pencil holds and 42,038 finger holds: 0 differences; where its own older pick goes another way than the app, counted apart), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 5
 - **Issues:** bead `context-grabber-edl`
 
