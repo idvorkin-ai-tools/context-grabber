@@ -1,5 +1,5 @@
 //  The room a reply of Larry's opens when it is kept over ink Igor wrote after its picture, for the Cockpit's ink board
-//  (spec 2026-11-22-board-rules-on-the-web-design.md, The interface, version 7): `BoardRoom.late` over the outline
+//  (spec 2026-11-22-board-rules-on-the-web-design.md, The interface, version 8): `BoardRoom.late` over the outline
 //  `bw_outline_load` keeps. Only the export is WASI's; the answer builds everywhere.
 
 import BoardCore

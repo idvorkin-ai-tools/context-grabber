@@ -414,7 +414,7 @@ check(same(late([[100, 90, 300, 130]], 3000), { covered: 0, push: null }), 'noth
 check(same(late([[400, 400, 500, 440]], 1000), { covered: 0, push: null }), 'a mark on clear paper: no room');
 check(ask('bw_late', { marks: [] }).error === 'no marks and seen', 'no seen says so');
 
-// bw_text_room (interface 7): a text of Larry's at a box. Over the line at y 200 (198..202), 30 tall from 190: it sits on
+// bw_text_room (interface 8): a text of Larry's at a box. Over the line at y 200 (198..202), 30 tall from 190: it sits on
 // it; its top is already on a clear line (190), so it lands where it is and the line
 // and all below go down whole lines until 20 under it (190 + 30 + 20 - 198 = 42: two lines, 80). On clear paper it lands
 // where it is, sitting on nothing.
