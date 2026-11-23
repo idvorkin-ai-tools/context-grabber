@@ -925,7 +925,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1197:
 
 - **Summary:** The first tap on any kept text selects it; the second rewords it
-- **Status:** in progress on branch `native/second-tap-rewords-awz`
+- **Status:** implemented in 24f78386; verified by host tests and lint (`just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2: `WhiteboardRewordUITests`, all three, among them `testAFirstTapPicksUpATextToDrag`: the first tap selects with *Text · tap to reword* and opens no field, the second opens it, a drag after the first tap moves it; `WhiteboardGroupTapUITests` and `WhiteboardTheirsTapUITests` pass too); on the simulator the drag moved the text sideways rather than down (bead context-grabber-vhae); not yet seen on the iPad
 - **Issues:** bead context-grabber-awz (Igor, design board, 2026-11-22: "a second tap rewords a text"). The bead named this story 1154; 1197 was reserved for it.
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *The first finger tap on any kept text selects it; the second opens it*
 
