@@ -15,7 +15,7 @@ extension PaperBoardController {
       undo?.isUndoing != true, undo?.isRedoing != true
     else { return }
     // Story 1201: a drag inside a small selection that PaperKit's handle took as a stretch is moved on the lift instead.
-    if resizeAsMove(change, undo: undo) { return }
+    if resizeAsMove(change, undo: undo, split: split) { return }
     let selected = Set(paper.selection.map(Self.key)).union(run?.heldAtStart ?? [])
     let pickup = PaperProbe.pickup(change.moved, selected: selected, inTouch: run != nil, split: split)
     let movedKeys = Set(change.moved.map(\.id))

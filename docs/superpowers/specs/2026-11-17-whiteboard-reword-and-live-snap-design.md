@@ -38,8 +38,8 @@ box or a loop: the clean shape shows at once, and lands when you lift.
   whole word, and a drag straight down on it stretched it sideways instead of moving it. Now a finger that goes down
   inside the selected thing's box and drags moves it: while the finger is down the word still stretches under it, as
   the system draws it, and on the lift it lands moved by the finger's travel, down and across, at its own size. One
-  Undo, named *Move*, puts it back; a drop onto ink below still makes room (story 973). A drag that begins on a handle
-  outside the box, on or past its edge, still stretches it, and a bigger selection, whose middle no handle covers,
+  Undo, named *Move*, puts it back; a drop onto ink below still makes room (story 973). A drag that begins on a corner
+  handle's own knob, or outside the box, still stretches it, and a bigger selection, whose middle no handle covers,
   moves and stretches as before.
 - A tap on ink that isn't a kept text, or on blank paper, does what it did before. The Pencil writes as ever: a Pencil
   tap on a text is a dot, not an edit.
@@ -78,7 +78,7 @@ box or a loop: the clean shape shows at once, and lands when you lift.
   top-left, same id to Larry, one undo back to the old words. Empty words delete it; unchanged words change nothing.
 - A finger drag that starts inside a selection, even a one-word text, lands it moved by the finger's travel down and
   across, at its own size, on the lift (it stretches under the finger until then); one Undo puts it back; its corner
-  handles still stretch it from outside the box.
+  handles still stretch it from their knobs or from outside the box.
 - A held stroke that is nearly a shape shows clean while the Pencil is still down; lifting keeps it, one undo back to
   the raw ink; moving on brings the raw stroke back.
 

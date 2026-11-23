@@ -127,10 +127,12 @@ public enum PaperProbe {
   }
 
   /// Story 1201: whether a change PaperKit made is a drag meant as a move that its resize handle took: the touch began on a
-  /// handle inside the selection's box (`onHandleInside`), and the change stretched every selected stroke and nothing
-  /// else. A drag begun on a handle outside the box, or one that moved without stretching, is PaperKit's to keep.
+  /// handle's reach inside the selection's box, off the handle's own knob (`onHandleInside`), and the change stretched
+  /// the selection (at least one of its strokes resized) and moved nothing outside it. A drag begun on the knob or
+  /// outside the box, or one that moved without stretching, is PaperKit's to keep.
   public static func resizeIsMove(_ moved: [InkMove], selected: Set<String>, onHandleInside: Bool) -> Bool {
-    onHandleInside && !moved.isEmpty && moved.allSatisfy(\.resized) && Set(moved.map(\.id)) == selected
+    onHandleInside && !moved.isEmpty && moved.contains(where: \.resized)
+      && moved.allSatisfy { selected.contains($0.id) }
   }
 
   /// Stories 616, 825 (#883): the dot PaperKit draws where a finger tapped, even with a finger set not to draw, a few

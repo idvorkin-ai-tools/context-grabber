@@ -16,6 +16,8 @@ final class SelectionDragWatch {
   var start: CGPoint = .zero
   var end: CGPoint = .zero
   var handle = ""
+  /// A stretch of this touch's is being made a move.
+  var claimed = false
 }
 
 extension PaperBoardController {
@@ -23,6 +25,7 @@ extension PaperBoardController {
   /// handles, for the log, and remembered when it began on a handle inside the box.
   func selectionTouchDown(_ touch: UITouch) {
     selectionDrag.box = nil
+    selectionDrag.claimed = false
     guard drawsHere, !paper.selection.isEmpty else { return }
     let box = selectionBox
     let spot = boardPoint(touch.location(in: view))
@@ -38,21 +41,24 @@ extension PaperBoardController {
       handles.append(rect(boardRect(here.convert(here.bounds, to: view))))
     }
     let onHandle = PaperProbe.isResizeHandle(startView)
-    if onHandle, inside {
+    // On the handle's own knob, a quarter of which lies inside the box, the touch is a stretch he meant.
+    let knob = touch.view.map { boardRect($0.convert($0.bounds, to: view)) } ?? .null
+    let onKnob = onHandle && knob.contains(spot)
+    if onHandle, inside, !onKnob {
       let keys = paper.selection.map(Self.key)
       selectionDrag.box = box
       selectionDrag.frames = Dictionary(
         uniqueKeysWithValues: keys.compactMap { key in inkFrames[key].map { (key, $0) } })
       selectionDrag.start = spot
       selectionDrag.end = spot
-      selectionDrag.handle = touch.view.map { rect(boardRect($0.convert($0.bounds, to: view))) }.map { "\($0)" } ?? ""
+      selectionDrag.handle = "\(rect(knob))"
     }
     log.event(
       "whiteboard",
       [
         "action": "selection_touch", "board": model.board.id, "at": point(spot), "selection_box": rect(box),
         "on_selection": inside, "start_view": startView, "handles": handles, "selected": paper.selection.count,
-        "handle_inside": onHandle && inside,
+        "handle_inside": onHandle && inside && !onKnob, "on_knob": onKnob,
       ])
   }
 
@@ -65,15 +71,19 @@ extension PaperBoardController {
   /// Story 1201: a stretch PaperKit made of a drag begun on a handle inside the selection is the finger's move instead:
   /// after the lift its step is taken back and the selection goes by the finger's travel, room made below as for any
   /// drop, one Undo named *Move*. True when the change was this one's to handle.
-  func resizeAsMove(_ change: PaperProbe.InkChange, undo: UndoManager?) -> Bool {
-    guard let box = selectionDrag.box, run != nil, change.added.isEmpty, change.removed.isEmpty,
+  func resizeAsMove(_ change: PaperProbe.InkChange, undo: UndoManager?, split: Bool) -> Bool {
+    // PaperKit says more while the same touch stretches: those are this move's too.
+    if selectionDrag.claimed, selectionDrag.box != nil, run != nil { return true }
+    // A move the owners-apart rule puts right (story 1145) is that rule's to take back.
+    guard let box = selectionDrag.box, !selectionDrag.claimed, !split, run != nil, change.added.isEmpty,
+      change.removed.isEmpty,
       undo?.isUndoing != true, undo?.isRedoing != true,
       PaperProbe.resizeIsMove(change.moved, selected: Set(selectionDrag.frames.keys), onHandleInside: true)
     else { return false }
     let watch = selectionDrag
     let frames = watch.frames
     let handle = watch.handle
-    selectionDrag.box = nil
+    watch.claimed = true
     Task { @MainActor [weak self] in
       guard let self else { return }
       // The finger is still down while PaperKit stretches: the move waits for the lift, up to 3 s.
@@ -83,6 +93,7 @@ extension PaperBoardController {
         waited += 1
       }
       let travel = CGVector(dx: watch.end.x - watch.start.x, dy: watch.end.y - watch.start.y)
+      watch.box = nil
       let stretched = frames.keys.compactMap { self.paper.markup?.strokeFrames[$0] }.reduce(CGRect.null) {
         $0.union($1)
       }
