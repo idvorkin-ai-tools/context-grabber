@@ -916,8 +916,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1190:
 
 - **Summary:** A Send with no network waits in the outbox and goes once
-- **Status:** implemented in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552) (split from story 1176); verified by host tests (`WhiteboardOneSendTests`: *Waiting to send* in place of the clock and in VoiceOver, nothing else going while it waits, no timeout and never stuck, his clock and the three minutes starting when it goes, once; `WhiteboardStrokesTests.testABoardsSendWaitsOfflineAndGoesOnceWithItsFolds`: offline twice then back, one message under the picture's id with its folds beside its strokes). The network dropping and coming back is owed on the iPad (the simulator keeps its network). Words spoken at a pause while the board's first Send waits kept for the next picture in [2b950639](https://github.com/idvorkin/context-grabber/commit/2b950639), verified by host tests (`WhiteboardResponderTests`: a pause on a board whose own first Send waits goes to the turn; `WhiteboardOneSendTests`: the words held through the Send going and carried by the picture after his answer, or kept when it can't go) and the Mac build; owed on the iPad simulator, as the fake Cockpit can't hold a Send in the outbox.
-- **Issues:** bead context-grabber-rtl (Igor, design board, 2026-11-22: "one Send button that waits when offline"); bead context-grabber-8lsj (review of PR #1236: words spoken at a pause while the board's first Send waited were dropped)
+- **Status:** implemented in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552) (split from story 1176); verified by host tests (`WhiteboardOneSendTests`: *Waiting to send* in place of the clock and in VoiceOver, nothing else going while it waits, no timeout and never stuck, his clock and the three minutes starting when it goes, once; `WhiteboardStrokesTests.testABoardsSendWaitsOfflineAndGoesOnceWithItsFolds`: offline twice then back, one message under the picture's id with its folds beside its strokes). The network dropping and coming back is owed on the iPad (the simulator keeps its network).
+- **Issues:** bead context-grabber-rtl (Igor, design board, 2026-11-22: "one Send button that waits when offline")
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *One Send*
 
 #### Use Case:
@@ -929,12 +929,27 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** No network
 - **Given:** no network
 - **When:** I tap *Send to Larry*, then pause and tap it again
-- **Then:** the note reads *Waiting to send · 0:00* and counts, the button is dimmed, nothing fails and nothing more is queued; when the network is back the picture goes once, the note reads *Larry · 0:00*, and his marks arrive with no further tap
+- **Then:** the note reads *Waiting to send · 0:00* and counts, the button is dimmed, nothing fails and nothing more goes to the outbox; when the network is back the picture goes once, the note reads *Larry · 0:00*, and his marks arrive with no further tap
 
+---
+
+### User Story 1202:
+
+- **Summary:** Words spoken while the first Send waits are kept for the next picture
+- **Status:** implemented in [2b950639](https://github.com/idvorkin/context-grabber/commit/2b950639); verified by host tests (`WhiteboardResponderTests`: a pause on a board whose own first Send waits goes to the turn; `WhiteboardOneSendTests`: the words held through the Send going and carried by the picture after his answer, or kept when it can't go) and the Mac build; owed on the iPad simulator, as the fake Cockpit can't hold a Send in the outbox.
+- **Issues:** bead context-grabber-8lsj (review of PR #1236: words spoken at a pause while the board's first Send waited were dropped)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *One Send*
+
+#### Use Case:
+- **As someone** talking through a picture whose first Send waits for the network
+- **I want to** have what I say at a pause kept
+- **so that** Larry hears it with the next picture instead of losing it
+
+#### Acceptance Criteria:
 - **Scenario:** Words spoken while the first Send waits
 - **Given:** a Larry board with no thread yet, its first Send waiting in the outbox
 - **When:** I speak at a pause
-- **Then:** nothing more goes while it waits, and my words are kept: once the Send has gone and Larry answers, the next picture carries them; if the Send can't go, they wait for the next one
+- **Then:** nothing more goes while it waits, and once the Send has gone and Larry answers, the next picture carries my words; if the Send can't go, they wait for the next one
 
 ---
 

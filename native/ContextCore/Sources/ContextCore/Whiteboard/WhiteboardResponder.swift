@@ -103,10 +103,10 @@ public enum WhiteboardResponder: String, CaseIterable, Sendable {
   /// the board is his instead (`WhiteboardLarryTurn` says whether a picture goes now or waits for his answer), unless
   /// the turn was sent away or the board's first Send still waits (a second picture now would start a second thread).
   /// A first Send that is the board's own turn out (`turnHolds`) takes the pause: the turn holds it and keeps its
-  /// words for the next picture, so nothing goes and nothing said is lost (story 1190, bead context-grabber-8lsj).
+  /// words for the next picture, so nothing goes and nothing said is lost (story 1202, bead context-grabber-8lsj).
   public static func handOff(
     answered: WhiteboardResponder?, answer: WhiteboardTurn.Answer, stale: Bool, firstSendWaiting: Bool,
-    turnHolds: Bool = false
+    turnHolds: Bool
   ) -> HandOff {
     guard answered == .larry, case .shapes(let shapes) = answer, shapes.isEmpty else { return .nothing }
     if stale { return .skipped("stale") }
