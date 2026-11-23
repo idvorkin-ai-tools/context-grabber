@@ -93,13 +93,13 @@ final class PaperKitBoardController: UIViewController, PaperMarkupViewController
   }
 
   private func logPickerCheck() {
-    let presenter = navigationController?.presentingViewController ?? presentingViewController
+    let style = presentingViewController?.presentedViewController?.modalPresentationStyle
     log.event(
       "paperkit_board",
       [
         "action": "picker_check", "picker_visible": picker.isVisible, "first_responder": paper.isFirstResponder,
-        "accessory": picker.accessoryItem != nil, "in_sheet": presenter != nil,
-        "presentation": (navigationController ?? self).modalPresentationStyle.rawValue,
+        "accessory": picker.accessoryItem != nil, "in_sheet": [.formSheet, .pageSheet, .automatic].contains(style),
+        "presentation": style.map { "\($0.rawValue)" } ?? "none",
         "size_class": traitCollection.horizontalSizeClass == .compact ? "compact" : "regular",
         "touch_mode": paper.directTouchMode == .selection ? "selection" : "drawing",
         "auto_draws": paper.directTouchAutomaticallyDraws,

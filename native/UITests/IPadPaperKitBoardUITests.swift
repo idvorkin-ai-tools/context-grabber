@@ -26,9 +26,10 @@ final class IPadPaperKitBoardUITests: XCTestCase {
     // A finger stroke lands on the page.
     let page = app.otherElements["paperkit-board"]
     XCTAssertTrue(page.appears(within: 5), app.debugDescription)
+    XCTAssertEqual(page.value as? String, "0 elements", "the empty page before the stroke")
     let start = page.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.35))
     start.press(forDuration: 0.05, thenDragTo: page.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.45)))
-    let drew = NSPredicate(format: "value != '0 elements'")
+    let drew = NSPredicate(format: "value MATCHES '[1-9][0-9]* elements'")
     let landed = XCTNSPredicateExpectation(predicate: drew, object: page)
     XCTAssertEqual(XCTWaiter().wait(for: [landed], timeout: 5), .completed, "page: \(page.value ?? "nil")")
 
