@@ -1417,7 +1417,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1027:
 
 - **Summary:** One command puts main, development-signed, on the Cockpit's /builds page for the iPad
-- **Status:** implemented in 77168c5b; verified on the host (`scripts/native/test-ota.sh` in `just native-test`: arguments, the dry run, the destination overridable) and on the Mac against a real package (`just ota --check-ipa` on the 9ec60f90 development export: all three profiles list the iPad, expiring 2027-11-20). A full `just ota` from the main checkout is owed after the merge
+- **Status:** implemented in a00720be. Host coverage in `scripts/native/test-ota.sh` covers recipe arguments, the dry run and destination selection. The real development export from 9ec60f90 listed the iPad in all three profiles, expiring 2027-11-20. A full `just ota` from the main checkout is owed after the merge
 - **Issues:** bead `context-grabber-omes` (Igor, 2026-11-22: staying on development builds; record and optimise the build loop)
 
 #### Use Case:
@@ -1429,7 +1429,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** An over-the-air build
 - **Given:** a clean main and the Mac unlocked
 - **When:** `just ota` runs
-- **Then:** it archives main as `just testflight --export-only` does, exports it development-signed under the signing lock and the screen-lock guard, copies it to the Cockpit's builds folder as `grabber-<commit>.ipa`, and prints the version, build, commit, the start of its SHA-256 and each step's seconds
+- **Then:** it archives main as `just testflight --export-only` does, exports it development-signed under the signing lock and the screen-lock guard, publishes the completed transfer as `grabber-<commit>.ipa`, and prints the version, build, commit, the start of its SHA-256 and each step's seconds
 - **And:** `--dry-run` prints that plan and builds, switches and copies nothing
 
 ---
@@ -1437,7 +1437,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1028:
 
 - **Summary:** The over-the-air build refuses a package the iPad can't install, and never prints its id
-- **Status:** implemented in 77168c5b; verified on the host (`scripts/native/test-ota.sh`: no iPad id stops it with exit 78, the id shown only masked) and on the Mac (`just ota --check-ipa` with an id not in the profile names each of the three profiles and exits 78)
+- **Status:** implemented in a00720be. Host coverage in `scripts/native/test-ota.sh` covers the local ID, masking, and a partially unreadable package. The Mac check against the real development export also rejected an ID absent from all three profiles
 - **Issues:** bead `context-grabber-omes`
 
 #### Use Case:
@@ -1447,16 +1447,16 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** A profile without the iPad
-- **Given:** the iPad's id from the environment or the gitignored local file
+- **Given:** the iPad's id in the gitignored local file
 - **When:** the exported package's profiles (the app, the widgets, the share extension) are checked
-- **Then:** one that doesn't list the iPad stops the run before the copy, naming the profile and how to add the device; the id is shown only as its first and last four characters; no id at all stops it the same way; a second ota while one runs stops at once (exit 75); and a profile expiring within 30 days is warned about
+- **Then:** an unreadable profile or one that doesn't list the iPad stops the run before the copy. The command shows the ID only in masked form and prints readable profiles' expiry dates. A missing ID stops the run, and a second ota while one runs stops at once (exit 75)
 
 ---
 
 ### User Story 1029:
 
 - **Summary:** After each merge batch, main is built over the air and Igor's thread says what it holds
-- **Status:** implemented in 77168c5b; verified on the host (`scripts/native/test-ota.sh`: a throwaway history with merges at chosen times, a fake ota and a fake `larry`: the first run, an open batch, a finished batch, the post, a restart, a batch that ended while no watcher ran, busy, failed and stopped builds); the real watcher against main in a dry run
+- **Status:** implemented in a00720be. The host fixture in `scripts/native/test-ota.sh` exercises polling remote merges, a merge arriving before OTA selects the checkout, announcement retry across restart, and the build exit codes
 - **Issues:** bead `context-grabber-omes`
 
 #### Use Case:
@@ -1468,14 +1468,14 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A batch of merges settles
 - **Given:** the watcher is running and main has merges since the last build
 - **When:** ten minutes pass with no newer merge
-- **Then:** it runs `just ota` and posts *New build on /builds: <version> (<build>) <commit>, with: <the PRs merged since the last build>* to the thread, and remembers the commit built outside the repository; a newer merge keeps the batch open, nothing new does nothing, a restart neither rebuilds nor skips a batch, a build that couldn't start is tried at the next poll, and one that needs a person is posted and stops the watcher
+- **Then:** it builds the checked commit, posts *New build on /builds: <version> (<build>) <commit>, with: <the PRs merged since the last build>* to `igor2-88g.1620`, and remembers the build outside the repository. A newer merge before the build is selected makes it wait again. A failed post is retried after a restart without rebuilding. Busy and locked builds are retried at the next poll, and other build failures stop the watcher with local diagnostics
 
 ---
 
 ### User Story 1500:
 
 - **Summary:** One document says how a build reaches each device, and what would make it faster
-- **Status:** implemented in 77168c5b (docs/DEPLOYING.md, linked from AGENTS.md and docs/TESTING.md)
+- **Status:** implemented in a00720be. Verified by resolving both relative links from AGENTS.md and docs/TESTING.md to the deploy guide
 - **Issues:** bead `context-grabber-omes`
 
 #### Use Case:

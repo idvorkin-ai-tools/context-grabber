@@ -30,13 +30,13 @@ development-signed package to the Cockpit's `/builds` page, from where the iPad 
 - Switches the Mac's checkout to main and brings it up to date, then archives it as `just testflight --export-only`
   does (the same build stamps, the same build number, the same signing lock and screen-lock guard), and exports the
   archive signed for development, for the devices in the team's profile.
-- Checks that the package's profile lists the iPad (the iPad's id comes from the environment or the local file git
-  ignores; the id is never printed whole). If it doesn't, nothing is copied, and it says how to add the device.
-- Copies the package to the Cockpit's builds folder as `grabber-<commit>.ipa`. The host and the folder can be named
-  in the environment; the defaults are the Cockpit's.
+- Checks that every embedded profile can be read and lists the iPad. The id comes from the local file git ignores
+  and is never printed whole. A failed check stops publication and explains what needs attention.
+- Publishes the package to the Cockpit's builds folder as `grabber-<commit>.ipa` after the transfer completes. A
+  failed transfer leaves any existing build available. The host and folder can be named in the environment.
 - Ends with one line naming the version, the build number, the commit, the first characters of the package's SHA-256
   and where it went, and a line with each step's seconds (also kept in a local timing log).
-- Says when the profile expires, and warns when that is less than 30 days away.
+- Says when each profile expires.
 - `--dry-run` says what it would build and where it would go, and checks that the iPad's id is known, without
   switching branches, building, signing or copying.
 - Only one runs at a time on the Mac: a second one, by hand or from the watcher, stops at once and says another is
@@ -46,17 +46,19 @@ development-signed package to the Cockpit's `/builds` page, from where the iPad 
 
 ## `just ota-watch`
 
-- Polls main on GitHub every minute (by default).
-- A batch is one or more merges into main followed by ten minutes (by default) with no further merge. When a batch
-  ends, it runs `just ota`, then posts to Igor's Cockpit thread: *New build on /builds: <version> (<build>)
-  <commit>, with: <the pull requests merged since the last build>*.
+- Polls main on GitHub every minute.
+- A batch is one or more merges into main followed by ten minutes with no further merge. When a batch ends, the
+  watcher builds the commit it checked. If main has advanced when OTA selects the build, the watcher polls again.
+  After publishing the checked commit, it posts to Cockpit thread `igor2-88g.1620`: *New build on /builds:
+  <version> (<build>) <commit>, with: <the pull requests merged since the last build>*.
 - It remembers the last commit it built in a file outside the repository, so a restart neither rebuilds nor skips a
   batch. On its first run, with no such file, it starts from main as it is and builds nothing until the next batch.
+- If a published build's announcement fails, the watcher remembers the pending announcement and retries it on
+  the next poll, including after a restart. It finishes that announcement before starting another build.
 - The batch is judged on when the merges happened, not when the watcher saw them, so a watcher started after a batch
   builds it on its first poll.
 - A build that could not start because the Mac was locked or another build was running is tried again at the next
-  poll. A build that needs a person (the Xcode account lost, the iPad not in the profile) stops the watcher and says
-  so in the thread. Any other failure is said in the thread once and tried again only after a new merge or an hour.
+  poll. Other build failures stop the watcher with diagnostics in its local output.
 - Only one watcher runs at a time.
 
 ## The deploy document

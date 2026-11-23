@@ -9,14 +9,14 @@
 #                      signs and copies nothing
 #   --check-ipa <ipa>  only check that an .ipa's profiles list the iPad (and say when they expire)
 #
-# Environment: OTA_HOST (developer@c-5004) and OTA_DIR (gits/igor2/cockpit-data/builds), where the package goes;
-# IPAD, the iPad's UDID, else the gitignored scripts/native/ipad-udid.local (never printed whole); OTA_LOCK, the
-# one-ota-at-a-time lock; OTA_TIMINGS, the local log of each run's step times.
-# Exits: 0 built and copied; 64 usage; 65 main can't be checked out or pulled; 66 no such .ipa; 75 another ota is
-# running; 78 a person must act (no iPad id, the iPad not in the profile, Xcode's account lost); 80 the Mac stayed
-# locked (BugKit's guard); a failed build's own code otherwise.
+# Environment: OTA_HOST (developer@c-5004) and OTA_DIR (gits/igor2/cockpit-data/builds), where the package goes.
+# The iPad's UDID comes from the gitignored scripts/native/ipad-udid.local (never printed whole).
+# Exits: 0 built and copied; 64 usage; 65 main can't be checked out or pulled; 66 no such .ipa; 75 another OTA is
+# running or main advanced since the watcher polled; 78 a person must act (ID, profile or Xcode account);
+# 80 the Mac stayed locked (BugKit's guard); a failed build's own code otherwise.
 set -uo pipefail
-cd "$(dirname "$0")/../.." || exit 1
+repo=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
+cd "$repo" || exit 1
 args=("$@")
 
 dry_run=0 check_ipa=""
@@ -25,14 +25,14 @@ while [ $# -gt 0 ]; do
     --dry-run) dry_run=1 ;;
     --check-ipa)
       check_ipa=${2:-}
-      [ -n "$check_ipa" ] || {
+      [[ -n "$check_ipa" && "$check_ipa" != -* ]] || {
         echo "ota: --check-ipa needs a path" >&2
         exit 64
       }
       shift
       ;;
     -h | --help)
-      sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,16p' "$repo/scripts/native/ota.sh" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *)
@@ -45,49 +45,48 @@ done
 
 host=${OTA_HOST:-developer@c-5004}
 dir=${OTA_DIR:-gits/igor2/cockpit-data/builds}
-lock=${OTA_LOCK:-$HOME/tmp/agent/locks/ota.lock}
-timings=${OTA_TIMINGS:-$HOME/tmp/agent/notes/ota-timings.log}
+lock=$HOME/tmp/agent/locks/ota.lock
+timings=$HOME/tmp/agent/notes/ota-timings.log
 
-# The iPad's id, as scripts/native/devices.sh reads it; shown only as its first and last four characters.
-ipad=${IPAD:-}
-[ -z "$ipad" ] && [ -s scripts/native/ipad-udid.local ] && ipad=$(tr -d '[:space:]' <scripts/native/ipad-udid.local)
+ipad=""
+[ ! -r scripts/native/ipad-udid.local ] || ipad=$(tr -d '[:space:]' <scripts/native/ipad-udid.local)
 if [ -z "$ipad" ]; then
-  echo "ota: no iPad id: set IPAD=<udid> or write it to scripts/native/ipad-udid.local (gitignored; docs/DEPLOYING.md \"Adding a device\")" >&2
+  echo "ota: no iPad id: write it to scripts/native/ipad-udid.local (gitignored; docs/DEPLOYING.md \"Adding a device\")" >&2
   exit 78
 fi
-shown_ipad="${ipad:0:4}…${ipad: -4}"
+shown_ipad=…
+[ "${#ipad}" -le 8 ] || shown_ipad="${ipad:0:4}…${ipad: -4}"
 
 # Every embedded profile in the package (the app, the widgets, the share extension) must list the iPad.
-check_profiles() { # <ipa>
-  local ipa=$1 tmp p name expires left missing=0 found=0 want
+check_profiles() ( # <ipa>
+  local ipa=$1 tmp profiles p name expires missing=0 want plist
   want=$(tr 'a-z' 'A-Z' <<<"$ipad")
-  tmp=$(mktemp -d)
-  unzip -q -o "$ipa" 'Payload/*embedded.mobileprovision' -d "$tmp" 2>/dev/null
+  tmp=$(mktemp -d) || return 78
+  trap 'rm -rf "$tmp"' EXIT
+  plist=$tmp/profile.plist
+  if ! unzip -qo "$ipa" 'Payload/*/embedded.mobileprovision' -d "$tmp" 2>/dev/null ||
+    ! profiles=$(find "$tmp/Payload" -name embedded.mobileprovision | sort) ||
+    [ -z "$profiles" ]; then
+    echo "ota: can't extract and enumerate the embedded profiles in $ipa (is it a device build?)" >&2
+    return 78
+  fi
   while IFS= read -r p; do
-    found=1
-    security cms -D -i "$p" >"$tmp/profile.plist" 2>/dev/null || {
+    if ! security cms -D -i "$p" >"$plist" 2>/dev/null ||
+      ! name=$(plutil -extract Name raw "$plist" 2>/dev/null) ||
+      ! expires=$(plutil -extract ExpirationDate raw "$plist" 2>/dev/null); then
       echo "ota: can't read the profile ${p#"$tmp"/}" >&2
       missing=1
       continue
-    }
-    name=$(plutil -extract Name raw "$tmp/profile.plist" 2>/dev/null)
-    if ! plutil -extract ProvisionedDevices json -o - "$tmp/profile.plist" 2>/dev/null | tr 'a-z' 'A-Z' | grep -qF "\"$want\""; then
+    fi
+    if ! plutil -extract ProvisionedDevices json -o - "$plist" 2>/dev/null | tr 'a-z' 'A-Z' | grep -F "\"$want\"" >/dev/null; then
       echo "ota: the profile \"$name\" doesn't list the iPad ($shown_ipad): register it and build again (docs/DEPLOYING.md \"Adding a device\")" >&2
       missing=1
       continue
     fi
-    expires=$(plutil -extract ExpirationDate raw "$tmp/profile.plist" 2>/dev/null)
-    left=$((($(date -j -u -f '%Y-%m-%dT%H:%M:%SZ' "$expires" +%s 2>/dev/null || echo 0) - $(date +%s)) / 86400))
-    [ "$left" -lt 30 ] && echo "ota: warning: the profile \"$name\" expires $expires, in $left days (docs/DEPLOYING.md \"Renewing the profile\")" >&2
     echo "ota: profile \"$name\" lists the iPad ($shown_ipad), expires $expires"
-  done < <(find "$tmp/Payload" -name embedded.mobileprovision 2>/dev/null | sort)
-  rm -rf "$tmp"
-  [ "$found" = 1 ] || {
-    echo "ota: $ipa has no embedded profile: not a device build" >&2
-    return 78
-  }
+  done <<<"$profiles"
   [ "$missing" = 0 ] || return 78
-}
+)
 
 if [ -n "$check_ipa" ]; then
   [ -f "$check_ipa" ] || {
@@ -113,11 +112,8 @@ fi
 
 # One ota at a time on this Mac, by hand or from the watcher: a second one stops at once (lockf's 75).
 if [ -z "${OTA_LOCKED:-}" ]; then
-  mkdir -p "$(dirname "$lock")"
-  OTA_LOCKED=1 lockf -k -t 0 "$lock" "$0" ${args[@]+"${args[@]}"}
-  rc=$?
-  [ "$rc" = 75 ] && echo "ota: another ota is running (the lock $lock)" >&2
-  exit "$rc"
+  mkdir -p "$(dirname "$lock")" || exit
+  OTA_LOCKED=1 exec lockf -k -t 0 "$lock" "$repo/scripts/native/ota.sh" ${args[@]+"${args[@]}"}
 fi
 
 t0=$(date +%s)
@@ -127,10 +123,16 @@ if [ "$(git branch --show-current)" != main ]; then
     exit 65
   }
 fi
-git pull -q --ff-only || {
+git fetch -q origin +refs/heads/main:refs/remotes/origin/main || exit 65
+selected=$(git rev-parse refs/remotes/origin/main) || exit 65
+if [ -n "${OTA_EXPECTED_SHA:-}" ] && [ "$selected" != "$OTA_EXPECTED_SHA" ]; then
+  echo "ota: origin/main advanced since the watcher polled" >&2
+  exit 75
+fi
+if ! git merge -q --ff-only "$selected" || [ "$(git rev-parse HEAD)" != "$selected" ]; then
   echo "ota: main can't be pulled fast-forward" >&2
   exit 65
-}
+fi
 plan=$(scripts/native/testflight.sh --export-only --dry-run) || exit
 stamp=$(sed -n 's#^  export:  native/Build/Export/##p' <<<"$plan")
 [ -n "$stamp" ] || {
@@ -148,10 +150,6 @@ just testflight --export-only >"$tf_log" 2>&1 || {
 }
 t1=$(date +%s)
 archive=native/Build/Archives/$stamp.xcarchive
-[ -d "$archive" ] || {
-  echo "ota: testflight left no archive at $archive" >&2
-  exit 1
-}
 
 out=native/Build/Export/$stamp-dev
 rm -rf "$out"
@@ -183,18 +181,31 @@ t2=$(date +%s)
 check_profiles "$ipa" || exit
 
 # What the package says it is, read back rather than assumed.
-plist=$(mktemp)
-unzip -p "$ipa" 'Payload/GrabberNative.app/Info.plist' >"$plist"
-version=$(plutil -extract CFBundleShortVersionString raw "$plist")
-build=$(plutil -extract CFBundleVersion raw "$plist")
-sha=$(plutil -extract GitSha raw "$plist")
-rm -f "$plist"
-full=$(git rev-parse "$sha" 2>/dev/null || echo "$sha")
-sum=$(shasum -a 256 "$ipa" | cut -c1-16)
-dest="$host:$dir/grabber-$sha.ipa"
+plist=$(mktemp) || exit
+trap 'rm -f "$plist"' EXIT
+if ! unzip -p "$ipa" 'Payload/GrabberNative.app/Info.plist' >"$plist" ||
+  ! version=$(plutil -extract CFBundleShortVersionString raw "$plist") ||
+  ! build=$(plutil -extract CFBundleVersion raw "$plist") ||
+  ! sha=$(plutil -extract GitSha raw "$plist") ||
+  ! [[ "$sha" =~ ^[0-9a-f]+$ ]] ||
+  [ "$(git rev-parse --verify "$sha^{commit}" 2>/dev/null)" != "$selected" ]; then
+  echo "ota: can't verify that the package was built from $selected" >&2
+  exit 1
+fi
+sum=$(shasum -a 256 "$ipa" | cut -c1-16) || exit
+published="$dir/grabber-$sha.ipa"
+stage="$dir/.grabber-$sha.ipa.$$.$RANDOM.part"
+remote=(ssh -o BatchMode=yes -o ConnectTimeout=15 -- "$host")
+apostrophe="'"
+escaped_apostrophe="'\"'\"'"
+quoted_stage="'${stage//"$apostrophe"/$escaped_apostrophe}'"
+quoted_published="'${published//"$apostrophe"/$escaped_apostrophe}'"
+dest="$host:$published"
 t3=$(date +%s)
-scp -q -o BatchMode=yes -o ConnectTimeout=15 "$ipa" "$dest" || {
+scp -q -o BatchMode=yes -o ConnectTimeout=15 -- "$ipa" "$host:$stage" &&
+  "${remote[@]}" "mv -f -- $quoted_stage $quoted_published" || {
   rc=$?
+  "${remote[@]}" "rm -f -- $quoted_stage" >/dev/null 2>&1 || :
   echo "ota: the copy to $dest failed; the package is at $ipa" >&2
   exit "$rc"
 }
@@ -204,4 +215,4 @@ echo "ota: $version ($build) $sha -> $dest (sha256 $sum)"
 echo "ota: times: $times"
 mkdir -p "$(dirname "$timings")" && echo "$(date '+%F %T') $version ($build) $sha: $times" >>"$timings"
 # For the watcher: one line, space separated.
-echo "ota-built: $version $build $sha $full $sum $dest"
+echo "ota-built: $version $build $sha $selected $sum $dest"

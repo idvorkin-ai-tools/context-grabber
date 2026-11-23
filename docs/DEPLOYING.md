@@ -59,15 +59,16 @@ lands, so the "is Igor using it" check applies when the device comes back, not w
 iPad to install over the air, from anywhere:
 
 1. Switches the checkout it runs in to main and pulls (run it from the main checkout; a pool slot can't check out
-   main while the main checkout has it).
+   main while the main checkout has it). When the watcher starts OTA, it defers if main has advanced since the poll.
 2. Archives main as `just testflight --export-only` does: Release, the build stamps, the build number from the commit
    count, under the signing lock and BugKit's guard (`native/Build/logs/ota-testflight.log`).
 3. Exports the archive development-signed (method `debugging`, automatic signing, the team from `project.yml`) to
    `native/Build/Export/<stamp>-dev`, again under the lock and the guard (`native/Build/logs/ota-export.log`).
-4. Checks that every profile in the package (the app, the widgets, the share extension) lists the iPad, and says
-   when they expire. A profile without the iPad stops it before the copy (exit 78).
-5. Copies the package to `developer@c-5004:gits/igor2/cockpit-data/builds/grabber-<sha>.ipa` (`OTA_HOST` and `OTA_DIR`
-   name another), which the Cockpit serves on its /builds page.
+4. Checks that every profile in the package (the app, the widgets, the share extension) can be read and lists the
+   iPad in `scripts/native/ipad-udid.local`, and says when the profiles expire. A failed check stops publication
+   (exit 78).
+5. Publishes the fully transferred package as `developer@c-5004:gits/igor2/cockpit-data/builds/grabber-<sha>.ipa`
+   (`OTA_HOST` and `OTA_DIR` name another destination). A failed transfer leaves any existing copy in place.
 6. Prints the version, build, commit and the first 16 characters of the package's SHA-256, and each step's seconds,
    also kept in `~/tmp/agent/notes/ota-timings.log`.
 
@@ -89,12 +90,11 @@ minutes pass with no newer merge (a batch), it runs `just ota` and posts to Igor
 
 - It runs in the foreground; the lead keeps it running as a background task. There is no LaunchAgent.
 - The last commit built is in `~/tmp/agent/ota-last-sha`, so a restart neither rebuilds nor skips a batch. With no
-  such file it starts from main as it is and builds from the next batch.
+  such file it starts from main as it is and builds from the next batch. If the post fails, the watcher retries the
+  saved announcement at the next poll, even after a restart.
 - The batch is judged on the merges' commit times, so a watcher started after a batch builds it on its first poll.
-- ota busy, or the Mac locked (75, 80): tried again at the next poll. A person must act (78): it posts why and stops.
-  Anything else: posted once, tried again after a new merge or an hour.
-- `--once` polls once; `--dry-run` says what it would build and post; `--quiet <s>` and `--interval <s>` change the
-  timings (`OTA_QUIET`, `OTA_INTERVAL`).
+- OTA busy, main advanced before build selection, or the Mac locked (75, 80): tried again at the next poll.
+  Other build failures stop the watcher and report the reason in its local output.
 
 ## Signing
 
@@ -113,8 +113,8 @@ minutes pass with no newer merge (a batch), it runs `just ota` and posts to Igor
 ## Renewing the profile
 
 Development provisioning profiles, and the Apple Development certificate that signs them, last a year. The current
-profiles expire on 2027-11-20 (`just ota --check-ipa` on a recent package, or `just ota`'s output, says the date; it
-warns within 30 days). A build already installed stops launching once its profile expires.
+profiles expire on 2027-11-20 (`just ota --check-ipa` on a recent package, or `just ota`'s output, says the date).
+A build already installed stops launching once its profile expires.
 
 What to do, before the date: with the Mac unlocked and Xcode's account signed in, run one signing build first and
 alone (`just ota` or `just native-build-device`). Its `-allowProvisioningUpdates` lets Xcode fetch a new profile (and a
@@ -159,4 +159,3 @@ runs give the numbers. None of these is done; each would be its own change.
 | Give the *Bundle the stack and voice* build phase its inputs and outputs (Xcode says it runs on every build) | seconds on every build, archives included (unmeasured) | its outputs must be listed completely or a stale bundle ships |
 | Archive in Debug for over the air (no optimisation) | perhaps a third of the compile (unmeasured) | not the build TestFlight ships; slower app |
 | Incremental archives: keep one derived-data folder for over-the-air builds and never clean it (it is the main checkout's `native/Build` already; confirm in the timing log that a second archive is faster than the first) | most of the compile on a small change (unmeasured) | none, if it holds |
-| A shorter quiet window for `ota-watch` (`--quiet 300`) | five minutes from merge to build | more builds in a busy hour; one ota at a time still holds |

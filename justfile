@@ -207,13 +207,15 @@ testflight *args: native-project
 # A development build of main over the air (bead context-grabber-omes, stories 1027-1028; docs/DEPLOYING.md): archived as
 # testflight --export-only does, exported development-signed, checked that its profile lists the iPad, and copied to
 # the Cockpit's /builds as grabber-<sha>.ipa (OTA_HOST, OTA_DIR). --dry-run builds nothing; --check-ipa <ipa> only checks.
+[positional-arguments]
 ota *args:
-    scripts/native/ota.sh {{args}}
+    scripts/native/ota.sh "$@"
 
 # Runs just ota after each merge batch (merges, then 10 quiet minutes) and posts the build to Igor's Cockpit thread
-# (story 1029, docs/DEPLOYING.md). Foreground: keep it running as a background task. --once, --dry-run.
+# (story 1029, docs/DEPLOYING.md). Runs in the foreground.
+[positional-arguments]
 ota-watch *args:
-    scripts/native/ota-watch.sh {{args}}
+    scripts/native/ota-watch.sh "$@"
 
 # Native rung 1.5, the Mac app (#638), with no signing identity: no iCloud, nothing asked of Xcode's account.
 native-build-mac: native-project
