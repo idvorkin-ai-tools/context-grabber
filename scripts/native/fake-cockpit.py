@@ -59,6 +59,8 @@ Question cards on a board (stories 880-886): GET /asks?snoozed=1 is GET /asks; P
 the asks as /fake/asks does (with "other" as there) and has Larry put a question card for that ask on the newest board thread ({kind: question,
 ask, x, y} in the picture's pixels, with its frame); GET /ink/answers?ids=a,b answers with the question and answer of the
 asks decided here, as ink_store.decision_answer reads them, and lists the rest as unknown.
+Thread igor2-88g.820 holds one message of Igor's and Larry's answer, for Send to new chat (story 820; ChatMoveUITests
+moves Igor's out, so a second run needs a fresh fake Cockpit, as the chat UI script starts).
 Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu (stories 518-519, 540-541), apart from .900, where the simulator's outbox can hold leftover smoke items; the chat UI script and the ladder's chat step clear the outbox's own leftovers for .629 first (forget-chat-thread.sh, #801, #812).
 POST /ink/to-text {name, png} reads handwriting as the Cockpit's ink_text.py answers (stories 920-922): a PNG in base64
 or a 400 with its reason, then {ok, text, too_long, advice, model, via} with the text "hello"; POST /fake/to-text
@@ -206,6 +208,10 @@ THREADS["igor2-88g.604"] = {"title": "A board since deleted", "seen": "", "messa
 ]}
 THREADS["igor2-88g.629"] = {"title": "Larry asks", "seen": "", "messages": [
     row("igor2-88g.629", "larry", "Shall we ship it?"),
+]}
+THREADS["igor2-88g.820"] = {"title": "A chat to leave", "seen": "", "messages": [  # story 820: Send to new chat
+    row("igor2-88g.820", "igor", "Start a fresh plan for the garden"),
+    row("igor2-88g.820", "larry", "Happy to, in its own chat."),
 ]}
 THREADS["igor2-88g.817"] = {"title": "Laptops", "seen": "", "messages": [  # story 747: a table in a bubble
     row("igor2-88g.817", "larry", "Here's how they compare:\n| | Weight | Battery | Price |\n|---|:---:|---:|---|\n"
