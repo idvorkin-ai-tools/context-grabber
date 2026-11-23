@@ -39,7 +39,8 @@ Igor's picks on the design board, 2026-11-22. Each rule is stated here once; the
 What moves whole, and is never cut through by a push:
 
 - a mark of Larry's or Claude's kept on its own with **Keep**;
-- a whole reply kept with **Keep all** (or with Keep group, before the two became one): what he kept together moves
+- a whole reply kept with **Keep all**, or with **Keep** beside one of its marks (story 1154), or with Keep group before
+  the two became one: what he kept together moves
   together (story 1205);
 - a group Larry made himself;
 - a kept text or a paste, which can also be reworded;
@@ -54,9 +55,9 @@ fold is erased only by its words or its marker, never by its underline or its # 
 A finger tap is tried in this order, and the first that fits wins:
 
 1. **His own selection.** A tap inside it is always the selection's, whatever lies under the finger (story 1196).
-2. **What he kept together.** A piece of a reply kept with Keep all (or Keep group before it) picks up that reply; a
-   mark kept on its own with Keep picks up that mark alone; a group of Larry's picks up the group (stories 947, 1140,
-   1205).
+2. **What he kept together.** A piece of a reply kept with Keep all or Keep beside one of its marks (or Keep group
+   before them) picks up that reply; a mark kept on its own with Keep picks up that mark alone; a group of Larry's
+   picks up the group (stories 947, 1140, 1205).
 3. **A text.** The first tap selects it, ready to drag; the second opens its words (stories 940, 1197).
 
 The Pencil never selects with a tap: it draws. A Pencil held still on a word picks that word up (story 859).
