@@ -230,15 +230,12 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** The app comes back after being suspended
-- **Given:** the app left in the background or the iPad asleep for minutes, however it got there
+- **Given:** the app was suspended or the iPad slept for at least five seconds while the watch was still running
 - **When:** the app comes back
-- **Then:** the log has no `main_stall` began for the time away; it says `away` with how long, and the watch carries on
+- **Then:** the first watch look, main-thread reply, or stop records one `main_stall` `away` with the time since the last look and discards any stall in progress
+- **And:** a normal stop before suspension and the next start appear as `stopped` and `watching`
 - **And:** each start and stop of the watch names the app's state and its scenes' states
-
-- **Scenario:** A real stall still shows
-- **Given:** the main thread stuck for a second or more while the app is in front
-- **When:** it answers again
-- **Then:** the log has `main_stall` began and ended as before
+- **And:** a real stall lasting at least a second while the watch keeps looking still records `main_stall` `began` and `ended`
 
 ---
 

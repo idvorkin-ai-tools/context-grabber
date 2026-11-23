@@ -14,34 +14,25 @@ public struct MainStallMeter: Sendable {
     /// It answered again after `lasted` seconds without.
     case ended(lasted: Double)
     /// The watch itself didn't look for `gap` seconds: the app was suspended, and the wait so far is forgotten.
-    /// `wasStalling` when a stall had been said to begin before it went away (its end isn't known).
-    case away(gap: Double, wasStalling: Bool)
+    case away(gap: Double)
   }
 
   public let threshold: Double
-  /// A gap between the watch's own looks this long means the process was suspended.
-  public let awayGap: Double
   private var lastAnswer: Double
-  private var lastLook: Double
+  private var lastLook: Double?
   private var stalling = false
 
-  public init(threshold: Double, now: Double, awayGap: Double = 5) {
+  public init(threshold: Double, now: Double) {
     self.threshold = threshold
-    self.awayGap = awayGap
     lastAnswer = now
     lastLook = now
   }
 
   /// The watch looking, off the main thread.
   public mutating func checked(at now: Double) -> Word? {
-    let gap = now - lastLook
-    lastLook = now
-    if gap >= awayGap {
-      let wasStalling = stalling
-      lastAnswer = now
-      stalling = false
-      return .away(gap: gap, wasStalling: wasStalling)
-    }
+    guard let lastLook else { return nil }
+    if let away = takeAway(since: lastLook, at: now) { return away }
+    self.lastLook = now
     guard !stalling, now - lastAnswer >= threshold else { return nil }
     stalling = true
     return .began(waited: now - lastAnswer)
@@ -49,6 +40,8 @@ public struct MainStallMeter: Sendable {
 
   /// The main thread answering a look.
   public mutating func answered(at now: Double) -> Word? {
+    guard let lastLook else { return nil }
+    if let away = takeAway(since: lastLook, at: now) { return away }
     defer {
       lastAnswer = now
       stalling = false
@@ -56,13 +49,23 @@ public struct MainStallMeter: Sendable {
     return stalling ? .ended(lasted: now - lastAnswer) : nil
   }
 
-  /// The watch stopping (the app going inactive), from the main thread: a stall under way ends here.
-  public mutating func stopped(at now: Double) -> Word? { answered(at: now) }
+  /// The watch stopping (the app going inactive), from the main thread.
+  public mutating func stopped(at now: Double) -> Word? {
+    defer { lastLook = nil }
+    return answered(at: now)
+  }
 
   /// The watch starting again: the time away was no stall.
   public mutating func restart(at now: Double) {
     lastAnswer = now
     lastLook = now
     stalling = false
+  }
+
+  private mutating func takeAway(since lastLook: Double, at now: Double) -> Word? {
+    let gap = now - lastLook
+    guard gap >= 5 else { return nil }
+    restart(at: now)
+    return .away(gap: gap)
   }
 }

@@ -12,11 +12,12 @@ final class MainStallWatch: @unchecked Sendable {
   /// Looks four times a second; a second without an answer is a stall.
   static let every = 0.25
   static let threshold = 1.0
+  private static let clockOrigin = ContinuousClock.now
 
   private let log: SessionLog
   private let queue = DispatchQueue(label: "grabber.main-stall", qos: .utility)
   private let lock = NSLock()
-  private var meter = MainStallMeter(threshold: threshold, now: ProcessInfo.processInfo.systemUptime)
+  private var meter = MainStallMeter(threshold: threshold, now: now())
   /// One answer asked of the main thread at a time: a stuck one doesn't pile up a look per tick.
   private var asking = false
   private var timer: DispatchSourceTimer?
@@ -43,7 +44,7 @@ final class MainStallWatch: @unchecked Sendable {
   private func start() {
     guard timer == nil else { return }
     lock.withLock {
-      meter.restart(at: ProcessInfo.processInfo.systemUptime)
+      meter.restart(at: Self.now())
       asking = false
     }
     log.event("main_stall", ["action": "watching", "app": Self.appState(), "scenes": Self.sceneStates()])
@@ -57,30 +58,32 @@ final class MainStallWatch: @unchecked Sendable {
   private func stop() {
     timer?.cancel()
     timer = nil
-    let word = lock.withLock { meter.stopped(at: ProcessInfo.processInfo.systemUptime) }
-    say(word, why: "inactive")
+    lock.withLock {
+      say(meter.stopped(at: Self.now()), why: "inactive")
+    }
     log.event("main_stall", ["action": "stopped", "app": Self.appState(), "scenes": Self.sceneStates()])
   }
 
   /// Off the main thread.
   private func look() {
-    let now = ProcessInfo.processInfo.systemUptime
-    let (word, ask): (MainStallMeter.Word?, Bool) = lock.withLock {
-      let word = meter.checked(at: now)
+    let ask = lock.withLock {
+      say(meter.checked(at: Self.now()), why: nil)
       let ask = !asking
       asking = true
-      return (word, ask)
+      return ask
     }
-    say(word, why: nil)
     guard ask else { return }
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
-      let word = self.lock.withLock {
+      self.lock.withLock {
         self.asking = false
-        return self.meter.answered(at: ProcessInfo.processInfo.systemUptime)
+        self.say(self.meter.answered(at: Self.now()), why: nil)
       }
-      self.say(word, why: nil)
     }
+  }
+
+  private static func now() -> Double {
+    (ContinuousClock.now - clockOrigin) / .seconds(1)
   }
 
   private func say(_ word: MainStallMeter.Word?, why: String?) {
@@ -91,9 +94,8 @@ final class MainStallWatch: @unchecked Sendable {
       var fields: [String: Any] = ["action": "ended", "ms": Int((lasted * 1000).rounded())]
       if let why { fields["why"] = why }
       log.event("main_stall", fields)
-    case .away(let gap, let wasStalling):
-      log.event(
-        "main_stall", ["action": "away", "gap_ms": Int((gap * 1000).rounded()), "was_stalling": wasStalling])
+    case .away(let gap):
+      log.event("main_stall", ["action": "away", "gap_ms": Int((gap * 1000).rounded())])
     case nil:
       break
     }

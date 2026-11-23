@@ -35,7 +35,10 @@ final class MainStallMeterTests: XCTestCase {
 
   func testRestartingAfterTheAppWasAwayIsNoStall() {
     var meter = MainStallMeter(threshold: 1, now: 0)
-    // Suspended for a minute: the watch restarts on coming back, so the gap isn't a stall.
+    XCTAssertNil(meter.checked(at: 0.25))
+    XCTAssertNil(meter.stopped(at: 0.5))
+    XCTAssertNil(meter.answered(at: 59.5))
+    XCTAssertNil(meter.checked(at: 59.75))
     meter.restart(at: 60)
     XCTAssertNil(meter.checked(at: 60.25))
     XCTAssertNil(meter.answered(at: 60.25))
@@ -44,6 +47,7 @@ final class MainStallMeterTests: XCTestCase {
   func testStoppingInAStallEndsIt() {
     var meter = MainStallMeter(threshold: 1, now: 0)
     XCTAssertEqual(meter.checked(at: 2), .began(waited: 2))
+    for tick in 9...35 { XCTAssertNil(meter.checked(at: Double(tick) * 0.25)) }
     // The main thread comes back to the app going inactive before it reaches the watch's own answer.
     XCTAssertEqual(meter.stopped(at: 9), .ended(lasted: 9))
     XCTAssertNil(meter.stopped(at: 9.5))
@@ -60,7 +64,7 @@ final class MainStallMeterTests: XCTestCase {
     XCTAssertNil(meter.checked(at: 0.25))
     XCTAssertNil(meter.answered(at: 0.25))
     // Suspended for 921 s: the next look comes 921 s after the last one.
-    XCTAssertEqual(meter.checked(at: 921.604), .away(gap: 921.354, wasStalling: false))
+    XCTAssertEqual(meter.checked(at: 921.604), .away(gap: 921.354))
     // The pending answer arriving on resume is no stall either, and the watch carries on quietly.
     XCTAssertNil(meter.answered(at: 921.62))
     XCTAssertNil(meter.checked(at: 921.85))
@@ -84,18 +88,34 @@ final class MainStallMeterTests: XCTestCase {
     var meter = MainStallMeter(threshold: 1, now: 0)
     XCTAssertNil(meter.checked(at: 0.75))
     XCTAssertEqual(meter.checked(at: 1.25), .began(waited: 1.25))
-    XCTAssertEqual(meter.checked(at: 300), .away(gap: 298.75, wasStalling: true))
+    XCTAssertEqual(meter.checked(at: 300), .away(gap: 298.75))
     XCTAssertNil(meter.answered(at: 300.1))
   }
 
-  func testAGapJustUnderTheAwayGapIsStillWatched() {
-    var meter = MainStallMeter(threshold: 1, now: 0, awayGap: 5)
-    XCTAssertEqual(meter.checked(at: 4.9), .began(waited: 4.9))
+  func testAReplyFirstAfterSuspensionSaysAwayOnce() {
+    var meter = MainStallMeter(threshold: 1, now: 0)
+    XCTAssertEqual(meter.checked(at: 1.25), .began(waited: 1.25))
+    XCTAssertEqual(meter.answered(at: 300), .away(gap: 298.75))
+    XCTAssertNil(meter.checked(at: 300.25))
+    XCTAssertNil(meter.stopped(at: 300.5))
   }
 
-  func testRestartingResetsTheLookClock() {
+  func testAStopFirstAfterSuspensionSaysAwayOnce() {
     var meter = MainStallMeter(threshold: 1, now: 0)
-    meter.restart(at: 600)
-    XCTAssertNil(meter.checked(at: 600.25))
+    XCTAssertEqual(meter.checked(at: 1.25), .began(waited: 1.25))
+    XCTAssertEqual(meter.stopped(at: 300), .away(gap: 298.75))
+    XCTAssertNil(meter.answered(at: 300.1))
+    XCTAssertNil(meter.checked(at: 300.25))
+  }
+
+  func testAGapJustUnderFiveSecondsIsStillWatched() {
+    var meter = MainStallMeter(threshold: 1, now: 0)
+    XCTAssertEqual(meter.checked(at: 4.999), .began(waited: 4.999))
+  }
+
+  func testAGapOfExactlyFiveSecondsIsAway() {
+    var meter = MainStallMeter(threshold: 1, now: 0)
+    XCTAssertNil(meter.answered(at: 4.999))
+    XCTAssertEqual(meter.checked(at: 5), .away(gap: 5))
   }
 }
