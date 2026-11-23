@@ -17,8 +17,8 @@ all that jazz". Bead context-grabber-0sf names the questions this proposal puts 
 - **Drops.** A selection, a kept text or ink dropped on writing pushes that writing down in whole lines (story 973;
   story 1172 lands with PR #1217).
 - **Erasing.** Erasing a folded section closes the gap it leaves (story 902). Erasing anything else leaves blank paper.
-- **The one rule.** Making room follows one rule (story 1148): Larry's ink never covers writing he didn't see, and
-  Igor's newer writing moves down in whole lines.
+- **The one rule.** Making room follows one rule (story 1148, which lands with PR #1194): Larry's ink never covers
+  writing he didn't see, and Igor's newer writing moves down in whole lines.
 
 Each section below can be read on its own and turned into one decision card. Each ends with Igor's pick, which is still
 to be filled in.
@@ -60,8 +60,8 @@ It names the cost too: gaps he left on purpose shrink toward two lines.
 | **B. Absorb, as designed** | Like pressing return above a blank space in a document: only the paragraph between the cut and the next big gap moves. One Undo restores the gaps. | Medium. It is a pure rule in the room code, with host tests. A push becomes several short moves instead of one, and every place that carries a late mark through a push has to follow it. | A space he kept blank to fill later shrinks to two lines when room opens above it. |
 | **C. Absorb, but keep big gaps** | As B, except that a blank band of half a page or more is never spent, because he left it on purpose. | Same as B, plus one threshold. | The threshold is a guess. A board of short notes with big gaps between them behaves like A. |
 
-**Recommended: B, for every push alike:** his own room, a paste, a drop, a keep, and a change from Larry (story 1148
-is one rule).
+**Recommended: B, for every push alike:** his own room, a paste, a drop, a keep, and a change from Larry (story 1148,
+landing with PR #1194, is one rule).
 
 **Igor's pick:** _pending_
 
