@@ -39,7 +39,7 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" TEST_RUNNER_GRABBER_FA
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/ChatNewThreadUITests \
+  -only-testing:GrabberNativeUITests/ChatNewThreadUITests -only-testing:GrabberNativeUITests/ChatNewChatAgainUITests \
   -only-testing:GrabberNativeUITests/ChatImageUITests -only-testing:GrabberNativeUITests/ChatFileUITests \
   -only-testing:GrabberNativeUITests/ChatArchiveUITests \
   -only-testing:GrabberNativeUITests/ChatSkillThreadUITests \

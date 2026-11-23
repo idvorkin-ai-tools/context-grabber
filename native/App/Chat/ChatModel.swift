@@ -631,9 +631,22 @@ final class ChatModel: ObservableObject {
   /// The + (#536): an empty thread with the ordinary bar, not a sheet. `voice`: the button beside it (#637), the same
   /// thread with its mic tapped as it opens.
   func openNewChat(from source: String, voice: Bool = false) {
-    log.event("ui", ["action": "open_new_chat", "from": source, "voice": voice])
+    // #1365: what the + found, so a tap that opens nothing says why. `was_open` is a new chat already flagged open.
+    let wasOpen = newChatOpen
+    log.event(
+      "ui",
+      [
+        "action": "open_new_chat", "from": source, "voice": voice, "was_open": wasOpen, "list": listOnScreen,
+        "thread": openThread ?? "",
+      ])
     newChatVoice.open(voice: voice)
-    guard newChatOpen else {
+    newChatTap += 1
+    let tap = newChatTap
+    Task { [weak self] in
+      try? await Task.sleep(for: .milliseconds(HomeStack.coverSettles + 1500))
+      self?.checkNewChatShown(tap: tap, wasOpen: wasOpen, from: source)
+    }
+    guard wasOpen else {
       newChatOpen = true
       return
     }
@@ -642,6 +655,29 @@ final class ChatModel: ObservableObject {
       try? await Task.sleep(for: .milliseconds(HomeStack.coverSettles))
       newChatOpen = true
     }
+  }
+
+  /// #1365: the + taps so far, and the last one a new chat's screen came on for.
+  private var newChatTap = 0
+  private var newChatShownFor = 0
+
+  /// A new chat's screen came on screen (or went): logged, and the last + counted as answered.
+  func newChatScreen(shown: Bool, landed: String?) {
+    if shown { newChatShownFor = newChatTap }
+    log.event(
+      "chat",
+      ["action": shown ? "new_chat_shown" : "new_chat_gone", "landed": landed ?? "", "flag": newChatOpen])
+  }
+
+  /// #1365: a + whose new chat never came on screen, with the state that explains it. Only the latest tap reports.
+  private func checkNewChatShown(tap: Int, wasOpen: Bool, from source: String) {
+    guard tap == newChatTap, newChatShownFor < tap else { return }
+    log.event(
+      "chat",
+      [
+        "action": "new_chat_not_shown", "from": source, "was_open": wasOpen, "flag": newChatOpen,
+        "list": listOnScreen, "thread": openThread ?? "",
+      ])
   }
 
   /// Whether the new chat coming on screen should start recording, once per tap.

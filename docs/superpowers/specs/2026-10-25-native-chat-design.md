@@ -453,6 +453,12 @@ Cockpit won't take*); deleting the waiting first message does the same. Each
 attempt is its own message, so a new try is never mistaken for the refused or deleted one, and the screen follows
 the newest.
 
+The **+** opens a new chat every time, whatever was open before it and however the last one was left: landed and
+backed out of, left for Home, or replaced by another thread (#1365, from the Mac: *"tapping new chat … looks like
+created but not loading"*). The + needs nothing from the Cockpit, so a Cockpit that is down never stops it. If a tap
+ever opens nothing, the session log says so a couple of seconds later, with what the + found — whether a new chat was
+already counted as open, whether the list was on screen, and which thread was — so the next report settles why.
+
 **A new chat by voice** (#637). Igor, 2026-11-03: a voice button beside the **+**, for a first message that is spoken.
 It sits immediately to the left of the **+**, the same size, so the **+** stays where the thumb knows it. A tap opens a
 new chat just as the **+** does — an empty thread titled *New chat*, the same bar, no sheet or dialog — and starts
