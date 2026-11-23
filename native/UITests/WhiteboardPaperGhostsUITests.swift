@@ -568,8 +568,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     shot(app, "after one undo")
   }
 
-  /// Stories 774, 778 (bead context-grabber-a3w): keeping one of Larry's marks leaves the pen in my hand as it was. The
-  /// kept circle is his purple, and my next stroke is my black at my stroke's width, with none of his purple in it.
+  /// Stories 774, 778 (bead context-grabber-a3w): keeping one of Larry's marks leaves the pen in my hand as it was. My
+  /// next stroke after keeping his circle is my black at my stroke's width, with none of his purple in it.
   func testKeepingHisMarkLeavesMyPenAsItWas() throws {
     let cockpit = try cockpit()
     let app = try openBoard()
@@ -589,9 +589,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     // That the kept circle shows in his purple is `testKeepAllKeepsHisWholeReplyAndOneUndoTakesItBack`'s: PaperKit
     // sometimes draws a kept circle black though it holds it purple (bead context-grabber-pbvt), not the pen's doing.
 
-    stroke(app, atHeight: 0.75)
+    stroke(app, atHeight: 0.62)
     wait(send(app), label: strokes(3))
-    let below = PaperScreen.Box(minX: 0, minY: 0.68, maxX: 1, maxY: 0.82)
+    let below = PaperScreen.Box(minX: 0, minY: 0.56, maxX: 1, maxY: 0.70)
     shot(app, "my stroke after the keep")
     let next = try XCTUnwrap(
       PaperScreen.showing(app, { $0.ink(in: below) }) { _ in true }, "my next stroke is still black")
