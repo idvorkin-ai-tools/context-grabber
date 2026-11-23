@@ -192,15 +192,16 @@ to that event's own bullet; never join two events on one line.
   - **late** when the canvas answered for a batch no longer being applied (a repeated answer, or one after the board closed), which records nothing (#1040)
   - **held** while the Pencil is down, with pen_down and replaced
   - **applied** with held, rev, moved, strokes_moved, dy_min, dy_max, pages_before, pages, erased, drawn, metas, hidden, shown, selected, overlays, texts, inked (his texts with notes, lettered at once as kept text, #937), dismissed (ghosts of his text his change took away by name, #939), missing_ids, changed and ms, and rebased_from: the older rev a batch was made on when it applied to a newer one (story 961)
-  - **undone** with label
+  - **undone** with board and label when a named board change is undone. A grouped header and ink change emits one **undone**.
   - **dissolved** with ids and erased (a group or kept text Igor erased part of).
 - `board_events`:
   - **overlay_tap** with overlay
   - **sent** or **held** (with reason) when events go to the Cockpit at once, with why, events and ms; when the cap let some go, also events_dropped and dropped_kinds (a count per wire `type`; bead context-grabber-27sv).
 - `board_outline`:
   - **margin_tap** with y, did and changed
-  - **changed** with label, undo_step (the change was an Undo step: it moved ink, or made or unmade a header), moved, hidden, shown, headers, folded, pages and ms
-  - **header_undo** and **header_redo** (story 1179, context-grabber-ssl), an Undo or Redo of a header made or unmade, with board, label, headers and declined (as it put them back)
+  - **changed** with board, label, undo_step (true when the outline change supplies an Undo step for its ink or header state), moved, hidden, shown, headers, folded, declined, pages and ms
+  - **header_undo** (story 1179, context-grabber-ssl) with board, label and the restored counts in headers and declined.
+  - **header_redo** with the same fields as **header_undo**.
   - **hold_menu** with y and items
   - **hold_chose** with item
   - **erase_fold** (stories 902–905) with board, via (eraser, eraser_rub for the pixel eraser, scratch, or eraser_cancelled: what a called-off stroke still took), folds, headers, strokes, path, took, can_undo and undo_name

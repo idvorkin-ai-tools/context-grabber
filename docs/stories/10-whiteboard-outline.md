@@ -34,7 +34,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1179:
 
 - **Summary:** A header made or unmade by a tap is one Undo of its own
-- **Status:** implemented in [28d35f89](https://github.com/idvorkin/context-grabber/commit/28d35f89) and [f9034ae2](https://github.com/idvorkin/context-grabber/commit/f9034ae2) (*Not a header* on a fold undoes with its ink, one Undo), reported to Larry once in [616275fb](https://github.com/idvorkin/context-grabber/commit/616275fb); verified by `WhiteboardOutlineUITests.testAMarginTapsHeaderIsOneUndoThatLeavesTheInk` and `testNotAHeaderOnAFoldIsOneUndoThatPutsTheFoldBack` with the whole of `WhiteboardOutlineUITests` and `WhiteboardScratchOutUITests` (rung 2, iPad simulator, 2026-11-22; no iPhone run); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [28d35f89](https://github.com/idvorkin/context-grabber/commit/28d35f89) and [f9034ae2](https://github.com/idvorkin/context-grabber/commit/f9034ae2), with one Larry report per grouped Undo in [616275fb](https://github.com/idvorkin/context-grabber/commit/616275fb). `just test` and `just native-build-mac` passed. On the iPad simulator (rung 2, 2026-11-22), `WhiteboardOutlineUITests` passed, including `testAMarginTapsHeaderIsOneUndoThatLeavesTheInk` and `testNotAHeaderOnAFoldIsOneUndoThatPutsTheFoldBack`, as did `WhiteboardScratchOutUITests`.
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 - **Issues:** bead `context-grabber-ssl` (a header made or unmade alone was no Undo step: Undo took back the stroke before it and left the ▾)
 
@@ -45,17 +45,17 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** A stray tap costs one Undo
-- **Given:** a line I just made a header with a margin tap (or *Make header*, or unmade with *Not a header*)
+- **Given:** a line I just made a header with a margin tap or *Make header*, or an open header I removed with *Not a header*
 - **When:** I tap Undo
-- **Then:** Undo, named *Make header* (or *Not a header*), takes back only the header, leaving every stroke as it
-  was, and Redo makes it again
+- **Then:** Undo, named *Make header* or *Not a header*, restores whether the line was a header and whether I had
+  declined it as a header, leaving every stroke in place. Redo reapplies the change.
 
 ---
 
 ### User Story 872:
 
 - **Summary:** A tap on a header's mark folds its section and another unfolds it
-- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: a margin tap makes a header once, a fold hides the indented lines and closes up whole lines and unfold puts everything back, a push never splits a fold from its header, unfold makes room for what was written under it, an undo that shows the ink opens the fold); a simulator UI test, `WhiteboardOutlineUITests.testAMarginTapMakesAHeaderAndAnotherFoldsIt`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)), and again with HI as four single strokes after [e647a4f9](https://github.com/idvorkin/context-grabber/commit/e647a4f9) (#996; rung 2, 2026-11-20); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: a margin tap makes a header once, a fold hides the indented lines and closes up whole lines and unfold puts everything back, a push never splits a fold from its header, unfold makes room for what was written under it, an undo that shows the ink opens the fold); a simulator UI test, `WhiteboardOutlineUITests.testAMarginTapMakesAHeaderAndAnotherFoldsIt`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)), and again with HI as four single strokes after [e647a4f9](https://github.com/idvorkin/context-grabber/commit/e647a4f9) (#996; rung 2, 2026-11-20); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad. Separate *Fold* and *Unfold* Undo labels added in [28d35f89](https://github.com/idvorkin/context-grabber/commit/28d35f89).
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
 #### Use Case:
@@ -67,7 +67,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Fold and unfold
 - **Given:** a header with three indented lines and a line at its indent below them
 - **When:** I tap its mark
-- **Then:** the three lines hide, the line below slides up under the header, the mark says ▸ 3; tapping again puts everything back where it was, and each is one Undo
+- **Then:** the three lines hide, the line below slides up under the header, and the mark says ▸ 3. Tapping again
+  puts everything back where it was. Each action has one Undo, named *Fold* or *Unfold*.
 
 ---
 

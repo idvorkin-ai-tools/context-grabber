@@ -120,7 +120,7 @@ extension WhiteboardModel {
     record(.viewport(y: rect.minY, h: rect.height, scale: scale, t: Self.nowMs))
   }
 
-  /// Story 851: Igor undid a batch of Larry's.
+  /// Tell Larry once when a named board change is undone (stories 851, 1179).
   func undid(_ label: String) {
     record(.undo(label: label, t: Self.nowMs))
     log.event("board_ops", ["action": "undone", "board": board.id, "label": label])

@@ -129,11 +129,10 @@ Igor, 2026-11-20 (decision O2): "Keep [the #967 ink header design]; build ## and
   left as they were. A folded header keeps its fold until it is unfolded: erasing its underline never springs or loses
   a fold, nor takes the folded section with it. The eraser across a folded header's underline or # takes only that
   stroke; only its words or its "▸ N lines folded" take the section (the board ops spec, *Headers fold their sections*).
-- ***Not a header*** (the hold menu beside a header, as today) keeps the underline or # as ink and makes the line
-  plain. The board never makes it a header again on its own: only a newly drawn underline or # makes one. Nor does
-  it offer the line again: no faint H comes back beside it, words written on that line later included, and the board
-  remembers this when it is closed and opened again. A margin tap or *Make header* still makes the line a header, and
-  then it is offered and judged like any other line again.
+- ***Not a header*** in the hold menu keeps the underline or # as ink and makes the line plain. While the choice
+  is in effect, the board keeps the line plain and shows no faint H, even after more words are written on the
+  line or the board reopens. A new underline or #, a margin tap, or *Make header* can make the line a header again.
+  See [the outline's Undo rules](2026-11-16-whiteboard-board-ops-design.md#headers-fold-their-sections).
 - A wrong rule is erased or undone like any stroke, and the section runs on as before.
 
 ### Larry sees the headers
