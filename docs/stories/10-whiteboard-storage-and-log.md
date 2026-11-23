@@ -683,7 +683,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *False positives*
 
 #### Use Case:
-- **As someone** someone the review asks whether he meant a move
+- **As someone** the review asks whether he meant a move
 - **I want to** answer *I meant that* or *Not what I meant*
 - **so that** Larry and the review learn what I meant
 

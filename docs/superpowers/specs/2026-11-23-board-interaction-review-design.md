@@ -218,7 +218,7 @@ replayed. The last three depend on what a surface saw, and are as good as its re
 - **Each finding copyable**, as every error in the app is: the check, the verdict, the step (its time, what it was,
   who started it), the evidence as above, the board and session, the build. Enough to file without the log.
 - **Replay that step.** Each finding has *Show me*: the board's playback opens at that step and shows the board just
-  before, then just after, with the ink the finding names marked. Ink erased in or before that step shows in the
+  before, then just after, with the ink the finding names marked. Ink erased by that step shows in the
   *before*, as it was, because the review is honest about what happened. Unclear findings also offer *I meant that* and
   *Not what I meant*.
 
@@ -234,9 +234,9 @@ replayed. The last three depend on what a surface saw, and are as good as its re
 - **A deliberate move isn't a finding.** Intent comes from the step: what Igor selected, dragged or chose a menu on is
   meant to move, and so is whatever the rules say that step pushes or slides. Only movement outside both is flagged.
 - **When the review can't tell, it asks** (*unclear*) instead of calling a bug.
-- **Igor can dismiss a finding** (*I meant that*, *Not a bug*). It leaves the note, stays in the session's list as
-  dismissed, and goes to Larry with the rest. The review doesn't learn from dismissals on its own: a rule that keeps
-  being dismissed is a change to its spec, decided with Igor.
+- **Igor answers an unclear finding** (*I meant that*, *Not what I meant*). Either answer takes it off the note; it
+  stays in the session's list marked with his answer, and goes to Larry with the rest. The review doesn't learn from
+  answers on its own: a rule whose findings keep getting *I meant that* is a change to its spec, decided with Igor.
 - **The same finding twice** (a re-review, or the same step seen by two checks) shows once.
 
 ## The iPad and the web board, through one core
