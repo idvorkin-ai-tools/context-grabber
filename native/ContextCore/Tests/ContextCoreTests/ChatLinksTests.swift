@@ -115,4 +115,56 @@ final class ChatLinksTests: XCTestCase {
   func testAPullRequestCarriesNoStateYet() {
     XCTAssertNil(ChatLinks.found(in: "https://github.com/a/b/pull/1").first?.state)
   }
+
+  // MARK: - Install links (story 1133)
+
+  private let manifest = "https://c-5004.squeaker-teeth.ts.net/builds/412/manifest.plist"
+
+  func testTheCockpitsInstallLinkIsAnInstallChip() {
+    let written = "itms-services://?action=download-manifest&url=\(manifest)"
+    let links = ChatLinks.found(in: "Build 412 is up: \(written).")
+    XCTAssertEqual(links.map(\.label), ["Install"])
+    XCTAssertEqual(links.first?.url.absoluteString, written)
+    XCTAssertEqual(links.first?.kind, .install(manifest: URL(string: manifest)!))
+    XCTAssertEqual(links.first?.kind.logName, "install")
+    XCTAssertEqual(links.first.map(ChatLinks.address), "Install Larry/builds/412/manifest.plist")
+  }
+
+  func testAnEncodedManifestAddressIsReadToo() {
+    let encoded = "https%3A%2F%2Fc-5004.squeaker-teeth.ts.net%2Fbuilds%2F412%2Fmanifest.plist"
+    let links = ChatLinks.found(in: "itms-services://?action=download-manifest&url=\(encoded)")
+    XCTAssertEqual(links.first?.kind, .install(manifest: URL(string: manifest)!))
+  }
+
+  func testAnInstallLinkFromAnywhereElseIsPlainWords() {
+    let others = [
+      "itms-services://?action=download-manifest&url=https://evil.example.com/builds/412/manifest.plist",
+      "itms-services://?action=download-manifest&url=http://c-5004.squeaker-teeth.ts.net/builds/412/manifest.plist",
+      "itms-services://?url=\(manifest)",
+      "itms-services://?action=purchase&url=\(manifest)",
+    ]
+    for written in others {
+      XCTAssertEqual(ChatLinks.found(in: "Build: \(written)"), [], written)
+      XCTAssertEqual(ChatBubbleLinks.paragraphs(in: "Build: \(written)"), [.plain("Build: \(written)")], written)
+      XCTAssertFalse(ChatLinks.tappableInWords(URL(string: written)!), written)
+    }
+  }
+
+  func testOrdinaryLinksStayTappableInWords() {
+    for written in ["https://example.com/a", "http://example.com", "mailto:igor@example.com", "tel:+15555550100"] {
+      XCTAssertTrue(ChatLinks.tappableInWords(URL(string: written)!), written)
+    }
+    XCTAssertFalse(ChatLinks.tappableInWords(URL(string: "ITMS-SERVICES://?action=download-manifest")!))
+  }
+
+  func testAnInstallChipStandsInItsBubbleAndOncePerManifestOnTheStrip() {
+    let written = "itms-services://?action=download-manifest&url=\(manifest)"
+    guard case .flow(let tokens) = ChatBubbleLinks.paragraphs(in: "Build 412 is up: \(written)").first else {
+      return XCTFail("no chip")
+    }
+    XCTAssertEqual(
+      tokens.last.flatMap { if case .chip(let link, _, _) = $0 { return link.label } else { return nil } }, "Install")
+    let thread = [message("1", "First: \(written)"), message("2", "Again: \(written)")]
+    XCTAssertEqual(ChatLinks.inThread(thread).map(\.label), ["Install"])
+  }
 }

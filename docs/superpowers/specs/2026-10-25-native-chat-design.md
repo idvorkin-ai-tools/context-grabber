@@ -296,6 +296,14 @@ strip of chips under the thread's title, so the PR Larry opened an hour ago is o
   and not a blog preview, though its port falls in the preview range: it reads *Larry: Lavish*, in a bubble, on the
   strip, in *All links* and on the whiteboard's conversation; each Lavish page is its own chip. Every other port from
   8400 to 8499 still reads *Preview* in a bubble.
+- **An install link is an *Install* chip** (Larry, 2026-11-22: the Cockpit now serves over-the-air builds at
+  */builds* and posts their install links in chat, where the web chat already makes them a button). A link written
+  `itms-services://?action=download-manifest&url=…` whose manifest address is `https://` on the Cockpit's own host
+  reads *Install*, in its bubble, on the strip, in *All links* and on the whiteboard's conversation, one chip per
+  manifest. Tapping it hands the link to iOS, which asks whether to install the build. *All links* spells it
+  *Install* and the manifest as *Larry* and its path, never the tailnet address. Any other `itms-services` link (no
+  `action=download-manifest`, a manifest on another host, or one over `http://`) is not a link at all: it stays plain
+  words in the bubble, with no chip and nothing to tap, so a message can never offer to install a build from elsewhere.
 
 **Links in the thread list on an iPad or a Mac** (#736). Where the screen is wide — an iPad in full width (or a wide
 enough window) and the Mac — each row in the list also shows that thread's three newest link chips under its last
