@@ -401,6 +401,15 @@ public enum WhiteboardMarkChoice {
     return selection.insetBy(dx: -reach, dy: -reach).contains(point)
   }
 
+  /// Story 1196 (context-grabber-nkh): whether his selection keeps a finger tap that landed on a group, a thing of
+  /// Larry's or a kept text, rather than that thing taking it. Inside the selection it does, unless the selection is
+  /// exactly the one thing tapped (`tappedIsWholeSelection`): then the tap goes on to it (a second tap rewords).
+  public static func selectionKeeps(
+    _ selection: CGRect, at point: CGPoint, reach: CGFloat, onMark: Bool, tappedIsWholeSelection: Bool
+  ) -> Bool {
+    !tappedIsWholeSelection && onSelection(selection, at: point, reach: reach, onMark: onMark)
+  }
+
   /// A mark's box from its lines, in their own points; null for none.
   public static func bounds(_ lines: [[CGPoint]]) -> CGRect {
     let points = lines.joined()

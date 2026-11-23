@@ -590,6 +590,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     // opens the words (story 940). Story 1141: one thing of Larry's outside a group, the same way. His controls showing
     // change nothing (bead context-grabber-9d1), but a tap on one is the control's (story 846): no selection, no words.
     let onControl = model.overlays.hit(at, tolerance: 4 / max(screenScale, 0.01)) != nil
+    // Story 1196: inside his own selection a tap on a group, a thing of Larry's or a text is the selection's, unless the
+    // selection is that one thing (then a second tap rewords, as below).
+    if count == 0, !onControl, reword.editing == nil, selectionKeptTap(at: at, beganAt: beganAt) { return }
     if count == 0, !onControl, reword.editing == nil,
       let group = tappedGroup(at: at) ?? tappedTheirs(at: at)
     {
@@ -612,7 +615,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     ghostTap = TapDot(at: at, beganAt: beganAt)
     let selected = paper.selection.count
     // Story 967 (#1170): a tap on his selection that reaches no mark is his, so PaperKit's menu (Delete) shows.
-    let box = paper.selection.map(Self.key).compactMap { inkFrames[$0] }.reduce(CGRect.null) { $0.union($1) }
+    let box = selectionBox
     let onMark = model.reachesMark(at: at, zoom: screenScale)
     let onSelection = WhiteboardMarkChoice.onSelection(
       box, at: at, reach: WhiteboardTurn.tapReach / max(screenScale, 0.01), onMark: onMark)
