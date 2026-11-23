@@ -36,8 +36,6 @@ class PaperHost: UIViewController {
     /// Story 1143: each change the board put on the ink while it was down, by name, and the turns logged as it began.
     var boardSets: [String] = []
     var turnsAtStart = 0
-
-    var kind: String { "\(type)_down" }
   }
 
   let paper: PaperMarkupViewController
@@ -317,8 +315,8 @@ class PaperHost: UIViewController {
     return "\(kind) \(WhiteboardStrokes.hex(red: red, green: green, blue: blue)) \(width)"
   }
 
-  /// Story 1091: the one tool the board decides on, the picker's. `PickedTool(paper.drawingTool)` here goes back to the
-  /// board's own.
+  /// Story 1091: the one tool the board decides on, the picker's. Before that story it read the
+  /// board's own tool (`paper.drawingTool`).
   var decidingTool: PickedTool { PickedTool(picker.selectedToolItem) }
 
   /// #1078 (story 1064): the tool the picker shows selected, as `toolText` says an ink; the eraser, the lasso, or the
@@ -357,7 +355,6 @@ class PaperHost: UIViewController {
   func ms(_ seconds: Double) -> Int { Int((seconds * 1000).rounded()) }
   func seconds(_ value: Double) -> Double { (value * 100).rounded() / 100 }
   func point(_ p: CGPoint) -> [Double] { [round(p.x), round(p.y)] }
-  func insets(_ i: UIEdgeInsets) -> [Double] { [round(i.top), round(i.left), round(i.bottom), round(i.right)] }
 
   func rect(_ r: CGRect) -> [Double] {
     r.isNull || r.isInfinite ? [] : [round(r.minX), round(r.minY), round(r.width), round(r.height)]

@@ -108,8 +108,6 @@ extension PaperBoardController {
     }
   }
 
-  func dismissHoldMenu() { holdMenu = nil }
-
   /// Room by Igor's hand (stories 858): the push at the clear line nearest `y`, `dy` in whole lines, one undo named
   /// *Make room*. Larry hears the ink that moved.
   private func room(at y: CGFloat, dy: CGFloat, why: String) {

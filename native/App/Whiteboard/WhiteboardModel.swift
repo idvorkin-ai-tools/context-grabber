@@ -92,8 +92,6 @@ final class WhiteboardModel: ObservableObject {
   var penDown = false
   var liftedAt: ContinuousClock.Instant?
   var heldTask: Task<Void, Never>?
-  /// The last turn in a line: Larry's words or ghosts not answering.
-  var turnNote: String? { turns.note }
   /// The picture is on its way to Larry's thread.
   @Published var larrySending = false
   /// Twenty seconds into his turn, what the board offers: Retry and Dismiss for a picture the Cockpit hasn't taken,
