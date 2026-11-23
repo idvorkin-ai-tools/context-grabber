@@ -31,7 +31,8 @@ public struct BoardBlockedEdit: Equatable, Sendable {
   @discardableResult
   public mutating func applied() -> Bool { clear() }
 
-  /// Retry: the chip goes, and the caller hands Larry the board. False with no chip, so nothing is sent.
+  /// Retry: the caller has handed Larry the board, so the chip goes. True when it was showing.
+  @discardableResult
   public mutating func retry() -> Bool { clear() }
 
   /// ×: the chip goes and nothing is asked. True when it was showing.
