@@ -198,11 +198,22 @@ suggest changes the board until Igor keeps it.
 - A ghost turn gives up **10 s** after it was asked, however much has arrived by then (the Cockpit's model takes about
   3 s, and an answer to an older drawing still lands where that drawing was). If no mark has arrived, none is shown and
   the bar says *Ghosts: the Cockpit isn't answering*. **An answer cut off after a mark has arrived is no failure**: the
-  marks already drawn stay, and the bar says nothing. A turn sent away (Ghosts off) stops showing marks at
+  marks already drawn stay, and the bar says nothing. A turn sent away (*Ask at my pauses* off) stops showing marks at
   once, even with more on the way. A turn the Cockpit says came too soon (it
   takes one every 2 s) is quietly skipped: the bar says nothing and the ghosts on the board stay.
-- **Ghosts** is a switch in the board's bar, on by default and remembered. Off, nothing is asked after a pause: Claude's
-  ghosts go and a turn of his on its way is dropped. Larry's marks stay, because a tap asked for them.
+- **Ask at my pauses** is a switch in the board's bar, on by default and remembered. Until 2026-11-22 it was called
+  *Ghosts* and read as Claude's alone (bead context-grabber-4ic; Igor, design board: "the switch becomes 'Ask at my
+  pauses' for whoever answers"). It is about whoever answers the board, Larry or Claude. Off, nothing is asked after a
+  pause, whoever the responder is: Claude's ghosts go, a turn on its way is dropped, and Larry isn't handed the board.
+  Larry's marks already showing stay, because a tap asked for them. *Larry's turn* and *Send to Larry* still go when
+  tapped: the switch stops only the asking a pause does on its own.
+  - **Its name says so everywhere.** VoiceOver reads it as *Ask at my pauses: on* or *Ask at my pauses: off*, with how
+    many marks are showing after it. A long press shows *Ask at my pauses* over one row naming the board's responder:
+    *Stop asking Larry at my pauses* while on, *Ask Haiku at my pauses* while off on a Haiku board. The board's help
+    sheet has a row for it. Its icon stays: sparkles on, an eye struck through off.
+  - **The mic still needs it on** (decided 2026-11-22 with the rename). Spoken words are asked about at a pause in
+    speech, the same asking the switch stops, so with it off the mic would hear words and reach no one: it doesn't
+    open (#824, *Talking to the board*, below).
 - Ghosts need the Cockpit. When it can't be reached the board draws as before; the bar says *Ghosts: the Cockpit
   isn't answering* until a turn gets through.
 - Only on the device that draws the board. A board that is look-only gets no ghosts.
@@ -390,13 +401,13 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
     turn out.
   - *Larry's turn* and *Send to Larry* always go at once, on any board, and take over whatever was waiting: its words
     go with them, and the turn they start is the one he is looking at.
-  - A picture that can't reach him frees the turn, and its words wait for the next one. Ghosts off forgets what the
-    pauses kept; a turn already out stays out.
+  - A picture that can't reach him frees the turn, and its words wait for the next one. *Ask at my pauses* off forgets
+    what the pauses kept; a turn already out stays out.
   - A pause while the board's first *Send* waits in the outbox sends nothing, so it can't start a second thread.
-- With Ghosts off nothing is asked after a pause, whoever the responder is. Writing with Ghosts off says so: the
-  first stroke puts *Ghosts are off, so no one is watching: turn Ghosts on for a look* in the bar's note, and it stays
-  there, past the note's usual few seconds, until Ghosts come back on. The session log notes that first unwatched
-  stroke. (Bead context-grabber-bozm: a tap meant for the mic landed on Ghosts beside it, and Igor wrote for 16 minutes
+- With *Ask at my pauses* off nothing is asked after a pause, whoever the responder is. Writing with it off says so:
+  the first stroke puts *Ask at my pauses is off, so no one is watching: turn it on for a look* in the bar's note, and
+  it stays there, past the note's usual few seconds, until the switch comes back on. The session log notes that first
+  unwatched stroke. (Bead context-grabber-bozm: a tap meant for the mic landed on Ghosts beside it, and Igor wrote for 16 minutes
   to a board nobody was watching, with nothing on screen saying so.)
 - **Every ghost turn is measured** (story 661). The session log says, for each one, how long the pause waited, how long
   the picture took to draw and to encode, and how long it took to upload, beside who answered. The Cockpit is told the
@@ -437,7 +448,7 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   them, and Keep all keeps all of them. When he draws the same thing again, the copies show together: Igor clears the
   one he doesn't want with Keep group or Dismiss, and Larry has no need to send a diagram again to keep it on the
   board. Claude's ghosts never replace his, nor his Claude's. His
-  marks stay until kept or dismissed: no timer, and the Ghosts switch doesn't touch them.
+  marks stay until kept or dismissed: no timer, and the *Ask at my pauses* switch doesn't touch them.
 - **A kept or dismissed mark doesn't come back**, on the next look or the next time the board opens. Only that mark:
   the ones of his row Igor left alone show again when the board opens, until each is kept or dismissed (#883).
   Once his newest drawable row is settled, dealing with older rows still showing leaves it settled.
@@ -509,9 +520,9 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 - It works on an empty board: "draw a circle" shows ghosts in the part of the board on screen.
 - If he speaks while Claude is answering, those words go with the next turn. Words whose turn didn't get through
   (skipped, refused or the Cockpit away) go with the next one.
-- With Ghosts off nothing is asked, and the mic never takes words it would drop (#824): it doesn't open, and the bar
-  says Ghosts are off so the mic would reach no one. Turning Ghosts off with the mic open closes it with the same line.
-  Words aren't kept for later. Turning Ghosts on clears the line.
+- With *Ask at my pauses* off nothing is asked, and the mic never takes words it would drop (#824): it doesn't open,
+  and the bar says *Ask at my pauses is off, so the mic would reach no one: turn it on to talk*. Turning the switch off
+  with the mic open closes it with the same line. Words aren't kept for later. Turning it on clears the line.
 - Words that only revise what was already sent don't start a turn.
 - The bar shows the last words heard. The answerer is Claude's fast model; Larry is too slow for back-and-forth, so
   he stays on his own button.
@@ -610,7 +621,8 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - With no Pencil used: marks showing, a finger drag pans; tap empty paper, and the next finger drag draws ink while the
   marks still show; a tap on a mark still brings its Keep and Dismiss and leaves no dot.
 - With the Pencil used once: a finger drag never draws, with marks or without, and a tap off the marks doesn't change that.
-- Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's purple ghosts stay showing.
+- Turn *Ask at my pauses* off, on a Larry board and on a Haiku board: lifting the Pencil asks nothing (the session log
+  shows no turn, and nothing reaches the Cockpit). Larry's purple ghosts stay showing.
 - Tap Larry's turn: the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) straight away and the Pencil keeps drawing. Chat has a thread
   named after the board holding the picture. Minutes later, with no tap, purple ghosts and his line appear on what he saw,
   even if the view has moved since.
