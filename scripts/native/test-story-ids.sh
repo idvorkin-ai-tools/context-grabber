@@ -162,9 +162,11 @@ case "$1 $2" in
     cat "$FAKE_PRS/$3.diff" ;;
   # A PR whose diff is too large (bead context-grabber-1338): its file list is $FAKE_PRS/<n>.files (one {f, p} per
   # line, as the --jq gives), its head is "head<n>", and a file on that head is $FAKE_PRS/<n>.head.<basename>.
-  "api --paginate") n=$(sed -n 's|.*/pulls/\([0-9]*\)/files|\1|p' <<<"$3"); [ -e "$FAKE_PRS/$n.files" ] || exit 1
+  # Its changed-file count is the list's length, or $FAKE_PRS/<n>.changed when GitHub's list would come up short.
+  "api --paginate") n=$(sed -n 's|.*/pulls/\([0-9]*\)/files.*|\1|p' <<<"$3"); [ -e "$FAKE_PRS/$n.files" ] || exit 1
     cat "$FAKE_PRS/$n.files" ;;
-  "pr view") echo "head$3" ;;
+  "pr view") if [ -e "$FAKE_PRS/$3.changed" ]; then c=$(cat "$FAKE_PRS/$3.changed"); else c=$(grep -c . "$FAKE_PRS/$3.files"); fi
+    printf '{"headRefOid": "head%s", "changedFiles": %s}\n' "$3" "$c" ;;
   "api -H") n=$(sed -n 's|.*?ref=head||p' <<<"$4"); f=$(sed -n 's|.*/contents/\([^?]*\)?.*|\1|p' <<<"$4")
     cat "$FAKE_PRS/$n.head.$(basename "$f")" ;;
   *) exit 2 ;;
@@ -236,6 +238,10 @@ echo TOOLARGE >"$tmp/prs/44.diff"
 out=$(reserve "$tmp/ledger5.json" second)
 check "a PR that can be read neither way is named in a warning and doesn't block the reservation" \
   "$out|$?|$(grep -c 'WARN reserve: open PR #44 could not be read' "$tmp/reserve.err")" "13|0|1"
+echo 3001 >"$tmp/prs/43.changed"
+out=$(reserve "$tmp/ledger6.json" second)
+check "a too-large PR whose file list is cut short of its changed files is named in a warning" \
+  "$out|$?|$(grep -c 'WARN reserve: open PR #43 could not be read.*gives 3 of its 3001 changed files' "$tmp/reserve.err")" "11|0|1"
 rm -f "$tmp/prs"/43.* "$tmp/prs"/44.*
 for k in 1 2 3 4 5 6; do STORY_IDS_HOLD=0.3 reserve "$tmp/race.json" 02-b.md >"$tmp/race.$k" & done
 wait

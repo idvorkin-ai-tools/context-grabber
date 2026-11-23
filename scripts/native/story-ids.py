@@ -181,12 +181,14 @@ def pr_files_ids(gh, number):
     """A PR's story IDs when gh refuses its whole diff (too large; bead context-grabber-1338): each story file's own
     patch from the PR's file list, and for a story file whose patch GitHub leaves out (itself too large), every heading
     in that file as it is on the PR's head, which can only take more IDs than the PR adds, never fewer."""
-    lines = run(gh + ["api", "--paginate", f"repos/{{owner}}/{{repo}}/pulls/{number}/files",
-                      "--jq", ".[] | {f: .filename, p: .patch}"]).splitlines()
+    listed = run(gh + ["api", "--paginate", f"repos/{{owner}}/{{repo}}/pulls/{number}/files?per_page=100",
+                       "--jq", ".[] | {f: .filename, p: .patch}"])
+    lines = [line for line in listed.splitlines() if line.strip()]
+    pr = json.loads(run(gh + ["pr", "view", str(number), "--json", "changedFiles,headRefOid"]))
+    if len(lines) != pr["changedFiles"]:
+        raise RuntimeError(f"its file list gives {len(lines)} of its {pr['changedFiles']} changed files")
     ids, whole = set(), []
     for line in lines:
-        if not line.strip():
-            continue
         entry = json.loads(line)
         if not is_story(entry.get("f") or ""):
             continue
@@ -194,11 +196,9 @@ def pr_files_ids(gh, number):
             ids |= {int(i) for i in ADDED.findall(entry["p"])}
         else:
             whole.append(entry["f"])
-    if whole:
-        head = run(gh + ["pr", "view", str(number), "--json", "headRefOid", "--jq", ".headRefOid"]).strip()
-        for f in whole:
-            ids |= ids_in([run(gh + ["api", "-H", "Accept: application/vnd.github.raw",
-                                     f"repos/{{owner}}/{{repo}}/contents/{f}?ref={head}"])])
+    for f in whole:
+        ids |= ids_in([run(gh + ["api", "-H", "Accept: application/vnd.github.raw",
+                                 f"repos/{{owner}}/{{repo}}/contents/{f}?ref={pr['headRefOid']}"])])
     return ids
 
 
@@ -209,7 +209,7 @@ def one_pr_ids(gh, number):
     except RuntimeError as diff_error:
         try:
             return pr_files_ids(gh, number), None
-        except (RuntimeError, ValueError) as files_error:
+        except (RuntimeError, ValueError, KeyError) as files_error:
             return set(), f"diff: {diff_error}; files: {files_error}"
 
 

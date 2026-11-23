@@ -48,7 +48,8 @@ reservation lapses after 24 hours, or as soon as its ID is on main (the story me
 One open PR GitHub won't show in full doesn't stop every reservation (bead context-grabber-1338). GitHub refuses the
 whole diff of a very large PR. For such a PR the reservation reads each of its story files' changes instead, and for a
 story file whose own change is too large to show, every story in that file as the PR has it, which can only take more
-IDs than the PR adds, never fewer. A PR that can't be read either way is named in a warning, its IDs are not known,
+IDs than the PR adds, never fewer. GitHub lists at most 3000 of a PR's files; a list shorter than the PR's count of
+changed files counts as unread. A PR that can't be read either way is named in a warning, its IDs are not known,
 and the reservation goes ahead without them, so whoever reserves checks that PR by hand.
 
 It fails, and hands out nothing, when it can't fetch main or list the open PRs (an ID chosen without them is the bug
@@ -81,8 +82,8 @@ host rung does. It passes, and says so, otherwise.
 - A reservation older than 24 hours, or whose ID has reached main, no longer holds its ID.
 - With the open PRs unreadable, it fails and prints no ID.
 - An open PR whose whole diff GitHub refuses still has its stories' IDs skipped, from its story files' changes, or for a
-  story file too large to show, from every story in that file on the PR; a PR that can't be read either way is named in
-  a warning, and the other IDs are handed out.
+  story file too large to show, from every story in that file on the PR; a PR that can't be read either way, or whose
+  file list GitHub cuts short of its changed files, is named in a warning, and the other IDs are handed out.
 - With too few free IDs, it prints no ID; its message names the journey by its row's name, the next unused block
   above every journey's IDs and the free IDs every journey has left.
 - Two branches that each pass the story ID check alone, but add the same ID, fail the pre-merge check; one that
