@@ -525,7 +525,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1055:
 
 - **Summary:** A long press on a bar button says its name
-- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Not yet seen on the iPad
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Renamed *Ask at my pauses*, its row naming the responder, in [66376ef9](https://github.com/idvorkin/context-grabber/commit/66376ef9) (story 1171), the same test on the iPad simulator. Not yet seen on the iPad
 - **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
 
@@ -545,7 +545,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1171:
 
 - **Summary:** The Ghosts switch is *Ask at my pauses*, for whoever answers the board
-- **Status:** not yet verified (bead context-grabber-4ic, this branch)
+- **Status:** implemented in [66376ef9](https://github.com/idvorkin/context-grabber/commit/66376ef9); verified on the host (`WhiteboardGhostTurnsTests.testTheLinesNameTheSwitchForWhoeverAnswers`, the switch's rules unchanged), the Mac build, and the iPad simulator (rung 2, the whole `test-whiteboard-ui.sh` suite on iPad Pro 11-inch (M5) before the rebase onto 5260449a: `WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard` counts one pause turn at the fake Cockpit with it on and none with it off on a Larry board and on a Haiku board, reads the long press's row for each responder, the no-one-is-watching line and Larry's two marks staying; `testTheBarNamesItsButtonsAndHasNoHole` reads the new menu; `WhiteboardHelpFeedbackUITests` the help row; every other whiteboard UI test on the new label, 81 of 82 passing, the one failure `WhiteboardOnPaperUITests.testInkShowsInDarkMode`, unrelated, bead context-grabber-vsz9). No iPhone run (Igor, 2026-11-22). Not yet seen on the iPad
 - **Issues:** bead `context-grabber-4ic` (Igor, design board, 2026-11-22: "the switch becomes 'Ask at my pauses' for whoever answers"; labelled *Ghosts* / *Hide Claude's suggestions*, it read as Claude's alone, though on a Larry board, the default, it also stops Larry being asked and keeps the mic closed)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md); [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
 
