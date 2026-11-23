@@ -6,13 +6,17 @@
 # first, as before lanes. With more lanes: the lane's other device and any idle simulator of no lane are shut down, a
 # busy lane's simulator never is (a name of no lane counts as lane 1's), and an idle lane's only to keep the booted
 # count at or under the lane count.
-# Run it inside a build lane (build-lane.sh run).
+# For a lane's simulator, run it inside the owning lane (build-lane.sh run).
 # Bead context-grabber-wm8y: it boots on a locked Mac too. Only a test that opens the mic crashes on one, and the test
 # run's wrapper skips those (scripts/native/mic-tests.txt).
 # Usage: sim-boot.sh <simulator name or udid>
 set -uo pipefail
 here=$(dirname "$0")
 udid=$("$here/sim-udid.sh" "${1:?simulator name or udid}") || exit
+# Story 1517: a lane's simulator can be booted only from its owning lane (exit 64 otherwise).
+# shellcheck source=scripts/native/sim-lane.sh
+. "$here/sim-lane.sh"
+sim_lane_guard "$udid" "sim-boot" || exit
 lanes=$("$here/build-lane.sh" count)
 if [ "$lanes" -le 1 ]; then
   xcrun simctl list devices booted | grep -oE '\(([0-9A-F-]{36})\) \(Booted\)' | grep -oE '[0-9A-F-]{36}' |

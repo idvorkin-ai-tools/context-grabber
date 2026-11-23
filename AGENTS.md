@@ -151,7 +151,7 @@ just setup                # swiftlint, xcbeautify, imagemagick, xcodegen from Ho
 just test-ladder          # climb: lint, host, Mac, simulator's touched UI tests; stops at the first failure (--dry-run, --full, --all)
 just test                 # = just native-test: lint, ContextCore's host tests, the script checks
 just native-test-sim      # simulator build + the launch-hook smoke (scripts/native/sim-smoke.sh)
-just native-sim-health    # once per simulator: grant Health access (a UI test taps the sheet)
+just native-sim-health    # grant simulator Health access (see docs/TESTING.md)
 just native-run-device    # build under the signing lock, install and launch on the iPhone
 just testflight           # the commit to TestFlight beside the cable (--export-only needs no key; docs/TESTING.md)
 just ota                  # main, development-signed, to the Cockpit's /builds for the iPad (docs/DEPLOYING.md)

@@ -3,11 +3,15 @@
 # scripts/native/fake-cockpit.py on a local port, its POST /chat held a few seconds so a new chat's waiting state shows.
 # And scripts/native/fake-bridge.py for a live call the voice button must stand down for (GRABBER_FAKE_BRIDGE).
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
-# Usage: test-chat-ui.sh <simulator udid or name>   — run it in the build lane:
+# Usage: test-chat-ui.sh <simulator udid or model name>. For a timed run that prevents idle sleep:
 #   scripts/native/build-lane.sh run scripts/native/time-limit.sh 30 caffeinate -i \
 #     scripts/native/test-chat-ui.sh "iPhone 17"   (a name is the lane's own device: story 785)
 set -uo pipefail
-udid=$("$(dirname "$0")/sim-udid.sh" "${1:?simulator udid or name}") || exit 1
+# Story 1516: run outside a build lane, it takes the first free one and uses that lane's own simulator.
+# shellcheck source=scripts/native/sim-lane.sh
+. "$(dirname "$0")/sim-lane.sh"
+take_lane "$0" "$@"
+udid=$("$(dirname "$0")/sim-udid.sh" "$(lane_target "${1:?simulator udid or name}")") || exit 1
 port=${CHAT_PORT:-$((8798 + ${BUILD_LANE_PORT_OFFSET:-0}))}
 report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."

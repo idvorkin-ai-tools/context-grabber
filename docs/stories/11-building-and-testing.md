@@ -1731,3 +1731,60 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the board's rules built as WebAssembly by `just wasm`, and the Cockpit's recorded board sessions vendored in the repo
 - **When:** `just wasm-test` loads the module under node and replays each session, then loads each session's last board whole and again in two halves
 - **Then:** every session replays as the app's own replay test expects (contract 1, no mismatch but ops-move's known one, each turn's hint the end of the recorded one), the board answers every cut the same whole or in halves, a cut with nothing loaded is NaN with a reason, and the one 32-bit midpoint case answers as pinned
+
+---
+
+### User Story 1516:
+
+- **Summary:** Simulator scripts started by hand take the first free build lane
+- **Status:** implemented in [49957cd5](https://github.com/idvorkin/context-grabber/commit/49957cd5a6c07231a0300429cc1464413422c050). Verified on the host by `scripts/native/test-sim-lane.sh` with a script started outside any lane. The Mac's screen was locked, so there was no simulator run.
+- **Issues:** bead context-grabber-w7nl (2026-11-22 ~21:20: a dead-code lane's timer smoke, run outside any lane, went to lane 1's iPad while lane 1 ran the whiteboard suite on it: three smoke failures, each different, and the suite's own run spoiled)
+
+#### Use Case:
+- **As Igor,** with several agents running simulator checks on one Mac at once
+- **I want to** have the smoke and UI suite scripts take a lane when I start them directly
+- **so that** I can run them by hand while other jobs use their own simulators
+
+#### Acceptance Criteria:
+- **Scenario:** A simulator script started by hand
+- **Given:** no build lane is held
+- **When:** I start the smoke, chat UI or whiteboard UI script directly with a model name or a lane simulator's UUID
+- **Then:** it announces that it is taking a lane and runs on the first free lane's simulator for that model
+
+---
+
+### User Story 1517:
+
+- **Summary:** Booting or testing on a build lane's simulator requires its lane
+- **Status:** implemented in [49957cd5](https://github.com/idvorkin/context-grabber/commit/49957cd5a6c07231a0300429cc1464413422c050), with case-insensitive UUID matching in [b905f89f](https://github.com/idvorkin/context-grabber/commit/b905f89fece3aed49d94c46ef8134f611273f85a). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64. Both UUID spellings were verified with lane 1's lock held.
+- **Issues:** bead context-grabber-w7nl
+
+#### Use Case:
+- **As Igor,** sharing the Mac with other simulator jobs
+- **I want to** have boot and test commands refused outside the simulator's owning lane
+- **so that** a command started by hand cannot interrupt another job's tests
+
+#### Acceptance Criteria:
+- **Scenario:** Another lane's simulator
+- **Given:** a command holds build lane 2 or holds no lane
+- **When:** it targets lane 1's simulator for booting or testing, by name or by UUID in any letter case
+- **Then:** it exits 64 before booting or running Xcode, and the message names the simulator and its lane and explains how to run the command
+
+---
+
+### User Story 1518:
+
+- **Summary:** Simulator operations that require no build lane still run
+- **Status:** implemented in [49957cd5](https://github.com/idvorkin/context-grabber/commit/49957cd5a6c07231a0300429cc1464413422c050). Verified on the host by `scripts/native/test-sim-lane.sh` with a simulator build command and an unowned simulator accepted by the guard.
+- **Issues:** bead context-grabber-w7nl
+
+#### Use Case:
+- **As Igor,** building for the simulator or testing on a device outside the build lanes
+- **I want to** run those operations without taking a lane
+- **so that** they can run while the build lanes are occupied
+
+#### Acceptance Criteria:
+- **Scenario:** A build, or a simulator of no lane
+- **Given:** no build lane is held
+- **When:** I build for a lane's simulator or run tests on a simulator no lane owns
+- **Then:** the command proceeds without requiring a build lane
