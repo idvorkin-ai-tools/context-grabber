@@ -218,7 +218,10 @@ public enum ChatDecisions {
     }
   }
 
-  public static func request(_ verb: Verb, ask: ChatAsk, cockpit: String) throws -> URLRequest {
+  /// `build` says which build sent it, on every verb (story 1134).
+  public static func request(_ verb: Verb, ask: ChatAsk, cockpit: String, build: AppBuild = .current) throws
+    -> URLRequest
+  {
     switch verb {
     case .answer(let option) where isOther(option): throw NotSent.ownAnswerLabel
     case .ownWords(let words) where !canSend(words: words): throw NotSent.noWords
@@ -263,7 +266,7 @@ public enum ChatDecisions {
     // The write boundary answers 415 to a POST that isn't JSON, and refuses one from a foreign origin.
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+    request.httpBody = try JSONSerialization.data(withJSONObject: build.stamp(body))
     return request
   }
 

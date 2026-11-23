@@ -657,7 +657,22 @@ nothing is tried again on a timer. A phone or an iPad behaves as it always has. 
 his phone does, unless a launch names another address or nowhere, and such a launch keeps its own outbox, so what it
 leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md)).
 
-## Explaining itself
+## Every post says which build sent it
+
+Larry should be able to answer *"am I running it?"* from the message alone (bead context-grabber-esw3, 2026-11-22: Igor
+asked him to confirm the build and he couldn't tell; only board pictures said).
+
+- Every message the app sends to the Cockpit for Larry to read says which build of the app sent it: the build number
+  and the short commit it was built from. That covers a chat message in a new chat or an old one, a reply from the
+  Inbox, something shared from another app (the share card queues it; the app sends it), a board's picture, and a
+  decision answered, closed, abandoned or snoozed.
+- It is the same two facts, named the same way, on every kind of message, so Larry reads one shape. A board picture
+  keeps what it already said about its build for the board's debug page.
+- A build from Xcode's Run button says *dev* for its commit. A build that knows neither fact sends neither, rather than
+  an empty one.
+- It changes nothing Igor sees on the phone. Whether Larry shows it is the Cockpit's to decide: it has to keep the two
+  facts with the message.
+
 
 - `inbox` added says whether a share starts a chat or names its thread, and what the card's list held when Igor sent
   it (how many chats, still reading, or why it failed): the card itself cannot write to the session log.
@@ -690,6 +705,9 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - Every error on screen is copyable, with the thread and the Cockpit's answer.
 
 ## Acceptance criteria
+
+- **Which build sent it:** any message, decision answer or board picture the app sends carries its build number and short
+  commit, the same two names on each; a test build with neither stamp sends neither.
 
 - The tile reads *Chat* and counts unread conversations plus unsent messages.
 - The list shows every Cockpit chat thread, Done folded the same as the Cockpit; opening one marks it read on both.

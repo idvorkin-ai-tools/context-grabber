@@ -110,8 +110,10 @@ public enum ChatSend {
     return .retry(reason: reason)
   }
 
-  /// The message itself; `attachment` is the ref an upload returned.
-  public static func messageRequest(_ item: InboxItem, attachment: String?, cockpit: String) throws -> URLRequest {
+  /// The message itself; `attachment` is the ref an upload returned. `build` says which build sent it (story 1134).
+  public static func messageRequest(
+    _ item: InboxItem, attachment: String?, cockpit: String, build: AppBuild = .current
+  ) throws -> URLRequest {
     guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
     var body: [String: Any] = ["id": item.id, "text": text(for: item), "source": source]
     if let attachment { body["attachments"] = [attachment] }
@@ -132,7 +134,7 @@ public enum ChatSend {
     request.timeoutInterval = 30
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+    request.httpBody = try JSONSerialization.data(withJSONObject: build.stamp(body), options: [.sortedKeys])
     return request
   }
 
