@@ -566,7 +566,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 383:
 
 - **Summary:** A board opens with his newest marks and the ones still showing when it closed, and a dismissed set stays gone
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: reopened with his newest set). Changed in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4) (bead `context-grabber-n8ab`, story 1155): an earlier row still showing when the board closed comes back with the newest; verified by host tests (`WhiteboardMarksTests`)
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: reopened with his newest set). Changed in [10727b6c](https://github.com/idvorkin/context-grabber/commit/10727b6c) (bead `context-grabber-n8ab`, story 1155): an earlier row still showing when the board closed comes back with the newest; verified by host tests (`WhiteboardMarksTests`)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -586,7 +586,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1155:
 
 - **Summary:** His earlier marks stay when he replies again
-- **Status:** implemented in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4). Host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`, `BoardMarksReplayTests`), the Mac build, and the simulator (`WhiteboardTurnUITests.testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem`) verified that his second reply's three marks join the first's two and a stray tap leaves all five. The iPad check is pending
+- **Status:** implemented in [10727b6c](https://github.com/idvorkin/context-grabber/commit/10727b6c). Host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`, `BoardMarksReplayTests`), the Mac build, and the simulator (`WhiteboardTurnUITests.testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem`) verified that his second reply's three marks join the first's two and a stray tap leaves all five. The iPad check is pending
 - **Issues:** bead `context-grabber-n8ab`: Igor, 2026-11-22 12:35 on board 8f986938 (iPad log): Larry's 12-mark sequence diagram (row 99edfb64758e) was showing; his next reply, a label with a question card (row 4d4bc5dd9efd), took the board from 12 marks to 1, and the reply after it replaced that one too
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A new reply adds his marks, never clears them*; Igor's design-board decision 20 of 2026-11-22: his suggestions stay until kept or dismissed, across later replies and across closing and opening the board, and Claude's quick ghosts still fade (the answer dropped when the board was written past is story 350's)
 
@@ -606,7 +606,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 388:
 
 - **Summary:** A set I've dealt with stays gone
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b). Host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`) verified that a dismissed mark stays gone on the next look and on reopening. Story 808 covers settling individual marks. Extended to earlier replies in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4), verified by the host `WhiteboardMarksTests`
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b). Host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`) verified that a dismissed mark stays gone on the next look and on reopening. Story 808 covers settling individual marks. Extended to earlier replies in [10727b6c](https://github.com/idvorkin/context-grabber/commit/10727b6c), verified by the host `WhiteboardMarksTests`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:

@@ -38,6 +38,7 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-ota.sh`: `just ota`'s arguments and dry run; ota-watch's batch rule and post (stories 1027–1029)
 - `scripts/native/test-linux-imports.sh`: Apple-only imports checked against Linux branches, including `#if canImport` and `#if os` (#943, bead context-grabber-cmk)
 - `scripts/native/test-story-ids.sh`: that every user story's ID is used once and sits in its journey's ranges (story 789), with the reserve command against a fake gh and main and the pre-merge check on a throwaway repository (stories 791–794)
+- `scripts/native/test-story-commits.sh`: that every commit a user story links is in the branch's history, so no Status names a sha a rebase left behind (beads context-grabber-t309, context-grabber-lldg)
 - `scripts/native/test-board-tests-listed.sh`: that every board test file is in the board's own bundle or listed as staying in ContextCore's
 - `scripts/native/test-testing-lists.sh`: that this list, the chat suite's and the whiteboard suite's below each name, one line apiece, exactly what their scripts run, the UI classes in name order (story 1502)
 
@@ -59,7 +60,7 @@ it before every push. In order, it:
 4. runs the host rung's portable script checks (each described in the host list above): the ladder's map
    (`test-ladder-map.sh`), the breath clips and the UI timing digest, the ladder report (`test-ladder-report.sh`), the
    smoke on a locked Mac (`test-smoke-lock.sh`), the Linux import check (`test-linux-imports.sh`), the build lanes
-   (`test-build-lane.sh`), the story IDs (`test-story-ids.sh`), the vendored board sessions
+   (`test-build-lane.sh`), the story IDs (`test-story-ids.sh`), the stories' commit links (`test-story-commits.sh`), the vendored board sessions
    (`test-board-sessions.py`), and this guide's one-a-line lists (`test-testing-lists.sh`). The asset
    catalog check needs `actool` and the signing guard needs BugKit's script, so they stay the Mac's.
 
