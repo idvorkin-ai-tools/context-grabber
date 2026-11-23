@@ -11,8 +11,8 @@ app, and so waits less for the parts of a launch it doesn't need.
 
 ## Goals
 
-- A whiteboard UI test can launch the Board Lab and find the boards list as `GRABBER_WHITEBOARD=open` leaves it in the
-  app, the same buttons under the same names, so a test class moves to the lab with no change to its code.
+- A whiteboard UI test can launch the Board Lab and find the boards list as the app's open-the-boards launch hook
+  leaves it, the same buttons under the same names, so a test class moves to the lab with no change to its code.
 - It opens on a chosen state: a new board, or a board from the app's board fixtures (a board drawn on another
   device, an old canvas with ink).
 - It opens on a chosen recorded Cockpit session: Larry answers its board as he did in that recording, through the

@@ -1489,7 +1489,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1501:
 
 - **Summary:** A whiteboard UI test launches the Board Lab, the board alone, instead of the whole app
-- **Status:** implemented on branch `native/board-lab-09tx` (two classes, `WhiteboardEraserUITests` and `WhiteboardTitleRenameUITests`); verified on the iPad simulator (iPad Pro 11-inch (M5), rung 2): the two classes 3 runs each way, median 85.8 s in the app against 81.1 s in the lab, and the whole `test-whiteboard-ui.sh` with both bundles passing (82 app cases and 4 lab cases, 1,648 s); host `just native-test`. No iPhone run (Igor, 2026-11-22)
+- **Status:** implemented in 86cc1677 (two classes, `WhiteboardEraserUITests` and `WhiteboardTitleRenameUITests`); verified on the iPad simulator (iPad Pro 11-inch (M5), rung 2): the two classes 3 runs each way, median 85.8 s in the app against 81.1 s in the lab, and the whole `test-whiteboard-ui.sh` with both bundles passing (82 app cases and 4 lab cases, 1,648 s); host `just native-test`. No iPhone run (Igor, 2026-11-22)
 - **Spec:** [The Board Lab](../superpowers/specs/2026-11-22-board-lab-design.md)
 - **Issues:** bead context-grabber-09tx
 
