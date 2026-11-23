@@ -77,8 +77,8 @@ final class BoardSelectionLabelTests: XCTestCase {
     XCTAssertEqual(try label(["i1", "g1", "c1"]), "Ink and 2 things")
   }
 
-  /// Bead context-grabber-owy: a group of Larry's that holds kept texts (notes under each text's id, #937) is still
-  /// one group, so all of it reads Group, not "2 things".
+  /// Story 1166, bead context-grabber-owy: a group of Larry's that holds kept texts (notes under each text's id,
+  /// #937) is still one group, so all of it reads Group, not "2 things".
   private func groupedTexts() throws -> (board: [Piece], texts: [BoardText], metas: BoardStrokeMeta) {
     let texts = [
       BoardText(id: "lbl", t: 200, text: "box", font: .plain, size: 24, color: "#000000", glyphs: 2),

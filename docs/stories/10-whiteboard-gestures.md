@@ -921,8 +921,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1095:
 
 - **Summary:** A small label on a selection says what I picked and what applies to it
-- **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045); bead context-grabber-owy (a group holding a kept text read *2 things · move together*)
-- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`), the Mac build (rung 1.5) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace` reads *Selected: Ink, To text* and `WhiteboardConnectUITests.testALassoedArrowBetweenTwoWordsConnectsThem` *Selected: Arrow, Connect*, all 66 whiteboard UI tests passing); a group holding a kept text reads *Group* since [445eb85a](https://github.com/idvorkin/context-grabber/commit/445eb85a) (bead context-grabber-owy; host tests `BoardSelectionLabelTests` and the Mac build, rung 1.5); not yet seen on the iPad: a real lasso, a grouped text, and the comparison #1045 asks for
+- **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
+- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`), the Mac build (rung 1.5) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace` reads *Selected: Ink, To text* and `WhiteboardConnectUITests.testALassoedArrowBetweenTwoWordsConnectsThem` *Selected: Arrow, Connect*, all 66 whiteboard UI tests passing); not yet seen on the iPad: a real lasso and the comparison #1045 asks for
 - **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
 
 #### Use Case:
@@ -936,6 +936,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I lasso my handwriting
 - **Then:** the label says *Ink · To text*; it sits just above the selection, never takes a touch (my next stroke draws), and is in no picture Larry gets
 
+---
+
+### User Story 1166:
+
+- **Summary:** The label on a group of Larry's that holds a kept text says *Group*
+- **Issues:** bead context-grabber-owy (a group holding a kept text read *2 things · move together*)
+- **Status:** implemented in [445eb85a](https://github.com/idvorkin/context-grabber/commit/445eb85a); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a grouped text
+- **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
+
+#### Use Case:
+- **As someone** whose board holds groups Larry made of a box and its label, or of two labels
+- **I want** the label on all of such a group to say *Group · moves as one*
+- **so that** I know it moves as one before I drag it, as with any other group
+
+#### Acceptance Criteria:
 - **Scenario:** A group of Larry's that holds a text
 - **Given:** a board with a group of Larry's made of a box and its label, and another of two labels
 - **When:** I select all of either group
