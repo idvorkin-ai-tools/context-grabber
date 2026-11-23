@@ -938,6 +938,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1166:
+
+- **Summary:** The label on a group of Larry's that holds a kept text says *Group*
+- **Issues:** bead context-grabber-owy (a group holding a kept text read *2 things · move together*)
+- **Status:** implemented in [445eb85a](https://github.com/idvorkin/context-grabber/commit/445eb85a); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a grouped text
+- **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
+
+#### Use Case:
+- **As someone** whose board holds groups Larry made of a box and its label, or of two labels
+- **I want** the label on all of such a group to say *Group · moves as one*
+- **so that** I know it moves as one before I drag it, as with any other group
+
+#### Acceptance Criteria:
+- **Scenario:** A group of Larry's that holds a text
+- **Given:** a board with a group of Larry's made of a box and its label, and another of two labels
+- **When:** I select all of either group
+- **Then:** the label says *Group · moves as one*, not *2 things · move together*; a kept text in no group still says *Text · tap to reword*
+
+---
+
 ### User Story 1096:
 
 - **Summary:** The label on a kept text says it can be reworded, and an erase turns it to ink

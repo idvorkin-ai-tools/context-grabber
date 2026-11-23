@@ -51,11 +51,15 @@ public enum BoardSelectionLabel {
     guard !picked.isEmpty else { return nil }
     let groups = metas.groups
     let byTime = BoardText.byTime(texts)
+    // A kept text Larry grouped (notes under its id, #937) belongs to its group, as the board moves it
+    // (bead context-grabber-owy).
     func thing(_ piece: Piece) -> Thing? {
       if let name = piece.names.first(where: { BoardConnector(metas[$0]) != nil }) { return .connector(name) }
-      if let text = BoardText.owning(piece.t, in: byTime) { return .text(text.id) }
-      if let group = piece.names.lazy.compactMap({ groups[$0] }).first { return .group(group) }
-      return nil
+      let text = BoardText.owning(piece.t, in: byTime)?.id
+      if let group = text.flatMap({ groups[$0] }) ?? piece.names.lazy.compactMap({ groups[$0] }).first {
+        return .group(group)
+      }
+      return text.map(Thing.text)
     }
     let things = picked.map(thing)
     let plain = things.filter { $0 == nil }.count
@@ -103,7 +107,9 @@ public enum BoardSelectionLabel {
       id = name
       label = Label(kind: .connector, words: ["Connector", "follows its two ends"])
     }
-    if whole, followed(id, or: Set(picked.flatMap(\.names)), board: board, metas: metas) {
+    // A connector on a text inside the group follows the group too.
+    let ends = Set(picked.flatMap(\.names)).union(picked.compactMap { BoardText.owning($0.t, in: byTime)?.id })
+    if whole, followed(id, or: ends, board: board, metas: metas) {
       label.words.append("a connector follows it")
     }
     return label
