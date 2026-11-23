@@ -78,7 +78,7 @@ extension PaperBoardController {
   }
 
   /// The markup set without the strokes made at `moments`, and a moment later with them again where they were, their ids
-  /// kept, in whatever the markup holds by then.
+  /// kept, in whatever the markup holds by then, unless an Undo or Redo ran meanwhile.
   private func readd(_ moments: Set<Int64>) async {
     guard let markup = paper.markup else { return }
     var without = markup
@@ -88,9 +88,11 @@ extension PaperBoardController {
       removed.append((markup.subelements.firstIndex(of: element) ?? markup.subelements.count, element))
     }
     guard !removed.isEmpty else { return }
+    let steps = undoSteps
     setMarkup(without)
     inkFrames = without.strokeFrames
     try? await Task.sleep(for: .seconds(0.1))
+    guard undoSteps == steps else { return }
     var back = paper.markup ?? without
     for (index, element) in removed {
       _ = back.subelements.insert(element, at: min(index, back.subelements.count))

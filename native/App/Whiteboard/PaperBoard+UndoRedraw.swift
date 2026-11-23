@@ -85,7 +85,8 @@ extension PaperBoardController {
   }
 
   /// The markup set without the strokes keyed `keys`, and a moment later with them again where they were, ids kept and no
-  /// step of Undo added, so Undo and Redo still take the steps they would have.
+  /// step of Undo added, so Undo and Redo still take the steps they would have. An Undo or Redo in that moment wins: the
+  /// strokes stay as it left them.
   private func readdStrokes(_ keys: Set<String>) async {
     guard let markup = paper.markup, !keys.isEmpty else { return }
     var without = markup
@@ -95,9 +96,11 @@ extension PaperBoardController {
       removed.append((markup.subelements.firstIndex(of: element) ?? markup.subelements.count, element))
     }
     guard !removed.isEmpty else { return }
+    let steps = undoSteps
     setMarkup(without)
     inkFrames = without.strokeFrames
     try? await Task.sleep(for: .seconds(0.1))
+    guard undoSteps == steps else { return }
     var back = paper.markup ?? without
     for (index, element) in removed.sorted(by: { $0.index < $1.index }) {
       _ = back.subelements.insert(element, at: min(index, back.subelements.count))

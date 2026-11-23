@@ -93,7 +93,9 @@ extension PaperBoardController {
   }
 
   @objc private func undoWill(_ note: Notification) {
-    guard let undo = note.object as? UndoManager, undo === paper.undoManager, !probe.probing else { return }
+    guard let undo = note.object as? UndoManager, undo === paper.undoManager else { return }
+    undoSteps += 1
+    guard !probe.probing else { return }
     let redo = note.name == .NSUndoManagerWillRedoChange
     stepping = (
       redo ? undo.redoActionName : undo.undoActionName, inkFrames.count, paper.markup?.strokeFrames ?? inkFrames

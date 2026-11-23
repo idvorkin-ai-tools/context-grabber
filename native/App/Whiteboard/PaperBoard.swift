@@ -146,6 +146,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   var undoShowing = false
   /// #966: what the stack said just before an Undo or Redo ran, for the log's line once it has.
   var stepping: (name: String, strokes: Int, frames: [String: CGRect])?
+  /// Undos and Redos run on the board's stack so far: strokes taken out to be drawn again go back only if none ran meanwhile.
+  var undoSteps = 0
 
   private var placeKey: String { "whiteboard_paper_y_\(model.board.id)" }
 
