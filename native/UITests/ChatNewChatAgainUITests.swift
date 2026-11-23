@@ -1,4 +1,4 @@
-//  Story 262 (#1365) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it): the + opens a
+//  Story 1607 (#1365) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it): the + opens a
 //  new chat again after the last one landed and was left by Back, by Home and back, by another thread, and by two quick
 //  Backs to Home. Animated, as Igor sees it. What the + logs when it opens nothing is the Mac's to show.
 
