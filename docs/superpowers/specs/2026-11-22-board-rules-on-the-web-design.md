@@ -131,7 +131,7 @@ itself, at or above it the module does, so the two can be compared on the same b
 
 ## The interface, version 3: where a paste lands, and the room a drop opens
 
-Story 1511. The next two steps of the web board's Swift level: a paste (text pasted as a kept text) lands where the
+Story 1512. The next two steps of the web board's Swift level: a paste (text pasted as a kept text) lands where the
 iPad's would, and a selection dropped on writing pushes it down by the iPad's rule. Both are asked of the board
 `bw_load` keeps, with plain numbers; `bw_info` says `"abi": 3`, and versions 1 and 2 are unchanged.
 

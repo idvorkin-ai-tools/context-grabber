@@ -1599,6 +1599,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1512:
+
+- **Summary:** The web board asks the app's own rules where a paste lands and how much room a drop opens
+- **Status:** implemented in 91bdde09; verified by `just wasm-test` (120 checks, a hand-worked paste and drop among them) and the Linux rung (`just test-linux`), 2026-11-22. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 3
+- **Issues:** bead `context-grabber-edl`
+
+#### Use Case:
+- **As Igor,** pasting text and dragging writing around on the Cockpit's web ink board as well as on the iPad
+- **I want to** have the web board ask the app's own rules where a paste lands and how far a drop pushes the writing below
+- **so that** a paste or a drop lands on the web exactly where it would on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** A paste and a drop through the module
+- **Given:** the module built by `just wasm` with a board loaded (a line of writing, a kept text, two strokes grouped)
+- **When:** `just wasm-test` asks where a paste lands in a clear view and in views too small to hold it, and what a drop on the line, on clear paper and back on its own line opens
+- **Then:** the paste lands on the clear patch nearest the view's middle on the 20-point grid; with none, under the writing above the view's middle, with room opened only when the blank paper there is short, in whole lines; the drop on the line pushes it down one line from the clear line at the drop's top, and the other two open nothing; with nothing loaded each says so
+
+---
+
 ### User Story 1508:
 
 - **Summary:** The web board asks the app's own outline which row of writing a tap is on and what folding a header does
