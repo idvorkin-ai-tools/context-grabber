@@ -272,7 +272,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 Igor tried the trial on his iPad on 2026-11-03: "Okay, I like that. Let's make it the default." He meant the board on
 Apple's PaperKit. His earlier decisions stand: a column of page-width boards with paper lines, old boards moving onto
-pages, strokes that never scale, and Larry seeing the pages on screen.
+pages (until 2026-11-22, below), strokes that never scale, and Larry seeing the pages on screen.
 
 **Paper is the only canvas** (Igor, 2026-11-07: "get rid of old canvas, only use new paper code. Old canvas can be erased").
 Every board is drawn on paper. The old canvas, its switch and the trial are gone.
@@ -863,8 +863,7 @@ that ghosts need the tailnet.
 - A new board is one page wide and scrolls only up and down. Draw to the bottom of a page and keep scrolling: a blank
   page is always there. The ink keeps Notes' feel past 4,000 and past 9,600 points down the column.
 - Pinching out stops at the page's width. The page number reads right while scrolling, and isn't in any picture.
-- An old board opens look-only on paper, with every stroke where it was relative to the others, none scaled. One wider
-  than a page keeps its width. Nothing draws on it.
+- A board drawn on the old canvas is not in the boards list, and a link to one shows the copyable problem that says why.
 - There is no *New boards on paper* switch and no *Try on paper*: every new board is on paper.
 - A new board made after the default ships is on paper, shows no test cross or ring, and an older build still opens it.
 - A save that fails on a board on paper shows a problem that can be copied, on the board or, when leaving it, on the list.

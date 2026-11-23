@@ -1,4 +1,4 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–657, 658; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–657; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log; and on it
 //  `PaperBoardController`, which draws on a board through its model, so it saves and syncs, with its ghosts, Larry's
 //  marks, the mic and paste. A look-only board (another device's, or any on an iPhone) shows the same way with
