@@ -161,6 +161,30 @@ try:
         except urllib.error.HTTPError as e:
             check(e.code == code, "q=%s is a %d" % (q, code))
     call("/fake/asks", {"open": False})
+    # Stories 777, 805: a slow answer is armed for one picture only.
+    call("/fake/larry-ops", {"kind": "slow", "seconds": 1.5})
+    before = len(larry_rows(key))
+    call("/chat/" + key, dict(turn, id="p6", picture_id="p6", rev=11, op_result=None, events=[]))
+    check(len(larry_rows(key)) == before, "a slow answer hasn't come in half a second")
+    time.sleep(1.5)
+    check(len(larry_rows(key)) == before + 1, "and comes after its seconds")
+    # Stories 775, 802: board-stuck makes the newest board thread mark, and holds its next picture once.
+    stuck = call("/fake/board-stuck", {"seconds": 1.5})
+    check(stuck["thread"] == key and all((m.get("receipt") or {}).get("state") == "done"
+                                         for m in call("/chat/" + key)["messages"] if m["who"] == "igor"),
+          "board-stuck marks the thread's pictures done: %s" % stuck)
+    started = time.time()
+    call("/chat/" + key, dict(turn, id="p7", picture_id="p7", rev=12, op_result=None, events=[]))
+    check(time.time() - started >= 1.4, "its next picture is held")
+    started = time.time()
+    again = call("/chat/" + key, dict(turn, id="p7", picture_id="p7", rev=12, op_result=None, events=[]))
+    check(time.time() - started < 1 and again.get("duplicate"), "a resend lands at once, kept once: %s" % again)
+    time.sleep(1.5)
+    p7 = [m for m in call("/chat/" + key)["messages"] if m["id"] == "p7"]
+    check(len(p7) == 1 and (p7[0].get("receipt") or {}).get("state") == "done", "his answer marks it done: %s" % p7)
+    started = time.time()
+    call("/chat/" + key, dict(turn, id="p8", picture_id="p8", rev=13, op_result=None, events=[]))
+    check(time.time() - started < 1, "only once")
 finally:
     fake.kill()
     os.unlink(report)

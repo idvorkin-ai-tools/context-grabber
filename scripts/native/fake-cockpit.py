@@ -37,7 +37,11 @@ FAKE_COCKPIT_LARRY_DELAY=<seconds> is how long Larry takes to answer a board's p
 offers Interrupt (story 777). FAKE_COCKPIT_BOARD_HOLD=<seconds> makes this a Cockpit that marks: Larry's answer marks the
 picture's message done, and a later picture on that thread is held that long, once, before the Cockpit takes it, so past
 20 the board says it is stuck and a resend of it lands at once (stories 775, 776; under 30, the app's own limit on the
-request).
+request). POST /fake/larry-ops {"kind": "slow", "seconds": n} has Larry take n seconds over the next board answer only, so
+the board offers Interrupt past 20 (stories 777, 805). POST /fake/board-stuck {"seconds": n} does FAKE_COCKPIT_BOARD_HOLD's
+work for one thread and one picture: the newest board thread becomes one that marks (Igor's messages on it marked done,
+and Larry's answers there marking his picture done), and its next picture is held n seconds before the Cockpit takes
+it, so a test can see *Larry hasn't got the picture* and Retry (stories 775, 802).
 Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). By default this is a Cockpit with no skill threads (story 516). POST /fake/file-thread adds igor2-88g.633, titled The lease, whose one message from Igor carries a one-page PDF (story 1125). POST /fake/skill-thread is a test's way to add one (#632, cockpit#90), igor2-88g.632: pinned under Larry's, listed with no messages, refusing an archive, its replies from "idvorkin"; a message saying "fail" gets a failure row instead, with Igor's messages marked done either way, as on the Cockpit. Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
 Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-603 (the UI test makes it with GRABBER_BOARD_FIXTURE) and board-gone-603, which no device has (stories 317, 319, #603).
@@ -96,6 +100,8 @@ NEW_DELAY = float(os.environ.get("FAKE_COCKPIT_NEW_DELAY") or 0)
 LARRY_DELAY = float(os.environ.get("FAKE_COCKPIT_LARRY_DELAY") or 1)
 BOARD_HOLD = float(os.environ.get("FAKE_COCKPIT_BOARD_HOLD") or 0)
 HELD = set()  # the ids of the board pictures FAKE_COCKPIT_BOARD_HOLD has held: each once, so a resend lands
+STUCK = None  # POST /fake/board-stuck: {"key": the board thread, "seconds": its next picture's hold}, once (story 802)
+MARKING = set()  # the board threads POST /fake/board-stuck made ones that mark: Larry's answer marks the picture done
 LOCK = threading.Lock()
 THREADS = {
     "igor2-88g.900": {"title": "Should the phone chat poll?", "messages": [], "seen": ""},
@@ -576,9 +582,14 @@ def play_session_later(key, m, data):
 def answer_board_later(key):
     def go():
         global LARRY_OPS
-        time.sleep(LARRY_DELAY)
+        delay = LARRY_DELAY
         with LOCK:
-            if BOARD_HOLD:
+            if LARRY_OPS is not None and LARRY_OPS.get("kind") == "slow":
+                # Stories 777, 805: this one answer takes that long, past the board's twenty seconds.
+                delay, LARRY_OPS = float(LARRY_OPS.get("seconds", 40)), None
+        time.sleep(delay)
+        with LOCK:
+            if BOARD_HOLD or key in MARKING:
                 BOARD_MESSAGES[key]["receipt"] = {"state": "done"}
             if LARRY_OPS is not None and LARRY_OPS.get("kind") == "connector_marks":
                 # Story 917: a connector mark from the end of the first stroke to the start of the second, by points.
@@ -822,6 +833,22 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 LARRY_OPS = data
             return self._json(200, {"ok": True})
+        if path == "/fake/board-stuck":
+            # Stories 775, 802: the newest board thread marks Igor's messages (those there are marked done), and its next
+            # picture is held that long, once, before the Cockpit takes it: past 20 the board says it is stuck, and a
+            # resend of it lands at once. {"seconds": 0} disarms it.
+            global STUCK
+            with LOCK:
+                key = next(reversed(BOARD_MESSAGES), None)
+                if key is None or not data.get("seconds"):
+                    STUCK = None
+                    return self._json(200 if not data.get("seconds") else 409, {"ok": key is not None})
+                MARKING.add(key)
+                for m in THREADS[key]["messages"]:
+                    if m["who"] == "igor":
+                        m["receipt"] = {"state": "done"}
+                STUCK = {"key": key, "seconds": float(data["seconds"])}
+            return self._json(200, {"ok": True, "thread": key})
         if path == "/fake/file-thread":
             # Story 1125 (#633): a PDF Igor sent, delivered, on a thread of its own so no other test sees it.
             with LOCK:
@@ -839,6 +866,11 @@ class Handler(BaseHTTPRequestHandler):
         if BOARD_HOLD and data.get("board") and path[len("/chat/"):] in BOARD_MESSAGES and data.get("id") not in HELD:
             HELD.add(data.get("id"))
             time.sleep(BOARD_HOLD)
+        stuck = STUCK
+        if stuck and data.get("board") and path == "/chat/" + stuck["key"] and data.get("id") not in HELD:
+            HELD.add(data.get("id"))
+            STUCK = None
+            time.sleep(stuck["seconds"])
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
                       "origin": self.headers.get("Origin")})
         with LOCK:
