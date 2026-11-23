@@ -570,7 +570,7 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** A smoke run on a locked Mac
 - **Given:** a smoke run under way
-- **When:** the screen locks after the smoke started (a smoke asked for on a locked screen doesn't start: it waits for an unlock and then exits 75, story 1022), and the smoke reaches the timer, breathing and the real-audio call
+- **When:** the screen locks after the smoke started (a smoke asked for on a locked screen starts as usual and skips the same checks, story 1022), and the smoke reaches the timer, breathing and the real-audio call
 - **Then:** each prints *skipped: Mac screen locked* and doesn't run, the run's last lines count them as skipped and not passed, and unlocked they run as before (the real-audio call is also skipped while the lid is closed on the built-in mic, story 1025)
 
 ---
