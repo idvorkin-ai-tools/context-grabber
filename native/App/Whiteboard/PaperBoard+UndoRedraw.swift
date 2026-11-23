@@ -18,10 +18,11 @@ extension PaperBoardController {
   }
 
   /// A second on, each stroke near `changed`, a tile at a time: a piece in view with nothing shown is missing.
-  /// `paper_ink_look` says what was found; a miss asks for `paper_ink_heal`, the strokes taken out and put back on the
-  /// first try (what drew a kept mark cut at a tile edge, context-grabber-ikya), the view a screen away and back on the
-  /// second, then looks again.
-  func lookAfterStep(_ changed: CGRect, why: String, attempt: Int = 0) {
+  /// `paper_ink_look` says what was found. A miss asks for a heal (`BoardUndoRedraw.healStep`): the strokes taken out and put
+  /// back on the first try (what drew a kept mark cut at a tile edge, context-grabber-ikya), the view a screen away and
+  /// back on the second; the look after it logs the heal, `paper_ink_heal`, with its tiles, strokes, step and whether it
+  /// worked. `healed`: the heal that look follows.
+  func lookAfterStep(_ changed: CGRect, why: String, attempt: Int = 0, healed: BoardUndoRedraw.Heal? = nil) {
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(1))
       guard let self, let markup = self.paper.markup else { return }
@@ -43,7 +44,6 @@ extension PaperBoardController {
           missing.append(piece)
         }
       }
-      let keys = Set(missing.map(\.key))
       self.log.event(
         "whiteboard",
         [
@@ -52,16 +52,19 @@ extension PaperBoardController {
           "missing_at": missing.prefix(8).map { self.rect($0.box) }, "strokes": markup.subelements.strokes.count,
           "visible": self.rect(self.paper.contentVisibleFrame), "attempt": attempt, "forced": forced,
         ])
-      let heal = !missing.isEmpty && attempt < 2 && self.touchesDown == 0
-      self.showUndoLookForTests(missing.isEmpty ? "whole" : "missing", healed: heal)
-      guard heal else { return }
-      let how = attempt == 0 ? "readd" : "scroll"
-      self.log.event(
-        "whiteboard",
-        [
-          "action": "paper_ink_heal", "why": why, "board": self.model.board.id, "attempt": attempt + 1, "how": how,
-          "strokes": keys.count,
-        ])
+      if var healed {
+        healed.missingAfter = missing.count
+        var fields = healed.fields
+        fields["board"] = self.model.board.id
+        self.log.event("whiteboard", fields)
+      }
+      let how = missing.isEmpty || self.touchesDown > 0 ? nil : BoardUndoRedraw.healStep(afterLook: attempt)
+      self.showUndoLookForTests(missing.isEmpty ? "whole" : "missing", healed: how != nil)
+      guard let how else { return }
+      let keys = Set(missing.map(\.key))
+      let heal = BoardUndoRedraw.Heal(
+        why: why, attempt: attempt + 1, how: how, tiles: BoardUndoRedraw.tiles(missing), strokes: keys.count,
+        missingAfter: missing.count)
       if how == "readd" {
         await self.readdStrokes(keys)
       } else {
@@ -70,7 +73,7 @@ extension PaperBoardController {
         try? await Task.sleep(for: .seconds(0.1))
         self.paper.contentVisibleFrame = place
       }
-      self.lookAfterStep(changed, why: why, attempt: attempt + 1)
+      self.lookAfterStep(changed, why: why, attempt: attempt + 1, healed: heal)
     }
   }
 

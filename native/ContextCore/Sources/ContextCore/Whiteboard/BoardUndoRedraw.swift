@@ -29,6 +29,10 @@ public enum BoardUndoRedraw {
   public struct Piece: Equatable, Sendable {
     public var key: String
     public var box: CGRect
+    public init(key: String, box: CGRect) {
+      self.key = key
+      self.box = box
+    }
   }
 
   /// Where the step changed the ink: every stroke added, taken away or moved, where it was and where it is. Nil when
@@ -69,6 +73,48 @@ public enum BoardUndoRedraw {
   /// A piece is missing when it's in view and the view shows none of it (-1: the picture couldn't be read).
   public static func missing(inView: Bool, shownPixels: Int) -> Bool {
     inView && shownPixels == 0
+  }
+
+  /// The tiles `pieces` lie in, each once, as [column, row], top row first.
+  public static func tiles(_ pieces: [Piece], tile: CGFloat = tile) -> [[Int]] {
+    let cells = Set(
+      pieces.map {
+        Cell(row: Int(($0.box.midY / tile).rounded(.down)), column: Int(($0.box.midX / tile).rounded(.down)))
+      })
+    return cells.sorted().map { [$0.column, $0.row] }
+  }
+
+  /// The heal after the look numbered `afterLook` found a piece missing: the strokes taken out and put back, then the view
+  /// a screen away and back, then nothing more.
+  public static func healStep(afterLook attempt: Int) -> String? {
+    switch attempt {
+    case 0: "readd"
+    case 1: "scroll"
+    default: nil
+    }
+  }
+
+  /// One heal as the session log says it, once the look after it has run: the tiles it was for, how many strokes, which
+  /// step, and whether that look found every piece drawn.
+  public struct Heal: Equatable, Sendable {
+    public var why: String
+    public var attempt: Int
+    public var how: String
+    public var tiles: [[Int]]
+    public var strokes: Int
+    public var missingAfter: Int
+    public init(why: String, attempt: Int, how: String, tiles: [[Int]], strokes: Int, missingAfter: Int) {
+      (self.why, self.attempt, self.how, self.tiles) = (why, attempt, how, tiles)
+      (self.strokes, self.missingAfter) = (strokes, missingAfter)
+    }
+    public var worked: Bool { missingAfter == 0 }
+    /// The `paper_ink_heal` event's fields, the board's id added by the caller.
+    public var fields: [String: Any] {
+      [
+        "action": "paper_ink_heal", "why": why, "attempt": attempt, "how": how, "tiles": tiles,
+        "tile_size": Int(BoardUndoRedraw.tile), "strokes": strokes, "worked": worked, "missing_after": missingAfter,
+      ]
+    }
   }
 
   private struct Cell: Hashable, Comparable {
