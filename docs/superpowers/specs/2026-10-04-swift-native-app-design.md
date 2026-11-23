@@ -520,6 +520,10 @@ a passing test is not retrying it, so repeats are never counted as retries or fl
 failed on flakes alone flaky, counts it as a failed attempt, names its flakes and its quarantined cases, and shows for
 each test class how often a case passed only on retry, apart from the repeats.
 
+If the run's flakes can't be checked and any try failed, the run exits 65 and says the flakes weren't checked.
+This applies when xcodebuild exits, hangs, or is stopped by a screen lock. A run with no failed try keeps its
+ordinary result. When the flake check completes, a failure to save timing records leaves the verdict in effect.
+
 ## Acceptance criteria
 
 Step 1:

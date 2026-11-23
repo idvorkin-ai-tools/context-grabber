@@ -271,8 +271,11 @@ the simulator's boot included, is under a minute) is stopped and fails with exit
 as the likely cause and saying whether the screen is locked now (story 783). A plain `test` compiles first, so it isn't
 watched for its start. The timing summary counts a
 retried case once and names every case that passed only on its retry: that is a flake to fix, not a pass to forget, so
-the run fails for it with exit 65 even though xcodebuild called it a success (story 1017). A known flake someone is
-chasing goes in `scripts/native/ui-quarantine.txt`, one `Class[.test] <bead or #issue> <why>` per line (a line with no
+the run fails for it with exit 65 even though xcodebuild called it a success (story 1017). If the flake check can't
+complete, a run with a failed try exits 65 and says the flakes weren't checked, even after a hang or screen lock.
+A run with no failed try keeps its ordinary result. A timing ledger write error leaves a completed flake verdict in
+effect (bead `context-grabber-z8p7`). A known flake someone is chasing goes in `scripts/native/ui-quarantine.txt`,
+one `Class[.test] <bead or #issue> <why>` per line (a line with no
 tracker is ignored): it still runs, retries and is named as quarantined, but doesn't fail the run. Take its line out
 when the bead closes. A run asked to repeat a passing case (`-test-iterations N`) repeats it; repeats are not retries.
 
@@ -328,7 +331,8 @@ unlocked, it passed twice. So **a test that fails after the screen has locked is
 wrapper every test run goes through looks at the lock every two seconds, and when every case that failed (or passed
 only on its retry) failed after the screen was first seen locked, the run stops with exit 75, saying when it was first
 seen locked and to unlock and rerun. A case that failed before the lock, or a failure that wasn't a test's (a build),
-fails the run as before, naming the lock; a pass stands, with a line that the screen locked.
+fails the run as before, naming the lock; a pass stands, with a line that the screen locked. If a try failed and the
+flake check couldn't complete, the run exits 65 with the unchecked-flakes message.
 `scripts/native/test-xcodebuild-log.sh` checks it with the lock probe faked. Since BugKit 0.3.16 (bug-kit #131, story
 144) a simulator crash ends at BugKit's own file in the app's container,
 `$(xcrun simctl get_app_container <udid> com.idvorkin.grabbernative data)/Documents/crashes/signal-<epoch>.txt`
@@ -345,8 +349,8 @@ lock the way BugKit's signing guard does (`ioreg`'s `CGSSessionScreenIsLocked`) 
 tests that open the mic, as above. During a simulator test run whose tests that open the mic haven't all passed,
 skipped or failed, the wrapper's two-second look at the lock stops the run the moment it sees the screen locked: it ends xcodebuild and
 the app and its test runner on that simulator (`simctl terminate`), and exits 75 saying when, or 65 if a case had
-already failed before the lock. A run of several test targets (`just native-test-contracts` is two) closes a suite after
-each, so the stop stays on to the last: a lock seen between two targets stops the run once the next one starts, if the
+already failed before the lock or a failed try went unchecked. A run of several test targets (`just native-test-contracts`
+is two) closes a suite after each, so the stop stays on to the last. A lock seen between two targets stops the run once the next one starts, if the
 screen is still locked then. Once the last target's suite has closed, a lock no longer stops it. Builds, the Mac build
 and test runs that aren't on a simulator are not held. An unreadable lock state counts as unlocked (Linux has no
 `ioreg`). So never run `xcodebuild test` on a simulator by hand: every `xcodebuild … test` in this file means through

@@ -11,8 +11,9 @@ largest gap kinds; with --jsonl appends one line per case so runs can be compare
 
 A case that failed and then passed on xcodebuild's retry passed only on retry: a flake, which the run counts as a
 failure (story 1017), unless the quarantine file names it with the bead that tracks it. --flaky-out writes the flakes
-that count, one per line, for the wrapper to fail the run on. A run of a case after one that passed is a repeat (an
-iteration asked for), not a retry.
+that count, one per line, for the wrapper to fail the run on. If the --jsonl lines can't be appended, it exits 74
+(EX_IOERR) after --flaky-out is written, so the wrapper still holds a checked flake verdict. A run of a case after one
+that passed is a repeat (an iteration asked for), not a retry.
 """
 
 import argparse
@@ -197,9 +198,13 @@ def main(argv=None):
         stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         # #1038: the ladder's climb this run was part of, so the report can join its cases to the climb.
         run_id = {"run_id": os.environ["LADDER_RUN_ID"]} if os.environ.get("LADDER_RUN_ID") else {}
-        with open(args.jsonl, "a") as f:
-            for c in cases:
-                f.write(json.dumps({"t": stamp, "run": args.run, **run_id, **c}) + "\n")
+        try:
+            with open(args.jsonl, "a") as f:
+                for c in cases:
+                    f.write(json.dumps({"t": stamp, "run": args.run, **run_id, **c}) + "\n")
+        except OSError as error:
+            print(f"ui-timings could not write timing records: {error}", file=sys.stderr)
+            return os.EX_IOERR
     return 0
 
 
