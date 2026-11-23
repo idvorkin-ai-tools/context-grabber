@@ -311,6 +311,21 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// Keep: the chosen mark leaves the ghosts; the caller turns it into ink. Nil with nothing chosen.
   public mutating func keepChosen() -> Ghost? { removeChosen() }
 
+  /// Keep beside a chosen mark of Larry's (story 1154; bead context-grabber-it0e): it and every other mark of its reply
+  /// still showing leave the ghosts, in the order they came, for the caller to keep as that reply's group. A mark of
+  /// Claude's, his text from a change (no reply's) and a reply's last mark showing leave alone. Nil with nothing chosen.
+  public mutating func keepChosenReply() -> [Ghost]? {
+    guard let ghost = chosen else { return nil }
+    guard ghost.who == .larry, let reply = WhiteboardMarks.reply(of: ghost.id) else {
+      return removeChosen().map { [$0] }
+    }
+    chosenID = nil
+    let ofReply = { (mark: Ghost) in mark.who == .larry && WhiteboardMarks.reply(of: mark.id) == reply }
+    let kept = ghosts.filter(ofReply)
+    ghosts.removeAll(where: ofReply)
+    return kept
+  }
+
   /// Dismiss: the chosen mark goes, and only it. The rest of an answer on its way still lands.
   public mutating func dismissChosen() -> Ghost? { removeChosen() }
 

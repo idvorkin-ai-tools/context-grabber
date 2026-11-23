@@ -101,7 +101,7 @@ extension PaperBoardController {
   /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it; #894 (stories 1004–1006): his
   /// marks kept over ink written after his picture. The room opens and the marks land in one change, one undo named
   /// *Keep* (*Keep all* for a Keep all), as a paste and its room are one. `why` names it in the log: keep_text,
-  /// keep_late or keep_all.
+  /// keep_late, keep_all or keep_reply (story 1154).
   func keep(_ strokes: [PKStroke], making push: BoardRoom.Push, why: String) -> Bool {
     guard let markup = paper.markup, !strokes.isEmpty else { return false }
     let (ink, hashes) = opStrokes(markup)

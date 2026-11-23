@@ -57,6 +57,12 @@ extension WhiteboardModel {
     guard editable else { return }
     let marks = turns.keepAll(.larry)
     guard !marks.isEmpty else { return }
+    keepAsReplies(marks, why: "keep_all", undoName: Self.keepAllUndoName)
+  }
+
+  /// `marks` of Larry's kept as Keep all keeps them: each reply one group, one room, one undo named `undoName` (Keep all's,
+  /// or story 1154's Keep beside a mark of a reply). `why` names the keep in the log and the room.
+  private func keepAsReplies(_ marks: [Ghost], why: String, undoName: String) {
     let groups = WhiteboardMarks.keptGroups(marks.map(\.id))
     let started = Date()
     var strokes: [PKStroke] = []
@@ -98,13 +104,13 @@ extension WhiteboardModel {
     }
     if marks.contains(where: { $0.text != nil }) { opLedger.setTexts(texts, board: board.id) }
     var event: [String: Any] = [
-      "action": "keep_all", "board": board.id, "marks": marks.count, "strokes": strokes.count,
+      "action": why, "board": board.id, "marks": marks.count, "strokes": strokes.count,
       "groups": Set(groups.values).sorted().map(WhiteboardMarks.group(reply:)),
     ]
     event.merge(Self.lateFields(late, marks)) { $1 }
     log.event("whiteboard", event)
-    if let push = late?.push, canvas?.keepMakingRoom(strokes, push: push, why: "keep_all") == true { return }
-    add(strokes, named: Self.keepAllUndoName)
+    if let push = late?.push, canvas?.keepMakingRoom(strokes, push: push, why: why) == true { return }
+    add(strokes, named: undoName)
   }
 
   /// Story 896: kept labels and pastes that sit on other ink laid out again, top to bottom; his ink stays. One undo.
@@ -157,12 +163,21 @@ extension WhiteboardModel {
     drawing.strokes.filter { !$0.isFolded }.map(points)
   }
 
-  /// Keep beside the chosen mark: the old tap's keep, one undo.
+  /// Keep beside the chosen mark, one undo. A mark of Larry's keeps its whole reply still showing as one group, as Keep
+  /// all keeps it (story 1154; bead context-grabber-it0e); a lone mark, his text from a change and Claude's keep alone.
   func keepChosen() {
-    guard let kept = turns.keepChosen() else { return }
-    log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "keep", "who": kept.who.rawValue])
-    settleLarrys(kept)
-    ink(kept)
+    guard let kept = turns.keepChosenReply(), let first = kept.first else { return }
+    log.event(
+      "whiteboard",
+      [
+        "action": "mark_choice", "board": board.id, "choice": "keep", "who": first.who.rawValue, "marks": kept.count,
+      ])
+    guard kept.count > 1 else {
+      settleLarrys(first)
+      ink(first)
+      return
+    }
+    keepAsReplies(kept, why: "keep_reply", undoName: Self.keepUndoName)
   }
 
   /// Story 1000: where the corner's buttons are, in window points.
