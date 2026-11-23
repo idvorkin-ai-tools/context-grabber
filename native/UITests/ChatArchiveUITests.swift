@@ -1,5 +1,5 @@
 //  Stories 307–309 (#589), 311–314 (#599), 823–824 (bead context-grabber-szom), 834–835 (bead
-//  context-grabber-qp3m) and 506 on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh
+//  context-grabber-qp3m), 1138 (#1258) and 506 on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh
 //  starts it): only what the real list can show. A real swipe archives a thread and its Undo brings it back; Select's
 //  ticks and Archive (N) archive two with one Undo; the thread's ⋯ menu archives and goes back, and a swipe under Done
 //  unarchives; the + and the voice button float over the list with the pinned thread on top. Which row offers what,
@@ -156,6 +156,49 @@ final class ChatArchiveUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Archived 2 chats"].appears(within: 5), app.debugDescription)
     app.buttons["chat-archive-undo"].tap()
     assertBackInTheLiveList(app)
+  }
+
+  /// Story 1138 (#1258): while ticking, a hold's *Open chat* and the row's arrow each open the chat, ticking nothing,
+  /// and Back returns to the same side of the switch with the same ticks.
+  func testAChatOpenedWhileTickingComesBackToTheSameTicks() throws {
+    let app = try openList()
+    let review = app.buttons["chat-review-done"]
+    XCTAssertTrue(review.appears(within: 10), app.debugDescription)
+    review.tap()
+    let filter = app.segmentedControls["chat-select-filter"]
+    XCTAssertTrue(filter.appears(within: 5), app.debugDescription)
+    filter.buttons["All"].tap()
+    let (proposed, other) = (app.buttons["chat-tick-igor2-88g.593"], app.buttons["chat-tick-\(key)"])
+    XCTAssertTrue(other.appears(within: 5), app.debugDescription)
+    let archive = app.buttons["chat-archive-selected"]
+    XCTAssertEqual(archive.label, "Archive (1)", "Review ticked the proposal")
+    let more = app.buttons["chat-thread-more"]
+    func back() {
+      app.navigationBars.buttons.element(boundBy: 0).tap()
+      XCTAssertTrue(filter.appears(within: 5), "back on the ticking list: \(app.debugDescription)")
+    }
+
+    other.press(forDuration: 1.2)
+    // The context menu's item, not a row's arrow, which VoiceOver also reads as Open chat.
+    let open = app.buttons.matching(
+      NSPredicate(format: "label == %@ AND NOT (identifier BEGINSWITH %@)", "Open chat", "chat-tick-open-")
+    ).firstMatch
+    XCTAssertTrue(open.appears(within: 5), "the hold offers Open chat: \(app.debugDescription)")
+    open.tap()
+    XCTAssertTrue(more.appears(within: 10), "the chat opened: \(app.debugDescription)")
+    back()
+    XCTAssertTrue(filter.buttons["All"].isSelected, "the same side of the switch")
+    XCTAssertEqual(other.value as? String, "not ticked", "opening ticked nothing")
+    XCTAssertEqual(proposed.value as? String, "ticked")
+    XCTAssertEqual(archive.label, "Archive (1)")
+
+    app.buttons["chat-tick-open-igor2-88g.593"].tap()
+    XCTAssertTrue(more.appears(within: 10), "the arrow opened the chat: \(app.debugDescription)")
+    back()
+    XCTAssertEqual(proposed.value as? String, "ticked", "opening unticked nothing")
+    XCTAssertEqual(archive.label, "Archive (1)")
+    app.buttons["chat-select"].tap()
+    XCTAssertTrue(app.buttons["chat-thread-\(key)"].appears(within: 5), "Cancel: \(app.debugDescription)")
   }
 
   /// Stories 834 and 835 (bead context-grabber-qp3m): *New* hides the chats with nothing unread (the pinned thread here

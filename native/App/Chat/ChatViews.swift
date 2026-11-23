@@ -57,6 +57,8 @@ struct ChatListView: View {
   private var inboxFilter: ChatInboxFilter { ChatInboxFilter.restored(inboxSaved) }
   /// The chat open from this list: *New* keeps its row until the list is back on screen.
   @State private var openKey: String?
+  /// Story 1138 (#1258): the chat opened from a ticking row; the ticks stay as they were behind it.
+  @State private var peekKey: String?
   /// GRABBER_CHAT_SELECT=archive: once the list is read, *Review* and *Archive (N)* tap themselves, for the simulator.
   @State private var selectHook = LaunchHooks.current.chat.selectArchive
 
@@ -227,6 +229,13 @@ struct ChatListView: View {
       ChatThreadView(newChat: chat, voice: voice, logger: logger)
     }
     .navigationDestination(
+      isPresented: Binding(get: { peekKey != nil }, set: { if !$0 { peekKey = nil } })
+    ) {
+      if let key = peekKey {
+        ChatThreadView(chat: chat, voice: voice, key: key, title: chat.title(of: key), logger: logger)
+      }
+    }
+    .navigationDestination(
       isPresented: Binding(get: { chat.linkThread != nil }, set: { if !$0 { chat.linkThread = nil } })
     ) {
       if let key = chat.linkThread {
@@ -275,19 +284,42 @@ struct ChatListView: View {
 
   private func tickRow(_ thread: ChatSummary) -> some View {
     let ticked = selection.ticked(thread.key)
-    return Button {
-      selection.tick(thread.key)
-    } label: {
-      HStack(alignment: .top, spacing: 10) {
-        Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
-          .foregroundStyle(ticked ? Color.accentColor : .secondary)
-        ThreadRow(thread: thread, decisionWaiting: waiting.contains(thread.key))
+    return HStack(alignment: .center, spacing: 8) {
+      Button {
+        selection.tick(thread.key)
+      } label: {
+        HStack(alignment: .top, spacing: 10) {
+          Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
+            .foregroundStyle(ticked ? Color.accentColor : .secondary)
+          ThreadRow(thread: thread, decisionWaiting: waiting.contains(thread.key))
+        }
+        .contentShape(Rectangle())
       }
+      .buttonStyle(.plain)
+      .accessibilityIdentifier("chat-tick-\(thread.key)")
+      .accessibilityValue(ticked ? "ticked" : "not ticked")
+      .accessibilityLabel(ticked ? "Ticked: \(thread.title)" : thread.title)
+      // Story 1138 (#1258): the hold Igor reached for opens the chat; the ticks wait behind it.
+      .contextMenu {
+        Button("Open chat", systemImage: "bubble.left.and.text.bubble.right") { peek(thread, from: "hold") }
+      }
+      Button {
+        peek(thread, from: "arrow")
+      } label: {
+        Image(systemName: "chevron.right.circle").imageScale(.large).foregroundStyle(.secondary)
+          .frame(minWidth: 32, minHeight: 32)
+      }
+      .buttonStyle(.borderless)
+      .accessibilityLabel("Open chat")
+      .accessibilityIdentifier("chat-tick-open-\(thread.key)")
     }
-    .buttonStyle(.plain)
-    .accessibilityIdentifier("chat-tick-\(thread.key)")
-    .accessibilityValue(ticked ? "ticked" : "not ticked")
-    .accessibilityLabel(ticked ? "Ticked: \(thread.title)" : thread.title)
+  }
+
+  /// Story 1138 (#1258): a ticking row's chat, opened as from the list; Back returns to the same ticks.
+  private func peek(_ thread: ChatSummary, from: String) {
+    openKey = thread.key
+    peekKey = thread.key
+    chat.logAction("select_open_chat", ["thread": thread.key, "from": from, "ticked": selection.ticked(thread.key)])
   }
 
   private func threadLink(_ thread: ChatSummary) -> some View {
