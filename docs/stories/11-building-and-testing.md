@@ -247,20 +247,10 @@ Part of the [user stories](README.md); persona and format are described there.
 - **so that** a type slip in a view or a broken ladder map shows up on the agent's box in minutes, not in the Mac's build an hour later
 
 #### Acceptance Criteria:
-- **Scenario:** An agent on Linux changes app code and a host test
-- **Given:** a Linux box with the Swift toolchain and the Darwin SDK, and no Mac
-- **When:** the agent runs the Linux rung
-- **Then:** ContextCore's tests run, the package and the app's sources (the app, the widgets, the share extension and the UI tests) are compiled for Apple, the ladder's map is checked, and each step says ok, failed or skipped and why
-
-- **Scenario:** An agent keeps the rung's build between runs in a folder that does not exist yet
-- **Given:** a build directory to keep, named by a path that is not there yet (relative to where the agent stands, or absolute)
-- **When:** the agent runs the Linux rung
-- **Then:** the folder is made and used, and when it cannot be made the rung stops at once, saying which folder and that it could not create it
-
-- **Scenario:** A test or source imports a framework Linux does not have
-- **Given:** a file in the package (the app's core, the board's, the chat wire's, or one of their tests) that imports CoreGraphics, CoreText or another Apple-only framework outside an `#if canImport` guard
-- **When:** the host rung runs on the Mac (or the Linux rung runs)
-- **Then:** it fails, naming the file, the line and the framework, before the Linux box's build would have broken on it
+- **Scenario:** An agent checks a Swift change that must build on Linux
+- **Given:** a change to app code or package sources or tests, and a Linux box with Swift and the Darwin SDK
+- **When:** the change goes through the Mac host rung or the Linux rung
+- **Then:** the Mac host rung fails with the file and framework when an Apple-only import is reachable on Linux. A branch guarded by `#if canImport` or `#if os` passes when it excludes Linux. The Linux rung creates and uses a requested build directory (relative to the caller or absolute), or stops immediately and names it if creation fails. It runs ContextCore's tests, cross-compiles the package and the app, widgets, share extension and UI tests for Apple, then checks scripts including the ladder map and Linux imports. Each step reports success, failure or a skip with its reason.
 
 ---
 

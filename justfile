@@ -94,8 +94,8 @@ native-test-host:
     scripts/native/test-testflight.sh
     # Stories 1027-1029 (bead context-grabber-omes): just ota's arguments and dry run; ota-watch's batch rule and post.
     scripts/native/test-ota.sh
-    # #943: URL loading on Linux needs FoundationNetworking; bead cmk: an Apple-only import (CoreGraphics, ...) needs
-    # #if canImport. The Mac's build can't see a file that forgot either.
+    # #943: URL loading on Linux needs FoundationNetworking. Bead cmk: check Apple-only imports against Linux branches,
+    # including #if canImport and #if os, on the Mac host rung.
     scripts/native/test-linux-imports.sh
     # Story 789 (#993): every story ID is used once and sits in its journey's ranges in docs/stories/README.md.
     # Stories 791-794: reserve hands out free IDs against main, open PRs and a locked ledger; pre-merge catches a collision.
