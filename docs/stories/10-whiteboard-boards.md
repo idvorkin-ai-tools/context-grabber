@@ -1493,3 +1493,83 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the iPhone or the Mac
 - **When:** I open Settings on the Home screen
 - **Then:** there is no *PaperKit board* row
+
+---
+
+### User Story 1206:
+
+- **Summary:** *Open in Chat* on a board slides its thread in over the board, and *Back* brings back the board as he left it
+- **Status:** in progress on branch `native/jump-direct-dbku`
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*; [The board's conversation](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md)
+- **Issues:** bead context-grabber-dbku (Igor, 2026-11-22: "when I click Jump to board or Jump to chat, it seems to go through a main list. I want it deeply integrated to the board")
+
+#### Use Case:
+- **As** Igor on a board that has a thread with Larry
+- **I want to** open the thread straight from the board and come straight back
+- **so that** reading the conversation never drops me on home or a list, and the board is as I left it
+
+#### Acceptance Criteria:
+- **Scenario:** To the thread and back
+- **Given:** a board with a thread
+- **When:** I tap *Open in Chat* (on an iPhone, the note's line)
+- **Then:** the thread slides in over the board, as a board slides in from the boards list, with no home or list on the way; *Back* on the thread brings back the board
+
+- **Scenario:** The board waits
+- **Given:** a board with ink not yet saved, the mic on, or a change of Larry's it is holding
+- **When:** I open its thread and come back
+- **Then:** the ink was saved as I left, the mic is off, Larry's held change still waits, and the board is still there even if it was a new empty board
+
+- **Scenario:** From the boards list on an iPhone
+- **Given:** a row's chat bubble
+- **When:** I tap it
+- **Then:** the board's thread slides in over the list, and *Back* comes back to the list
+
+---
+
+### User Story 1207:
+
+- **Summary:** A jump back to where I came from goes back, rather than opening a second copy
+- **Status:** in progress on branch `native/jump-direct-dbku`
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
+- **Issues:** bead context-grabber-dbku
+
+#### Use Case:
+- **As** Igor going back and forth between a board and its thread
+- **I want to** have each jump to the place I came from take me back there
+- **so that** the screens don't pile up and one *Back* always leaves
+
+#### Acceptance Criteria:
+- **Scenario:** Board, thread, board
+- **Given:** a thread I opened from its board
+- **When:** I tap *Board* in its top bar
+- **Then:** the thread slides away and I am on that same board, not a second copy of it
+
+- **Scenario:** Thread, board, thread
+- **Given:** a board I opened from its thread
+- **When:** I tap *Open in Chat*
+- **Then:** the board slides away and I am on that same thread
+
+---
+
+### User Story 1208:
+
+- **Summary:** A board already open elsewhere is brought forward, and every hop is in the session log
+- **Status:** in progress on branch `native/jump-direct-dbku`
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md), *Between a board and its chat*
+- **Issues:** bead context-grabber-dbku
+
+#### Use Case:
+- **As** Igor, and the agent reading the session log
+- **I want to** never have one board open twice, and to see each hop between a board and its chat
+- **so that** two copies never fight over one board's ink, and a jump that went the long way shows in the log
+
+#### Acceptance Criteria:
+- **Scenario:** The board is open in its own window or in the whiteboard behind
+- **Given:** a board open in an iPad window of its own, or in the whiteboard under the chat
+- **When:** I jump to it from its thread
+- **Then:** that open board is brought forward, as a link brings it, and no second copy opens
+
+- **Scenario:** The log
+- **Given:** any jump between a board and its chat
+- **When:** it happens
+- **Then:** the session log says where from, where to, how (slid in, went back, or brought forward) and whether any list was passed through

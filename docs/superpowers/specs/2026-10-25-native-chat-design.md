@@ -149,8 +149,8 @@ person), so Save Image, Copy and AirDrop are all there. A picture that can't be 
 would be, in a copyable problem naming the picture's address and message; Share stays dimmed while there is no
 picture to share, and Done or a swipe down still closes the view, as they do while the picture is loading. A picture sent from a whiteboard also shows **Jump to board** in the full-size
 view (#603, Igor, 2026-11-02: *"we opened a Zoom in and we get a button that says jump to the thing"*): it opens that
-board as it is now, not the old picture, leaving the thread behind as any link does, with no full-size view left over
-it. **A board drawn on this device opens at once**, from what is here, with no wait on iCloud: no other device draws on
+board as it is now, not the old picture, straight over the thread it was in (see *Between a board and its chat*,
+below), with no full-size view left over it. **A board drawn on this device opens at once**, from what is here, with no wait on iCloud: no other device draws on
 it, so iCloud can bring nothing newer, only a delete made on another device. A delete that hasn't reached this device yet
 doesn't stop the jump: the board opens, and the delete lands once the board is closed, unless it was drawn on meanwhile,
 which keeps it (#1137, Igor, 2026-11-22, on the iPad: *"Jump to board has a super slow
@@ -178,7 +178,8 @@ view:
 - A thread belongs to a board when one of its messages came from a board (the newest such message names the board),
   or when this device started that thread from one of its boards.
 - A tap opens that board as it is now, as *Jump to board* does: a board drawn on this device at once, another device's
-  after asking iCloud (#1137), the thread is left behind as any link leaves it, and *Back* on the board goes to the boards, where every board is a tap away.
+  after asking iCloud (#1137), straight over the thread, and *Back* on the board comes back to the thread (see
+  *Between a board and its chat*, below).
 - While it looks, the button reads *Looking for the board…* and is dimmed, for no more than about five seconds however
   slowly iCloud answers, as for *Jump to board*. A board that was deleted, isn't on this
   device even after asking iCloud, or whose latest drawing didn't come down, says so in a copyable problem at the top
@@ -186,6 +187,32 @@ view:
 - Any other thread has no *Board*, and a new chat has none until it lands in a board's thread.
 - The session log says each tap: the thread, the board, how the thread was known to be the board's, and whether it was
   found.
+
+**Between a board and its chat** (bead context-grabber-dbku; Igor, 2026-11-22: *"Right now, when I click Jump to
+board or Jump to chat, it seems to go through a main list. I want it deeply integrated to the board"*). A jump between
+a board and its thread opens the other one straight over where he is, with the same slide a board takes when the
+boards list opens it, and never passes through home, the boards list or the chats list on the way:
+
+- From a thread, *Board* in its top bar, or *Jump to board* on a picture's full-size view, slides the board in over
+  the thread. *Back* on the board slides it away and he is on the thread again, scrolled where he was.
+- From a board, *Open in Chat* (the conversation panel's, or, on an iPhone, a tap on the board's note line) slides
+  the board's thread in over the board. *Back* on the thread brings back the board as he left it.
+- From the boards list on an iPhone, a row's chat bubble slides that board's thread in over the list. *Back* comes
+  back to the list.
+- **A look at the chat doesn't close the board.** What is drawn is saved as he leaves, the mic stops, and a change of
+  Larry's that the board is holding still waits; *Back* finds the board as he left it, a new empty board included.
+  The board closes, as ever, when he leaves it by its own *Back* or the whiteboard goes down.
+- **A jump back to where he came from goes back.** *Board* on a thread he reached from that very board, or *Open in
+  Chat* on a board he reached from its own thread, goes back one step rather than opening a second copy on top.
+- **A board already open elsewhere is brought forward instead.** A board open in a window of its own, or in the
+  whiteboard behind, is never opened twice: a jump to it goes there, as a link does.
+- Finding the board is unchanged: at once for a board drawn here, after asking iCloud for another device's, and a board
+  that can't be opened says why in a copyable problem, and he stays where he was.
+- Links from outside the app (`grabbernative://whiteboard/…`, a Shortcut) still open the whiteboard and its board as
+  before.
+- The session log says each hop: where from (a thread's *Board*, a picture, the board's panel, the board's note, the
+  list's bubble), where to (board or thread, and which), how (slid in over, went back, or brought forward elsewhere),
+  and whether any list was passed through on the way (never, for a slide or a step back).
 
 **A table in a message** (Igor, 2026-11-10, #817: *"Log a bug to do table renders. Look how bad they look"*). When
 Larry writes a Markdown table (a row of cells between `|`, a row of dashes under it, then its rows), the bubble shows
@@ -820,8 +847,14 @@ asked him to confirm the build and he couldn't tell; only board pictures said).
 - A PR chip reads *open*, *draft*, *merged* or *closed* after its number, in green, grey, purple or red, in the strip,
   *All links* and a wide list's rows; a PR the Cockpit hasn't reported reads as before. Merging a PR while its thread
   is open flips its chip to *merged* within about half a minute. Offline or with the Cockpit down, no problem shows.
-- A board's thread (a picture in it came from a board) has *Board* in its top bar; a tap opens that board as it is now,
-  and *Back* there shows the boards. A thread with no board has no *Board*.
+- A board's thread (a picture in it came from a board) has *Board* in its top bar; a tap slides that board in as it is
+  now over the thread, with no home or boards list on the way, and *Back* there comes back to the thread. A thread with
+  no board has no *Board*.
+- *Jump to board* on a picture slides the board in over the thread the same way, and *Back* comes back to the thread.
+- *Open in Chat* on a board, or an iPhone's tap on its note line, slides its thread in over the board; *Back* brings back
+  the board as it was, its unsaved ink saved, Larry's held change still waiting, a new empty board still there.
+- *Board* on a thread reached from that board goes back to it rather than opening a second copy; likewise *Open in
+  Chat* on a board reached from its thread.
 - *Board* on a thread whose board no device has: a copyable problem at the top of the thread, which stays open.
 - *Jump to board*, or *Board*, on a board drawn on this device opens it at once, with no *Looking for the board…* wait,
   and the full-size picture is gone without sliding; on another device's board it asks iCloud once, then opens it. The
