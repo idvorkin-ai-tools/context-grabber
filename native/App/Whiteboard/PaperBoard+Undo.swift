@@ -95,7 +95,9 @@ extension PaperBoardController {
   @objc private func undoWill(_ note: Notification) {
     guard let undo = note.object as? UndoManager, undo === paper.undoManager, !probe.probing else { return }
     let redo = note.name == .NSUndoManagerWillRedoChange
-    stepping = (redo ? undo.redoActionName : undo.undoActionName, inkFrames.count)
+    stepping = (
+      redo ? undo.redoActionName : undo.undoActionName, inkFrames.count, paper.markup?.strokeFrames ?? inkFrames
+    )
   }
 
   @objc private func undoDid(_ note: Notification) {
@@ -110,6 +112,8 @@ extension PaperBoardController {
         "name": was.name, "strokes_before": was.strokes, "strokes": paper.markup?.strokeFrames.count ?? inkFrames.count,
         "can_undo": undo.canUndo, "can_redo": undo.canRedo, "undo_name": undo.undoActionName,
       ])
+    // Story 1203: ink the step left in place can be left undrawn; the board redraws around the change and looks.
+    redrawAfterStep(redo: note.name == .NSUndoManagerDidRedoChange, before: was.frames)
   }
 
   /// The board really closed, which a cancelled swipe back isn't: the stack can be the window's, and the next board's Undo

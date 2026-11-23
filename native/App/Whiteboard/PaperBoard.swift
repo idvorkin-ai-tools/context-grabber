@@ -145,7 +145,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// #965: the bar's Undo and Redo are about to be brought up to date.
   var undoShowing = false
   /// #966: what the stack said just before an Undo or Redo ran, for the log's line once it has.
-  var stepping: (name: String, strokes: Int)?
+  var stepping: (name: String, strokes: Int, frames: [String: CGRect])?
 
   private var placeKey: String { "whiteboard_paper_y_\(model.board.id)" }
 

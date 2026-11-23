@@ -42,7 +42,7 @@ extension PaperBoardController {
   }
 
   /// Pixels unlike the paper in this view's own picture of itself, in a part of it.
-  private func shownPixels(in spot: CGRect) -> Int {
+  func shownPixels(in spot: CGRect) -> Int {
     let box = spot.intersection(view.bounds)
     guard !box.isNull, !box.isEmpty else { return -1 }
     let format = UIGraphicsImageRendererFormat()
