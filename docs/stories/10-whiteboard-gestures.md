@@ -965,7 +965,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1201:
 
 - **Summary:** A drag that begins inside a small selection moves it, even where its stretch handles cover it
-- **Status:** implemented in [92254786](https://github.com/idvorkin/context-grabber/commit/92254786); verified by host tests and lint (`just native-test`, `PaperProbePickupTests`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2: `WhiteboardRewordUITests.testAFirstTapPicksUpATextToDrag` now asserts the text lands 0.1 of the window lower with its left edge where it was; `WhiteboardGroupTapUITests`, `WhiteboardDropRoomUITests`, `WhiteboardTheirsTapUITests` and `WhiteboardToTextUITests` pass too); not yet seen on the iPad. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Status:** implemented in [f0f526c4](https://github.com/idvorkin/context-grabber/commit/f0f526c4) and [fd53b985](https://github.com/idvorkin/context-grabber/commit/fd53b985) (a drag from a corner's own knob still stretches); verified by host tests and lint (`just native-test`, `PaperProbePickupTests`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2, build fd53b985: `WhiteboardRewordUITests.testAFirstTapPicksUpATextToDrag` asserts the text lands 0.1 of the window lower with its left edge where it was and one Undo puts it back; `testASmallTextDroppedOnALinePushesItDown` (the line goes down clear of it, `paper_resize_as_move` logged); `testAStretchFromACornerKnobStillStretches`; `WhiteboardGroupTapUITests`, `WhiteboardDropRoomUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardToTextUITests` and `WhiteboardPaperGhostsUITests` pass too); not yet seen on the iPad. No iPhone runs (whiteboard work, Igor 2026-11-22)
 - **Issues:** bead context-grabber-vhae (found on the simulator verifying story 1197: a drag 120 points down on a selected *hello* stretched it 34 points left, `paper_ink` resized 6, started on `CanvasElementResizeHandle`; maybe part of Igor's "when I select and want to move something, it's borked", 2026-11-22). Following the finger without the stretch: bead context-grabber-ppha
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *A drag that starts inside a selection moves it, however small it is*
 
@@ -982,7 +982,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Scenario:** A stretch I meant
 - **Given:** a selection
-- **When:** I drag one of its corner handles from outside the selected thing's box
+- **When:** I drag one of its corner handles from the handle's knob, even the part of it inside the selected thing's box, or from outside the box
 - **Then:** it stretches, as before
 
 - **Scenario:** Dropped onto ink
