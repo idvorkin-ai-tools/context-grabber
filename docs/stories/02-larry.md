@@ -3425,7 +3425,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** The chat list says plainly when the Cockpit is down
 - **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
-- **Status:** in progress (bead `context-grabber-3kgu`)
+- **Status:** implemented in [51a53eab](https://github.com/idvorkin/context-grabber/commit/51a53eab); verified by the host rung (`just native-test`, `CockpitDownTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests` against the fake Cockpit answering 502, with the other chat classes); the devices are not yet verified
 - **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -3445,7 +3445,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** The down banner says what failed, since when, and the last good read
 - **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
-- **Status:** in progress (bead `context-grabber-3kgu`)
+- **Status:** implemented in [51a53eab](https://github.com/idvorkin/context-grabber/commit/51a53eab); verified by the host rung (`just native-test`, `CockpitDownTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests` against the fake Cockpit answering 502, with the other chat classes); the devices are not yet verified
 - **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -3465,7 +3465,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** The down banner waits for a second failure and clears itself
 - **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
-- **Status:** in progress (bead `context-grabber-3kgu`)
+- **Status:** implemented in [51a53eab](https://github.com/idvorkin/context-grabber/commit/51a53eab); verified by the host rung (`just native-test`, `CockpitDownTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests` against the fake Cockpit answering 502, with the other chat classes); the devices are not yet verified
 - **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
