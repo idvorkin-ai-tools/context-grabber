@@ -51,6 +51,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1220:
+
+- **Summary:** Larry's change from before the app restarted still applies when I only wrote new strokes since
+- **Issues:** bead context-grabber-fuw0 (found checking drop rule C, 2026-11-22: the board's memory of its changes lived only for one run, so after a relaunch a batch based on an earlier revision was refused as stale even when Igor had only added strokes)
+- **Status:** in progress (bead context-grabber-fuw0)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** who closes and reopens the app while Larry thinks
+- **I want to** have his make-room still land when all I did since he looked was write new strokes
+- **so that** a relaunch doesn't silently cost me his change
+
+#### Acceptance Criteria:
+- **Scenario:** The app restarted after he looked
+- **Given:** Larry looked at the board, I wrote two new strokes, and the app was closed and opened again
+- **When:** his make room, from the look before the restart, arrives
+- **Then:** it applies to the board as it is now, my new strokes included, and his next turn says it applied on a newer board than the one he saw
+
+---
+
 ### User Story 965:
 
 - **Summary:** Larry's change from too far back is refused as stale

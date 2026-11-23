@@ -46,7 +46,10 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   room pushes down what is below its line now, Igor's newest strokes included, and his new strokes alone never
   stop it. Larry is told it applied on a newer board than the one he saw, and which one he saw.
 - **It is refused as stale only on a real conflict**: it names a stroke Igor has since moved or erased, or it is older
-  than the board remembers (a relaunch forgets, and the memory holds the last 200 changes). Nothing moves then, Larry
+  than the board remembers (the memory holds the last 200 changes). The memory is kept with the board, so a relaunch
+  forgets nothing: a change Larry made from a look before the app restarted still applies when Igor only wrote new
+  strokes since (bead context-grabber-fuw0). A board saved by a build from before this has no memory of its changes,
+  so a look from before its first relaunch on this build is still refused as stale. Nothing moves then, Larry
   is told why and which of his names conflicted, and he looks again and sends a fresh one. Igor never sees a
   half-applied change.
 
