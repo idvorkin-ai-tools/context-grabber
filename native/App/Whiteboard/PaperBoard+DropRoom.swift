@@ -18,13 +18,13 @@ extension PaperBoardController {
     let pickup = PaperProbe.pickup(change.moved, selected: selected, inTouch: run != nil, split: split)
     let movedKeys = Set(change.moved.map(\.id))
     let frames = markup.strokeFrames
-    let block = movedKeys.compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }
+    var block = movedKeys.compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }
     let back = Dictionary(uniqueKeysWithValues: change.moved.map { ($0.id, $0) })
     var event: [String: Any] = [
       "action": "paper_drop", "board": model.board.id, "strokes": movedKeys.count, "at": rect(block),
       "pickup": pickup.rawValue, "selected": paper.selection.count,
     ]
-    let from = movedKeys.compactMap { key in
+    var from = movedKeys.compactMap { key in
       frames[key].flatMap { box in back[key].map { box.offsetBy(dx: -$0.dx, dy: -$0.dy) } }
     }.reduce(CGRect.null) { $0.union($1) }
     event["from"] = rect(from)
@@ -39,21 +39,42 @@ extension PaperBoardController {
     let (strokes, hashes) = opStrokes(markup)
     let elements = markup.subelements.strokes
     let dragged = Set(elements.indices.filter { movedKeys.contains(Self.key(elements[$0].elementID)) })
+    // Story 998: a drag with nothing selected that took part of a group brings the rest along, by the drag's offset.
+    let carry =
+      pickup == .dragged
+      ? groupCarry(change.moved, strokes: strokes, keys: elements.map { Self.key($0.elementID) }) : nil
+    let carried = carry?.indices ?? []
+    if let carry {
+      let boxes = carried.compactMap { frames[Self.key(elements[$0].elementID)] }
+      block = boxes.reduce(block) { $0.union($1.offsetBy(dx: carry.by.dx, dy: carry.by.dy)) }
+      from = boxes.reduce(from) { $0.union($1) }
+      event.merge(["carried": carried.count, "carried_groups": carry.groups, "at": rect(block), "from": rect(from)]) {
+        $1
+      }
+    }
+    let whole = dragged.union(carried)
     let tags = model.outline(of: strokes).tags
-    let others = strokes.indices.filter { !dragged.contains($0) }.map { strokes[$0] }
+    let others = strokes.indices.filter { !whole.contains($0) }.map { strokes[$0] }
     let ink = BoardOps.shownBoxes(strokes: others, texts: model.texts, groups: model.strokeMeta.groups, folds: tags)
-    guard let push = BoardRoom.drop(block, from: from, among: ink) else {
+    let push = BoardRoom.drop(block, from: from, among: ink)
+    guard push != nil || !carried.isEmpty else {
       event["room"] = false
       log.event("whiteboard", event)
       return
     }
-    var plan = BoardOps.plan(
-      [.translateBelow(y: push.cut, dy: push.dy)], strokes: strokes, texts: model.texts, metas: model.strokeMeta,
-      folds: tags, pages: pages, board: board)
-    // What he dropped stays where he let go of it.
+    var plan =
+      push.map {
+        BoardOps.plan(
+          [.translateBelow(y: $0.cut, dy: $0.dy)], strokes: strokes, texts: model.texts, metas: model.strokeMeta,
+          folds: tags, pages: pages, board: board)
+      } ?? BoardOps.Plan(pagesBefore: pages, pagesAfter: pages)
+    // What he dropped stays where he let go of it, and the rest of its group goes as far.
     for index in dragged { plan.offsets[index] = nil }
-    let pushedKeys = plan.offsets.keys.filter { elements.indices.contains($0) }.map { Self.key(elements[$0].elementID) }
-    event.merge(["room": true, "cut": Double(push.cut), "dy": Double(push.dy), "moved": plan.moved]) { $1 }
+    for index in carried { plan.offsets[index] = carry?.by }
+    let pushedKeys = plan.offsets.keys.filter { elements.indices.contains($0) && !carried.contains($0) }
+      .map { Self.key(elements[$0].elementID) }
+    event.merge(["room": push != nil, "moved": plan.moved]) { $1 }
+    if let push { event.merge(["cut": Double(push.cut), "dy": Double(push.dy)]) { $1 } }
     // Not from inside PaperKit's own callback: its step for the drag is taken back, and one step for both goes on.
     Task { @MainActor [weak self] in
       guard let self else { return }
@@ -116,6 +137,10 @@ extension PaperBoardController {
       event["pages"] = self.pages
       event["undo_name"] = self.paper.undoManager?.undoActionName ?? ""
       event["pushed"] = pushedKeys.count
+      guard let push else {
+        self.log.event("whiteboard", event)
+        return
+      }
       event["pushed_now"] = self.pushedStill(pushedKeys, from: markup, dy: push.dy)
       self.log.event("whiteboard", event)
       // Whether the push is still there once the touch is over: PaperKit's drag ends after this runs.
