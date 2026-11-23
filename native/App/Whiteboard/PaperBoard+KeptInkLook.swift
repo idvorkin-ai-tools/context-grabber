@@ -45,6 +45,9 @@ extension PaperBoardController {
       let expected = heldLater.isEmpty ? KeptColours() : self.expectedColours(made, box: box, ink: want)
       let part = Self.partMissing(drawn: drawn, expected: expected, darkBefore: darkBefore, ink: want)
       let missing = inView && part != nil
+      // context-grabber-z8o: a kept mark the view drew none of, whose strokes drawn alone show none of their colour either,
+      // is a pen too thin to draw (#883), which no redraw brings back; said as `none`, where it used to read as whole.
+      let none = inView && part == nil && !heldLater.isEmpty && Self.drewNothing(drawn: drawn, expected: expected)
       self.log.event(
         "whiteboard",
         [
@@ -54,7 +57,7 @@ extension PaperBoardController {
           "dark_px": drawn.dark, "dark_before": darkBefore, "other_px": drawn.other,
           "ink_span": [drawn.inkWidth, drawn.inkHeight],
           "expected_px": expected.ink, "expected_span": [expected.allWidth, expected.allHeight], "attempt": attempt,
-          "missing": part ?? "",
+          "missing": part ?? (none ? "none" : ""),
         ])
       guard missing, attempt < 2, self.touchesDown == 0 else { return }
       // The view's nudge (`redrawSoon`, #906) left such a tile as it was, both tries, on the iPad simulator, and so did
@@ -89,6 +92,11 @@ extension PaperBoardController {
     let inkIsDark = ink.allSatisfy { $0 < 80 }
     if !inkIsDark, drawn.dark - darkBefore > max(20, drawn.ink / 10) { return "dark" }
     return nil
+  }
+
+  /// Nothing of a kept mark on screen, not even a faint pixel, and none of its colour when its strokes are drawn alone.
+  static func drewNothing(drawn: KeptColours, expected: KeptColours) -> Bool {
+    drawn.ink == 0 && drawn.dark == 0 && drawn.other == 0 && expected.ink <= 0
   }
 
   /// The markup set without the strokes made at `moments`, and a moment later with them again where they were, their ids
