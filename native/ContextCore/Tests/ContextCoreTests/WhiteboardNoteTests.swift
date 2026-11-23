@@ -347,4 +347,15 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(WhiteboardNote.panelHeight(board: 80), 80, "never taller than the board")
     XCTAssertEqual(WhiteboardNote.panelHeight(board: -1), 0)
   }
+
+  /// Bead context-grabber-97s: a new line pulls the panel to the newest only while Igor is at the bottom.
+  func testThePanelFollowsTheNewestOnlyFromTheBottom() {
+    XCTAssertTrue(WhiteboardNote.followsNewest(offset: 300, end: 300), "at the bottom")
+    XCTAssertTrue(WhiteboardNote.followsNewest(offset: 294, end: 300), "a fling settled a few points short")
+    XCTAssertTrue(WhiteboardNote.followsNewest(offset: 0, end: 0), "nothing to scroll")
+    XCTAssertTrue(WhiteboardNote.followsNewest(offset: 12, end: 0), "pulled past the end")
+    XCTAssertFalse(WhiteboardNote.followsNewest(offset: 200, end: 300), "scrolled up to read")
+    XCTAssertEqual(WhiteboardNote.panelPlace(following: true), "Conversation, newest showing")
+    XCTAssertEqual(WhiteboardNote.panelPlace(following: false), "Conversation, older messages showing")
+  }
 }

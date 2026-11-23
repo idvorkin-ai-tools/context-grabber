@@ -199,14 +199,16 @@ struct WhiteboardConversationPanel: View {
             HStack(spacing: 4) {
               // Story 929: the ear while Larry holds for more.
               if row.listening { LarryListeningEar.icon }
-              Text("\(Text(row.who).bold()) · \(row.text)")
+              // Bead context-grabber-97s: never more than two lines, so the panel can't grow past its size.
+              Text("\(Text(row.who).bold()) · \(row.text)").lineLimit(2)
             }
             .padding(.horizontal, 10).padding(.vertical, 3)
             .background(Color(WhiteboardNoteInk.quiet).opacity(0.12), in: Capsule())
           } else {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
               Text("\(row.who):").bold()
-              Text(row.text)
+              // Story 1184: what the mic hears, at most two lines, ending on the newest words.
+              Text(row.text).lineLimit(2).truncationMode(.head)
             }
           }
         }
@@ -315,8 +317,7 @@ struct WhiteboardConversationText: UIViewRepresentable {
     let (text, links) = Self.text(rows)
     context.coordinator.links = links
     context.coordinator.shown = (rows, size)
-    view.attributedText = text
-    view.showNewest()
+    view.show(text)
   }
 
   func sizeThatFits(_ proposal: ProposedViewSize, uiView: NewestInView, context: Context) -> CGSize? {
