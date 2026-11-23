@@ -55,7 +55,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Larry's change from before the app restarted still applies when I only wrote new strokes since
 - **Issues:** bead context-grabber-fuw0 (found checking drop rule C, 2026-11-22: the board's memory of its changes lived only for one run, so after a relaunch a batch based on an earlier revision was refused as stale even when Igor had only added strokes)
-- **Status:** in progress (bead context-grabber-fuw0)
+- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07); verified on the host (`BoardMeaningTests`: a push from before a relaunch applies over new strokes and says `rebased_from`, one naming a stroke moved before the relaunch is still stale with `conflict_ids`, Larry's own change before a relaunch still makes an older look stale, a file from before this remembers nothing older) and the Mac build (`just native-build-mac`). Not run on a simulator or the iPad: no app code changed, only what the board's file keeps
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
