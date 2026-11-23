@@ -47,7 +47,15 @@ reservation lapses after 24 hours, or as soon as its ID is on main (the story me
 
 It fails, and hands out nothing, when it can't fetch main or list the open PRs (an ID chosen without them is the bug
 this fixes), when the journey names no row or more than one, and when the journey's IDs column has no free ID left
-(the message says to add the next unused block of twenty to its row, as the journey table's rules say).
+(see below).
+
+When a journey has too few free IDs, the message names the journey as its row does (its name, not only its first
+file), its IDs column, and how to extend it: add an unused block to the end of its row's IDs column in the journey
+table, the next block above every ID any journey holds in the journey table, on the branch or on main, and above every ID taken on main, in an open PR or reserved (it says which, a hundred wide), then reserve again. It also
+lists how many free IDs every journey has left, so a second journey running low is seen at the same time. A journey
+that adds stories quickly, like the whiteboard, takes a large block (hundreds) rather than twenty at a time, so it
+does not run out again within the week (bead `context-grabber-0e04`: the whiteboard ran out on 2026-11-22 and agents
+went back to picking IDs by hand, one of them reusing an ID an open PR already held).
 
 ## The pre-merge check
 
@@ -64,6 +72,8 @@ host rung does. It passes, and says so, otherwise.
 - An ID an open PR adds, an ID on main, an ID in the branch's own stories and an ID reserved earlier are skipped.
 - A reservation older than 24 hours, or whose ID has reached main, no longer holds its ID.
 - With the open PRs unreadable, it fails and prints no ID.
+- With too few free IDs, it prints no ID; its message names the journey by its row's name, the next unused block
+  above every journey's IDs and the free IDs every journey has left.
 - Two branches that each pass the story ID check alone, but add the same ID, fail the pre-merge check; one that
   doesn't collide passes; one whose pushed commits add the colliding ID fails even when the checkout is behind them.
 - The agent instructions say: new stories take their IDs from the reserve command, and the pre-merge check runs
