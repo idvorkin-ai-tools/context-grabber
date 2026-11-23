@@ -431,6 +431,14 @@ ink it covers, without picking up the eraser.
   times**, its sweeps crossing at least half its length on average, is a scratch-out when it lies over ink. Shading and
   hatching look the same, so a wandering scribble over bare paper, or beside ink rather than over it, stays as ink,
   without a word; a short wiggle of three or four turns still needs sweeps across most of its length.
+- **A scribble that drifts a long way counts too** (context-grabber-4kj, 2026-11-22). A scribble across a long word or a
+  phrase can drift further than its sweeps are long: on 2026-11-21, after the fix above, a fast scribble 458 points along
+  and 113 across swept back and forth eight times, each sweep 87 to 245 points, and stayed ink, as its turns were
+  counted against its whole length and the shorter early sweeps didn't count. Its turns are now also counted against its
+  own sweeps: a scribble that turns back at least **five times** that way, its typical sweep at least **40 points**, and
+  no wider across than it is long, and its pen going at least twice as far along it as across, is a wandering
+  scribble, under the same rule as above (it acts only over ink). Handwriting's back-and-forth is a letter wide, well
+  under 40 points, and is slow; a row of big loops (*ooo*) goes as far across as along, so it stays ink.
 - **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
   it doesn't touch stay, however close. What went stays gone as he writes on: only Undo brings it back (#999).
 - **Only the ink he can see is touched** (context-grabber-p5hy). Where the pixel eraser rubbed part of a stroke away, the

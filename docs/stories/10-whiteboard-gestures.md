@@ -389,6 +389,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I scribble fast over the word, turning back five times or more, drifting along it so no sweep spans the whole scribble
 - **Then:** the word and the scribble are gone, as for a straight zigzag
 
+- **Scenario:** A long scribble that drifts further than its sweeps are long
+- **Given:** a board on paper with a long word or a phrase written on it
+- **When:** I scribble fast along it, turning back five times or more, each sweep 40 points or longer but the whole scribble drifting well past any one sweep
+- **Then:** the ink under it and the scribble are gone; the same scribble over bare paper, or beside ink, stays ink unsaid
+
 ---
 
 ### User Story 891:
