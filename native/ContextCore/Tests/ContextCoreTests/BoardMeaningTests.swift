@@ -54,9 +54,8 @@ final class BoardMeaningTests: XCTestCase {
 
   private func sample() throws -> BoardMeaning {
     var meaning = BoardMeaning()
-    var applier = BoardOpApplier(rev: 7)
-    applier.changed()
-    meaning.take(applier)
+    // At rev 8 with nothing remembered before it: the old keys it is migrated from never held a memory of changes.
+    meaning.take(BoardOpApplier(rev: 8))
     meaning.handled = ["m1", "m2"]
     meaning.texts = [BoardText(id: "t1", t: 99, text: "Plan", font: .plain, size: 18, color: "#ba39e6")]
     meaning.strokeIDs.moved(from: ["old"], to: ["new"])
@@ -214,10 +213,71 @@ final class BoardMeaningTests: XCTestCase {
     var told = 0
     ledger.onChange = { told += 1 }
     var applier = ledger.applier(board: "b1")
-    applier.touched(["a"])
     applier.closed()
     ledger.save(applier, board: "b1")
-    XCTAssertEqual(told, 0, "touches and the batch in flight live only on this run")
+    XCTAssertEqual(told, 0, "the batch in flight lives only on this run")
+    applier.touched(["a"])
+    ledger.save(applier, board: "b1")
+    XCTAssertEqual(told, 1, "what changed since is kept with the board (bead fuw0)")
+  }
+
+  // MARK: Across a relaunch (story 1220, bead context-grabber-fuw0)
+
+  private func push(base: Int, key: String = "m1", ids: [String]? = nil) -> BoardOps.Batch {
+    let op: BoardOps.Op = ids.map { .translateIDs($0, dx: 0, dy: 40) } ?? .translateBelow(y: 300, dy: 120)
+    return BoardOps.Batch(key: key, source: "web", board: "b1", label: "room", baseRev: base, ops: [op])
+  }
+
+  /// Larry looked at rev 10; Igor then made `changes` (each the names it moved or erased, nil for a new stroke); the
+  /// board was saved, and the app relaunched: the applier comes back from the file.
+  private func relaunched(_ changes: [[String]?], from meaning: BoardMeaning? = nil) throws -> BoardOpApplier {
+    var applier = BoardOpApplier(rev: 10)
+    for touched in changes {
+      applier.changed()
+      if let touched { applier.touched(touched) }
+    }
+    var saved = meaning ?? BoardMeaning()
+    saved.take(applier)
+    let back = try JSONDecoder().decode(BoardMeaning.self, from: JSONEncoder().encode(saved))
+    return back.applier
+  }
+
+  func testAPushFromBeforeARelaunchAppliesOverNewStrokes() throws {
+    var applier = try relaunched([nil, nil])
+    XCTAssertEqual(applier.rev, 12)
+    guard case .apply(let through) = applier.receive(push(base: 10), board: "b1", editable: true, ready: true) else {
+      return XCTFail("two new strokes before the relaunch are no conflict")
+    }
+    XCTAssertEqual(through.rebasedFrom, 10)
+  }
+
+  func testAPushFromBeforeARelaunchNamingAMovedStrokeIsStillStale() throws {
+    var applier = try relaunched([nil, ["s4"]])
+    XCTAssertEqual(
+      applier.receive(push(base: 10, ids: ["s4"]), board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 12, reason: "stale", conflictIDs: ["s4"])))
+  }
+
+  func testLarrysOwnChangeBeforeARelaunchStillMakesAnOlderLookStale() throws {
+    var before = BoardOpApplier(rev: 10)
+    before.changed()
+    before.touched([], all: true)
+    var saved = BoardMeaning()
+    saved.take(before)
+    var applier = try JSONDecoder().decode(BoardMeaning.self, from: JSONEncoder().encode(saved)).applier
+    XCTAssertEqual(
+      applier.receive(push(base: 10), board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 11, reason: "stale")))
+  }
+
+  func testAFileFromBeforeThisRemembersNothingOlder() throws {
+    let back = try JSONDecoder().decode(BoardMeaning.self, from: Data(#"{"rev": 12, "handled": []}"#.utf8))
+    var applier = back.applier
+    XCTAssertEqual(applier.since, 12)
+    XCTAssertEqual(
+      applier.receive(push(base: 10), board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 12, reason: "stale")),
+      "a board saved before the memory was kept has no record of what changed")
   }
 
   func testABatchNotYetOnTheBoardIsntSavedAsHandled() {

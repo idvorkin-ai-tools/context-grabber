@@ -16,6 +16,11 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   public var rev = 0
   public var handled: [String] = []
   public var lastResult: BoardOps.Result?
+  /// `BoardOpApplier`'s memory of what each change since `since` moved or erased (story 961), kept so a relaunch
+  /// forgets nothing (story 1220). `since` is nil in a file from before this: the applier then remembers nothing
+  /// before `rev`.
+  public var touches: [BoardOpApplier.Touch] = []
+  public var since: Int?
   /// Larry's texts Igor kept, known by their glyphs' time (story 817).
   public var texts: [BoardText] = []
   /// The names moved strokes keep (stories 814, 815, 840).
@@ -45,7 +50,8 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   public init() {}
 
   enum CodingKeys: String, CodingKey {
-    case version, rev, handled, lastResult, texts, strokeIDs, strokeMeta, headers, declined, questions, labels, theirs
+    case version, rev, handled, lastResult, touches, since, texts, strokeIDs, strokeMeta, headers, declined, questions,
+      labels, theirs
     case inkBytes
   }
 
@@ -56,6 +62,8 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     rev = try c.decodeIfPresent(Int.self, forKey: .rev) ?? 0
     handled = try c.decodeIfPresent([String].self, forKey: .handled) ?? []
     lastResult = try c.decodeIfPresent(BoardOps.Result.self, forKey: .lastResult)
+    touches = (try? c.decodeIfPresent([BoardOpApplier.Touch].self, forKey: .touches)) ?? []
+    since = try? c.decodeIfPresent(Int.self, forKey: .since)
     texts = try c.decodeIfPresent([BoardText].self, forKey: .texts) ?? []
     strokeIDs = try c.decodeIfPresent(BoardStrokeIDs.self, forKey: .strokeIDs) ?? BoardStrokeIDs()
     strokeMeta = try c.decodeIfPresent(BoardStrokeMeta.self, forKey: .strokeMeta) ?? BoardStrokeMeta()
@@ -67,8 +75,10 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     inkBytes = try c.decodeIfPresent(Int.self, forKey: .inkBytes)
   }
 
-  /// The applier as this was saved: a relaunch starts remembering touches afresh (story 961).
-  public var applier: BoardOpApplier { BoardOpApplier(rev: rev, handled: handled, lastResult: lastResult) }
+  /// The applier as this was saved, with what it remembered of the changes since (stories 961, 1220).
+  public var applier: BoardOpApplier {
+    BoardOpApplier(rev: rev, handled: handled, lastResult: lastResult, touches: touches, since: since)
+  }
 
   /// The applier as it is to be saved. A batch held for the Pencil or still on its way to the canvas isn't saved as
   /// handled yet: its ink isn't on the board, so a relaunch offers it again (story 1106). Once the canvas has answered,
@@ -78,6 +88,10 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     let pending = Set([applier.held?.key, applier.applying].compactMap { $0 })
     handled = applier.handled.filter { !pending.contains($0) }
     lastResult = applier.lastResult
+    touches = applier.touches
+    // Remembering nothing before `rev` is what a file without `since` means: written so, a board with no changes to
+    // remember saves as it did before.
+    since = applier.since == applier.rev ? nil : applier.since
   }
 
   /// What the migration's log line says it moved.

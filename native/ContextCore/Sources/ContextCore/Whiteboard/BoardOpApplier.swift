@@ -37,7 +37,7 @@ public struct BoardOpApplier: Equatable, Sendable {
   public private(set) var lastResult: BoardOps.Result?
 
   /// Story 961: what each change since `since` moved or erased, oldest first, so a batch from an older look can still
-  /// apply when it names none of it. Only on this run: a relaunch starts remembering afresh.
+  /// apply when it names none of it. Kept with the board (`BoardMeaning`), so a relaunch forgets nothing (story 1220).
   public private(set) var touches: [Touch] = []
   /// The oldest revision `touches` covers every change after; a batch based before it is stale.
   public private(set) var since: Int
@@ -48,7 +48,7 @@ public struct BoardOpApplier: Equatable, Sendable {
   /// The most changes remembered: far more than Igor writes while Larry thinks.
   public static let rememberedChanges = 200
 
-  public struct Touch: Equatable, Sendable {
+  public struct Touch: Codable, Equatable, Sendable {
     /// The revision the change made.
     public var rev: Int
     /// The names it moved, erased or dissolved.
@@ -57,11 +57,20 @@ public struct BoardOpApplier: Equatable, Sendable {
     public var all: Bool
   }
 
-  public init(rev: Int = 0, handled: [String] = [], lastResult: BoardOps.Result? = nil) {
+  /// `touches` and `since`: what the board remembers of the changes before `rev` (story 1220). With none, it remembers
+  /// nothing before `rev`, as a fresh board does. A `since` past `rev`, or touches outside `since...rev`, can't come from
+  /// this applier: they are taken as remembering nothing.
+  public init(
+    rev: Int = 0, handled: [String] = [], lastResult: BoardOps.Result? = nil, touches: [Touch] = [],
+    since: Int? = nil
+  ) {
     self.rev = rev
     self.handled = handled
     self.lastResult = lastResult
-    since = rev
+    let since = since ?? rev
+    let fits = since <= rev && touches.allSatisfy { $0.rev > since && $0.rev <= rev }
+    self.since = fits ? since : rev
+    self.touches = fits ? Array(touches.suffix(Self.rememberedChanges)) : []
   }
 
   public enum Decision: Equatable, Sendable {
