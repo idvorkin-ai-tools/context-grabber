@@ -780,11 +780,41 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I drag the reply, by a tap on it or straight off the page with nothing selected, and let go over my line
 - **Then:** it stays where I let go, my line and everything below it move down by whole lines from the clear line above it until they are half a line clear of it, and one Undo puts the reply back and my writing back up
 
+---
+
+### User Story 1177:
+
+- **Summary:** The system rearranging my handwriting opens no room
+- **Issues:** bead context-grabber-9uj2 (split from story 1172)
+- **Status:** implemented in [e7813e52](https://github.com/idvorkin/context-grabber/commit/e7813e52) and [79d33d61](https://github.com/idvorkin/context-grabber/commit/79d33d61); verified by host tests (`PaperProbePickupTests`), `just native-test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+
+#### Use Case:
+- **As someone** writing on a board the system reflows on its own
+- **I want to** have only my own drops push writing down
+- **so that** a reflow never shoves my lines around
+
+#### Acceptance Criteria:
 - **Scenario:** The system rearranging my handwriting
 - **Given:** writing the system moves on its own, words going different ways or with nothing being dragged
 - **When:** it moves
 - **Then:** nothing else moves to make room
 
+---
+
+### User Story 1178:
+
+- **Summary:** The log says how a drop was picked up and why it opened no room
+- **Issues:** bead context-grabber-9uj2 (split from story 1172: the iPad's drag left no `paper_drop` line at all)
+- **Status:** implemented in [e7813e52](https://github.com/idvorkin/context-grabber/commit/e7813e52) and [79d33d61](https://github.com/idvorkin/context-grabber/commit/79d33d61); verified by host tests (`PaperProbePickupTests`), `just native-test` and the Mac build (`just native-build-mac`); not yet seen on the iPad (its `paper_drop` lines)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+
+#### Use Case:
+- **As someone** whose drop didn't make room
+- **I want to** have the session log say what happened
+- **so that** the next fix starts from evidence, not a guess
+
+#### Acceptance Criteria:
 - **Scenario:** The log
 - **Given:** any drag of mine that moves ink
 - **When:** I let go

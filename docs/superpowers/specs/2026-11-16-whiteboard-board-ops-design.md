@@ -248,7 +248,8 @@ board differs, this says why.
   straight on handwriting the system picked up by itself with nothing selected. Text or ink, his or a kept one of
   Larry's, a drop is a drop: everything he dragged moved together by the same amount while his finger or Pencil was
   down. A change that moved ink by different amounts, or with nothing being dragged, is the system rearranging
-  handwriting, not a drop, and opens no room. A drag that moved his ink and Larry's together is put right first (one
+  handwriting, not a drop, and opens no room (story 1177). Ink written or erased before the drop is let go of and
+  settled leaves the drop where it landed and opens no room. A drag that moved his ink and Larry's together is put right first (one
   owner's ink goes back, story 1145) and opens no room.
 - Dropped on clear paper, or only touching other ink at an edge, nothing else moves: the drop is an ordinary move.
 - Ink on the line the selection was lifted from is never pushed by it: a word slid along its own line, even over the
