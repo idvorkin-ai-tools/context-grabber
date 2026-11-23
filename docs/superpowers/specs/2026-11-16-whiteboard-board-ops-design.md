@@ -238,20 +238,28 @@ board differs, this says why.
   stays, as on the web board. Selecting anything else, or any change to the ink, puts Delete away.
 - Ink folded away (below) is no obstacle: a paste may land where a folded section's hidden lines are.
 
-### A dragged selection makes room (stories 969, 973–975, 979; Igor, 2026-11-17: "same as reflowing stuff below, as opposed to drop on top")
+### Dropping ink onto writing makes room
 
-- When Igor lasso-drags ink and drops it onto other ink, the ink there moves down to make room, as a paste does: the
-  dropped ink stays exactly where he let go, and from the clear line nearest its top everything below slides down,
-  whole things whole, by as many whole lines as it takes to leave half a line of air under what he dropped. Ink above
-  that line doesn't move.
+Igor, 2026-11-17: "same as reflowing stuff below, as opposed to drop on top"; 2026-11-22: "when I drop text onto
+existing text, I want it to move just like if I was to select text" (stories 969, 973–975, 979).
+
+- When Igor drops text or ink onto other writing, the dropped ink stays where he let go. From the clear line nearest
+  its top, everything below slides down by whole lines, keeping groups intact and leaving half a line of space under
+  the drop. Ink above that line stays in place (stories 973 and 1172).
+- Igor can start the drag with a lasso selection, by tapping a group or a kept reply, or by dragging handwriting
+  directly with nothing selected. The last case makes room when the strokes move together during the gesture.
+  Handwriting reflow that moves words by different amounts or moves ink on its own opens no room (story 1177).
+- If ink is written, erased or moved before the drop settles, the drop stays where it landed and opens no room.
+  If the drag moves Igor's and Larry's ink together, one owner's ink goes back (story 1145) and no room opens.
 - Dropped on clear paper, or only touching other ink at an edge, nothing else moves: the drop is an ordinary move.
-- Ink on the line the selection was lifted from is never pushed by it: a word slid along its own line, even over the
+- Ink on the line the drop was lifted from is never pushed by it: a word slid along its own line, even over the
   word beside it, moves nothing else.
 - The drag and the room it opened are **one Undo**, named *Move*: one tap puts the dragged ink back where it came from
   and the ink below back up. A push that needs another page adds it, and Undo takes it away.
 - An Undo or Redo of a move never opens room again; only a drag by hand does. Folded ink is no obstacle, as for a
   paste.
-- The session log says, for every drag by hand, where it landed, whether room opened, and how far the ink below moved.
+- The session log describes the pickup, landing and outcome. See `paper_drop` and `paper_drop_after` in the
+  [whiteboard event reference](../../debugging/whiteboard.md) (story 1178).
 
 ### Erasing part of a group dissolves it
 
@@ -500,8 +508,7 @@ whiteboard skill and here, so a change to the wire on one side shows as a failur
 - The session log has one line per applied or refused change, with what moved and why, for a phone check.
 - A refused change of Larry's shows *Larry's edit blocked · Retry*; Retry sends his turn and the chip goes; × only
   puts it away; a change that applies afterwards clears it.
-- A selection lasso-dragged onto writing pushes the writing below down clear of it; one Undo puts both back. Dropped
-  on clear paper, nothing else moves.
+- Check the [drop and Undo cases](#dropping-ink-onto-writing-makes-room) for each pickup method.
 - Larry draws two strokes, erases one of Igor's and replaces another: all of it shows at once, one Undo takes all of
   it back, and his strokes come back to him under his names.
 - A push moves a group whole, even when only some of it is below the line. His notes come back with the strokes.

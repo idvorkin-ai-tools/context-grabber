@@ -705,9 +705,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 973:
 
 - **Summary:** A selection dropped onto writing pushes the writing down
-- **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"; [#945](https://github.com/idvorkin/context-grabber/issues/945) (2026-11-18: a box PaperKit showed after a margin tap dragged 223 strokes onto writing, twice, and nothing was pushed: the move came with no selection, so it was never taken for a drop)
-- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
-- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"; [#945](https://github.com/idvorkin/context-grabber/issues/945) (2026-11-18: a box PaperKit showed after a margin tap dragged 223 strokes onto writing, twice, and nothing was pushed: the move came with no selection, so it was never taken for a drop); bead context-grabber-9uj2 ([story 1172](#user-story-1172))
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a) and fixed in [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24) after a selected drop left the writing unmoved. The original change was verified by `BoardRoomDropTests`, `just test` and `just native-build-mac`. The fix was verified on the iPad simulator with a tap-selected group ([story 1172](#user-story-1172)). The lasso drag still needs a device check.
+- **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
 - **As someone** rearranging my notes
@@ -725,9 +725,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 974:
 
 - **Summary:** The drag and the push are one Undo
-- **Issues:** Igor on the iPad, 2026-11-17, via Larry
-- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
-- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry; bead context-grabber-9uj2 (a drop picked up with nothing selected is one Undo too, story 1172)
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by `BoardRoomDropTests`, `just test` and `just native-build-mac`. One Undo restored both positions after the fix in [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24) on the iPad simulator ([story 1172](#user-story-1172)).
+- **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
 - **As someone** who dropped a selection in the wrong place
@@ -747,7 +747,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** A drop on clear paper moves only what I dragged
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry
 - **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
-- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+- **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
 - **As someone** moving a note into blank space
@@ -767,7 +767,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** Undo and Redo of a move never push
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry
 - **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
-- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+- **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
 - **As someone** stepping back and forth through a move
@@ -782,12 +782,72 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1172:
+
+- **Summary:** Text or ink dropped on writing makes room, however I picked it up
+- **Issues:** bead context-grabber-9uj2: Igor on the iPad, 2026-11-22 14:49, board ead78e80, via Larry: "OK when I drop text onto existing text, I want it to move just like if I was to select text". The log: he kept Larry's 20-letter reply (29 strokes), then dragged it twice onto his own first line (it landed at y 70, then 67, on the line at 54 to 95); each drag began on PaperKit's handwriting view with nothing selected (`selected: 0`, `held_at_start: 0`), every stroke moved the same way, and no `paper_drop` was logged: the board took a move nothing selected held for the system's, not a drop; [#1265](https://github.com/idvorkin/context-grabber/issues/1265) (iPad report, 2026-11-22 23:19, build 8df171a9: "when I put text over other text didn't move the other text"; its log shows the same drag, 102 of Larry's strokes moved alike with nothing held, and no `paper_drop` line)
+- **Status:** implemented in [d340873a](https://github.com/idvorkin/context-grabber/commit/d340873a) and [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24), with settling checks in [dac8955f](https://github.com/idvorkin/context-grabber/commit/dac8955f) and [f731bef7](https://github.com/idvorkin/context-grabber/commit/f731bef7). Host coverage uses the iPad's drag in `PaperProbePickupTests` and its landing boxes in `BoardRoomDropTests`. `just native-test` and `just native-build-mac` passed on the earlier implementation. The 2026-11-22 iPad simulator runs of `WhiteboardDropRoomUITests` (rung 2) verified the push and Undo for a tap-selected group on the implementation in c5c3bf24, before the settling checks. The session log also confirmed the push via `pushed_now`. Dragging directly from PaperKit's handwriting view with nothing selected still needs a physical iPad check (rung 3).
+- **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
+
+#### Use Case:
+- **As someone** rearranging my notes, my writing and the replies of Larry's I kept
+- **I want to** drop a piece of text or ink on writing however I picked it up, lassoed, tapped or grabbed straight off the page
+- **so that** the writing under it moves down in whole lines as if I had inserted text there, instead of the two landing on top of each other
+
+#### Acceptance Criteria:
+- **Scenario:** A kept text of Larry's dropped on my writing
+- **Given:** a reply of Larry's I kept, and a line of my writing elsewhere
+- **When:** I drag the reply, by a tap on it or straight off the page with nothing selected, and let go over my line
+- **Then:** it stays where I let go, my line and everything below it move down by whole lines from the clear line above it until they are half a line clear of it, and one Undo puts the reply back and my writing back up
+
+---
+
+### User Story 1177:
+
+- **Summary:** The system rearranging my handwriting opens no room
+- **Issues:** bead context-grabber-9uj2 (split from story 1172)
+- **Status:** implemented in [d340873a](https://github.com/idvorkin/context-grabber/commit/d340873a) and [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24); verified by host tests (`PaperProbePickupTests`), `just native-test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
+
+#### Use Case:
+- **As someone** writing on a board the system reflows on its own
+- **I want to** have only my own drops push writing down
+- **so that** a reflow never shoves my lines around
+
+#### Acceptance Criteria:
+- **Scenario:** The system rearranging my handwriting
+- **Given:** writing the system moves on its own, words going different ways or with nothing being dragged
+- **When:** it moves
+- **Then:** nothing else moves to make room
+
+---
+
+### User Story 1178:
+
+- **Summary:** The log says how a drop was picked up and why it opened no room
+- **Issues:** bead context-grabber-9uj2 (split from story 1172: the iPad's drag left no `paper_drop` line at all)
+- **Status:** implemented in [d340873a](https://github.com/idvorkin/context-grabber/commit/d340873a) and [c5c3bf24](https://github.com/idvorkin/context-grabber/commit/c5c3bf24), with stale push logging in [dac8955f](https://github.com/idvorkin/context-grabber/commit/dac8955f). `PaperProbePickupTests` covers pickup classification on the host. The log confirmed the push on the earlier iPad simulator build ([story 1172](#user-story-1172)). The unselected drag's log still needs a physical iPad check.
+- **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
+
+#### Use Case:
+- **As someone** whose drop didn't make room
+- **I want to** have the session log say what happened
+- **so that** the next fix starts from evidence, not a guess
+
+#### Acceptance Criteria:
+- **Scenario:** The log
+- **Given:** any drag of mine that moves ink
+- **When:** I let go
+- **Then:** the session log records where the ink started and landed, how the drag was picked up, whether room opened and why a move was rejected or a planned push skipped
+
+---
+
 ### User Story 969:
 
 - **Summary:** A word slid along its own line moves nothing else
 - **Issues:** review of stories 973–975, 2026-11-17: a word slid sideways onto its neighbour pushed its own line down
 - **Status:** implemented in the review fix that follows [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a) on this branch; verified by host tests (`BoardRoomDropTests`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
-- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+- **Spec:** [Dropping ink onto writing makes room](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md#dropping-ink-onto-writing-makes-room)
 
 #### Use Case:
 - **As someone** rearranging words within a line

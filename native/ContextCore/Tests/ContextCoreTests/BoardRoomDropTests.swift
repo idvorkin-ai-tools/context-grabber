@@ -2,8 +2,8 @@ import XCTest
 
 @testable import ContextCore
 
-/// The oracle is the board ops spec's *A dragged selection makes room* (stories 973–975): dropped ink stays where it
-/// lands, and what is below it slides down by whole lines, as a paste's room does.
+/// The oracle is the board ops spec's *Dropping ink onto writing makes room* (stories 973–975): dropped ink stays
+/// where it lands, and what is below it slides down by whole lines, as a paste's room does.
 final class BoardRoomDropTests: XCTestCase {
   private let line = BoardRoom.line
   private let air = BoardRoom.air
@@ -55,6 +55,20 @@ final class BoardRoomDropTests: XCTestCase {
     let block = from.offsetBy(dx: 120, dy: 0)
     let neighbour = CGRect(x: 200, y: 200, width: 120, height: 24)
     XCTAssertNil(BoardRoom.drop(block, from: from, among: [writing(100), neighbour, writing(300)]))
+  }
+
+  /// Story 1172, from the iPad's log of 2026-11-22 (board ead78e80): Larry's kept text, lifted from below, dropped on
+  /// Igor's first line. His two lines go down together, clear of it, by whole lines.
+  func testAKeptTextDroppedOnHisWritingPushesItDown() {
+    let from = CGRect(x: 34, y: 223, width: 248, height: 25)
+    let block = CGRect(x: 111, y: 67, width: 248, height: 25)
+    let first = CGRect(x: 23, y: 54, width: 503, height: 41)
+    let second = CGRect(x: 23, y: 97, width: 108, height: 27)
+    let push = try? XCTUnwrap(BoardRoom.drop(block, from: from, among: [first, second]))
+    XCTAssertEqual(push?.cut, first.minY, "between lines: above his first line, not through it")
+    let dy = push?.dy ?? 0
+    XCTAssertEqual(dy.truncatingRemainder(dividingBy: line), 0, "whole lines")
+    XCTAssertGreaterThanOrEqual(first.minY + dy, block.maxY + air, "his first line now sits under it, with air")
   }
 
   func testAWordDraggedFromItsLineOntoTheNextPushesIt() {

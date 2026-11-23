@@ -445,7 +445,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     ]
     event.merge(unheard(change, frames: frames, undo: controller.undoManager)) { $1 }
     event.merge(moveAudit(change, markup: markup, frames: frames)) { $1 }
-    event.merge(keepOwnersApart(change, markup: markup, previous: previous, undo: controller.undoManager)) { $1 }
+    let apart = keepOwnersApart(change, markup: markup, previous: previous, undo: controller.undoManager)
+    event.merge(apart) { $1 }
     // #999: scratched-out ink back without an Undo or Redo.
     if !scratched.isEmpty, controller.undoManager?.isUndoing != true, controller.undoManager?.isRedoing != true {
       let back = change.added.filter(scratched.contains).count
@@ -459,71 +460,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     laps.lap("show")
     // Not from inside PaperKit's own callback.
     if wanted > pages { Task { @MainActor [weak self] in self?.grow(to: wanted) } }
-    pushesOnMove(change, markup: markup, undo: controller.undoManager)
+    pushesOnMove(change, markup: markup, undo: controller.undoManager, split: apart["apart"] as? String == "split")
     laps.lap("push")
-  }
-
-  /// Stories 973–975: a lasso selection dragged onto ink pushes what is below down clear of it, as a paste's room
-  /// does, and the drag and the push are one Undo named *Move*. Only a drag by hand: an Undo or Redo never pushes.
-  private func pushesOnMove(_ change: PaperProbe.InkChange, markup: PaperMarkup, undo: UndoManager?) {
-    guard drawsHere, !change.moved.isEmpty, change.added.isEmpty, change.removed.isEmpty,
-      undo?.isUndoing != true, undo?.isRedoing != true
-    else { return }
-    let selected = Set(paper.selection.map(Self.key))
-    let movedKeys = Set(change.moved.map(\.id))
-    guard movedKeys.isSubset(of: selected) else { return }
-    let frames = markup.strokeFrames
-    let block = movedKeys.compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }
-    let back = Dictionary(uniqueKeysWithValues: change.moved.map { ($0.id, $0) })
-    let (strokes, hashes) = opStrokes(markup)
-    let elements = markup.subelements.strokes
-    let dragged = Set(elements.indices.filter { movedKeys.contains(Self.key(elements[$0].elementID)) })
-    let tags = model.outline(of: strokes).tags
-    let others = strokes.indices.filter { !dragged.contains($0) }.map { strokes[$0] }
-    let ink = BoardOps.shownBoxes(strokes: others, texts: model.texts, groups: model.strokeMeta.groups, folds: tags)
-    var event: [String: Any] = [
-      "action": "paper_drop", "board": model.board.id, "strokes": movedKeys.count, "at": rect(block),
-    ]
-    let from = movedKeys.compactMap { key in
-      frames[key].flatMap { box in back[key].map { box.offsetBy(dx: -$0.dx, dy: -$0.dy) } }
-    }.reduce(CGRect.null) { $0.union($1) }
-    event["from"] = rect(from)
-    guard let push = BoardRoom.drop(block, from: from, among: ink) else {
-      event["room"] = false
-      log.event("whiteboard", event)
-      return
-    }
-    var plan = BoardOps.plan(
-      [.translateBelow(y: push.cut, dy: push.dy)], strokes: strokes, texts: model.texts, metas: model.strokeMeta,
-      folds: tags, pages: pages, board: board)
-    // What he dropped stays where he let go of it.
-    for index in dragged { plan.offsets[index] = nil }
-    // The board before the drag: the dragged strokes back where they were.
-    var before = markup
-    for element in elements {
-      guard let move = back[Self.key(element.elementID)] else { continue }
-      var stroke = element
-      stroke.applyTransform(CGAffineTransform(translationX: -move.dx, y: -move.dy))
-      _ = before.subelements.updateOrAppend(stroke)
-    }
-    event.merge(["room": true, "cut": Double(push.cut), "dy": Double(push.dy), "moved": plan.moved]) { $1 }
-    // Not from inside PaperKit's own callback: its step for the drag is taken back, and one step for both goes on.
-    Task { @MainActor [weak self] in
-      guard let self else { return }
-      event["took_back"] = self.quietly { self.takeBackPaperKitsStep(why: "drop") }
-      event["undid_drag"] = self.paper.markup.map { Self.close($0.strokeFrames, before.strokeFrames) } ?? false
-      let framesBefore = self.inkFrames
-      self.registerStepBack(to: before, named: "Move")
-      guard let (held, _, _) = self.put(plan, on: markup, hashes: hashes, named: "Move", stepBack: false) else {
-        event["failed"] = true
-        self.log.event("whiteboard", event)
-        return
-      }
-      self.model.stepped(held.inkDrawing)
-      self.noteInk(held, since: framesBefore, report: true)
-      event["pages"] = self.pages
-      self.log.event("whiteboard", event)
-    }
   }
 
   /// Every stroke where it was, to half a point.
