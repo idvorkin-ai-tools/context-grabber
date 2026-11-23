@@ -102,6 +102,9 @@ public enum BoardOps {
     public var color: UInt32?
     /// Single strokes or the real font (#950); nil until the board gives its own.
     public var lettering: WhiteboardTurn.LetterStyle?
+    /// Its box's size as a host that draws it measured it (the Cockpit's web board: text measuring is compiled out on
+    /// WASI); nil measures it here.
+    public var measured: CGSize?
 
     public init(
       id: String, x: CGFloat, y: CGFloat, text: String, font: Font = .plain, size: CGFloat = 18, color: UInt32? = nil,

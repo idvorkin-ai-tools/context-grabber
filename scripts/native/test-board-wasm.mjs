@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 import { WASI } from 'node:wasi';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -55,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 6, `bw_info abi is 6: ${JSON.stringify(info)}`);
+check(info.abi === 7, `bw_info abi is 7: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -327,6 +328,79 @@ check(same(route({ from: [0, 0, 100, 40], to: [300, 0, 400, 40], fromSide: 'righ
 const around = { from: [0, 0, 100, 40], to: [300, 200, 400, 240], fromSide: 'right', toSide: 'left', obstacles: [[180, 100, 220, 140]] };
 check(same(route(around), { points: [[100, 20], [350, 20], [350, 200]] }), `a box in the way: one elbow round it: ${JSON.stringify(route(around))}`);
 check(route({ from: [0, 0, 1] }).error === 'no from and to boxes', 'no boxes: says so');
+
+// Interface 7 (spec, Larry's ops): the batch read as the iPad reads it, and planned on a board sent with it. A make-room
+// at 200 of 50 opens whole lines (80) at the clear line under a (98.5..101.5), so b and the box move 80; a stroke of a
+// group moves its group; a name the board lacks is missing; his text on clear paper stays where he put it.
+const opsBoard = {
+  strokes: [{ id: 'a', points: [[100, 100], [200, 100]], width: 3 }, { id: 'b', points: [[100, 300], [200, 300]], width: 3 },
+    { id: 'c', points: [[100, 340], [200, 340]], width: 3 }],
+  boxes: [{ id: 'x', box: [0, 500, 50, 540] }], metas: { b: { group: 'g' }, c: { group: 'g' } }, ghosts: [],
+  measured: { 1: [60, 40] },
+};
+const ops = (list, board) => ask('bw_ops_plan', { batch: { board: 'ink', base_rev: 3, label: 'l', list }, board });
+const refused = ops([{ op: 'translate', ids: ['b'], dy: 10 }, { op: 'nope' }]);
+check(same(refused, { batch: { base_rev: 3, board: 'ink', label: 'l', names_used: [], ops: 0, refusal: 'unknown_op' } }), `a bad op refuses the batch: ${JSON.stringify(refused)}`);
+const used = ops([{ op: 'delete', ids: ['a'] }, { op: 'select', ids: ['g'] }]).batch.names_used;
+check(same(used, ['a', 'g']), `the names a batch uses: ${JSON.stringify(used)}`);
+const room = ops([{ op: 'translate', below_y: 200, dy: 50 }], opsBoard).plan;
+check(same(room.moves, { b: [0, 80], c: [0, 80], x: [0, 80] }) && room.rooms[0].dy === 80, `a make-room of whole lines: ${JSON.stringify(room)}`);
+const moved = ops([{ op: 'translate', ids: ['b', 'gone'], dx: 5, dy: 10 }, { op: 'add_text', id: 't1', x: 300, y: 700, text: 'hi' }], opsBoard).plan;
+check(same(moved.moves, { b: [5, 10], c: [5, 10] }) && same(moved.missing_ids, ['gone']) && moved.texts.length === 1 &&
+  moved.texts[0].y === 700, `a group moves whole, a missing name, his text on clear paper: ${JSON.stringify(moved)}`);
+
+const connectorBoxes = [{ id: 'start', box: [0, 0, 100, 40] }, { id: 'end', box: [300, 200, 400, 240] }];
+const obstacle = { id: 'obstacle', box: [200, 100, 240, 150] };
+const connectorBoard = { boxes: [...connectorBoxes, obstacle], metas: { end: { group: 'target' } } };
+const drawn = ops([
+  { op: 'connector', id: 'forward', from: [50, 20], to: 'target' },
+  { op: 'connector', id: 'reverse', from: [350, 220], to: [50, 20] },
+], connectorBoard).plan;
+check(same(drawn.connected, ['forward', 'reverse']) && drawn.metas.forward.connector.from === 'start' &&
+  drawn.metas.forward.connector.to === 'target' && drawn.metas.reverse.connector.to === 'start' &&
+  same(drawn.metas.forward.connector.route, [[100, 20], [350, 20], [350, 200]]),
+  `points attach to boxes by name and route around a third box: ${JSON.stringify(drawn)}`);
+
+const straight = [[100, 20], [300, 220]];
+const followed = ops([{ op: 'translate', ids: ['obstacle'], dy: -150 }], {
+  strokes: [{ id: 'arrow', points: straight }],
+  boxes: [...connectorBoxes, { id: 'obstacle', box: [200, 250, 240, 300] }],
+  metas: { arrow: { connector: { from: 'start', to: 'end', from_side: 'right', to_side: 'left', route: straight } } },
+}).plan;
+check(same(followed.moves, { obstacle: [0, -150] }) && same(followed.rerouted, ['arrow']) &&
+  same(followed.metas.arrow.connector.route, [[100, 20], [350, 20], [350, 200]]),
+  `moving a box into an existing connector's route reroutes it: ${JSON.stringify(followed)}`);
+const namedBoxes = ops([
+  { op: 'select', ids: ['start'] }, { op: 'set_hidden', ids: ['start'], hidden: true },
+  { op: 'set_meta', ids: ['start'], meta: { note: 'kept' } }, { op: 'delete', ids: ['end'] },
+], connectorBoard).plan;
+check(same(namedBoxes.select, ['start']) && same(namedBoxes.hidden, { start: true }) &&
+  same(namedBoxes.metas, { start: { note: 'kept' } }) && same(namedBoxes.erase, ['end']),
+  `box changes use the public name once: ${JSON.stringify(namedBoxes)}`);
+
+const button = { op: 'overlay', id: 'control', kind: 'button', rect: { x: 10, y: 20, w: 90, h: 40 }, label: 'Keep',
+  style: { fill: '#123456' }, tap_event: { action: 'keep' } };
+const controls = [button, { op: 'remove_overlay', id: 'control' }, { ...button, label: 'Again' }];
+check(isDeepStrictEqual(ops(controls, {}).plan.overlays, controls), 'the web plan preserves ordered overlay changes and their payloads');
+
+const short = { op: 'add_text', id: 't1', x: 20, y: 90, text: 'a' };
+const wide = { ...short, y: 290, text: 'W W W' };
+const textBoard = { strokes: opsBoard.strokes.slice(0, 2) };
+const replacedText = ops([short, { op: 'select', ids: ['a'] }, wide], {
+  ...textBoard, measured: { 0: [30, 20], 2: [100, 20] },
+}).plan;
+check(same(replacedText.moves, { b: [0, 40] }) && replacedText.texts.length === 1 && replacedText.texts[0].text === wide.text,
+  `the short text clears the top ink and only the wider replacement opens room: ${JSON.stringify(replacedText)}`);
+const showing = ops([
+  { op: 'set_meta', ids: ['t1'], meta: { note: 'keep it' } }, { op: 'translate', below_y: 590, dy: 40 }, wide,
+], {
+  ...textBoard, measured: { 2: [100, 20] },
+  ghosts: [{ id: 't1', x: 20, y: 500, text: 'Old', color: '#A0b124', measured: [30, 120] }],
+}).plan;
+check(showing.rooms[0].below_y === 620 && showing.inked[0].y === 500 && showing.inked[0].color === '#a0b124' &&
+  same(showing.moves, { b: [0, 40] }),
+  `the existing ghost uses its own measured height and the new text uses its own width: ${JSON.stringify(showing)}`);
+check(ask('bw_ops_plan', 'not json').error !== undefined, 'unreadable: says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

@@ -200,6 +200,29 @@ then across); else straight anyway. `bw_info` says `"abi": 6`; versions 1 to 5 a
 - No board is loaded: the Cockpit sends the two ends' boxes and the boxes of the other things that could be in the
   way, and draws the head itself.
 
+## The interface, version 7: Larry's ops
+
+Story 1622. The web board reads Larry's batch using the app's rules for accepting it and planning its changes, then
+puts the plan on its own board. `bw_info` says `"abi": 7`; versions 1 to 6 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_ops_plan` | `{"batch": the message's ops, "board"?: {"strokes", "boxes", "metas": {name: notes}, "folds": {name: "h:<header>"}, "ghosts": [text], "measured": {op index: [width, height]}, "pages"}}` | a reply: `{"batch": {"refusal", "label", "board", "base_rev", "ops", "names_used"}, "plan"?}`; `{"error"}` when it can't be read |
+
+- Without a board it only reads the batch: its refusal as the iPad names it, and the names it uses (what a batch from
+  an older look conflicts on).
+- The board is sent with each ask, with strokes and boxes in the same form as `bw_outline_load`. Each kept text or
+  card answers to its own name and can anchor a connector or be in the way of its route. Nothing is kept between asks.
+- The plan names what it touches, never a canvas place: `moves` {name: [dx, dy]}, `erase`, `hidden` {name: bool},
+  `added` (his strokes where the batch leaves them), `metas`, `forget`, `select`, `texts` and `dismissed` (his ghosts),
+  `inked`, `missing_ids`, `rooms`, `moved`, `pages_after`, `connected`, `rerouted`, `loosened` and `overlays`.
+- `overlays` gives the controls to set or remove in batch order, in the same form as the `overlay` and `remove_overlay`
+  ops. The Cockpit applies them in that order.
+- Each showing ghost can carry its own `"measured": [width, height]`. For new text, the board's `measured` map uses
+  the zero-based position of each `add_text` in the batch's `list`. Two texts with the same name can take different
+  space. The planner uses the Cockpit's measurements for placement and room, and estimates a text's size when none
+  is supplied.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
