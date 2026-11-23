@@ -708,7 +708,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     // His label asks for a 1-point pen (story 779), under what PencilKit draws, as its own pen of a ninth of its
     // 12-point letters (1.3 points) was on Igor's iPad on 2026-11-14; this test runs the asked pen, not that one.
     // The board starts with pasted ink, as XCUITest's taps never reach the system's paste button.
-    let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
+    let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI", "GRABBER_WHITEBOARD_KEPT_INK_LABEL": "1"])
     wait(send(app), label: strokes(4))
     try larrySmallLabel(cockpit)
     app.buttons["whiteboard-larry"].tap()
@@ -726,6 +726,12 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     shot(app, "the small label kept")
     XCTAssertEqual(kept.width, ghost.width, accuracy: 0.03, "every letter drawn")
     XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.03, "where the ghost was")
+    // Bead context-grabber-qko5: the board's look a second after the keep read this whole label as cut, its thin letters'
+    // edges counted against their true colour, and redrew it twice, the second time a screen away and back.
+    let looks = app.staticTexts["whiteboard-kept-ink"]
+    XCTAssertTrue(looks.appears(within: 5), "the board looked at the kept label")
+    XCTAssertEqual(looks.label, "whole", "one look, the label whole: \(looks.label)")
+    XCTAssertEqual(looks.value as? String, "0", "no redraw")
 
     let before = try pictureFrames(cockpit)
     send(app).tap()
@@ -734,11 +740,38 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertGreaterThan(purple, 20, "the picture Larry gets shows the kept label: \(purple) purple pixels, \(frame)")
   }
 
-  /// Arms the fake Cockpit's next board answer as one label of 12-point letters asking for a 1-point pen (story 772).
-  private func larrySmallLabel(_ cockpit: String) throws {
+  /// Story 650 (bead context-grabber-qko5): the same small label at Igor's own pen, 2.68 points, which draws in his
+  /// purple, kept whole: the board's look a second on finds it whole and redraws nothing. It read the thin letters'
+  /// edges against their true colour, called the label cut and redrew it twice, the second time a screen away and back.
+  func testASmallLabelAtANormalPenKeptWholeIsNotRedrawn() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI", "GRABBER_WHITEBOARD_KEPT_INK_LABEL": "1"])
+    wait(send(app), label: strokes(4))
+    try larrySmallLabel(cockpit, pen: 2.68)
+    app.buttons["whiteboard-larry"].tap()
+    let ghost = try XCTUnwrap(
+      PaperScreen.settled(app, within: 15) { $0.larryGhost }, "his small label, faint, in his purple")
+    let pasted = send(app).label
+    PaperScreen.tap(app, ghost.center)
+    keep(app)
+    waitUntil(NSPredicate(format: "label != %@", pasted), send(app), timeout: 10)
+    let kept = try XCTUnwrap(
+      PaperScreen.showing(app, { $0.larryKept }) { abs($0.width - ghost.width) < 0.03 }, "small ink in his purple")
+    XCTAssertEqual(kept.width, ghost.width, accuracy: 0.03, "every letter drawn")
+    let looks = app.staticTexts["whiteboard-kept-ink"]
+    XCTAssertTrue(looks.appears(within: 5), "the board looked at the kept label")
+    // A cut look would redraw and look again a second later: wait past that, so a second look would show.
+    Thread.sleep(forTimeInterval: 2.5)
+    XCTAssertEqual(looks.label, "whole", "one look, the label whole: \(looks.label)")
+    XCTAssertEqual(looks.value as? String, "0", "no redraw")
+    shot(app, "a small label at a normal pen kept")
+  }
+
+  /// Arms the fake Cockpit's next board answer as one label of 12-point letters asking for a `pen`-point pen (story 772).
+  private func larrySmallLabel(_ cockpit: String, pen: Double = 1) throws {
     var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
     request.httpMethod = "POST"
-    request.httpBody = Data(#"{"kind": "small_label"}"#.utf8)
+    request.httpBody = Data(#"{"kind": "small_label", "pen": \#(pen)}"#.utf8)
     let done = expectation(description: "the fake Cockpit took it")
     URLSession.shared.dataTask(with: request) { _, response, _ in
       XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)

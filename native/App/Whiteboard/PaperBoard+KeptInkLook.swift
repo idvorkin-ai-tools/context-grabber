@@ -5,24 +5,14 @@
 //  colour spans less of the spot than the same strokes drawn alone would, or that has turned dark where nothing dark was
 //  before the keep, is drawn again as a missed one is (story 650).
 
+import ContextCore
 import PaperKit
 import PencilKit
 import UIKit
 
 extension PaperBoardController {
-  /// What a picture of a spot holds, sorted against the paper: pixels near the ink's colour, near black, the rest, and how
-  /// wide and tall the ink's colour spans.
-  struct KeptColours {
-    var ink = 0
-    var dark = 0
-    var other = 0
-    var inkWidth = 0
-    var inkHeight = 0
-    /// Every pixel unlike the paper, whatever its colour: how wide and tall the strokes span.
-    var allWidth = 0
-    var allHeight = 0
-    static let unread = KeptColours(ink: -1, dark: -1, other: -1)
-  }
+  /// What a picture of a spot holds, sorted against the paper (story 650).
+  typealias KeptColours = KeptInkColours
 
   /// A second after a keep: the kept strokes' inks as made, as held then and now, and the colours drawn where they are.
   /// Part of it missing or dark, in view, redraws and looks again, twice at most. `before`: the spot's dark pixels before
@@ -43,11 +33,12 @@ extension PaperBoardController {
       let heldLater = self.heldStrokes(at: moments)
       let drawn = self.drawnColours(in: spot, ink: want)
       let expected = heldLater.isEmpty ? KeptColours() : self.expectedColours(made, box: box, ink: want)
-      let part = Self.partMissing(drawn: drawn, expected: expected, darkBefore: darkBefore, ink: want)
+      let part = WhiteboardKeptInk.partMissing(drawn: drawn, expected: expected, darkBefore: darkBefore, ink: want)
       let missing = inView && part != nil
       // context-grabber-z8o: a kept mark the view drew none of, whose strokes drawn alone show none of their colour either,
       // is a pen too thin to draw (#883), which no redraw brings back; said as `none`, where it used to read as whole.
-      let none = inView && part == nil && !heldLater.isEmpty && Self.drewNothing(drawn: drawn, expected: expected)
+      let none =
+        inView && part == nil && !heldLater.isEmpty && WhiteboardKeptInk.drewNothing(drawn: drawn, expected: expected)
       self.log.event(
         "whiteboard",
         [
@@ -56,21 +47,24 @@ extension PaperBoardController {
           "ink": self.rect(box), "spot": self.rect(spot), "in_view": inView, "ink_px": drawn.ink,
           "dark_px": drawn.dark, "dark_before": darkBefore, "other_px": drawn.other,
           "ink_span": [drawn.inkWidth, drawn.inkHeight],
-          "expected_px": expected.ink, "expected_span": [expected.allWidth, expected.allHeight], "attempt": attempt,
+          "expected_px": expected.ink, "expected_span": [expected.allWidth, expected.allHeight],
+          "expected_ink_span": [expected.inkWidth, expected.inkHeight], "attempt": attempt,
           "missing": part ?? (none ? "none" : ""),
         ])
-      guard missing, attempt < 2, self.touchesDown == 0 else { return }
+      // A redraw in place first; the view a screen away and back only once that left it partly drawn.
+      let how = missing && self.touchesDown == 0 ? WhiteboardKeptInk.heal(afterLook: attempt) : nil
+      self.showKeptInkForTests(inView ? (part ?? (none ? "none" : "whole")) : "out", healed: how != nil)
+      guard let how else { return }
       // The view's nudge (`redrawSoon`, #906) left such a tile as it was, both tries, on the iPad simulator, and so did
       // setting the same markup again or marking every view to draw again. The first try takes the mark out of the markup
       // and puts it back a moment later; the second scrolls the view a screen away and back.
-      let how = attempt == 0 ? "readd" : "scroll"
       self.log.event(
         "whiteboard",
         [
           "action": "paper_ink_heal", "why": "kept_\(part ?? "")", "board": self.model.board.id, "attempt": attempt + 1,
           "how": how,
         ])
-      if attempt == 0 {
+      if how == "readd" {
         await self.readd(moments)
       } else {
         let place = self.paper.contentVisibleFrame
@@ -80,23 +74,6 @@ extension PaperBoardController {
       }
       self.lookAtKeptInk(made, why: why, attempt: attempt + 1, before: darkBefore)
     }
-  }
-
-  /// Why a kept mark looks only partly drawn, or nil when it looks whole: **cut** when its colour spans under three
-  /// quarters of what the same strokes span drawn alone (a tile left empty or drawn in another colour), **dark** when the
-  /// spot has dark pixels the keep added and the ink isn't dark itself (a tile drawn black). Nothing is judged when the
-  /// strokes drawn alone show none of their colour (a pen too thin to read).
-  static func partMissing(drawn: KeptColours, expected: KeptColours, darkBefore: Int, ink: [Int]) -> String? {
-    guard drawn.ink >= 0, expected.ink > 0, expected.allWidth > 0, expected.allHeight > 0 else { return nil }
-    if drawn.inkWidth * 4 < expected.allWidth * 3 || drawn.inkHeight * 4 < expected.allHeight * 3 { return "cut" }
-    let inkIsDark = ink.allSatisfy { $0 < 80 }
-    if !inkIsDark, drawn.dark - darkBefore > max(20, drawn.ink / 10) { return "dark" }
-    return nil
-  }
-
-  /// Nothing of a kept mark on screen, not even a faint pixel, and none of its colour when its strokes are drawn alone.
-  static func drewNothing(drawn: KeptColours, expected: KeptColours) -> Bool {
-    drawn.ink == 0 && drawn.dark == 0 && drawn.other == 0 && expected.ink <= 0
   }
 
   /// The markup set without the strokes made at `moments`, and a moment later with them again where they were, their ids
@@ -120,6 +97,28 @@ extension PaperBoardController {
     let held = setMarkup(back).held
     inkFrames = held.strokeFrames
     model.settled(held.inkDrawing)
+  }
+
+  /// `GRABBER_WHITEBOARD_KEPT_INK_LABEL=1`: every look at kept ink this launch as an element a UI test reads
+  /// (`whiteboard-kept-ink`): its label each look's verdict in turn (`whole`, `cut`, `dark`, `none`, `out` of view),
+  /// its value how many heals they asked for. A heal on the simulator is seen only as a blink or a jump, too quick to catch.
+  private func showKeptInkForTests(_ verdict: String, healed: Bool) {
+    guard LaunchHooks.current.whiteboard.keptInkLabel, isViewLoaded else { return }
+    let id = "whiteboard-kept-ink"
+    let label =
+      view.subviews.first { $0.accessibilityIdentifier == id } as? UILabel
+      ?? {
+        let made = UILabel(frame: CGRect(x: 0, y: 0, width: 4, height: 4))
+        made.accessibilityIdentifier = id
+        made.isAccessibilityElement = true
+        made.alpha = 0.02
+        made.accessibilityValue = "0"
+        view.addSubview(made)
+        return made
+      }()
+    let looks = label.accessibilityLabel.map { $0.split(separator: ",").map(String.init) } ?? []
+    label.accessibilityLabel = (looks + [verdict]).joined(separator: ",")
+    label.accessibilityValue = String((Int(label.accessibilityValue ?? "0") ?? 0) + (healed ? 1 : 0))
   }
 
   /// Where `box` (board points) is in this view's own points.

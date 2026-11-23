@@ -365,7 +365,10 @@ paper. That description is the requirement, and this lists only where paper need
   neither redraws nor moves for it. Part of a kept mark missing counts too, and so does part of it drawn in a colour that
   isn't its own: a kept text of Larry's whose first letter showed in his purple and the rest blank or black is drawn
   again on its own a second later (context-grabber-ikya); the mark may blink once as it does. If that first try still
-  leaves it partly drawn, the view moves a screen away and straight back once, and always ends where it was.
+  leaves it partly drawn, the view moves a screen away and straight back once, and always ends where it was. A mark drawn
+  whole is never taken for one drawn in part: a small label of thin letters, its colour as far across and as tall as the
+  same strokes drawn alone show it, is left as it is, with no blink and no move (context-grabber-qko5). The move a screen
+  away only ever follows a redraw in place that left the mark still partly drawn.
 - **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
 - **Every keep is a step of Undo of its own, and keeps it** (#966). *Keep*, *Keep group*, *Keep all* and *Tidy overlaps*
   are each one step, named for what was done (with a keyboard, the menu's *Undo Keep group*). Nothing the board does on its
