@@ -128,6 +128,8 @@ extension WhiteboardModel {
         larryOut?.turn = larry.state
         larryOut?.delivered = true
       }
+      turns.larryReached()
+      if problem?.context == "WhiteboardView.larry" { problem = nil }
       log.event("whiteboard", ["action": "send_went", "board": board.id, "picture": id, "clock": started])
       checkLarryWait()
     case .refused:
