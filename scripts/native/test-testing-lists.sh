@@ -4,7 +4,7 @@
 #   - "The host rung's script checks": the scripts/native/test-* checks in the justfile's native-test-host recipe
 #   - "The chat suite's classes": the -only-testing classes in scripts/native/test-chat-ui.sh, in name order
 #   - "The whiteboard suite's classes": those in scripts/native/test-whiteboard-ui.sh, in name order, and every
-#     native/UITests/Whiteboard*UITests.swift; and the script's own list in name order (story 1503)
+#     native/UITests/Whiteboard*UITests.swift; and the script's own list in name order (story 1502)
 # Usage: test-testing-lists.sh [repo root]   (default: this script's repo)
 set -uo pipefail
 cd "${1:-$(dirname "$0")/../..}" || exit 2
@@ -40,7 +40,7 @@ same "chat suite" "$chat" "$(only_testing scripts/native/test-chat-ui.sh)" "scri
 board=$(section "### The whiteboard suite's classes")
 sorted "whiteboard suite" "$board"
 same "whiteboard suite" "$board" "$(only_testing scripts/native/test-whiteboard-ui.sh)" "scripts/native/test-whiteboard-ui.sh"
-# Story 1503: the script's own list is one class a line in name order too, as PRs add to it.
+# Story 1502: the script's own list is one class a line in name order too, as PRs add to it.
 script_board=$(only_testing scripts/native/test-whiteboard-ui.sh)
 [ "$script_board" != "$(LC_ALL=C sort <<<"$script_board")" ] && { echo "FAIL whiteboard suite: not in name order in scripts/native/test-whiteboard-ui.sh"; fail=1; }
 files=$(cd native/UITests && ls Whiteboard*UITests.swift 2>/dev/null | sed 's/\.swift$//')

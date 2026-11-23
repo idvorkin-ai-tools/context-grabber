@@ -578,7 +578,7 @@ decide nothing: the rules behind each class are host tests, named on its line. A
 What `scripts/native/test-whiteboard-ui.sh` runs, one class a line in name order, so PRs that add classes touch different
 lines; the script lists them one a line too, and the ladder reads its whiteboard classes from the script, so a new class
 is its file, its line there and its line here. `scripts/native/test-testing-lists.sh` fails when this list, the
-script's and the `Whiteboard*UITests` files disagree, or the script's list is out of name order (stories 1502, 1503). Every board is on paper (the old canvas went 2026-11-07). The suite boots a fresh simulator
+script's and the `Whiteboard*UITests` files disagree, or the script's list is out of name order (story 1502). Every board is on paper (the old canvas went 2026-11-07). The suite boots a fresh simulator
 once, first, and leaves it booted after (story 980), because keys reach the app only in the first test after a boot
 that presses any: the ⌘V test fails on a simulator that has already had one. An iPhone only looks at boards (story 746).
 Ghosts staying when the Pencil touches down, a ghost tapped during a Pencil stroke, a second turn after the Pencil lifts

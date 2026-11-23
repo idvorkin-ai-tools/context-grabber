@@ -151,7 +151,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
 }
 
 chat_all="ChatArchiveUITests ChatAskSearchUITests ChatDecisionUITests ChatFileUITests ChatImageUITests ChatMoveUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
-# Every whiteboard UI test file's class, in name order (story 1503): the ladder's list, read from the suite's script, has to
+# Every whiteboard UI test file's class, in name order (story 1502): the ladder's list, read from the suite's script, has to
 # name them all.
 board_all=$(cd native/UITests && ls Whiteboard*UITests.swift | sed 's/\.swift$//' | LC_ALL=C sort | paste -sd ' ' -)
 
