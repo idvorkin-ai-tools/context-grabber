@@ -20,7 +20,8 @@ final class ChatImageUITests: XCTestCase {
 
   /// The thread, with its picture opened full size by itself when `picture`.
   private func launchThread(
-    _ thread: String, board: String? = nil, picture: Bool, link: String? = nil, boardThread: String? = nil
+    _ thread: String, board: String? = nil, picture: Bool, link: String? = nil, boardThread: String? = nil,
+    conversationOpen: Bool = false
   ) throws -> XCUIApplication {
     guard let cockpit = ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], !cockpit.isEmpty else {
       throw XCTSkip("needs the fake Cockpit: run scripts/native/test-chat-ui.sh")
@@ -31,6 +32,9 @@ final class ChatImageUITests: XCTestCase {
     app.launchEnvironment["GRABBER_LINK"] = link ?? "grabbernative://chat?thread=\(thread)"
     if let board { app.launchEnvironment["GRABBER_BOARD_FIXTURE"] = board }
     if let boardThread { app.launchEnvironment["GRABBER_BOARD_FIXTURE_THREAD"] = boardThread }
+    // On an iPad, Open in Chat is in the board's conversation panel, and a board with nothing to say shows no note to
+    // open it with: start with the panel open (the setting the note's chevron keeps).
+    if conversationOpen { app.launchArguments += ["-whiteboard_conversation_open", "YES"] }
     app.launch()
     return app
   }
@@ -192,7 +196,7 @@ final class ChatImageUITests: XCTestCase {
   func testOpenInChatSlidesTheThreadInAndBoardGoesBack() throws {
     let app = try launchThread(
       "igor2-88g.603", board: "board-603", picture: false, link: "grabbernative://whiteboard?board=board-603",
-      boardThread: "igor2-88g.603")
+      boardThread: "igor2-88g.603", conversationOpen: true)
     XCTAssertTrue(app.descendants(matching: .any)["whiteboard"].appears(within: 20), app.debugDescription)
     openInChat(app)
     let board = app.buttons["chat-thread-board"]
@@ -209,7 +213,8 @@ final class ChatImageUITests: XCTestCase {
 
   /// Story 1207: a board slid in over its thread goes back to that thread with *Open in Chat*.
   func testOpenInChatOnABoardFromItsThreadGoesBack() throws {
-    let app = try launchThread("igor2-88g.603", board: "board-603", picture: false, boardThread: "igor2-88g.603")
+    let app = try launchThread(
+      "igor2-88g.603", board: "board-603", picture: false, boardThread: "igor2-88g.603", conversationOpen: true)
     let board = app.buttons["chat-thread-board"]
     XCTAssertTrue(board.appears(within: 20), app.debugDescription)
     board.tap()
