@@ -55,9 +55,11 @@ it before every push. In order, it:
    `native/project.yml`. Fetching those packages needs the network; without it, or without the SDK, the step says it
    was skipped. Nothing is linked into an app, signed or launched, and code under
    `#if targetEnvironment(macCatalyst)` isn't compiled (the Mac rung does);
-4. runs the host rung's portable script checks: the ladder's map (`test-ladder-map.sh`), the breath clips and the UI
-   timing digest, the Linux import check (`test-linux-imports.sh`), the story IDs (`test-story-ids.sh`), and this
-   guide's one-a-line lists (`test-testing-lists.sh`). The asset
+4. runs the host rung's portable script checks (each described in the host list above): the ladder's map
+   (`test-ladder-map.sh`), the breath clips and the UI timing digest, the ladder report (`test-ladder-report.sh`), the
+   smoke on a locked Mac (`test-smoke-lock.sh`), the Linux import check (`test-linux-imports.sh`), the build lanes
+   (`test-build-lane.sh`), the story IDs (`test-story-ids.sh`), the vendored board sessions
+   (`test-board-sessions.py`), and this guide's one-a-line lists (`test-testing-lists.sh`). The asset
    catalog check needs `actool` and the signing guard needs BugKit's script, so they stay the Mac's.
 
 The Mac host rung also runs `test-linux-imports.sh`, so it can catch an import problem before a Linux build. The check
