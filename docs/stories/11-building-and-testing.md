@@ -277,7 +277,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A stuck or flaky UI test costs a minute or two, not a whole rerun
 - **Status:** implemented in 4337f19; verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild: the time limit, the retry, the stopped hang, a retry printing past the idle limit) and `scripts/native/test-ui-timings.sh` (a retried case named); the hang wait cut from 30 s to 10 s in e427499 (retries run before the one closing suite line, so the cut skips only xcodebuild's idle tail), verified on the host by the same check; on branch `native/flaky-retry-86z1` (story 1017) a case that passed only on its retry fails the run, verified on the host rung by the same two checks
-- **Issues:** the pipeline timing study of 2026-11-10 (Igor: "I don't want to be spending 20 minutes in the simulator"; "fix all the issues")
+- **Issues:** the pipeline timing study of 2026-11-10 (Igor: "I don't want to be spending 20 minutes in the simulator"; "fix all the issues"); bead context-grabber-tne1 (2026-11-22: the wrapper's end-of-run cleanup killed a watchdog by a number it had left long before, which a busy Mac had since given to another run's wrapper; that run exited 143 with nothing said. A watchdog is now stopped only while it is still the wrapper's own child)
 
 #### Use Case:
 - **As Igor,** waiting on a change to reach the phone
