@@ -238,8 +238,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 750:
 
 - **Summary:** A box with no Mac checks the whole app's Swift before anything reaches the Mac
-- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged; a missing kept build directory created in [7dae5d56](https://github.com/idvorkin/context-grabber/commit/7dae5d56) (#904), verified on the host rung by running the new block alone: a relative path not yet there made and resolved against the caller, an uncreatable one stops with exit 2 naming it; the full Linux rung was not run, as this Mac has no Linux box
-- **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung"); [#904](https://github.com/idvorkin/context-grabber/issues/904) (a kept build directory that did not exist yet failed the rung)
+- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged; a missing kept build directory created in [7dae5d56](https://github.com/idvorkin/context-grabber/commit/7dae5d56) (#904), verified on the host rung by running the new block alone: a relative path not yet there made and resolved against the caller, an uncreatable one stops with exit 2 naming it; the full Linux rung was not run, as this Mac has no Linux box; bare Apple-only imports caught on the Mac in [6b0bb364](https://github.com/idvorkin/context-grabber/commit/6b0bb364) and checked by the compiler's import scan in [f55f865e](https://github.com/idvorkin/context-grabber/commit/f55f865e) (bead context-grabber-cmk), verified on the host rung (`just native-test`: the check named BoardRoomBandTests and PaperProbeMoveAuditTests before their guards, passes after) and the Mac build
+- **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung"); [#904](https://github.com/idvorkin/context-grabber/issues/904) (a kept build directory that did not exist yet failed the rung); bead `context-grabber-cmk` (two board tests imported CoreGraphics bare and broke Linux's swift test)
 
 #### Use Case:
 - **As Igor,** with agents working on Linux boxes while the Mac is busy or locked
@@ -247,15 +247,10 @@ Part of the [user stories](README.md); persona and format are described there.
 - **so that** a type slip in a view or a broken ladder map shows up on the agent's box in minutes, not in the Mac's build an hour later
 
 #### Acceptance Criteria:
-- **Scenario:** An agent on Linux changes app code and a host test
-- **Given:** a Linux box with the Swift toolchain and the Darwin SDK, and no Mac
-- **When:** the agent runs the Linux rung
-- **Then:** ContextCore's tests run, the package and the app's sources (the app, the widgets, the share extension and the UI tests) are compiled for Apple, the ladder's map is checked, and each step says ok, failed or skipped and why
-
-- **Scenario:** An agent keeps the rung's build between runs in a folder that does not exist yet
-- **Given:** a build directory to keep, named by a path that is not there yet (relative to where the agent stands, or absolute)
-- **When:** the agent runs the Linux rung
-- **Then:** the folder is made and used, and when it cannot be made the rung stops at once, saying which folder and that it could not create it
+- **Scenario:** An agent checks a Swift change that must build on Linux
+- **Given:** a change to app code or package sources or tests, and a Linux box with Swift and the Darwin SDK
+- **When:** the change goes through the Mac host rung or the Linux rung
+- **Then:** the Mac host rung fails with the file and framework when an Apple-only import is reachable on Linux. A branch guarded by `#if canImport` or `#if os` passes when it excludes Linux. The Linux rung creates and uses a requested build directory (relative to the caller or absolute), or stops immediately and names it if creation fails. It runs ContextCore's tests, cross-compiles the package and the app, widgets, share extension and UI tests for Apple, then checks scripts including the ladder map and Linux imports. Each step reports success, failure or a skip with its reason.
 
 ---
 
