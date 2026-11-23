@@ -503,7 +503,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
 #### Use Case:
-- **As someone** someone who writes on a board and moves on
+- **As someone** who writes on a board and moves on
 - **I want to** have each session looked over without asking
 - **so that** an insertion bug that hid or moved my writing doesn't go unnoticed
 
@@ -523,7 +523,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
 #### Use Case:
-- **As someone** someone who closes a board soon after writing
+- **As someone** who closes a board soon after writing
 - **I want to** have that session reviewed too
 - **so that** a short session still gets looked at
 
@@ -543,7 +543,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
 #### Use Case:
-- **As someone** someone who opens a board just to read it
+- **As someone** who opens a board just to read it
 - **I want to** have nothing reviewed
 - **so that** the review never speaks about sessions with nothing of mine in them
 
@@ -563,7 +563,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
 #### Use Case:
-- **As someone** someone who just saw something odd on the board
+- **As someone** who just saw something odd on the board
 - **I want to** review the session so far on demand
 - **so that** I don't have to wait five minutes to find out
 
@@ -583,7 +583,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Goals*
 
 #### Use Case:
-- **As someone** someone writing while a review runs
+- **As someone** writing while a review runs
 - **I want to** have the board untouched by it
 - **so that** a review can never become a bug of its own
 
@@ -603,7 +603,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 6
 
 #### Use Case:
-- **As someone** someone whose sessions are almost always fine
+- **As someone** whose sessions are almost always fine
 - **I want to** see nothing when nothing went wrong
 - **so that** the board stays quiet
 
@@ -623,7 +623,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*
 
 #### Use Case:
-- **As someone** someone whose writing a step mishandled
+- **As someone** whose writing a step mishandled
 - **I want to** see a small note, never an alert
 - **so that** I can look when I'm ready
 
@@ -643,7 +643,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*
 
 #### Use Case:
-- **As someone** someone who wants to report what the review found
+- **As someone** who wants to report what the review found
 - **I want to** copy a finding with its step and evidence
 - **so that** I can file it without reading the log
 
@@ -663,7 +663,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 5
 
 #### Use Case:
-- **As someone** someone looking at a finding
+- **As someone** looking at a finding
 - **I want to** see the board just before and just after its step
 - **so that** I can judge it with my own eyes
 
@@ -683,7 +683,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *False positives*
 
 #### Use Case:
-- **As someone** the review asks whether he meant a move
+- **As someone** whom the review asks whether I meant a move
 - **I want to** answer *I meant that* or *Not what I meant*
 - **so that** Larry and the review learn what I meant
 
@@ -703,7 +703,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *How Larry gets findings*; *Decisions*, 4
 
 #### Use Case:
-- **As someone** someone whose coach watches the board
+- **As someone** whose coach watches the board
 - **I want to** have Larry see each session's findings
 - **so that** he can raise them with me
 
@@ -723,7 +723,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What a session is*; *Decisions*, 2
 
 #### Use Case:
-- **As someone** someone whose writing is in each record, as geometry
+- **As someone** whose writing is in each record, as geometry
 - **I want to** keep the record on the device that made it
 - **so that** my writing goes nowhere new
 
@@ -743,7 +743,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Decisions*, 3
 
 #### Use Case:
-- **As someone** someone who decides what is worth fixing
+- **As someone** who decides what is worth fixing
 - **I want to** have nothing filed for me
 - **so that** beads and issues stay the ones I meant
 
@@ -763,7 +763,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 1
 
 #### Use Case:
-- **As someone** someone writing near a folded header
+- **As someone** writing near a folded header
 - **I want to** be told when new ink went straight into a fold
 - **so that** I never lose writing I can't see
 
@@ -783,7 +783,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 2
 
 #### Use Case:
-- **As someone** someone whose board places pastes, drops and Larry's marks
+- **As someone** whose board places pastes, drops and Larry's marks
 - **I want to** be told when one landed on ink that showed
 - **so that** nothing I wrote is covered
 
@@ -803,7 +803,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 3
 
 #### Use Case:
-- **As someone** someone whose strokes should move only when I move them
+- **As someone** whose strokes should move only when I move them
 - **I want to** be told when they moved anyway
 - **so that** I trust the board with my writing
 
@@ -823,7 +823,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 4
 
 #### Use Case:
-- **As someone** someone sharing a board with Larry
+- **As someone** sharing a board with Larry
 - **I want to** be told when one step moved his ink and mine together
 - **so that** the owners-apart rule is checked every session
 
@@ -843,7 +843,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 5
 
 #### Use Case:
-- **As someone** someone who writes under a folded header
+- **As someone** who writes under a folded header
 - **I want to** be told when folding again hid that writing
 - **so that** story 1231 is checked every session
 
@@ -863,7 +863,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 6
 
 #### Use Case:
-- **As someone** someone who undoes a step
+- **As someone** who undoes a step
 - **I want to** be told when the board isn't as it was
 - **so that** Undo stays trustworthy
 
@@ -883,7 +883,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 7
 
 #### Use Case:
-- **As someone** someone who selected ink
+- **As someone** who selected ink
 - **I want to** be told when the selection vanished on its own
 - **so that** I'm never left acting on nothing
 
@@ -903,7 +903,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 8
 
 #### Use Case:
-- **As someone** someone who keeps Larry's marks mid-writing
+- **As someone** who keeps Larry's marks mid-writing
 - **I want to** be told when a keep left me a different pen
 - **so that** I keep writing with the pen I chose
 
@@ -923,7 +923,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 9
 
 #### Use Case:
-- **As someone** someone who keeps Larry's marks
+- **As someone** who keeps Larry's marks
 - **I want to** be told when one drew partly or in black
 - **so that** his marks show as he made them
 
@@ -943,7 +943,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*
 
 #### Use Case:
-- **As someone** someone reviewed on the iPad and the web
+- **As someone** reviewed on the iPad and the web
 - **I want to** have arithmetic noise never called a bug
 - **so that** both surfaces agree
 
@@ -963,7 +963,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*; *Larry's answer*
 
 #### Use Case:
-- **As someone** someone reading a review
+- **As someone** reading a review
 - **I want to** know what it couldn't see
 - **so that** a check it skipped never reads as clean
 
@@ -983,7 +983,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The iPad and the web board, through one core*
 
 #### Use Case:
-- **As someone** someone who writes on the iPad and the web board
+- **As someone** who writes on the iPad and the web board
 - **I want to** get the same review wherever a session is replayed
 - **so that** a finding is a finding whichever surface found it
 
@@ -1003,7 +1003,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Acceptance criteria*
 
 #### Use Case:
-- **As someone** someone who reviewed those sessions by hand
+- **As someone** who reviewed those sessions by hand
 - **I want to** have the review reach the same answer
 - **so that** the review is trusted on real sessions
 
