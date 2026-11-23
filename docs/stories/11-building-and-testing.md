@@ -783,7 +783,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 794:
 
 - **Summary:** A reservation that can't see everything hands out nothing
-- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: with the fake gh failing to list the open PRs it prints no ID, exits 1 and leaves the ledger unwritten; a word that names two journeys and a journey with too few free IDs fail the same way, the last saying to add a block of twenty
+- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: with the fake gh failing to list the open PRs it prints no ID, exits 1 and leaves the ledger unwritten; a word that names two journeys and a journey with too few free IDs fail the same way, the last naming the next unused block to add (story 791; be441483, dbb7d43b on branch `native/story-ids-range-0e04`, bead context-grabber-0e04)
 - **Issues:** bead context-grabber-jg3w
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 
@@ -796,7 +796,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The open PRs can't be listed
 - **Given:** gh can't reach GitHub, or main can't be fetched
 - **When:** an agent runs the reserve command
-- **Then:** it prints no ID, says what it couldn't read, exits non-zero and reserves nothing; it fails the same way when the journey word names more than one journey or the journey has no free ID left, which says to add the next block of twenty to its row
+- **Then:** it prints no ID, says what it couldn't read, exits non-zero and reserves nothing; it fails the same way when the journey word names more than one journey or the journey has no free ID left, which names the next unused block to add to its row (story 791)
 
 ---
 
