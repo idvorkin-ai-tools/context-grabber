@@ -23,16 +23,6 @@ enum PickedTool {
     }
   }
 
-  /// The board's own tool read the same way: what the choices went on before story 1091, for going back to it.
-  init(_ tool: any PKTool) {
-    switch tool {
-    case let ink as PKInkingTool: self = .ink(ink)
-    case let eraser as PKEraserTool: self = .eraser(eraser)
-    case let lasso as PKLassoTool: self = .lasso(lasso)
-    default: self = .other(String(describing: type(of: tool)))
-    }
-  }
-
   /// The pen, when it is one: its colour and width are a shape preview's, and its width Larry's labels'.
   var ink: PKInkingTool? {
     if case .ink(let tool) = self { return tool }

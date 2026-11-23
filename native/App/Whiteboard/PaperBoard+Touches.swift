@@ -1,7 +1,6 @@
 //  A board on paper: what a touch means to the board beyond PaperKit: the pacer's word, whether fingers draw, and the
 //  picked tool in hand. Moved from PaperBoard.swift as it was (context-grabber-fz4x).
 
-import ContextCore
 import UIKit
 
 extension PaperBoardController {

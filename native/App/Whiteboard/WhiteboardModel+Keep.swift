@@ -159,10 +159,6 @@ extension WhiteboardModel {
     stroke.path.interpolatedPoints(by: .distance(4)).map { $0.location.applying(stroke.transform) }
   }
 
-  private static func inkPoints(_ drawing: PKDrawing) -> [[CGPoint]] {
-    drawing.strokes.filter { !$0.isFolded }.map(points)
-  }
-
   /// Keep beside the chosen mark, one undo. A mark of Larry's keeps its whole reply still showing as one group, as Keep
   /// all keeps it (story 1154; bead context-grabber-it0e); a lone mark, his text from a change and Claude's keep alone.
   func keepChosen() {
