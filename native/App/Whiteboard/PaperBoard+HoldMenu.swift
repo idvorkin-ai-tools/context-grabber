@@ -15,6 +15,7 @@ extension PaperBoardController {
     switch hold.state {
     case .began:
       holdMenu = nil
+      holdBegan = Date(timeIntervalSinceNow: -hold.minimumPressDuration - 0.2)
       if marginTry?.tool == .finger { marginTry?.held = true }
       if at.x < BoardMargin.width,
         model.outline(of: paper.markup.map { opStrokes($0).strokes } ?? []).header(at: at.y) == nil
@@ -29,7 +30,10 @@ extension PaperBoardController {
       guard let grip else { return }
       roomBandMoved(dy: (spot.y - grip.spot.y) / max(screenScale, 0.01))
     case .ended, .cancelled, .failed:
-      guard let grip else { return }
+      guard let grip else {
+        holdLifted(at: at)
+        return
+      }
       self.grip = nil
       scrolls(true)
       let dy = (spot.y - grip.spot.y) / max(screenScale, 0.01)

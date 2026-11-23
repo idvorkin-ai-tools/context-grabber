@@ -6,6 +6,14 @@ import PaperKit
 import UIKit
 
 extension PaperBoardController {
+  /// A finger that draws leaves a dot where it held for the menu, a little after it lifts: taken back as a tap's is,
+  /// so a hold on a word leaves nothing on it.
+  func holdLifted(at: CGPoint) {
+    guard holdMenu != nil, fingersDraw, let began = holdBegan else { return }
+    ghostTap = TapDot(at: at, beganAt: began, within: PaperProbe.rewordDotSeconds)
+    log.event("board_outline", ["action": "hold_lifted", "board": model.board.id, "at": point(at)])
+  }
+
   /// Story 1186: the thing under the held finger selected, as a lasso round it would, its label and To text beside it.
   /// A beat later the log says whether the selection held.
   func holdSelect(_ names: [String]) {

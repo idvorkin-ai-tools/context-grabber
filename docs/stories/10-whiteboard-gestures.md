@@ -364,7 +364,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Delete from the hold menu
 - **Given:** two lines of writing
 - **When:** I hold a finger still on the first line's word and choose Delete
-- **Then:** that word goes and the other line stays, one Undo named Delete brings it back, and Larry hears it erased; held on a header's row there is no Delete, and held off ink there is none either
+- **Then:** that word goes and the other line stays, one Undo named Delete brings it back, and Larry hears it erased; the hold itself left no dot, even with a finger that draws; held on a header's row there is no Delete, and held off ink there is none either
 
 ---
 

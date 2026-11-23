@@ -366,7 +366,8 @@ existing text, I want it to move just like if I was to select text" (stories 969
     header out has its own rules, above.
   - then *Make header* (or *Not a header*), *Make room here* and *Paste*, as before.
   Held **off ink** on the page, or in the margin, the menu is as before. The rows stand in a column, each with its
-  icon, beside the finger and kept on screen; a tap anywhere else closes it. Each menu shown and each row chosen is in
+  icon, beside the finger and kept on screen; a tap anywhere else closes it. A finger that draws leaves no dot where
+  it held for the menu. Each menu shown and each row chosen is in
   the session log with what the finger was on.
 - **The Pencil held still on ink for 400 ms picks up the word under it**: the strokes on that line chained while the
   gap between them is under 16 points (a group of Larry's, a kept text or a header row whole). The same stroke drags
