@@ -1737,7 +1737,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1508:
 
 - **Summary:** Simulator scripts started by hand take the first free build lane
-- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823). Verified on the host by `scripts/native/test-sim-lane.sh` with a script started outside any lane. The Mac's screen was locked, so there was no simulator run.
+- **Status:** implemented in [b23c6b82](https://github.com/idvorkin/context-grabber/commit/b23c6b825e5df2c51f706a0e29ae6d2d1683fc6b). Verified on the host by `scripts/native/test-sim-lane.sh` with a script started outside any lane. The Mac's screen was locked, so there was no simulator run.
 - **Issues:** bead context-grabber-w7nl (2026-11-22 ~21:20: a dead-code lane's timer smoke, run outside any lane, went to lane 1's iPad while lane 1 ran the whiteboard suite on it: three smoke failures, each different, and the suite's own run spoiled)
 
 #### Use Case:
@@ -1756,7 +1756,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1509:
 
 - **Summary:** Booting or testing on a build lane's simulator requires its lane
-- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823), with case-insensitive UUID matching in [5a498715](https://github.com/idvorkin/context-grabber/commit/5a49871595100a56933165f0d8c789ac5af3bca9). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64. Both UUID spellings were verified with lane 1's lock held.
+- **Status:** implemented in [b23c6b82](https://github.com/idvorkin/context-grabber/commit/b23c6b825e5df2c51f706a0e29ae6d2d1683fc6b), with case-insensitive UUID matching in [59f3150f](https://github.com/idvorkin/context-grabber/commit/59f3150f32187b88e2c7b5ddf435517df9ddd110). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64. Both UUID spellings were verified with lane 1's lock held.
 - **Issues:** bead context-grabber-w7nl
 
 #### Use Case:
@@ -1775,7 +1775,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1510:
 
 - **Summary:** Simulator operations that require no build lane still run
-- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823). Verified on the host by `scripts/native/test-sim-lane.sh` with a simulator build command and an unowned simulator accepted by the guard.
+- **Status:** implemented in [b23c6b82](https://github.com/idvorkin/context-grabber/commit/b23c6b825e5df2c51f706a0e29ae6d2d1683fc6b). Verified on the host by `scripts/native/test-sim-lane.sh` with a simulator build command and an unowned simulator accepted by the guard.
 - **Issues:** bead context-grabber-w7nl
 
 #### Use Case:
