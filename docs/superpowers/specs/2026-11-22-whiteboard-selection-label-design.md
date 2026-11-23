@@ -32,8 +32,9 @@ said how much was selected.
   - Only connectors: *Connector · follows its two ends* (*2 connectors · follow their ends* for more).
   - A drawn arrow that Connect can join: *Arrow · Connect* (the Connect button shows beside it as before).
   - All of one kept text: *Text · tap to reword*. Part of one: *Part of a text · erasing it leaves ink*.
-  - All of one group (Larry's, or a word of Igor's a connector made one thing): *Group · moves as one*. Part of one:
-    *Part of a group · erasing it leaves ink*.
+  - All of one group (Larry's, or a word of Igor's a connector made one thing): *Group · moves as one*, even when the
+    group holds kept texts (a box and its label, or two labels, are one group, not *2 things*). Part of one:
+    *Part of a group · erasing it leaves ink*; a kept text inside a group, selected alone, is part of that group.
   - A text or group a connector ends on adds *· a connector follows it*.
   - Only plain ink: *Ink · To text*.
   - Several texts and groups, no plain ink: *2 things · move together* (the count is how many).
@@ -52,6 +53,8 @@ said how much was selected.
 - A lasso round Igor's handwriting shows *Ink · To text* above it, and To text beside it as before.
 - A selected kept text shows *Text · tap to reword*; erasing part of it and selecting the rest shows *Ink · To text*;
   Undo brings the erased strokes back as ink, so the label on them still says *Ink · To text*.
+- A group of Larry's that holds kept texts (a box and its label, or two labels), all selected, shows *Group · moves as
+  one*; a kept text in no group still shows *Text · tap to reword*.
 - A selected connector shows *Connector · follows its two ends*; a word a connector ends on, selected, says *Group ·
   moves as one · a connector follows it*.
 - The first Pencil stroke after a selection, even starting on the label, draws; the label never takes a tap.
