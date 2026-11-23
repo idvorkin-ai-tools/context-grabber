@@ -238,6 +238,9 @@ fi
     if [ "$now" = "$size" ]; then quiet=$((quiet + 1)); else size=$now quiet=0; fi
     sleep 1 || exit
     waited=$((waited + 1))
+    # Bead context-grabber-wyp5: a run of several test targets closes a suite after each. While the next target's
+    # suite is open its quiet stretches are tests, not a hang: both counts start again from its close.
+    if tests_running; then quiet=0 waited=0; fi
   done
   kill -0 $$ 2>/dev/null || exit
   bundle_written || touch "$unfinished"

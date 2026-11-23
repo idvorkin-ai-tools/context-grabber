@@ -397,6 +397,13 @@ out=$(simrun FAKE_SECOND_TARGET=1 FAKE_LOCK_AFTER="$dir/lock" -- xcodebuild -sch
 status=$?
 [ "$status" -eq 0 ] && [ ! -s "$dir/xcrun" ] && ok "a lock after the last of two targets doesn't stop the run" ||
   bad "a lock after the second target: $status $out"
+# Bead context-grabber-wyp5: the hang stop armed by the first target's close waits out a second target that runs on
+# quietly, past both the idle and the bundle limits (the bundle is written only when the whole run ends).
+FAKE_SECOND_TARGET=1 FAKE_SECOND_HOLD=12 XCODEBUILD_IDLE_SECONDS=1 XCODEBUILD_BUNDLE_SECONDS=2 run xcodebuild -scheme X test
+status=$?
+[ "$status" -eq 0 ] && grep -q "testSecond.*passed" "$dir/logs/fake.log" &&
+  ok "a quiet second test target isn't stopped as a hang by the first target's close" ||
+  bad "a quiet second target: $status, $(grep -c testSecond "$dir/logs/fake.log") testSecond lines"
 : >"$dir/lock"
 out=$(simrun FAKE_REOPEN=1 FAKE_LOCK_AFTER="$dir/lock" -- xcodebuild -scheme X "${sim[@]}" test-without-building)
 status=$?
