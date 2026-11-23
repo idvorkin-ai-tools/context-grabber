@@ -1362,7 +1362,7 @@ apart."*
 ### User Story 233:
 
 - **Summary:** A window's name says what's open in it, as the Cockpit's tab does
-- **Status:** native app only: not yet implemented
+- **Status:** native app only: implemented in [481e9c33](https://github.com/idvorkin/context-grabber/commit/481e9c33); verified by host tests and lint (`just native-test`, `WindowTitleTests`: the Cockpit's `pageTitle` and `titleDetail` cases) and the Mac build (`just native-build-mac`); not yet seen in a window on the iPad or the Mac. No iPhone runs (whiteboard work, Igor 2026-11-22)
 - **Issues:** bead context-grabber-ds8r (Igor, 2026-11-22, feedback via Larry: window titles follow the view, as the
   Cockpit now does, its story 211)
 - **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md), *Its name says what's open in it*
