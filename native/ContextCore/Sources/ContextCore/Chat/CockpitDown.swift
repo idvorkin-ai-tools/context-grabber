@@ -15,6 +15,9 @@ public struct CockpitDown: Equatable, Sendable {
   public static let title = "Cockpit not answering"
   /// A loaded screen shows the banner at this many failed reads in a row: one blip the next poll heals shows nothing.
   public static let showAtFailures = 2
+  /// A failure this long after the screen's last one starts a new spell: longer than a read's 60 s timeout plus the
+  /// list's 15 s retry, so a Cockpit that times out every read still counts as one spell.
+  public static let gapMs: Int64 = 5 * 60_000
 
   /// When this screen last read (ms), nil when it has not since launch.
   public private(set) var lastGood: Int64?
@@ -22,6 +25,8 @@ public struct CockpitDown: Equatable, Sendable {
   public private(set) var since: Int64?
   /// How the spell's first failure went (`answered HTTP 502`, `failed (…)`): kept so the words stay the same.
   public private(set) var how: String?
+  /// When this spell's latest failure was (ms): a failure more than `gapMs` later starts a new spell.
+  public private(set) var lastFailed: Int64?
   public private(set) var failures = 0
   public private(set) var showing = false
 
@@ -38,6 +43,12 @@ public struct CockpitDown: Equatable, Sendable {
 
   /// A down read at `now`; `loaded` is whether the screen holds what an earlier read gave it. True when the banner shows.
   public mutating func failed(_ how: String, loaded: Bool, now: Int64) -> Bool {
+    if let lastFailed, now - lastFailed > Self.gapMs {
+      let good = lastGood
+      self = Self()
+      lastGood = good
+    }
+    lastFailed = now
     if since == nil {
       since = now
       self.how = how

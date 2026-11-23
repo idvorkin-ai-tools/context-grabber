@@ -3435,9 +3435,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** The chat list says plainly when the Cockpit is down
-- **Given:** the device is online and the Cockpit answers the list's read with HTTP 502 (or any 5xx, a timeout, or a refused connection)
-- **When:** the chat list has never read since launch and opens, or it had read and a second read in a row fails
-- **Then:** a banner beginning *Cockpit not answering* shows at the top with Copy error, the rows it last read stay under it, and a 404 instead shows its plain reason
+- **Given:** the device is online and the Cockpit answers the list's reads with HTTP 502 (or any 5xx, a timeout, or a refused connection)
+- **When:** the list's reads fail enough to count as down: the first failure while it holds no rows, the second in a row once it has read
+- **Then:** a banner beginning *Cockpit not answering* shows at the top with Copy error, with the rows it last read still under it
 
 ---
 
@@ -3475,6 +3475,6 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** The down banner waits for a second failure and clears itself
-- **Given:** a thread is open with its messages loaded
-- **When:** one read fails with HTTP 502 and the next poll reads, or the banner is up and a read gets through
-- **Then:** the single blip shows no banner, and a banner that was up goes at the first read that gets through, with the fresh messages in place
+- **Given:** a thread is open with its messages loaded, and its reads have failed with HTTP 502, once (no banner) or long enough for the banner to show
+- **When:** the next read gets through
+- **Then:** no banner is on screen and the fresh messages are in place, and a later failure counts from one again, as does one more than five minutes after the thread's last failed read

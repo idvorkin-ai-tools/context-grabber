@@ -658,6 +658,9 @@ keeps its plain reason and files at once. The device being offline keeps its own
   same through one outage, so a poll failing the same way again changes nothing on screen or in the log.
 - **When it shows:** at the first failed read when the screen has nothing loaded yet (an empty list must never pass
   for *no chats*), otherwise at the second failed read in a row, so one blip healed by the next poll shows nothing.
+  A failed read more than five minutes after the screen's last one starts a new spell (longer than a read's timeout
+  and the list's retry, so a Cockpit that times out every read stays one spell): a thread closed mid-outage and
+  opened again later counts from one, and its words name the new spell's start and status.
 - **When it goes:** by itself, at the first read that gets through, with the fresh content in place; no pull is
   needed. The open thread's poll and the list's 15-second retry keep reading while the Cockpit is down.
 - Filing is unchanged: an outage files one report after two minutes, as below.

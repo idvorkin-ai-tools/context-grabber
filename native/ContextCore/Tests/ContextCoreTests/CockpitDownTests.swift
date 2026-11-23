@@ -55,6 +55,36 @@ final class CockpitDownTests: XCTestCase {
     XCTAssertEqual(down.lastGood, at1239 + 8_000)
   }
 
+  /// Story 1606: a screen left mid-spell and read again over five minutes later counts from one, with the new words.
+  func testAPauseStartsANewSpell() {
+    var down = CockpitDown()
+    down.answered(now: at1231)
+    XCTAssertFalse(down.failed(CockpitDown.how(status: 502), loaded: true, now: at1239))
+    let later = at1239 + 301_000
+    XCTAssertFalse(down.failed(CockpitDown.how(status: 503), loaded: true, now: later), "one blip after a pause")
+    XCTAssertEqual(down.since, later)
+    XCTAssertTrue(down.failed(CockpitDown.how(status: 503), loaded: true, now: at1239 + 305_000))
+    XCTAssertEqual(down.lastGood, at1231)
+    let problem = down.problem(what: "reading this chat", timeZone: TimeZone(identifier: "UTC")!)
+    XCTAssertTrue(problem.contains("answered HTTP 503 since"), problem)
+  }
+
+  /// Story 1606: a spell whose banner showed, left and failing again an hour later, waits for a second failure.
+  func testAShownBannerDoesNotCarryOverAPause() {
+    var down = CockpitDown()
+    XCTAssertTrue(down.failed(CockpitDown.how(status: 502), loaded: false, now: at1239))
+    XCTAssertFalse(down.failed(CockpitDown.how(status: 502), loaded: true, now: at1239 + 3_600_000))
+  }
+
+  /// Story 1604: reads that each time out after 60 s, retried 15 s later, are one spell and show the banner.
+  func testTimedOutReadsStayOneSpell() {
+    var down = CockpitDown()
+    let how = CockpitDown.how(URLError(.timedOut))
+    XCTAssertFalse(down.failed(how, loaded: true, now: at1239))
+    XCTAssertTrue(down.failed(how, loaded: true, now: at1239 + 75_000))
+    XCTAssertEqual(down.since, at1239)
+  }
+
   /// Story 1605: what failed, how, since when, the last good read; the words stay the same through the outage.
   func testTheProblemSaysWhatSinceWhenAndTheLastGoodRead() {
     var down = CockpitDown()
