@@ -447,7 +447,7 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
 *Larry's turn* and *Send to Larry* did nearly the same thing, two buttons side by side: with no network a Send waited
 in the outbox and a turn failed with nothing queued. They are one button now.
 
-- **One button, *Send to Larry*,** at the end of the bar's right group (Talk, Ghosts, Send). There is no *Larry's turn*
+- **One button, *Send to Larry*,** at the end of the bar's right group (Talk, *Ask at my pauses*, Send). There is no *Larry's turn*
   button. A long press names it *Send* with one row, *Send the board to Larry*.
 - **On a board drawn here it is Larry's turn.** The picture of the pages on screen goes to the board's thread with its
   strokes, as a turn's did, saying *your turn on the board* (the conversation panel shows no row for it, as for a turn)
@@ -693,7 +693,7 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
   and reopen: his newest set shows, and any earlier set of his still showing when the board closed.
 - Cockpit unreachable: drawing works as before and the bar says ghosts aren't answering, and that his marks aren't;
   *Send to Larry* waits in the outbox; when the Cockpit is back the bar clears by itself and the Send goes once.
-- One Send (story 1176): the bar's right group is Talk, Ghosts and Send, with no *Larry's turn*. With no network, tap
+- One Send (story 1176): the bar's right group is Talk, *Ask at my pauses* and Send, with no *Larry's turn*. With no network, tap
   Send to Larry: the note reads *Waiting to send · 0:00* and counts, the button is dimmed, and a pause or a second tap
   sends nothing. The network back: the picture goes once, the note reads *Larry · 0:00*, and his marks arrive with no
   further tap. Close the board while it waits and open it again: it still says *Waiting to send*. Delete it from the
