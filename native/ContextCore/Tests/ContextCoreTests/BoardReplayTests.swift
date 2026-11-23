@@ -19,7 +19,7 @@ final class BoardReplayTests: XCTestCase {
 
   private func replay(_ name: String, then more: [BoardReplay.Step] = []) throws -> BoardReplay {
     var replay = BoardReplay(try BoardSnapshot(json: try fixture("\(name)-board")))
-    replay.run(BoardReplay.Step.steps(try fixture("\(name)-ops"), key: name) + more)
+    replay.run(try BoardReplay.Step.steps(fixture("\(name)-ops"), key: name) + more)
     return replay
   }
 
@@ -73,12 +73,12 @@ final class BoardReplayTests: XCTestCase {
     XCTAssertEqual(replay.outcomes[1].result?.reason, BoardOps.Reason.stale)
   }
 
-  func testStepsReadFromABatchAMessageOrAList() {
+  func testStepsReadFromABatchAMessageOrAList() throws {
     let batch: [String: Any] = ["board": "b", "base_rev": 1, "label": "x", "list": []]
-    XCTAssertEqual(BoardReplay.Step.steps(batch, key: "k").count, 1)
-    XCTAssertEqual(BoardReplay.Step.steps(["id": "m1", "ops": batch], key: "k").count, 1)
-    XCTAssertEqual(BoardReplay.Step.steps([batch, ["keep": ["t"]]], key: "k").count, 2)
-    XCTAssertTrue(BoardReplay.Step.steps(["text": "no ops"], key: "k").isEmpty)
+    XCTAssertEqual(try BoardReplay.Step.steps(batch, key: "k").count, 1)
+    XCTAssertEqual(try BoardReplay.Step.steps(["id": "m1", "ops": batch], key: "k").count, 1)
+    XCTAssertEqual(try BoardReplay.Step.steps([batch, ["keep": ["t"]]], key: "k").count, 2)
+    XCTAssertTrue(try BoardReplay.Step.steps(["text": "no ops"], key: "k").isEmpty)
   }
 
   // MARK: Tonight's three, as the board answered them on 10b84a5f

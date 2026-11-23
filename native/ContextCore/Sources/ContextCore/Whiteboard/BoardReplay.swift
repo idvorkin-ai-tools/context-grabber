@@ -5,6 +5,10 @@
 
 import Foundation
 
+#if canImport(Darwin)
+  import CoreFoundation
+#endif
+
 #if canImport(CoreGraphics)
   import CoreGraphics
 #endif
@@ -28,15 +32,23 @@ public struct BoardReplay {
 
     /// A step file's JSON: a batch, a chat message carrying one under `ops`, `{"keep": [ids]}`,
     /// `{"keep_all": {reply: ms}}`, or a list of those.
-    public static func steps(_ any: Any, key: String) -> [Step] {
+    public static func steps(_ any: Any, key: String) throws -> [Step] {
       if let list = any as? [Any] {
-        return list.enumerated().flatMap { steps($1, key: "\(key)-\($0)") }
+        return try list.enumerated().flatMap { try steps($1, key: "\(key)-\($0)") }
       }
       guard let json = any as? [String: Any] else { return [] }
-      if let ids = json["keep"] as? [String] { return [.keep(ids)] }
-      if let seen = json["keep_all"] as? [String: Any] {
-        return [.keepAll(seen: seen.compactMapValues { ($0 as? NSNumber)?.int64Value })]
+      if let value = json["keep_all"] {
+        guard let entries = value as? [String: Any] else { throw InvalidKeepAll(key: key) }
+        var seen: [String: Int64] = [:]
+        for (reply, value) in entries {
+          guard !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            let number = value as? NSNumber, let time = pictureTime(number)
+          else { throw InvalidKeepAll(key: key) }
+          seen[reply] = time
+        }
+        return [.keepAll(seen: seen)]
       }
+      if let ids = json["keep"] as? [String] { return [.keep(ids)] }
       if let at = json["tap"] as? [NSNumber], at.count == 2 {
         return [.tap(CGPoint(x: at[0].doubleValue, y: at[1].doubleValue))]
       }
@@ -46,6 +58,20 @@ public struct BoardReplay {
       if let ops = json["ops"] as? [String: Any] { return [.batch(key: json["id"] as? String ?? key, json: ops)] }
       return json["list"] != nil ? [.batch(key: key, json: json)] : []
     }
+
+    private static func pictureTime(_ number: NSNumber) -> Int64? {
+      #if canImport(Darwin)
+        guard CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+      #else
+        guard type(of: number) != type(of: NSNumber(value: true)) else { return nil }
+      #endif
+      return Int64(number.stringValue)
+    }
+  }
+
+  private struct InvalidKeepAll: Error, CustomStringConvertible {
+    let key: String
+    var description: String { "\(key): keep_all requires an object mapping reply IDs to integer picture times" }
   }
 
   /// What one step did.
@@ -363,16 +389,18 @@ public struct BoardReplay {
     let groups = WhiteboardMarks.keptGroups(kept.map(\.id))
     var strokes: [BoardSnapshot.Ink] = []
     for mark in kept {
-      let group = groups[mark.id]
+      let reply = groups[mark.id]
       for (k, line) in mark.lines.enumerated() {
         let name = "\(mark.id).\(k)"
         strokes.append(
           BoardSnapshot.Ink(
             id: name, t: nextTime(), color: String(format: "#%06x", mark.color), width: mark.width,
             points: WhiteboardTurn.inkPoints(line),
-            meta: group.flatMap { WhiteboardMarks.groupNotes([name], reply: $0)[name] }))
+            meta: reply.flatMap { WhiteboardMarks.groupNote(reply: $0) }))
       }
     }
+    outcome.pagesBefore = board.pageCount
+    var touched: Set<String> = []
     // #894 (stories 1004, 1006), #938: what Igor made after a reply's picture, and what his text lands on, makes room.
     let replies = kept.map { mark in
       (
@@ -394,8 +422,14 @@ public struct BoardReplay {
           [.translateBelow(y: push.cut, dy: push.dy)], strokes: planned, texts: texts, metas: metas,
           pages: board.pageCount)
         put(plan, into: &outcome)
+        let changed = Array(outcome.moved.keys) + Array(outcome.erased.keys)
+        touched.formUnion(changed)
+        touched.formUnion(BoardOps.owners(of: changed, live: planned, groups: metas.groups, texts: texts))
       }
     }
+    let keptBottom = (strokes.map(\.bounds) + ghosts.map(\.box)).lazy.filter { !$0.isNull }.map(\.maxY).max()
+    outcome.pagesAfter = BoardPages().pages(after: board.pageCount, inkMaxY: keptBottom, redoWaiting: false)
+    board.pages = outcome.pagesAfter
     theirs.formUnion(strokes.compactMap(\.t))
     board.ink += strokes
     for ghost in ghosts {
@@ -409,9 +443,11 @@ public struct BoardReplay {
     board.ghosts = []
     marks = []
     outcome.drawn =
-      Set(groups.values).sorted().map(WhiteboardMarks.group(reply:))
-      + kept.filter { groups[$0.id] == nil }.map(\.id) + ghosts.map(\.id)
+      Set(strokes.compactMap { $0.meta?.group }).sorted()
+      + strokes.filter { $0.meta?.group == nil }.map(\.id) + ghosts.map(\.id)
     applier.changed()
+    applier.touched(touched)
+    if !touched.isEmpty { board.touched.append(.init(rev: applier.rev, ids: touched.sorted())) }
     board.rev = applier.rev
     outcomes.append(outcome)
   }

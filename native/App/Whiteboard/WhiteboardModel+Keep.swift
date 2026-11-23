@@ -60,7 +60,7 @@ extension WhiteboardModel {
     let groups = WhiteboardMarks.keptGroups(marks.map(\.id))
     let started = Date()
     var strokes: [PKStroke] = []
-    var notes: [String: BoardMeta] = [:]
+    var repliesByStroke: [String: String] = [:]
     for (i, ghost) in marks.enumerated() {
       // A moment of its own for each, a few milliseconds apart, so each is known as one thing (and story 817's text).
       let made = BoardText.time(started.addingTimeInterval(Double(i) * 0.005))
@@ -70,7 +70,9 @@ extension WhiteboardModel {
       strokes += mine
       if let reply = groups[ghost.id] {
         // Named as Larry will hear them, before the canvas has them (`paper_keep` says the names survive it).
-        notes.merge(WhiteboardMarks.groupNotes(opStrokes(mine).strokes.flatMap(\.ids), reply: reply)) { a, _ in a }
+        for name in opStrokes(mine).strokes.flatMap(\.ids) where repliesByStroke[name] == nil {
+          repliesByStroke[name] = reply
+        }
       } else if ghost.kind == .text {
         // Not in a group: a label Tidy overlaps may lay out again. Tidy leaves a group as it is.
         rememberLabel(made.date)
@@ -86,8 +88,12 @@ extension WhiteboardModel {
     // #894 (story 1004): before the groups' notes, so the board it measures is the one he wrote on.
     let late = lateRoom(marks)
     rememberTheirs(strokes)
-    if !notes.isEmpty {
-      strokeMeta.merge(notes)
+    if !repliesByStroke.isEmpty {
+      for (name, reply) in repliesByStroke {
+        if let note = WhiteboardMarks.groupNote(reply: reply, over: strokeMeta[name]) {
+          strokeMeta.set(note, for: name)
+        }
+      }
       opLedger.setStrokeMeta(strokeMeta, board: board.id)
     }
     if marks.contains(where: { $0.text != nil }) { opLedger.setTexts(texts, board: board.id) }

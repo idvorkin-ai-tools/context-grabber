@@ -286,7 +286,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A tap on a mark at the edge
 - **Given:** Larry's marks are showing on a board, one of them at the edge of the screen
 - **When:** I tap the one at the edge
-- **Then:** nothing on the board has changed, and Keep and Dismiss show beside it, wholly on screen
+- **Then:** nothing on the board has changed, only Keep and Dismiss show beside it, wholly on screen, and Keep keeps that mark alone
 
 ---
 
@@ -924,16 +924,6 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap Keep all beside the count of marks to keep
 - **Then:** every one of his marks becomes ink in his colour where it showed, my line and everything under it move down in whole lines until they sit under his lowest mark, ink that was in his picture doesn't move, and one undo takes all of it back
 
-- **Scenario:** Two replies showing
-- **Given:** marks from two replies of Larry's show, each of several marks
-- **When:** I tap Keep all
-- **Then:** all of them become ink in one step, each reply one group named for it that a finger tap picks up whole, one room is made for all of them, and one Undo takes all of it back
-
-- **Scenario:** Only Keep all keeps more than one
-- **Given:** several marks of a reply of his show
-- **When:** I tap one of them
-- **Then:** only Keep and Dismiss show beside it, and Keep keeps that mark alone
-
 ---
 
 ### User Story 896:
@@ -1013,9 +1003,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Keep a connector mark
-- **Given:** Larry's connector mark between two things, showing as a ghost
+- **Given:** Larry's connector mark between two things, showing as a ghost with other marks from its reply
 - **When:** I tap Keep, or Keep all
-- **Then:** it becomes a connector joining them (with Keep all, in the one Undo), and a push between them redraws it to where they are
+- **Then:** it becomes a connector joining them, a push between them redraws it to where they are, and Larry receives its route even when Keep all includes it in the reply's group and the one Undo
+- **Issues:** bead context-grabber-yqau
 
 ---
 
@@ -1199,21 +1190,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 995:
 
-- **Summary:** One tap keeps all of a reply of Larry's, as one group
+- **Summary:** One tap keeps all of Larry's replies, each as its own group
 - **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad; the popover's Keep group became the note line's Keep all: Keep group and Keep all made one *Keep all* (bead context-grabber-yqau) in [01d72557](https://github.com/idvorkin/context-grabber/commit/01d72557), verified by host tests (`WhiteboardKeepAllTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22, lane 1's *iPad Pro 11-inch (M5)*: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`, `WhiteboardConnectUITests`, `WhiteboardHelpFeedbackUITests`, 32 tests passing); not yet seen on the iPad (`testKeepAllKeepsHisWholeReplyAndOneUndoTakesItBack`)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
 - **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942): Igor, 2026-11-17 19:15, via Larry: "accept the group", after keeping his four named boxes one mark at a time; [#966](https://github.com/idvorkin/context-grabber/issues/966): Igor, 2026-11-19, board 302d5345, via Larry: he kept Larry's whole reply group, it sat on top of his own plan, and undo couldn't take it back (story 1007)
 
 #### Use Case:
-- **As someone** Larry answered with a little drawing of several marks
-- **I want to** keep the whole of his reply with one tap, as one thing
-- **so that** his drawing lands whole and moves as one, and one Undo takes it all back
+- **As someone** whose board holds marks from several of Larry's replies
+- **I want to** keep every reply with one tap, each in its own group
+- **so that** each drawing moves as one and one Undo takes them all back
 
 #### Acceptance Criteria:
-- **Scenario:** Keep all keeps the reply as a group
-- **Given:** Larry's reply of several marks showing
+- **Scenario:** Two replies showing
+- **Given:** marks from two replies of Larry's show, each of several marks
 - **When:** I tap *Keep all* beside the count of marks to keep (there is no separate *Keep group*)
-- **Then:** every mark of that reply still showing becomes ink in his colours where it showed, none is left to keep, and one Undo takes them all back
+- **Then:** all of the marks become ink where they showed, each reply forms one named group a finger tap picks up whole, any room they need is opened once, and one Undo takes them all back
 
 ---
 

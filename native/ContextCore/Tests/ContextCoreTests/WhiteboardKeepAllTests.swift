@@ -57,9 +57,18 @@ final class WhiteboardKeepAllTests: XCTestCase {
   }
 
   func testTheGroupsNotesNameTheReply() {
-    let notes = WhiteboardMarks.groupNotes(["a", "b"], reply: "r1")
-    XCTAssertEqual(notes.keys.sorted(), ["a", "b"])
-    XCTAssertEqual(notes["a"]?.group, "reply-r1")
+    XCTAssertEqual(WhiteboardMarks.groupNote(reply: "r1")?.group, "reply-r1")
+  }
+
+  func testAGroupedConnectorKeepsItsEndsAndRoute() throws {
+    let connector = BoardConnector(
+      from: "left", to: "right", fromSide: .right, toSide: .left,
+      route: [CGPoint(x: 10, y: 20), CGPoint(x: 40, y: 20)])
+    let existing = connector.meta(over: BoardMeta(["label": "my note", "group": "old"]))
+    let grouped = try XCTUnwrap(WhiteboardMarks.groupNote(reply: "r1", over: existing))
+    XCTAssertEqual(grouped.group, "reply-r1")
+    XCTAssertEqual(BoardConnector(grouped), connector)
+    XCTAssertEqual((grouped.object as? [String: Any])?["label"] as? String, "my note")
   }
 
   // MARK: One room, each reply against its own picture
@@ -120,7 +129,7 @@ final class WhiteboardKeepAllTests: XCTestCase {
     XCTAssertNil(BoardRoom.late([(box: text, seen: Optional(early))], strokes: [line]).push)
     let late = BoardRoom.late([], landing: [text], strokes: [line])
     let push = try? XCTUnwrap(late.push)
-    XCTAssertEqual(late.covered, 1)
+    XCTAssertEqual(late.covered, 0)
     XCTAssertEqual(push?.cut, 200)
     XCTAssertGreaterThanOrEqual(200 + (push?.dy ?? 0), text.maxY + BoardRoom.air, "the line goes under the text")
   }
@@ -137,17 +146,22 @@ final class WhiteboardKeepAllTests: XCTestCase {
     let late = BoardRoom.late(
       [(box: CGRect(x: 120, y: 190, width: 200, height: 40), seen: Optional(early))],
       landing: [CGRect(x: 120, y: 410, width: 200, height: 40)], strokes: [line, other])
-    XCTAssertEqual(late.covered, 2)
+    XCTAssertEqual(late.covered, 1)
     XCTAssertEqual(late.push?.cut, 200)
     XCTAssertGreaterThanOrEqual(420 + (late.push?.dy ?? 0), 450 + BoardRoom.air, "one room, under his text too")
   }
 
-  func testOneSeenForAllIsTheSameAsBefore() {
+  func testOnePictureTimePushesTheLineUnderTheMark() {
     let line = writing("new", 200, made: early + 60_000)
     let box = CGRect(x: 120, y: 190, width: 200, height: 40)
-    XCTAssertEqual(
+    for room in [
       BoardRoom.late([box], seen: early, strokes: [line]),
-      BoardRoom.late([(box: box, seen: Optional(early))], strokes: [line]))
+      BoardRoom.late([(box: box, seen: Optional(early))], strokes: [line]),
+    ] {
+      XCTAssertEqual(room.covered, 1)
+      XCTAssertEqual(room.push?.cut, 200)
+      XCTAssertEqual(room.push?.dy, 80)
+    }
   }
 
   // MARK: Where the buttons go

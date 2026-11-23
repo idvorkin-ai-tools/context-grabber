@@ -102,7 +102,7 @@ public enum BoardRoom {
 
   /// What a reply of Larry's needs when kept over ink Igor made after its picture (#894, stories 1004–1006).
   public struct Late: Equatable, Sendable {
-    /// The room it opens, or nil when it sits on nothing newer than the picture.
+    /// The room it opens, if any.
     public var push: Push?
     /// How many things made after the picture its marks sit on.
     public var covered: Int
@@ -149,17 +149,21 @@ public enum BoardRoom {
     texts: [BoardText] = [], groups: [String: String] = [:], folds: [String: String] = [:], theirs: Set<Int64> = []
   ) -> Late {
     let shown = BoardOps.items(strokes: strokes, texts: texts, groups: groups, folds: folds).filter { !$0.hidden }
-    let covered = shown.filter { item in
+    var covered: [CGRect] = []
+    var coveredNewer = 0
+    for item in shown {
       let underText = landing.contains { !$0.isNull && sitsOn($0, item.bounds) && !item.bounds.contains($0) }
-      return underText
-        || marks.contains { mark in
-          guard let seen = mark.seen, !mark.box.isNull, sitsOn(mark.box, item.bounds) else { return false }
-          return item.members.contains { member in
-            strokes[member].t.map { t in t > seen && ![t - 1, t, t + 1].contains(where: theirs.contains) } ?? false
-          }
+      let newer = marks.contains { mark in
+        guard let seen = mark.seen, !mark.box.isNull, sitsOn(mark.box, item.bounds) else { return false }
+        return item.members.contains { member in
+          strokes[member].t.map { t in t > seen && ![t - 1, t, t + 1].contains(where: theirs.contains) } ?? false
         }
+      }
+      if newer { coveredNewer += 1 }
+      if underText || newer { covered.append(item.bounds) }
     }
-    return late(marks.map(\.box) + landing, newer: covered.map(\.bounds), among: shown.map(\.bounds))
+    let room = late(marks.map(\.box) + landing, newer: covered, among: shown.map(\.bounds))
+    return Late(push: room.push, covered: coveredNewer)
   }
 
   /// Overlapping by some area: touching an edge isn't sitting on it.

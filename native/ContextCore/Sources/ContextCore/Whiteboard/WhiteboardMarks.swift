@@ -316,10 +316,11 @@ public struct WhiteboardMarks: Sendable {
   /// The group a reply kept whole goes under (#942, story 995): Larry moves or erases it by this one name.
   public static func group(reply: String) -> String { "reply-\(reply)" }
 
-  /// The notes that make `names`, the strokes of a reply kept whole, one group.
-  public static func groupNotes(_ names: [String], reply: String) -> [String: BoardMeta] {
-    guard let meta = BoardMeta(["group": group(reply: reply)]) else { return [:] }
-    return Dictionary(names.map { ($0, meta) }, uniquingKeysWith: { a, _ in a })
+  /// A reply's group over the stroke's other notes.
+  public static func groupNote(reply: String, over existing: BoardMeta? = nil) -> BoardMeta? {
+    var object = existing?.object as? [String: Any] ?? [:]
+    object["group"] = group(reply: reply)
+    return BoardMeta(object)
   }
 
   /// Keep all (stories 895, 995, 999; bead context-grabber-yqau): the reply each of `marks` is kept under as one group,

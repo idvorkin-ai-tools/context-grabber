@@ -128,6 +128,6 @@ final class WhiteboardWordsOnlyTests: XCTestCase {
     XCTAssertEqual(replay.outcomes.last?.marks, [])
     // A message with words and no `shapes` key is no step at all.
     XCTAssertTrue(
-      BoardReplay.Step.steps(try JSONSerialization.jsonObject(with: Data(wordsOnly[0].utf8)), key: "w").isEmpty)
+      try BoardReplay.Step.steps(JSONSerialization.jsonObject(with: Data(wordsOnly[0].utf8)), key: "w").isEmpty)
   }
 }

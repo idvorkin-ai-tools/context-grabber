@@ -432,8 +432,9 @@ that drift when he makes room."
   other's, around anything in its way, as a connector routes.
 - If several replies arrive between looks, a connector sees the ready changes from earlier replies, including a named
   stroke one of those replies added.
-- Keep, or Keep all, makes it a real connector, joined to its two things and following them from then on. With Keep
-  all it is part of the one Undo.
+- Keep, or Keep all, makes it a real connector, joined to its two things and following them from then on. When Keep
+  all groups it with other marks from the reply, the connector still follows its ends and goes back to Larry with its
+  route. It is part of the one Undo.
 - An end on bare paper keeps as a plain arrow where he drew it, as the web board keeps it. A mark naming something the
   board doesn't have shows nothing, and is set aside as if dismissed.
 - Dismiss throws it away, like any mark.

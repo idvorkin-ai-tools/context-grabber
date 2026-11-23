@@ -97,18 +97,23 @@ func main() throws {
       steps.append(.keep(step.value.split(separator: ",").map(String.init)))
     } else if step.kind == "keep-all" {
       // `<reply id>@<ms>,…`: when the picture each reply answers was taken, so ink made after it makes room (#894).
-      let pairs = step.value.split(separator: ",").compactMap { entry -> (String, Int64)? in
-        let parts = entry.split(separator: "@", maxSplits: 1).map(String.init)
-        guard parts.count == 2, let ms = Int64(parts[1]) else { return nil }
-        return (parts[0], ms)
+      var seen: [String: Int64] = [:]
+      if step.value != "-" {
+        for entry in step.value.split(separator: ",", omittingEmptySubsequences: false) {
+          let parts = entry.split(separator: "@", omittingEmptySubsequences: false)
+          guard parts.count == 2, !parts[0].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            let ms = Int64(parts[1]), seen[String(parts[0])] == nil
+          else { throw Failure(description: "--keep-all wants - or unique reply IDs and integer times as id@ms,…") }
+          seen[String(parts[0])] = ms
+        }
       }
-      steps.append(.keepAll(seen: Dictionary(pairs, uniquingKeysWith: { a, _ in a })))
+      steps.append(.keepAll(seen: seen))
     } else if step.kind == "tap" {
       let xy = step.value.split(separator: ",").compactMap { Double($0) }
       guard xy.count == 2 else { throw Failure(description: "--tap wants x,y") }
       steps.append(.tap(CGPoint(x: xy[0], y: xy[1])))
     } else {
-      steps += BoardReplay.Step.steps(try readJSON(step.value), key: "replay-\(i)")
+      steps += try BoardReplay.Step.steps(readJSON(step.value), key: "replay-\(i)")
     }
   }
   guard !steps.isEmpty else { throw Failure(description: "no batch in \(args.steps.map(\.value))") }

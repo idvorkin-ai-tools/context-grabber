@@ -658,9 +658,13 @@ just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-al
   `--tap x,y` is a finger tap at a board point. `--keep-all -` is Igor's Keep all (#942, bead context-grabber-yqau):
   every mark showing becomes ink, each reply of two or more under the one group `reply-<id>`, which a later batch can
   move or erase by that name, and his text ghosts become kept texts, making room for what they land on (#938).
-  `--keep-all <reply id>@<ms>,…` keeps them as if each reply's picture was taken at that unix ms (#894): ink made
-  after it (each stroke's `t`) that the reply's marks land on is pushed under them, and the step's `covered` and
-  `room` say so.
+  `--keep-all <reply id>@<ms>,…` keeps them as if each reply's picture was taken at that unix ms (#894). A step file
+  can also specify `{"keep_all": {"reply-id": 1763432004500}}`, with `{}` for unknown picture times. Each entry must
+  give a nonempty reply ID and a signed 64-bit integer timestamp. Repeated reply IDs in the flag and invalid entries
+  fail the replay.
+  `covered` counts distinct things made after the corresponding picture that a reply's marks sit on. `room`
+  describes the push for those collisions or for change text landing on existing ink. The saved board records the
+  resulting page count and the names touched by that push for later batches.
 - **Out**: `<prefix>.png` (the board after, with what each step moved in orange, drew or kept in green, erased in red
   dashes, his ghosts in purple dashes, and each step's `op_result` on top, a missing id in capitals),
   `<prefix>-before.png`, `<prefix>.result.json` (each step's `op_result` and the names it moved, erased, drew and left
