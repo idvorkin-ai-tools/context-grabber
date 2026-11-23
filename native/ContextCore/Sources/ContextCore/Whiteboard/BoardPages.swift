@@ -144,7 +144,7 @@ public struct BoardPages: Equatable, Sendable {
     return (first...last).filter { page in
       let seen = visible.intersection(band(page))
       guard !seen.isNull, page == middle || seen.height >= enough else { return false }
-      return ink.contains { $0.intersects(seen) }
+      return ink.contains { $0.overlaps(seen) }
     }
   }
 

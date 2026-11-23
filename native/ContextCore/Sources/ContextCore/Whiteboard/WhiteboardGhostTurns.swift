@@ -347,7 +347,7 @@ public enum WhiteboardMarkChoice {
   public static func place(mark: CGRect, buttons: CGSize, in view: CGRect, avoid: CGRect) -> CGRect {
     let placed = place(mark: mark, buttons: buttons, in: view)
     let corner = avoid.insetBy(dx: -gap, dy: -gap)
-    guard !avoid.isNull, !avoid.isEmpty, placed.intersects(corner) else { return placed }
+    guard !avoid.isNull, !avoid.isEmpty, placed.overlaps(corner) else { return placed }
     let inside = view.insetBy(dx: margin, dy: margin)
     let below = CGRect(x: placed.minX, y: corner.maxY, width: placed.width, height: placed.height)
     if below.maxY <= inside.maxY { return below }

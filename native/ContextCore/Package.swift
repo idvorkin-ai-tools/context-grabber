@@ -25,6 +25,7 @@ let boardTests = [
   "BoardMeaningTests.swift", "BoardMicMenuTests.swift", "BoardOpsControlsTests.swift", "BoardOpsInkTests.swift",
   "BoardOutlineTests.swift", "BoardPagesTests.swift", "BoardPaperTests.swift", "BoardPicturePagesTests.swift",
   "BoardPlaybackOffScreenTests.swift", "BoardPlaybackTests.swift", "BoardRealFontTests.swift",
+  "BoardRectOverlapTests.swift",
   "BoardReplayTests.swift", "BoardRewordTests.swift", "BoardRoomBandTests.swift", "BoardRoomDropTests.swift",
   "BoardRoomLateTests.swift", "BoardRoomTests.swift", "BoardSaveTimingTests.swift", "BoardSelectionLabelTests.swift",
   "BoardSessionReplayTests.swift", "BoardShapeSnapTests.swift", "BoardSpeechEndTests.swift",

@@ -154,7 +154,7 @@ extension BoardOutline {
     let tagged = tagged
     let bars =
       strokes.indices.filter {
-        $0 != n && near.intersects(strokes[$0].bounds) && !tagged.contains($0)
+        $0 != n && near.overlaps(strokes[$0].bounds) && !tagged.contains($0)
           && !strokes[$0].ids.contains(where: taken.contains)
       }.compactMap(bar) + [newest]
     let levels = bars.filter(\.level)

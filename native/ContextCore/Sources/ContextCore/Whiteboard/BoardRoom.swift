@@ -202,7 +202,7 @@ public enum BoardRoom {
   public static func place(
     _ size: CGSize, view: CGRect, ink: [CGRect], pageWidth: CGFloat = BoardPages.pageWidth
   ) -> Landing {
-    let near = ink.filter { !$0.isNull }.map { $0.insetBy(dx: -air, dy: -air) }.filter { $0.intersects(view) }
+    let near = ink.filter { !$0.isNull }.map { $0.insetBy(dx: -air, dy: -air) }.filter { $0.overlaps(view) }
     let left = max(view.minX, BoardMargin.width + air)
     let right = min(view.maxX, pageWidth) - air
     // ponytail: a grid search, its step widened on a big view so it stays near 60 x 60 tries; a sweep over the
@@ -214,7 +214,7 @@ public enum BoardRoom {
       var x = left
       while x + size.width <= right {
         let box = CGRect(origin: CGPoint(x: x, y: y), size: size)
-        if !near.contains(where: { $0.intersects(box) }) {
+        if !near.contains(where: { $0.overlaps(box) }) {
           let d = hypot(box.midX - view.midX, box.midY - view.midY)
           if best.map({ d < $0.d }) ?? true { best = (box.origin, d) }
         }

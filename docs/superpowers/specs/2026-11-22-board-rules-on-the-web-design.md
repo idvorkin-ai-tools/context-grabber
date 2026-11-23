@@ -159,6 +159,14 @@ in the spike, 9 of about 4,600 queries on the recorded boards, 8 of them heights
 plain 1.5-point sweep (the title-build board at 100). The module answers as the 32-bit rules do; the replay test pins
 that one case so a change shows. If it matters, the rules get their own 64-bit geometry, a change on the app's side.
 
+### Boxes that only touch
+
+On Apple's platforms two boxes that only share an edge or a corner do not meet; in the Foundation that Linux and
+WebAssembly use, they do. The board's rules therefore decide whether boxes meet themselves, the way Apple does: an edge
+or a corner shared is no overlap, any area is. Without that, a paste whose half line of air exactly touched a line of
+writing landed elsewhere on the web than on the iPad (found by the Cockpit's comparison on its seeded random boards,
+2026-11-22, and checked against Apple on the Mac).
+
 ## Acceptance criteria
 
 - The board's rules build for WebAssembly, and the app, its tests and its Linux build are as before (the board's HTTP
