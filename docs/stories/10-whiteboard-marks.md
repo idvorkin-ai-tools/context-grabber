@@ -286,7 +286,42 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A tap on a mark at the edge
 - **Given:** Larry's marks are showing on a board, one of them at the edge of the screen
 - **When:** I tap the one at the edge
-- **Then:** nothing on the board has changed, only Keep and Dismiss show beside it, wholly on screen, and Keep keeps that mark alone
+- **Then:** nothing on the board has changed, only Keep and Dismiss show beside it, wholly on screen; Keep keeps that mark and the rest of its reply (story 1154), Dismiss that mark alone
+
+---
+
+### User Story 1154:
+
+- **Summary:** Keep beside any mark of Larry's reply keeps the whole reply as one group
+- **Status:** in progress (bead context-grabber-it0e)
+- **Issues:** bead context-grabber-it0e (Igor on the iPad, 2026-11-22 21:28: "Keep is not keeping the group properly"; he kept one eye, both labels and the arrow of Larry's 7-mark smiley face one mark at a time, and the face circle, the smile and the other eye stayed behind as marks to keep. Igor chose option A at 21:34)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep beside any mark of a reply keeps the whole reply*
+
+#### Use Case:
+- **As someone** keeping a picture Larry drew me out of several marks
+- **I want to** tap Keep beside any one of its marks and have the whole picture kept
+- **so that** I never leave half of his drawing behind by keeping it piece by piece
+
+#### Acceptance Criteria:
+- **Scenario:** Keep beside one mark of a reply
+- **Given:** Larry's reply of seven marks shows (a face circle, a smile, two eyes, an arrow and two labels), and Keep and Dismiss show beside one eye
+- **When:** I tap Keep
+- **Then:** all seven become ink where they showed, as one group named for his reply, no marks of that reply are left to keep, and one undo named *Keep* takes all seven back
+
+- **Scenario:** Dismiss still takes one
+- **Given:** the same reply showing, Keep and Dismiss beside the arrow
+- **When:** I tap Dismiss, then Keep beside one eye
+- **Then:** the arrow is gone, and the other six are kept as one group
+
+- **Scenario:** Another reply's marks stay
+- **Given:** two of Larry's replies showing
+- **When:** I tap Keep beside a mark of the first
+- **Then:** the whole first reply is kept and the second's marks still show, to keep or dismiss
+
+- **Scenario:** A lone mark, his text, Claude's marks
+- **Given:** a reply with only one mark left showing, his text from a change, or one of Claude's marks
+- **When:** I tap Keep beside it
+- **Then:** that mark alone is kept, as before
 
 ---
 
@@ -319,14 +354,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** looking at a mark Larry or Claude drew on my board
-- **I want to** keep one mark with the Keep beside it
+- **I want to** keep a mark with the Keep beside it
 - **so that** it joins my drawing only because I said so
 
 #### Acceptance Criteria:
 - **Scenario:** Keeping a mark
-- **Given:** Keep and Dismiss show beside a mark
+- **Given:** Keep and Dismiss show beside a mark, the only one of its reply still showing
 - **When:** I tap Keep
-- **Then:** it becomes ink in its colour, and one undo takes it back
+- **Then:** it becomes ink in its colour, and one undo takes it back (a mark with others of its reply showing keeps them too: story 1154)
 
 ---
 
@@ -1469,7 +1504,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** One of his, alone
-- **Given:** three marks of Larry's kept one at a time with Keep, on a board I can draw on, no marks showing
+- **Given:** three marks of Larry's, each from a reply of its own, kept one at a time with Keep, on a board I can draw on, no marks showing
 - **When:** I tap one of them with a finger and drag it
 - **Then:** that mark alone is selected and moves; his other two and my ink stay where they were, and one Undo puts it back
 
