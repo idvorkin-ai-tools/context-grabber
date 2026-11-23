@@ -672,15 +672,6 @@ final class AppModel: ObservableObject {
 
   func closeBreathe() { close(.breathe) }
 
-  /// A journey still in Context Grabber, opened there by its own link.
-  func openInContextGrabber(_ link: String, what: String) {
-    guard let url = URL(string: link) else { return }
-    UIApplication.shared.open(url) { [log] ok in
-      log.event("ui", ["action": "open_context_grabber", "what": what, "ok": ok])
-      if !ok { Task { @MainActor in self.status = "Context Grabber is not installed, so the \(what) cannot open." } }
-    }
-  }
-
   /// #391, stories 222-225: a home tile's press-and-hold popover opened; logged so a hold that chose nothing shows.
   func holdOpened(tile: String) {
     log.event("ui", ["action": "home_popover", "tile": tile])
