@@ -54,12 +54,12 @@ final class SQLiteConnectionTests: XCTestCase {
       committed.fulfill()
     }
     // A reader is never blocked by the open write.
-    XCTAssertEqual(try cache.computed(.steps, ["2026-03-14"]).count, 0)
+    XCTAssertEqual(try cache.computedEntries(.steps, ["2026-03-14"]).count, 0)
     XCTAssertNoThrow(try cache.putComputed(.steps, "2026-03-14", DailyValue(date: "2026-03-14", value: 1).json))
     wait(for: [committed], timeout: 5)
 
     XCTAssertEqual(try store.count(), 1)
-    XCTAssertEqual(try cache.computed(.steps, ["2026-03-14"]).count, 1)
+    XCTAssertEqual(try cache.computedEntries(.steps, ["2026-03-14"]).count, 1)
   }
 
   /// A trail batch that lands during a grab's cache writes is kept.

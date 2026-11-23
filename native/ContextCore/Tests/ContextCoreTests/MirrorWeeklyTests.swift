@@ -66,15 +66,7 @@ final class WeeklyTests: XCTestCase {
     XCTAssertEqual(thirds[6].avg, 70.7)
   }
 
-  func testSleepByStartDayMeditationAndLatestWeight() {
-    let sleep = Weekly.aggregateSleep(
-      [
-        SleepSample(start: local(14, 23), end: local(15, 7), value: 3),
-        SleepSample(start: local(14, 23, 30), end: local(15, 6, 30), value: 3),
-      ], endDate: end, clock: la)
-    XCTAssertEqual(sleep[5].value, 8)
-    XCTAssertNil(sleep[6].value)
-
+  func testMeditationAndLatestWeight() {
     let med = Weekly.aggregateMeditation(
       [
         TimeSpan(start: local(15, 7), end: local(15, 7, 10)), TimeSpan(start: local(15, 20), end: local(15, 20, 15)),
@@ -226,9 +218,9 @@ final class HealthCacheTests: XCTestCase {
     try cache.putComputed(.steps, "2026-03-14", DailyValue(date: "2026-03-14", value: 8241.37).json)
     try cache.putRaw(.steps, "2026-03-14", .array([]))
     XCTAssertEqual(
-      try cache.computed(.steps, ["2026-03-14", "2026-03-13"])["2026-03-14"]?.stringify(),
+      try cache.computedEntries(.steps, ["2026-03-14", "2026-03-13"])["2026-03-14"]?.value.stringify(),
       #"{"date":"2026-03-14","value":8241.37}"#)
-    XCTAssertEqual(try cache.computed(.hrv, ["2026-03-14"]).count, 0)
+    XCTAssertEqual(try cache.computedEntries(.hrv, ["2026-03-14"]).count, 0)
     // The React Native app's text reads back.
     try db.run(
       "INSERT OR REPLACE INTO health_computed_cache (metric, date_key, data, cached_at) VALUES ('heartRate', '2026-03-13', ?, 0)",
@@ -237,13 +229,14 @@ final class HealthCacheTests: XCTestCase {
           #"{"date":"2026-03-13","avg":61,"min":61,"max":61,"q1":61,"median":61,"q3":61,"count":1,"raw":[{"value":61,"time":"2026-03-13T16:00:00.000Z"}]}"#
         )
       ])
-    let hr = try XCTUnwrap(cache.computed(.heartRate, ["2026-03-13"])["2026-03-13"].flatMap(HeartRateDaily.init(json:)))
+    let hr = try XCTUnwrap(
+      cache.computedEntries(.heartRate, ["2026-03-13"])["2026-03-13"].flatMap { HeartRateDaily(json: $0.value) })
     XCTAssertEqual(hr.avg, 61)
     XCTAssertEqual(hr.raw.first?.time, "2026-03-13T16:00:00.000Z")
 
     try db.run("UPDATE health_cache_meta SET value = '1' WHERE key = 'cache_version'")
     let reopened = try HealthCache(db: db)
-    XCTAssertEqual(try reopened.computed(.steps, ["2026-03-14"]).count, 0)
+    XCTAssertEqual(try reopened.computedEntries(.steps, ["2026-03-14"]).count, 0)
     XCTAssertEqual(try db.run("SELECT value FROM health_cache_meta").first?["value"]?.textValue, "2")
   }
 

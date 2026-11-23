@@ -235,14 +235,6 @@ public enum Weekly {
     return round1(sorted[lo] + (idx - Double(lo)) * (sorted[hi] - sorted[lo]))
   }
 
-  /// Sleep hours per local day of the sample's start, sources merged — midnight to midnight, as the React Native
-  /// app's export counts them (the sheet counts noon to noon; see the spec's step 4).
-  public static func aggregateSleep(_ samples: [SleepSample], endDate: Double, days: Int = 7, clock: LocalClock)
-    -> [DailyValue]
-  {
-    bucketByDay(samples, start: \.start, endDate: endDate, days: days, clock: clock) { Health.sleepHours($0) }
-  }
-
   /// Mindful minutes per day, one decimal, sessions summed.
   public static func aggregateMeditation(_ sessions: [TimeSpan], endDate: Double, days: Int = 7, clock: LocalClock)
     -> [DailyValue]

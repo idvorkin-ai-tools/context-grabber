@@ -545,7 +545,7 @@ final class PlacesDailyTests: XCTestCase {
   }
 
   func testSplitNonStay() {
-    let all = [(start: 0.0, end: 60 * MIN)]
+    let all = [PlacesDaily.Interval(start: 0.0, end: 60 * MIN)]
     XCTAssertEqual(PlacesDaily.splitNonStay(all, []).transitMs, 0)
     XCTAssertEqual(PlacesDaily.splitNonStay(all, []).noDataMs, 60 * MIN)
     XCTAssertEqual(PlacesDaily.splitNonStay(all, [point(30 * MIN)]).transitMs, 10 * MIN)

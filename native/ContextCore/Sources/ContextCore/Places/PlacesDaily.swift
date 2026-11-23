@@ -210,12 +210,6 @@ public enum PlacesDaily {
   }
 
   /// How much of the non-stay time is transit (has evidence) and how much is no data. Points must be sorted.
-  public static func splitNonStay(_ intervals: [(start: Double, end: Double)], _ points: [LocationPoint]) -> (
-    transitMs: Double, noDataMs: Double
-  ) {
-    splitNonStay(intervals.map { Interval(start: $0.start, end: $0.end) }, points)
-  }
-
   static func splitNonStay(_ intervals: [Interval], _ points: [LocationPoint]) -> (transitMs: Double, noDataMs: Double)
   {
     var transit = 0.0

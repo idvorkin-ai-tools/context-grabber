@@ -220,11 +220,6 @@ public enum Health {
   /// Asleep values: everything but in bed (0) and awake (2).
   static let sleepValues: Set<Int> = [1, 3, 4, 5]
 
-  public static func sleepCategoryName(_ value: Int?) -> String {
-    guard let value else { return "Asleep" }
-    return [0: "InBed", 1: "Asleep", 2: "Awake", 3: "Core", 4: "Deep", 5: "REM"][value] ?? "Unknown"
-  }
-
   /// Distinct local days with a weigh-in; nil for none.
   public static func countWeightDays(_ samples: [QuantityReading]?, clock: LocalClock) -> Double? {
     guard let samples, !samples.isEmpty else { return nil }
