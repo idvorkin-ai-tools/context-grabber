@@ -52,6 +52,21 @@ public enum WhiteboardNote {
     min(max(board, 0), max(board / 5, panelFloor))
   }
 
+  /// Bead context-grabber-97s (stories 837, 887): whether the panel's thread, scrolled to `offset` of the `end` its newest
+  /// line sits at, follows the newest: a new line keeps it at the bottom only while Igor is there, within a few points.
+  /// Scrolled up to read, a new line leaves him where he is.
+  public static func followsNewest(offset: Double, end: Double) -> Bool {
+    end - offset <= followSlack
+  }
+
+  /// How near the bottom still counts as at it: a fling that settles a few points short is at the newest.
+  public static let followSlack = 8.0
+
+  /// What VoiceOver (and a UI test) hears of the panel's thread: where it is scrolled.
+  public static func panelPlace(following: Bool) -> String {
+    following ? "Conversation, newest showing" : "Conversation, older messages showing"
+  }
+
   /// The note's other messages (a paste cut short, *Sent to Larry*, a look-only reason, a Cockpit not answering), and
   /// when they appeared.
   public struct Notice: Equatable, Sendable {

@@ -10,7 +10,8 @@ GET /attachments/<ref>, POST /whiteboard/strokes (story 419: counted and answere
 accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. GET /fake/strokes says the ids of each POST /whiteboard/strokes so far, and the folds beside each (story 857). GET /fake/turns lists the board of each POST /whiteboard/suggest so far (story 1171). GET and POST /whiteboard/responder keep each board's knob (story 659), Sonnet by default. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
-unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-ops {"stale": false, "dy": 120}
+unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-says {"count": n,
+"from": k} adds n replies of Larry's words, "Reply k: …" onwards, on the newest board thread (bead context-grabber-97s). POST /fake/larry-ops {"stale": false, "dy": 120}
 is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
 below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
 on the message's own rev (one behind it with "behind", which the board still applies, story 961; before anything the
@@ -785,6 +786,16 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True, "thread": SESSION and SESSION["thread"]})
         if path == "/fake/larry-draws":
             return self._draws(data)
+        if path == "/fake/larry-says":
+            # Bead context-grabber-97s: more of Larry's words on the newest board thread than the panel holds.
+            with LOCK:
+                if not BOARD_MESSAGES:
+                    return self._json(404, {"ok": False, "error": "no board thread"})
+                key = list(BOARD_MESSAGES)[-1]
+                start = int(data.get("from", 1))
+                for n in range(start, start + int(data.get("count", 1))):
+                    THREADS[key]["messages"].append(row(key, "larry", f"Reply {n}: " + "a long line of Larry's, " * 6))
+            return self._json(200, {"ok": True})
         if path == "/fake/larry-asks":
             with LOCK:
                 if not BOARD_MESSAGES:

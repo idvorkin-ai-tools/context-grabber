@@ -1567,8 +1567,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 887:
 
 - **Summary:** Another reply scrolls the full panel, not grows it
-- **Status:** implemented in [e403844](https://github.com/idvorkin/context-grabber/commit/e403844) (story 837, #917); verified by host tests (`WhiteboardNoteTests.testThePanelIsAFifthOfTheBoardAtMost`; `just test`); a reply landing in a full panel is for the iPad's eye
-- **Issues:** [#917](https://github.com/idvorkin/context-grabber/issues/917)
+- **Status:** implemented in [e403844](https://github.com/idvorkin/context-grabber/commit/e403844) (story 837, #917); verified by host tests (`WhiteboardNoteTests.testThePanelIsAFifthOfTheBoardAtMost`; `just test`); a reply landing in a full panel is for the iPad's eye; a reply while Igor reads an older message leaves the panel where he scrolled it, in [367e77e8](https://github.com/idvorkin/context-grabber/commit/367e77e8), verified by host tests (`WhiteboardNoteTests.testThePanelFollowsTheNewestOnlyFromTheBottom`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`WhiteboardPanelScrollUITests`: fifteen long replies, the panel and the paper under it never moving, a reply after a finger scrolled up leaving it on the older messages, and following again from the bottom; with `WhiteboardTurnUITests`, `WhiteboardListeningUITests` and `WhiteboardLinkChipUITests`, 10/10); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Issues:** [#917](https://github.com/idvorkin/context-grabber/issues/917); bead context-grabber-97s (a reply pulled the panel back down while Igor read an older message)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
 
 #### Use Case:
@@ -1581,6 +1581,33 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the panel is open and full
 - **When:** Larry answers again
 - **Then:** the panel stays the same height and scrolls to show his answer
+
+- **Scenario:** Another reply while I read an older one (bead context-grabber-97s)
+- **Given:** the panel is open and full, and I have scrolled up to an older message
+- **When:** Larry answers again
+- **Then:** the panel stays the same height and where I scrolled it; once I scroll back to the bottom, his next answer
+  scrolls into view again
+
+---
+
+### User Story 1184:
+
+- **Summary:** What the mic hears never grows the conversation panel
+- **Status:** implemented in [367e77e8](https://github.com/idvorkin/context-grabber/commit/367e77e8); verified by the Mac build (`just native-build-mac`) and the iPad simulator only as far as the status chip still drawing (`WhiteboardTurnUITests`, `WhiteboardListeningUITests`); the *Hearing* row itself isn't reached on any rung, as no simulator hook keeps the board's mic on, so a long sentence on the iPad is still to see
+- **Issues:** bead context-grabber-97s (Larry, 2026-11-22: *"an expanded chat message/card grows to its full height instead of scrolling within a bounded height"*; Igor on the board, 2026-11-16 05:38, *"when chat expands it needs to scroll not grow"*, first fixed for the messages by story 837)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
+
+#### Use Case:
+- **As someone** talking to Larry with the board's mic on and the conversation panel open
+- **I want to** see the newest of what the mic hears without the panel growing
+- **so that** a long sentence never pushes the page I'm drawing on down the screen
+
+#### Acceptance Criteria:
+- **Scenario:** A long sentence
+- **Given:** the panel is open on an iPad and the mic is on
+- **When:** I say something that runs past two lines of the panel
+- **Then:** its *Hearing* row is at most two lines, ending on my newest words, older ones dropped at an *…*; the
+  status chip is at most two lines; the panel keeps its height and the paper under it doesn't move
 
 ---
 
