@@ -262,7 +262,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 934:
+### User Story 1170:
 
 - **Summary:** Erasing a folded header's underline or # leaves the fold
 - **Status:** implemented in [9bf096bf](https://github.com/idvorkin/context-grabber/commit/9bf096bf); verified by host tests (`BoardInkHeadersTests.testTheEraserAcrossAFoldedHeadersUnderlineLeavesTheFold`, `testTheEraserAcrossAFoldedHeadersHashLeavesTheFold`), `just native-test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad (its `erase_fold_check` line will say)
@@ -339,7 +339,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 903:
 
 - **Summary:** The eraser across a folded header erases the whole section
-- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [530ebf7a](https://github.com/idvorkin/context-grabber/commit/530ebf7a), its decision renamed in [cbf0304f](https://github.com/idvorkin/context-grabber/commit/cbf0304f). Its header's ink narrowed to its words, and taken only where the eraser took some of them, in [9bf096bf](https://github.com/idvorkin/context-grabber/commit/9bf096bf) (stories 934, 955)
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [530ebf7a](https://github.com/idvorkin/context-grabber/commit/530ebf7a), its decision renamed in [cbf0304f](https://github.com/idvorkin/context-grabber/commit/cbf0304f). Its header's ink narrowed to its words, and taken only where the eraser took some of them, in [9bf096bf](https://github.com/idvorkin/context-grabber/commit/9bf096bf) (stories 1170, 955)
 - **Issues:** context-grabber-0m2d, context-grabber-bov
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
@@ -352,7 +352,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Erasing a folded header's ink
 - **Given:** a folded header
 - **When:** I draw the eraser across the header's own ink
-- **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's). The header's own ink is its words: the eraser across its underline or # alone leaves the fold (story 934), and the pixel eraser takes it only once it has rubbed through the words (story 955)
+- **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's). The header's own ink is its words: the eraser across its underline or # alone leaves the fold (story 1170), and the pixel eraser takes it only once it has rubbed through the words (story 955)
 
 ---
 

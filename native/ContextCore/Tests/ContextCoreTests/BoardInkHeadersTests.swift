@@ -208,7 +208,7 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertTrue(gone.isFolded(gone.headers[0]))
   }
 
-  /// Stories 934, 955 (context-grabber-bov): a fold is taken by its header's words or its marker, never by the
+  /// Stories 1170, 955 (context-grabber-bov): a fold is taken by its header's words or its marker, never by the
   /// underline or # that made the header, through the eraser's own path: the strokes it crossed, then what PaperKit took.
   func testTheEraserAcrossAFoldedHeadersUnderlineLeavesTheFold() throws {
     var strokes = word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("c", x: 100, y: 180)
