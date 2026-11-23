@@ -1433,3 +1433,33 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the stand-in Cockpit with a recorded session chosen
 - **When:** the board posts its strokes and each turn of that session, in order
 - **Then:** each strokes post is answered with the counts the Cockpit gave that day, each turn gets Larry's next recorded reply (words, marks or a batch of changes) and the receipts recorded for it, and the hint the stand-in would wake Larry with is the Cockpit's recorded one
+
+---
+
+### User Story 1217:
+
+- **Summary:** I try every pen and shape PaperKit has on a scratch page before the board takes any of them
+- **Status:** in progress on branch `native/paperkit-board-spike-0xrz`
+- **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
+- **Issues:** bead context-grabber-0xrz
+
+#### Use Case:
+- **As someone** who wants the fountain pen, callouts and arrows on the board
+- **I want to** draw with everything PaperKit offers on a page of its own
+- **so that** I can feel what the board would gain before it changes
+
+#### Acceptance Criteria:
+- **Scenario:** The scratch page
+- **Given:** the iPad, Settings open on the Home screen
+- **When:** I tap *PaperKit board* under *About and diagnostics*
+- **Then:** a blank page opens with the fountain pen in hand, the tool picker offers all eight pens, and its **+** offers every shape (the speech bubble among them), a text box, and lines with and without arrowheads
+
+- **Scenario:** Nothing is kept
+- **Given:** a scratch page I've drawn on
+- **When:** I close it
+- **Then:** nothing is saved and no board changes
+
+- **Scenario:** Not on the iPhone
+- **Given:** the iPhone, which only looks at boards
+- **When:** I open Settings on the Home screen
+- **Then:** there is no *PaperKit board* row
