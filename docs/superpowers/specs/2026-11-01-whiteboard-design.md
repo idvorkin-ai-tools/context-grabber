@@ -625,6 +625,27 @@ size came in the middle of a stroke, outside it. Before anything changes, the lo
 - **A quick change logs nothing more**, so the usual line for each stroke stays as it was.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.
 
+### The log says what PaperKit's handwriting reflow was doing before it crashed (story 1188, #1256, #1255)
+
+On the iPad, 2026-11-22, the app crashed on a board a moment after a finger drag: Igor had tapped one of Larry's kept
+groups over and over while the system's handwriting popover kept coming up over it, then dragged on the paper, and the
+next touch began on PaperKit's handwriting reflow view. The crash is inside PaperKit itself: its reflow animation, the
+one that moves handwritten words around when a selection is resized or moved, gave one of its word pictures a position
+that is not a number, and the system stops the app for that. Nothing the board draws was involved, and the simulator
+never shows the reflow. What put the reflow into that state, the log can't say. Before anything changes, it has to.
+
+- **PaperKit's reflow showing on a board is a line in the log**, as it comes, changes and goes: what kind of view it is,
+  where it sits on the paper, what it sits in, how many pictures it holds, and how many of them have a place or size that
+  is not a number, endless or empty.
+- **The line says what was going on around it**: how many strokes were selected, whether the system's handwriting popover
+  was over the paper, how long since a touch began and what that touch began on.
+- **A touch that begins on the reflow is a line at once**, with the same look, so a crash a moment after the touch still
+  leaves the reflow's state behind it. That line says every reflow view, the empty one PaperKit keeps over every board
+  included, since the reflow may not yet hold a picture when the touch goes down.
+- **The log stays quiet otherwise**: a reflow that hasn't changed writes nothing more, and a board with no reflow showing
+  writes nothing.
+- Nothing Igor sees changes: this is the evidence for the fix, not the fix.
+
 ### The log says which tool Igor picked (story 1064, #1078; Igor, 2026-11-21: "Switched to eraser still drew normally")
 
 Igor picked the eraser and the Pencil went on drawing. The log couldn't say why: every touch it has ever written names a
