@@ -1579,6 +1579,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1514:
+
+- **Summary:** The web board asks the app's own rules what a Pencil hold picks up and what a finger hold offers
+- **Status:** implemented in ffb3bc76; verified by `just wasm-test` (145 checks, a hand-worked board of a header, a word, a far stroke, a group and a kept text among them), the Linux rung (894 tests) and the Cockpit's comparison (every recorded board and 60 seeded ones, 40,498 Pencil holds and 42,038 finger holds: 0 differences; where its own older pick goes another way than the app, counted apart), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 5
+- **Issues:** bead `context-grabber-edl`
+
+#### Use Case:
+- **As Igor,** holding the Pencil or a finger on writing on the Cockpit's web ink board as well as on the iPad
+- **I want to** have the web board ask the app's own rules what the hold is on and which rows its menu offers
+- **so that** a hold picks up the same word, and the menu offers Select and Delete, as on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** Holds through the module
+- **Given:** the module built by `just wasm` with an outline loaded (a header, a line of two strokes a little apart and one far off, a group of Larry's, a kept text)
+- **When:** `just wasm-test` asks what a Pencil picks up on each, and what a finger hold offers on a word, the header, the group, blank paper and the margin
+- **Then:** the near strokes come as one word and the far one alone, the kept text whole from inside it, the header its row, nothing off ink; the menus offer Select and Delete then the line's rows on a word and the group (no Make header on the group), Select without Delete on the header with Not a header, the line's rows on paper, and the outline beside a header in the margin; with no outline each says so
+
+---
+
 ### User Story 1512:
 
 - **Summary:** The web board asks the app's own rules what an underline or a # written in ink makes, and what Fold all and Collapse to a level fold
