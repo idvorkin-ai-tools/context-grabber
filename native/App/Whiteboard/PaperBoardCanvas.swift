@@ -145,26 +145,26 @@ private struct HoldMenuButtons: View {
         let rows = menu.items.filter { $0.symbol != nil }
         let height = CGFloat(rows.count + (levels.isEmpty ? 0 : 1)) * Self.rowHeight + 12
         VStack(alignment: .leading, spacing: 0) {
-          ForEach(rows, id: \.id) { item in
-            Button(role: item == .delete ? .destructive : nil) {
-              controller.chose(item)
-            } label: {
-              Label(item.title, systemImage: item.symbol ?? "")
-                .frame(maxWidth: .infinity, minHeight: Self.rowHeight, alignment: .leading)
-                .contentShape(Rectangle())
-            }
-            .accessibilityIdentifier("whiteboard-hold-\(item.id)")
-          }
-          if !levels.isEmpty {
-            HStack(spacing: 4) {
-              Text("Collapse to").foregroundStyle(.secondary)
-              ForEach(levels, id: \.id) { item in
-                Button(item.title) { controller.chose(item) }
-                  .buttonStyle(.bordered)
-                  .accessibilityIdentifier("whiteboard-hold-\(item.id)")
+          ForEach(menu.items, id: \.id) { item in
+            if let symbol = item.symbol {
+              Button(role: item == .delete ? .destructive : nil) {
+                controller.chose(item)
+              } label: {
+                Label(item.title, systemImage: symbol)
+                  .frame(maxWidth: .infinity, minHeight: Self.rowHeight, alignment: .leading)
+                  .contentShape(Rectangle())
               }
+              .accessibilityIdentifier("whiteboard-hold-\(item.id)")
+            } else if item == levels.first {
+              HStack(spacing: 4) {
+                ForEach(levels, id: \.id) { level in
+                  Button(level.title) { controller.chose(level) }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("whiteboard-hold-\(level.id)")
+                }
+              }
+              .frame(minHeight: Self.rowHeight)
             }
-            .frame(minHeight: Self.rowHeight)
           }
         }
         .font(.subheadline.weight(.semibold))
