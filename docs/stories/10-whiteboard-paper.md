@@ -2009,3 +2009,42 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **and Given:** the app has only paper
 - **When:** I open it
 - **Then:** its ink shows on the first page, every stroke where it was relative to the others and none scaled, the bar says *Drawn on the old canvas: look only*, and there are no tools, no Board menu and no Send, so nothing draws on it or changes its file; the same holds wherever it opens, another device's or an iPhone's note in the bar (story 1200)
+
+---
+
+### User Story 1209:
+
+- **Summary:** Ink side by side: the iPad's PencilKit ink beside the web board's, with how long each takes to reach a frame
+- **Status:** being built (bead context-grabber-vabk)
+- **Spec:** [Ink side by side](../superpowers/specs/2026-11-22-ink-side-by-side-design.md)
+
+#### Use Case:
+- **As someone** deciding whether the board should keep PencilKit's ink or draw like Larry's web board
+- **I want to** draw on both on the same iPad at once, each with a number for how long a stroke takes to reach the next frame
+- **so that** the choice rests on what I felt and a number that agrees with it, not on a guess
+
+#### Acceptance Criteria:
+- **Scenario:** Both inks, side by side
+- **Given:** the iPad
+- **When:** I open Settings → *Ink side by side*
+- **Then:** the left half is a PencilKit canvas that draws, the right half is the Cockpit's */ink* page on its *scratch* board, and each half's corner reads *Draw to measure*
+
+- **Scenario:** A stroke on either half
+- **Given:** the screen open
+- **When:** I draw a stroke on one half
+- **Then:** that half's corner reads `last … ms · median … ms · n strokes`, and the log gains one `ink_side_by_side` event naming that side, the milliseconds, the median and the count
+
+- **Scenario:** The Cockpit out of reach
+- **Given:** the Cockpit can't be reached
+- **When:** I open the screen
+- **Then:** the right half shows the page's own error, and the left half still draws and measures
+
+- **Scenario:** Each visit starts afresh
+- **Given:** strokes measured on both halves
+- **When:** I leave the screen and open it again
+- **Then:** both corners read *Draw to measure* again
+
+- **Scenario:** Not on the iPhone
+- **Given:** the iPhone
+- **When:** I open Settings
+- **Then:** there is no *Ink side by side* row
