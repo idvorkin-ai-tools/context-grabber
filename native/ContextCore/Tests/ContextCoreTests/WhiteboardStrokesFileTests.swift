@@ -21,6 +21,9 @@ final class WhiteboardStrokesFileTests: XCTestCase {
   // A board with nothing folded: the strokes alone, as a list, as before story 1176.
   func testAListIsTheStrokesWithNoFolds() throws {
     let file = try XCTUnwrap(WhiteboardStrokes.file(try fixture("list.json")))
+    guard file.strokes.count == 2 else {
+      return XCTFail("Expected two strokes, got \(file.strokes.count)")
+    }
     XCTAssertEqual(file.strokes.map { $0["id"] as? String }, ["s1", "s2"])
     XCTAssertEqual(file.strokes[1]["hidden"] as? Bool, true)
     XCTAssertEqual(file.strokes[0]["points"] as? [[Double]], [[10, 20], [14.5, 22], [30, 25.5]])
@@ -31,6 +34,9 @@ final class WhiteboardStrokesFileTests: XCTestCase {
   func testTheWrappedFormCarriesItsFolds() throws {
     let file = try XCTUnwrap(WhiteboardStrokes.file(try fixture("wrapped.json")))
     XCTAssertEqual(file.strokes.map { $0["id"] as? String }, ["s1", "s2"])
+    guard file.folds.count == 2 else {
+      return XCTFail("Expected two folds, got \(file.folds.count)")
+    }
     XCTAssertEqual(file.folds.map { $0["header"] as? String }, ["h1", "h2"])
     XCTAssertEqual(file.folds[1]["y"] as? Double, 300)
     XCTAssertEqual(file.folds[1]["h"] as? Double, 40.5)

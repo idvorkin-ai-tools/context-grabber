@@ -42,8 +42,8 @@ let boardTests = [
   "WhiteboardNoteTests.swift", "WhiteboardOneSendTests.swift", "WhiteboardPacerTests.swift",
   "WhiteboardPasteTests.swift",
   "WhiteboardQuestionsTests.swift", "WhiteboardResponderTests.swift", "WhiteboardScratchOutTests.swift",
-  "WhiteboardSpeechTests.swift", "WhiteboardStreamTests.swift", "WhiteboardTidyGroupTests.swift",
-  "WhiteboardTidyTests.swift", "WhiteboardTurnTests.swift", "WhiteboardWordsOnlyTests.swift",
+  "WhiteboardSpeechTests.swift", "WhiteboardStreamTests.swift", "WhiteboardStrokesFileTests.swift",
+  "WhiteboardTidyGroupTests.swift", "WhiteboardTidyTests.swift", "WhiteboardTurnTests.swift", "WhiteboardWordsOnlyTests.swift",
   "WhiteboardWritingVadTests.swift",
 ]
 
@@ -52,7 +52,7 @@ let boardTests = [
 let boardTestsInContextCore = [
   "BoardDebugTimingTests.swift", "BoardOpsTests.swift", "BoardTouchReplayTests.swift",
   "WhiteboardLogArchiveTests.swift", "WhiteboardMarksTests.swift", "WhiteboardRequestsTests.swift",
-  "WhiteboardStrokesFileTests.swift", "WhiteboardStrokesTests.swift",
+  "WhiteboardStrokesTests.swift",
 ]
 
 // The platform-free half of the native app: everything here runs under `swift test` on the Mac (docs/TESTING.md).

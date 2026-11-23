@@ -548,7 +548,9 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 - **A mark of his that Igor kept comes back to him as ink in his colour**, so he can tell a kept mark from a
   dismissed one; a mark that was never kept is in no picture and no stroke, by design.
 - **Nothing waits on the strokes** (stories 421, 426). If the Cockpit answers the strokes with an error, the picture
-  still goes, the session log says what became of the strokes, and the bar says nothing about them.
+  still goes, the session log says what became of the strokes, and the bar says nothing about them. A queued strokes
+  file in the wrapped form must contain both a strokes list and a folds list. If either list is missing or unreadable,
+  the picture still goes, the strokes are skipped, and only the session log reports the unreadable file.
 - **With no network** a *Send* waits in the outbox with its strokes beside its picture, and both go when the network
   is back (story 427), the folded sections with them. Since *Larry's turn* became *Send* (story 1176) nothing fails
   for want of a network; only a picture a pause hands him on a Larry board still says Larry couldn't be reached (story
