@@ -3,7 +3,11 @@
 //  written on a header's line joins its row; a long flat line that underlines nothing is a rule, which ends the
 //  sections above it. Pure: the outline's strokes, the newest stroke by its place, and what the header became.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

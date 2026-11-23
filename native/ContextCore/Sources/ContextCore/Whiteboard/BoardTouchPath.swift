@@ -2,7 +2,11 @@
 //  story 1104, bead context-grabber-y544): its points in board points and each one's time since the touch went down, in
 //  one short string a log line can carry, and back. What `BoardTouchReplay` reads to judge the stroke again on the Mac.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

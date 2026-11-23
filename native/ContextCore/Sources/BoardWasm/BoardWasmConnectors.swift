@@ -3,7 +3,12 @@
 //  way. Plain numbers in and out; no board is needed. Only the export is WASI's; the answer builds everywhere.
 
 import BoardCore
-import Foundation
+
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -13,7 +18,7 @@ enum WebConnectors {
   /// `[left, top, right, bottom]` as a box, nil when it isn't four numbers.
   static func box(_ any: Any?) -> CGRect? {
     guard let b = any as? [Any], b.count == 4 else { return nil }
-    let n = b.compactMap { ($0 as? NSNumber).map { CGFloat($0.doubleValue) } }
+    let n = b.compactMap { JSONNumber($0).map { CGFloat($0.doubleValue) } }
     guard n.count == 4 else { return nil }
     return CGRect(x: n[0], y: n[1], width: n[2] - n[0], height: n[3] - n[1])
   }

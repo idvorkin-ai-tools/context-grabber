@@ -4,7 +4,11 @@
 //  source is Larry's board replies; a source running Larry's own board rules inside the app takes the board's events the
 //  same way, and covers a subset still to be decided.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// What a board hands its sources: Larry's rows from a look at the thread, or one of its own events as it happens.
 public enum BoardOpInput: Sendable {

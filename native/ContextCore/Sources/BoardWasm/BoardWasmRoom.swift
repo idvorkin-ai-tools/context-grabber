@@ -4,7 +4,12 @@
 //  WASI) and sends the block's size. Only the exports are WASI's; the answers build everywhere.
 
 import BoardCore
-import Foundation
+
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

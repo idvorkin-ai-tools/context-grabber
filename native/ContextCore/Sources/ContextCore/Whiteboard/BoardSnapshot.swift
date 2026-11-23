@@ -3,7 +3,11 @@
 //  a replay needs: the board's revision, his text ghosts not yet kept, and what Igor moved since an older look. Pure:
 //  the harness (`BoardReplay`, the `board-ops-harness` tool) and the host tests read and write it.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -127,33 +131,33 @@ public struct BoardSnapshot: Equatable, Sendable {
     guard let json = any as? [String: Any] else { throw Unreadable(description: "a snapshot is a JSON object") }
     guard let board = json["board"] as? String else { throw Unreadable(description: "the snapshot has no board") }
     self.init(board: board)
-    rev = (json["rev"] as? NSNumber)?.intValue
-    pages = (json["pages"] as? NSNumber)?.intValue
+    rev = JSONNumber(json["rev"])?.intValue
+    pages = JSONNumber(json["pages"])?.intValue
     for (index, entry) in (json["strokes"] as? [Any] ?? []).enumerated() {
       guard let entry = entry as? [String: Any], let id = entry["id"] as? String else {
         throw Unreadable(description: "stroke \(index) has no id")
       }
-      let t = (entry["t"] as? NSNumber)?.int64Value
+      let t = JSONNumber(entry["t"])?.int64Value
       let color = entry["color"] as? String ?? "#000000"
       let meta = BoardMeta(entry["meta"])
       if entry["kind"] as? String == "text" {
-        let n = { (key: String) in CGFloat((entry[key] as? NSNumber)?.doubleValue ?? 0) }
+        let n = { (key: String) in CGFloat(JSONNumber(entry[key])?.doubleValue ?? 0) }
         texts.append(
           Kept(
             id: id, text: entry["text"] as? String ?? "",
             font: (entry["font"] as? String).map { $0 == "hand" ? .hand : .plain } ?? .plain,
             box: CGRect(x: n("x"), y: n("y"), width: n("w"), height: n("h")), color: color, t: t ?? 0,
-            size: (entry["size"] as? NSNumber).map { CGFloat($0.doubleValue) }, meta: meta))
+            size: JSONNumber(entry["size"]).map { CGFloat($0.doubleValue) }, meta: meta))
         continue
       }
       let points = (entry["points"] as? [[Any]] ?? []).compactMap { pair -> CGPoint? in
-        guard pair.count == 2, let x = pair[0] as? NSNumber, let y = pair[1] as? NSNumber else { return nil }
+        guard pair.count == 2, let x = JSONNumber(pair[0]), let y = JSONNumber(pair[1]) else { return nil }
         return CGPoint(x: x.doubleValue, y: y.doubleValue)
       }
       guard !points.isEmpty else { throw Unreadable(description: "stroke \(id) has no points") }
       ink.append(
         Ink(
-          id: id, t: t, color: color, width: CGFloat((entry["width"] as? NSNumber)?.doubleValue ?? 3),
+          id: id, t: t, color: color, width: CGFloat(JSONNumber(entry["width"])?.doubleValue ?? 3),
           tool: entry["tool"] as? String ?? "pen", points: points, hidden: entry["hidden"] as? Bool ?? false,
           meta: meta))
     }
@@ -164,7 +168,7 @@ public struct BoardSnapshot: Equatable, Sendable {
       ghosts.append(text)
     }
     for touch in json["touched"] as? [[String: Any]] ?? [] {
-      guard let rev = (touch["rev"] as? NSNumber)?.intValue else { continue }
+      guard let rev = JSONNumber(touch["rev"])?.intValue else { continue }
       touched.append(Touch(rev: rev, ids: touch["ids"] as? [String] ?? []))
     }
   }

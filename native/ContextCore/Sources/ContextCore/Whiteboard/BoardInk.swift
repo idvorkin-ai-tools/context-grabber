@@ -4,7 +4,11 @@
 //  changed but not their count moved, and keeps its names (`BoardStrokeIDs`); one whose count changed was rubbed, which
 //  is new ink.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardInk: Equatable, Sendable {
   /// Each element's ink hashes, one per visible stretch, by PaperKit's element key.

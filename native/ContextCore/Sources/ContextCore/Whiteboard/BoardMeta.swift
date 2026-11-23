@@ -2,7 +2,11 @@
 //  exactly as he wrote them and given back with the strokes, never read by the board except `group`, which makes
 //  strokes move as one.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardMeta: Equatable, Codable, Sendable {
   /// The JSON object as Larry wrote it (keys sorted, so the same notes compare equal).

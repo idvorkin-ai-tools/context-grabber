@@ -2,7 +2,11 @@
 //  how iCloud's copy merges into it. A board is drawn only on the device that made it and read everywhere else, so the
 //  merge never has two edits of one board to reconcile: the drawing device's copy always wins.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   public var id: String
@@ -125,11 +129,15 @@ public struct BoardIndex: Codable, Equatable, Sendable {
 
   /// A new board's name: *Board, Nov 1*, then *Board, Nov 1 (2)* for the day's second.
   public func newTitle(at date: Date, timeZone: TimeZone = .current) -> String {
-    let f = DateFormatter()
-    f.locale = Locale(identifier: "en_US_POSIX")
-    f.timeZone = timeZone
-    f.dateFormat = "MMM d"
-    let base = "Board, " + f.string(from: date)
+    #if FOUNDATION_ESSENTIALS_ONLY
+      let base = "Board, " + LiteText.monthDay(date, timeZone: timeZone)
+    #else
+      let f = DateFormatter()
+      f.locale = Locale(identifier: "en_US_POSIX")
+      f.timeZone = timeZone
+      f.dateFormat = "MMM d"
+      let base = "Board, " + f.string(from: date)
+    #endif
     let taken = Set(boards.map(\.title))
     guard taken.contains(base) else { return base }
     var n = 2

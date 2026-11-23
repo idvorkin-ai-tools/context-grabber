@@ -5,11 +5,12 @@ import PackageDescription
 let chatWireSources = [
   "Chat/ChatWire.swift", "Chat/ChatDecisions.swift", "Chat/ChatMove.swift", "Chat/ChatLinks.swift",
   "Chat/ChatBubbleLinks.swift", "Chat/ChatCockpitLink.swift", "Cockpit/CockpitAddress.swift",
-  "Archive/ArchiveRecord.swift", "Chat/AppBuild.swift",
+  "Archive/ArchiveRecord.swift", "Chat/AppBuild.swift", "Platform/FoundationLite.swift",
+  "Platform/FoundationLiteShims.swift",
 ]
 
 // BoardCore's: the whole Whiteboard directory, new files included, and the CoreGraphics stand-ins it needs on Linux.
-let boardSources = ["Whiteboard", "Platform/LinuxGeometry.swift"]
+let boardSources = ["Whiteboard", "Platform/LinuxGeometry.swift", "Platform/LiteGeometry.swift"]
 
 // The board's tests, built against BoardCore alone (`just board-test`). Every Board*, Whiteboard* and Paper* test file
 // is in this list or the next; scripts/native/test-board-tests-listed.sh says which a new one is missing from. Their
@@ -59,6 +60,10 @@ let boardTestsInContextCore = [
   "WhiteboardStrokesTests.swift",
 ]
 
+// The board wasm links ChatWireKit, BoardCore and BoardWasm on FoundationEssentials alone, so it carries no ICU data
+// (bead context-grabber-pt1e). Everywhere else they import Foundation, as the rest of the package does.
+let essentialsOnly: [SwiftSetting] = [.define("FOUNDATION_ESSENTIALS_ONLY", .when(platforms: [.wasi]))]
+
 // The platform-free half of the native app: everything here runs under `swift test` on the Mac (docs/TESTING.md).
 let package = Package(
   name: "ContextCore",
@@ -79,8 +84,10 @@ let package = Package(
       providers: [.apt(["libsqlite3-dev"]), .brew(["sqlite"]), .yum(["sqlite-devel"])]),
     // The Cockpit chat wire the chat screen and the board share, in place under ContextCore (plan
     // 2026-11-22-contextcore-targets-plan.md); ContextCore excludes the same files and re-exports the module.
-    .target(name: "ChatWireKit", path: "Sources/ContextCore", sources: chatWireSources),
-    .target(name: "BoardCore", dependencies: ["ChatWireKit"], path: "Sources/ContextCore", sources: boardSources),
+    .target(name: "ChatWireKit", path: "Sources/ContextCore", sources: chatWireSources, swiftSettings: essentialsOnly),
+    .target(
+      name: "BoardCore", dependencies: ["ChatWireKit"], path: "Sources/ContextCore", sources: boardSources,
+      swiftSettings: essentialsOnly),
     .target(
       name: "ContextCore",
       dependencies: ["ChatWireKit", "BoardCore", .target(name: "CSQLite", condition: .when(platforms: [.linux]))],
@@ -90,7 +97,7 @@ let package = Package(
     // The board's rules for the Cockpit's web board: a WASI reactor exporting a small C interface (spec
     // 2026-11-22-board-rules-on-the-web-design.md; `just wasm`). Elsewhere it is a stub that says so.
     .executableTarget(
-      name: "BoardWasm", dependencies: ["BoardCore"],
+      name: "BoardWasm", dependencies: ["BoardCore"], swiftSettings: essentialsOnly,
       linkerSettings: [.unsafeFlags(["-Xclang-linker", "-mexec-model=reactor"], .when(platforms: [.wasi]))]),
     .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"] + boardTests),
     .testTarget(

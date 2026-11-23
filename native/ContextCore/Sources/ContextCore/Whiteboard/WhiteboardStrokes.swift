@@ -4,7 +4,11 @@
 //  a stroke as the Cockpit takes it, its stable id, the request and the answer. PencilKit stays in the app, which
 //  turns its strokes into these.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -148,7 +152,8 @@ public enum WhiteboardStrokes {
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     if status == 200, let json, json["ok"] as? Bool == true {
       return .stored(
-        count: json["count"] as? Int ?? 0, new: json["new"] as? Int ?? 0, erased: json["erased"] as? Int ?? 0)
+        count: JSONNumber.int(json["count"]) ?? 0, new: JSONNumber.int(json["new"]) ?? 0,
+        erased: JSONNumber.int(json["erased"]) ?? 0)
     }
     let reason = (json?["error"] as? String) ?? "HTTP \(status)"
     if (400..<500).contains(status) { return .refused(status: status, reason: reason) }

@@ -3,7 +3,11 @@
 //  https://<Cockpit host>/#thread/<key>, and the short `larry://inbox/<key>` Larry can write in plain text (a scheme
 //  the app registers). Either opens that thread in the app when the list knows it; otherwise the Cockpit page.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum ChatCockpitLink {
   /// The app's short scheme for a Cockpit thread.

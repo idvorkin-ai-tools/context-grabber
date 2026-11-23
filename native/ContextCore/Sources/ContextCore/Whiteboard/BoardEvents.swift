@@ -2,7 +2,11 @@
 //  stories 817, 818): its revision, what came of his last change, the Pencil's downs and ups and the taps since the last
 //  turn; and his kept texts, which go back to him in `strokes` as one text each, under his id.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

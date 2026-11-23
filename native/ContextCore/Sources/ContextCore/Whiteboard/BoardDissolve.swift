@@ -1,7 +1,11 @@
 //  Erasing part of a group leaves plain ink (spec 2026-11-16-whiteboard-board-ops-design.md, *Erasing part of a group
 //  dissolves it*, story 854; the Cockpit's assets/ink/board.mjs, `dissolvePartial`). Pure.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum BoardDissolve {
   /// After Igor erased the strokes named `erased`, with `live` the strokes left: each of Larry's groups that lost some

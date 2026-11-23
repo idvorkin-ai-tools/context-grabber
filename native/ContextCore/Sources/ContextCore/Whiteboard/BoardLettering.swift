@@ -2,7 +2,11 @@
 //  Igor, 2026-11-14, "don't use that outline view, just use like normal arial". The shapes are the Hershey fonts
 //  (BoardLetteringGlyphs.swift); this reads them and says which characters they write.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum BoardLettering {
   /// One character's strokes in Hershey units: y down, the baseline at `baseline`, a capital `capHeight` tall; drawn

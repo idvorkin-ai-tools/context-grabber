@@ -3,7 +3,11 @@
 //  over chat (`WhiteboardMarks`).
 //  Here: the request, the answer, and each shape as the ink lines that draw it on the board.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -165,7 +169,7 @@ public enum WhiteboardTurn {
   }
 
   private static func strokeShape(_ s: [String: Any]) -> [String: Any]? {
-    let n = { (key: String) in s[key] as? Double }
+    let n = { (key: String) in JSONNumber.double(s[key]) }
     switch s["kind"] as? String {
     case "rect":
       // Top-left, width and height.
@@ -206,7 +210,7 @@ public enum WhiteboardTurn {
       guard let x = n("x"), let y = n("y") else { return nil }
       let size = n("size") ?? 18
       let face = (s["font"] as? String).flatMap(Face.init(rawValue:)) ?? .print
-      return ["kind": "text", "points": [[x, y - ascent(face) * size]], "text": s["text"] ?? "", "size": size]
+      return ["kind": "text", "points": [[x, y - Double(ascent(face)) * size]], "text": s["text"] ?? "", "size": size]
     default:
       return nil
     }
@@ -241,7 +245,7 @@ public enum WhiteboardTurn {
   /// A number within reach of a picture: no point on the board is further out in pixels than its side at the finest
   /// scale. Past that, a model's coordinate could map to infinity on the board and trap when its ghost is kept.
   static func number(_ any: Any) -> CGFloat? {
-    guard let n = any as? NSNumber, abs(n.doubleValue) <= WhiteboardFrame.side * WhiteboardFrame.maxScale else {
+    guard let n = JSONNumber(any), abs(n.doubleValue) <= Double(WhiteboardFrame.side * WhiteboardFrame.maxScale) else {
       return nil
     }
     return CGFloat(n.doubleValue)

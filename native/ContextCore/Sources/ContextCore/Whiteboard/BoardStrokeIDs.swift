@@ -4,7 +4,11 @@
 //  the name it had before. Only a change of the ink itself (drawn, erased, partly erased) gives a new name. Undo and
 //  redo land on hashes already known, so they keep the name too.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardStrokeIDs: Equatable, Codable, Sendable {
   /// The most names remembered; past it the oldest go, and a stroke moved that long ago is named by its hash again.

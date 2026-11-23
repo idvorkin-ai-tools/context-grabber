@@ -4,7 +4,11 @@
 //  Pure: where the opened board puts each stroke, the shaded bands, and the map from the picture's places back to the
 //  folded board's, so Larry's marks on that picture land where he drew them.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -133,40 +137,42 @@ extension WhiteboardFrame {
   }
 }
 
-/// The fold maps of the pictures this device sent Larry, per board (#1013, story 1046): a reply names its picture, and
-/// its marks are mapped back onto the folded board by that picture's map. Kept across launches, as the pictures' times
-/// are. ponytail: UserDefaults on this device, the newest `kept` a board; a picture sent from another device isn't
-/// known, and its marks land as its frame says.
-public struct WhiteboardPictureFolds: @unchecked Sendable {
-  public static let kept = 200
-  private let defaults: UserDefaults
+#if !FOUNDATION_ESSENTIALS_ONLY
+  /// The fold maps of the pictures this device sent Larry, per board (#1013, story 1046): a reply names its picture, and
+  /// its marks are mapped back onto the folded board by that picture's map. Kept across launches, as the pictures' times
+  /// are. ponytail: UserDefaults on this device, the newest `kept` a board; a picture sent from another device isn't
+  /// known, and its marks land as its frame says.
+  public struct WhiteboardPictureFolds: @unchecked Sendable {
+    public static let kept = 200
+    private let defaults: UserDefaults
 
-  public init(defaults: UserDefaults = .standard) {
-    self.defaults = defaults
+    public init(defaults: UserDefaults = .standard) {
+      self.defaults = defaults
+    }
+
+    private func key(_ board: String) -> String { "whiteboard_picture_folds_\(board)" }
+
+    private struct Entry: Codable {
+      var picture: String
+      var map: BoardFoldMap
+    }
+
+    private func entries(_ board: String) -> [Entry] {
+      defaults.data(forKey: key(board)).flatMap { try? JSONDecoder().decode([Entry].self, from: $0) } ?? []
+    }
+
+    /// A picture drawn with folds open; one with none is never kept.
+    public func record(_ pictureID: String, map: BoardFoldMap?, board: String) {
+      guard let map, !map.steps.isEmpty else { return }
+      let kept = Array(
+        (entries(board).filter { $0.picture != pictureID } + [Entry(picture: pictureID, map: map)]).suffix(Self.kept))
+      if let data = try? JSONEncoder().encode(kept) { defaults.set(data, forKey: key(board)) }
+    }
+
+    /// `pictureID`'s map on this board; nil for a picture with no folds open, or one this device doesn't remember.
+    public func map(_ pictureID: String?, board: String) -> BoardFoldMap? {
+      guard let pictureID else { return nil }
+      return entries(board).last { $0.picture == pictureID }?.map
+    }
   }
-
-  private func key(_ board: String) -> String { "whiteboard_picture_folds_\(board)" }
-
-  private struct Entry: Codable {
-    var picture: String
-    var map: BoardFoldMap
-  }
-
-  private func entries(_ board: String) -> [Entry] {
-    defaults.data(forKey: key(board)).flatMap { try? JSONDecoder().decode([Entry].self, from: $0) } ?? []
-  }
-
-  /// A picture drawn with folds open; one with none is never kept.
-  public func record(_ pictureID: String, map: BoardFoldMap?, board: String) {
-    guard let map, !map.steps.isEmpty else { return }
-    let kept = Array(
-      (entries(board).filter { $0.picture != pictureID } + [Entry(picture: pictureID, map: map)]).suffix(Self.kept))
-    if let data = try? JSONEncoder().encode(kept) { defaults.set(data, forKey: key(board)) }
-  }
-
-  /// `pictureID`'s map on this board; nil for a picture with no folds open, or one this device doesn't remember.
-  public func map(_ pictureID: String?, board: String) -> BoardFoldMap? {
-    guard let pictureID else { return nil }
-    return entries(board).last { $0.picture == pictureID }?.map
-  }
-}
+#endif

@@ -6,7 +6,11 @@
 //  strokes, lengthens it. Ported from the Cockpit's web board (`WritingVad` in assets/ink/turns.mjs) with its numbers.
 //  The board's model owns the timers and hands the time in, so a host test can step it.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct WhiteboardWritingVad: Sendable {
   public static let floor: Duration = .milliseconds(1500)

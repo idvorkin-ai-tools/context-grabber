@@ -2,7 +2,11 @@
 //  on PaperKit's handwriting view with nothing selected moved 102 of a kept reply's 120 strokes, one paragraph of it, and
 //  left the rest of the group where it was. A drag by hand that picks up part of a group brings the rest along. Pure.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

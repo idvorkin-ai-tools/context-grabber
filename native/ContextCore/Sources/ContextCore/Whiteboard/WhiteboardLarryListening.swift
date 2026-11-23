@@ -4,7 +4,11 @@
 //  from the thread it already reads every few seconds, shows an ear, and takes a hold on the picture of the turn out as
 //  his answer.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum WhiteboardLarryListening {
   /// Larry's words while he holds on Igor's newest message in `thread` (oldest first): nil unless that message carries

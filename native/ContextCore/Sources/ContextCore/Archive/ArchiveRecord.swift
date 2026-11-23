@@ -2,7 +2,11 @@
 //  send their lines this way. In ChatWireKit, below ContextCore, so the board's module can reach it too
 //  (plan 2026-11-22-contextcore-targets-plan.md).
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum ArchiveRecord {
   /// The archive takes 8 KB per record, measured as the record's JSON; a long caption, escaped or not ASCII, is cut

@@ -3,7 +3,11 @@
 //  one held for the Pencil, and what came of the last. The board's model plans and applies what this lets through
 //  (`BoardOps.plan`, then PaperKit) and hands the time and the Pencil in.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// What the canvas made of a batch it was handed (#1040): it took it as planned, it wasn't there to take it (not laid
 /// out yet, or closed), or PaperKit refused the edit.
@@ -218,83 +222,85 @@ public struct BoardOpApplier: Equatable, Sendable {
   }
 }
 
-/// Where each board's meaning was kept before it had a file of its own (`BoardMeaning`): six UserDefaults keys per
-/// board on this device. Read now only to move them into the board's file, once (`BoardKeeping.migrateMeaning`), and
-/// as the fallback while that move hasn't happened.
-public struct BoardOpLedger: @unchecked Sendable {
-  private let defaults: UserDefaults
+#if !FOUNDATION_ESSENTIALS_ONLY
+  /// Where each board's meaning was kept before it had a file of its own (`BoardMeaning`): six UserDefaults keys per
+  /// board on this device. Read now only to move them into the board's file, once (`BoardKeeping.migrateMeaning`), and
+  /// as the fallback while that move hasn't happened.
+  public struct BoardOpLedger: @unchecked Sendable {
+    private let defaults: UserDefaults
 
-  public init(defaults: UserDefaults = .standard) {
-    self.defaults = defaults
+    public init(defaults: UserDefaults = .standard) {
+      self.defaults = defaults
+    }
+
+    struct Saved: Codable {
+      var rev: Int
+      var handled: [String]
+      var lastResult: BoardOps.Result?
+    }
+
+    /// The most kept texts remembered per board; the oldest go first.
+    public static let mostTexts = BoardMeaning.mostTexts
+
+    private func key(_ board: String) -> String { "whiteboard_ops_\(board)" }
+    private func textsKey(_ board: String) -> String { "whiteboard_texts_\(board)" }
+
+    public func applier(board: String) -> BoardOpApplier {
+      guard let data = defaults.data(forKey: key(board)), let saved = try? JSONDecoder().decode(Saved.self, from: data)
+      else { return BoardOpApplier() }
+      return BoardOpApplier(rev: saved.rev, handled: saved.handled, lastResult: saved.lastResult)
+    }
+
+    private func idsKey(_ board: String) -> String { "whiteboard_stroke_ids_\(board)" }
+    private func metaKey(_ board: String) -> String { "whiteboard_stroke_meta_\(board)" }
+    private func headersKey(_ board: String) -> String { "whiteboard_headers_\(board)" }
+    private func questionsKey(_ board: String) -> String { "whiteboard_questions_\(board)" }
+
+    private func keys(_ board: String) -> [String] {
+      [key(board), textsKey(board), idsKey(board), metaKey(board), headersKey(board), questionsKey(board)]
+    }
+
+    /// The board's meaning as these keys hold it; nil when it has none of them.
+    public func meaning(board: String) -> BoardMeaning? {
+      guard keys(board).contains(where: { defaults.object(forKey: $0) != nil }) else { return nil }
+      var meaning = BoardMeaning()
+      meaning.take(applier(board: board))
+      meaning.texts = texts(board: board)
+      meaning.strokeIDs = strokeIDs(board: board)
+      meaning.strokeMeta = strokeMeta(board: board)
+      meaning.headers = headers(board: board)
+      meaning.questions =
+        defaults.data(forKey: questionsKey(board)).flatMap {
+          try? JSONDecoder().decode(WhiteboardQuestions.self, from: $0)
+        }
+        ?? WhiteboardQuestions()
+      return meaning
+    }
+
+    /// The board's keys, gone once its file holds what they did.
+    public func forget(board: String) {
+      for key in keys(board) { defaults.removeObject(forKey: key) }
+    }
+
+    /// The board's headers and their folds (`BoardOutline`, story 855).
+    public func headers(board: String) -> [BoardHeader] {
+      defaults.data(forKey: headersKey(board)).flatMap { try? JSONDecoder().decode([BoardHeader].self, from: $0) } ?? []
+    }
+
+    /// Larry's notes on the board's strokes (`BoardStrokeMeta`).
+    public func strokeMeta(board: String) -> BoardStrokeMeta {
+      defaults.data(forKey: metaKey(board)).flatMap { try? JSONDecoder().decode(BoardStrokeMeta.self, from: $0) }
+        ?? BoardStrokeMeta()
+    }
+
+    /// The names moved strokes keep (`BoardStrokeIDs`).
+    public func strokeIDs(board: String) -> BoardStrokeIDs {
+      defaults.data(forKey: idsKey(board)).flatMap { try? JSONDecoder().decode(BoardStrokeIDs.self, from: $0) }
+        ?? BoardStrokeIDs()
+    }
+
+    public func texts(board: String) -> [BoardText] {
+      defaults.data(forKey: textsKey(board)).flatMap { try? JSONDecoder().decode([BoardText].self, from: $0) } ?? []
+    }
   }
-
-  struct Saved: Codable {
-    var rev: Int
-    var handled: [String]
-    var lastResult: BoardOps.Result?
-  }
-
-  /// The most kept texts remembered per board; the oldest go first.
-  public static let mostTexts = 500
-
-  private func key(_ board: String) -> String { "whiteboard_ops_\(board)" }
-  private func textsKey(_ board: String) -> String { "whiteboard_texts_\(board)" }
-
-  public func applier(board: String) -> BoardOpApplier {
-    guard let data = defaults.data(forKey: key(board)), let saved = try? JSONDecoder().decode(Saved.self, from: data)
-    else { return BoardOpApplier() }
-    return BoardOpApplier(rev: saved.rev, handled: saved.handled, lastResult: saved.lastResult)
-  }
-
-  private func idsKey(_ board: String) -> String { "whiteboard_stroke_ids_\(board)" }
-  private func metaKey(_ board: String) -> String { "whiteboard_stroke_meta_\(board)" }
-  private func headersKey(_ board: String) -> String { "whiteboard_headers_\(board)" }
-  private func questionsKey(_ board: String) -> String { "whiteboard_questions_\(board)" }
-
-  private func keys(_ board: String) -> [String] {
-    [key(board), textsKey(board), idsKey(board), metaKey(board), headersKey(board), questionsKey(board)]
-  }
-
-  /// The board's meaning as these keys hold it; nil when it has none of them.
-  public func meaning(board: String) -> BoardMeaning? {
-    guard keys(board).contains(where: { defaults.object(forKey: $0) != nil }) else { return nil }
-    var meaning = BoardMeaning()
-    meaning.take(applier(board: board))
-    meaning.texts = texts(board: board)
-    meaning.strokeIDs = strokeIDs(board: board)
-    meaning.strokeMeta = strokeMeta(board: board)
-    meaning.headers = headers(board: board)
-    meaning.questions =
-      defaults.data(forKey: questionsKey(board)).flatMap {
-        try? JSONDecoder().decode(WhiteboardQuestions.self, from: $0)
-      }
-      ?? WhiteboardQuestions()
-    return meaning
-  }
-
-  /// The board's keys, gone once its file holds what they did.
-  public func forget(board: String) {
-    for key in keys(board) { defaults.removeObject(forKey: key) }
-  }
-
-  /// The board's headers and their folds (`BoardOutline`, story 855).
-  public func headers(board: String) -> [BoardHeader] {
-    defaults.data(forKey: headersKey(board)).flatMap { try? JSONDecoder().decode([BoardHeader].self, from: $0) } ?? []
-  }
-
-  /// Larry's notes on the board's strokes (`BoardStrokeMeta`).
-  public func strokeMeta(board: String) -> BoardStrokeMeta {
-    defaults.data(forKey: metaKey(board)).flatMap { try? JSONDecoder().decode(BoardStrokeMeta.self, from: $0) }
-      ?? BoardStrokeMeta()
-  }
-
-  /// The names moved strokes keep (`BoardStrokeIDs`).
-  public func strokeIDs(board: String) -> BoardStrokeIDs {
-    defaults.data(forKey: idsKey(board)).flatMap { try? JSONDecoder().decode(BoardStrokeIDs.self, from: $0) }
-      ?? BoardStrokeIDs()
-  }
-
-  public func texts(board: String) -> [BoardText] {
-    defaults.data(forKey: textsKey(board)).flatMap { try? JSONDecoder().decode([BoardText].self, from: $0) } ?? []
-  }
-}
+#endif

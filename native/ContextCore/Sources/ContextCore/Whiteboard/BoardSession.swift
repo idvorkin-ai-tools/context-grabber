@@ -6,7 +6,11 @@
 //  reply, and each turn's board fields are put as the Cockpit's hint to Larry puts them. The copy in this repository is
 //  scrubbed (`scripts/native/board-sessions.py`): ids, counts, revisions, events and changes as recorded, no words.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -47,7 +51,7 @@ public struct BoardSession {
     name = header["name"] as? String ?? ""
     self.thread = thread
     self.board = board
-    contract = (header["contract"] as? NSNumber)?.intValue ?? 0
+    contract = JSONNumber(header["contract"])?.intValue ?? 0
     steps = Array(all.dropFirst())
   }
 
@@ -165,8 +169,8 @@ public struct BoardSession {
     }
     let changes = steps.filter(isChat).flatMap { step -> [Change] in
       (body(step)["events"] as? [[String: Any]] ?? []).compactMap { event in
-        guard event["type"] as? String == "strokes_changed", let t = (event["t"] as? NSNumber)?.int64Value,
-          let rev = (event["rev"] as? NSNumber)?.intValue
+        guard event["type"] as? String == "strokes_changed", let t = JSONNumber(event["t"])?.int64Value,
+          let rev = JSONNumber(event["rev"])?.intValue
         else { return nil }
         // Moves and erasures are what can conflict with a batch; new strokes never do (BoardOpApplier.touched).
         let ids = ["moved", "erased"].flatMap { event[$0] as? [String] ?? [] }
@@ -192,7 +196,7 @@ public struct BoardSession {
         guard let picture = body["picture_id"] as? String, step["expect"] is [String: Any] else { continue }
         answers[picture] = (ids.count, new)
         if let want = (step["expect"] as? [String: Any])?["response"] as? [String: Any],
-          (want["count"] as? NSNumber)?.intValue != ids.count || (want["new"] as? NSNumber)?.intValue != new
+          JSONNumber(want["count"])?.intValue != ids.count || JSONNumber(want["new"])?.intValue != new
         {
           report.mismatches.append("strokes \(picture): \(ids.count) (\(new) new), the Cockpit answered \(want)")
         }
@@ -202,9 +206,9 @@ public struct BoardSession {
         let answer = picture.flatMap { answers[$0] }
         let turn = Turn(
           id: body["id"] as? String ?? "", onBoard: body["board"] != nil, picture: picture,
-          rev: (body["rev"] as? NSNumber)?.intValue,
+          rev: JSONNumber(body["rev"])?.intValue,
           opResult: Self.result(body["op_result"]), events: (body["events"] as? [Any])?.count ?? 0,
-          eventsDropped: (body["events_dropped"] as? NSNumber)?.intValue, strokes: answer?.count, new: answer?.new)
+          eventsDropped: JSONNumber(body["events_dropped"])?.intValue, strokes: answer?.count, new: answer?.new)
         if turn.events > BoardTurnReport.maxEvents {
           report.mismatches.append("turn \(turn.id) carries \(turn.events) events, over \(BoardTurnReport.maxEvents)")
         }
@@ -253,7 +257,7 @@ public struct BoardSession {
     after index: Int
   ) -> Batch {
     let label = ops["label"] as? String ?? ""
-    let base = (ops["base_rev"] as? NSNumber)?.intValue ?? lastRev ?? 0
+    let base = JSONNumber(ops["base_rev"])?.intValue ?? lastRev ?? 0
     let repeated = steps[..<index].last(where: isChat).flatMap { Self.result(body($0)["op_result"]) }
     let recorded = steps[(index + 1)...].lazy.filter(isChat).compactMap { Self.result(body($0)["op_result"]) }
       .first { $0.label == label && $0 != repeated }
@@ -287,11 +291,11 @@ public struct BoardSession {
   /// An `op_result` as the iPad sends it.
   static func result(_ any: Any?) -> BoardOps.Result? {
     guard let json = any as? [String: Any], let label = json["label"] as? String, let ok = json["ok"] as? Bool,
-      let rev = (json["rev"] as? NSNumber)?.intValue
+      let rev = JSONNumber(json["rev"])?.intValue
     else { return nil }
     return BoardOps.Result(
       label: label, ok: ok, rev: rev, reason: json["reason"] as? String, missingIDs: json["missing_ids"] as? [String],
-      rebasedFrom: (json["rebased_from"] as? NSNumber)?.intValue, conflictIDs: json["conflict_ids"] as? [String],
+      rebasedFrom: JSONNumber(json["rebased_from"])?.intValue, conflictIDs: json["conflict_ids"] as? [String],
       rooms: (json["room"] as? [Any])?.compactMap(BoardOps.Room.init(wire:)))
   }
 

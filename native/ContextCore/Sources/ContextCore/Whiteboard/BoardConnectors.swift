@@ -3,7 +3,11 @@
 //  `connectorEnds`, `withConnectorInk`). A connector is one stroke under its name whose notes (`meta.connector`) say what
 //  it joins; every plan ends by routing each one again from where its ends are after it. Pure: the app draws the plan.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -132,7 +136,7 @@ extension BoardOps {
     guard let from = end("from"), let to = end("to") else {
       return .failure(Refusal(reason: Reason.badOp))
     }
-    let width = (json["width"] as? NSNumber).map { CGFloat($0.doubleValue) }.flatMap { $0.isFinite ? $0 : nil }
+    let width = JSONNumber(json["width"]).map { CGFloat($0.doubleValue) }.flatMap { $0.isFinite ? $0 : nil }
     return .success(
       .connector(
         NewConnector(

@@ -3,7 +3,11 @@
 //  while it is read and written, when a ghost turn's answer hands the board to Larry instead, and the iPad's timings
 //  for each turn.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(FoundationNetworking)
   import FoundationNetworking

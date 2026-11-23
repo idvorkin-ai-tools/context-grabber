@@ -1,7 +1,11 @@
 //  The whiteboard's launch hooks (docs/TESTING.md): the fixture board, and what a board does by itself on the
 //  simulator. Pure; the app's `runBoardFixtureHook` and the whiteboard's views do the work.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board on paper with a known id (#603); `GRABBER_BOARD_FIXTURE_FROM=<device
 /// name>` makes it another device's (#613).

@@ -3,7 +3,11 @@
 //  applies it to the canvas, and what each batch did is reported as Larry would read it in `op_result`, with the names it
 //  moved, erased, drew and left as ghosts. The `board-ops-harness` tool renders the result; the host tests pin it.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(Darwin)
   import CoreFoundation
@@ -42,14 +46,16 @@ public struct BoardReplay {
         var seen: [String: Int64] = [:]
         for (reply, value) in entries {
           guard !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            let number = value as? NSNumber, let time = pictureTime(number)
+            let time = pictureTime(value)
           else { throw InvalidKeepAll(key: key) }
           seen[reply] = time
         }
         return [.keepAll(seen: seen)]
       }
       if let ids = json["keep"] as? [String] { return [.keep(ids)] }
-      if let at = json["tap"] as? [NSNumber], at.count == 2 {
+      if let list = json["tap"] as? [Any], case let at = list.compactMap(JSONNumber.init), at.count == list.count,
+        at.count == 2
+      {
         return [.tap(CGPoint(x: at[0].doubleValue, y: at[1].doubleValue))]
       }
       if json["shapes"] != nil, let row = WhiteboardMarks.row(json.merging(["who": "larry"]) { a, _ in a }) {
@@ -59,13 +65,19 @@ public struct BoardReplay {
       return json["list"] != nil ? [.batch(key: key, json: json)] : []
     }
 
-    private static func pictureTime(_ number: NSNumber) -> Int64? {
-      #if canImport(Darwin)
-        guard CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+    /// A whole number of milliseconds: not a JSON boolean, nor a fraction.
+    private static func pictureTime(_ value: Any) -> Int64? {
+      guard !JSONNumber.isBool(value) else { return nil }
+      #if FOUNDATION_ESSENTIALS_ONLY
+        switch value {
+        case let n as Int64: return n
+        case let n as Double: return Int64(exactly: n)
+        default: return nil
+        }
       #else
-        guard type(of: number) != type(of: NSNumber(value: true)) else { return nil }
+        guard let number = value as? NSNumber else { return nil }
+        return Int64(number.stringValue)
       #endif
-      return Int64(number.stringValue)
     }
   }
 

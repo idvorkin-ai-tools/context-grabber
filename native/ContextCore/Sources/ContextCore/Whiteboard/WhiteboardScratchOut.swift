@@ -3,7 +3,11 @@
 //  `scratchOut` and `eraseHits` in assets/ink/board.mjs) with its thresholds, so both boards feel the same. Board points
 //  throughout; the app hands in the zigzag and the board's strokes, and removes what this names.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum WhiteboardScratchOut {
   /// Turns back along the zigzag's main direction, at least.

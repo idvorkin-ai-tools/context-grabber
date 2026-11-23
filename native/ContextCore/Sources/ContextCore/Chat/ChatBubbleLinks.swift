@@ -3,7 +3,11 @@
 //  same chip as the strip's: a pull request reads *PR*, a link to Igor's blog or its tailnet preview *Preview*, any
 //  other its chip's words. Punctuation written against a link stays beside its chip.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum ChatBubbleLinks {
   /// The blog's preview servers on the tailnet listen on these ports (Jekyll on the Cockpit's host).

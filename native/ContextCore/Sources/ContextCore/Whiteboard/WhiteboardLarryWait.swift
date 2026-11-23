@@ -6,7 +6,11 @@
 //  Cockpit that marks nothing, is Larry's to answer, with a quiet Interrupt. The board's model hands in the turn, the
 //  thread it last read, what it knows of the sending and the clock.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum WhiteboardLarryWait: String, Equatable, Sendable {
   /// No turn out, or Larry marked the picture done.

@@ -3,7 +3,11 @@
 //  look at the whole stroke saw its first points drawn and called it shown, so each stroke near the change is looked at
 //  one tile at a time.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

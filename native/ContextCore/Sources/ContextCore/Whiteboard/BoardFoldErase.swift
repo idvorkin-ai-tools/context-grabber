@@ -2,7 +2,11 @@
 //  903; the Cockpit's assets/ink/board.mjs: `foldHits`, `eraseFold`). Pure: which folds a path takes, by their marker
 //  (BoardFoldMarker.swift) or their header's ink, and the outline with those folds erased and the ink below closed up.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

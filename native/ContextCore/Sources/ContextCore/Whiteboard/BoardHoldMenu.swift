@@ -2,7 +2,11 @@
 //  stories 874, 1186, 1187; context-grabber-y4y): the rows by what the finger is on, so the menu is about that thing.
 //  Pure: the board shows the rows and does what was chosen.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

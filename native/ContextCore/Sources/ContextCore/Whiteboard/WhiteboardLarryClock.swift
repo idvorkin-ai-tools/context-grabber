@@ -5,7 +5,11 @@
 //  Cockpit has the picture and Larry hasn't picked it up the state says *Sent* (story 773), from where the picture is
 //  (`WhiteboardLarryWait.Mark`, the same reading the 20-second controls use).
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum WhiteboardLarryClock {
   /// What the bar says once he closed a turn with nothing to say, until the next one starts (#913).

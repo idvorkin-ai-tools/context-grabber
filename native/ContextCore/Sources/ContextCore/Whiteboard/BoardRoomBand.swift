@@ -2,7 +2,11 @@
 //  did (#1000)*; stories 1044, 1038, 1039, 1042): the see-through band where the room a lift would open (or close) lies, and the
 //  chip's words. The band is `BoardRoom.byHand`'s own answer, so what it shows is what the lift does. Pure.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

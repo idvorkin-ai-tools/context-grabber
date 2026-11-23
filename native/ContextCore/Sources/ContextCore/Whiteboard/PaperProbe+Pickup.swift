@@ -3,7 +3,11 @@
 //  text of Larry's dragged from PaperKit's handwriting view onto Igor's writing arrived with nothing selected, and the
 //  board took it for no drop at all. Pure.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

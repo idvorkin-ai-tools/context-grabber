@@ -1,7 +1,11 @@
 //  How a jump to a board learns it can open (#1137; spec 2026-10-25-native-chat-design.md, story 1137): a chat
 //  picture's *Jump to board*, *Board* in a thread's bar, a board link.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// A board this device draws, whose drawing is here, opens at once: no other device draws on it, so iCloud can bring
 /// nothing newer, only another device's delete, which `BoardIndex.merge` holds while the board is open and carries out

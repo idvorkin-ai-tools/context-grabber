@@ -3,7 +3,11 @@
 //  reached for the margin with the Pencil and it only drew (build 6e2ee969). Pure: the board judges a Pencil stroke
 //  from its path, and every try goes in the session log with its verdict.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

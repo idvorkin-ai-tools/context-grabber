@@ -2,7 +2,11 @@
 //  picture to draw and the list to be told, what set the save off, how many strokes it held and the revision it
 //  made. Never the drawing itself. The physical iPad's numbers decide whether the save's work moves off the main actor.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public struct BoardSaveTiming {
   /// What set a save off: the moment after a stroke, leaving the board, or the app going to the background.

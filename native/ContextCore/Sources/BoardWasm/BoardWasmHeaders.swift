@@ -4,7 +4,12 @@
 //  the exports are WASI's; the answers build everywhere.
 
 import BoardCore
-import Foundation
+
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics
@@ -79,7 +84,7 @@ enum WebHeaders {
     guard let json = try? JSONSerialization.jsonObject(with: input(pointer, length)) as? [String: Any] else {
       return reply(json: ["error": "no fold plan asked for"])
     }
-    let to = json["to"].map { $0 as? Int }
+    let to = json["to"].map { JSONNumber.int($0) }
     if to == .some(nil) { return reply(json: ["error": "a level to collapse to is a whole number"]) }
     return reply(json: WebHeaders.plan(loaded, to: to ?? nil))
   }

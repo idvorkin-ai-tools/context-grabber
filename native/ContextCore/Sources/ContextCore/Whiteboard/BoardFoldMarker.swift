@@ -2,7 +2,11 @@
 //  stories 900, 901; the Cockpit's assets/ink/board.mjs: `MARKER_PX`, `foldMarkerText`, `foldMarkerBox`). Pure: what
 //  the marker says, where its words start and the box an eraser has to cross.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 #if canImport(CoreGraphics)
   import CoreGraphics

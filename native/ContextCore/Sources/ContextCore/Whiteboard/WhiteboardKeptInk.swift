@@ -1,7 +1,11 @@
 //  Story 650 (context-grabber-ikya, context-grabber-qko5): whether a kept mark looks whole on screen a second after the
 //  keep, from the colours a picture of its spot holds, and how the board draws it again when it doesn't.
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 /// What a picture of a kept mark's spot holds, sorted against the paper: pixels near the ink's colour, near black, the
 /// rest, and how wide and tall the ink's colour and every pixel unlike the paper span, in pixels.

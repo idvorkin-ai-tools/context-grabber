@@ -2,7 +2,11 @@
 //  screen and nothing new sends nothing. A board opened again while its Send waited in the outbox knows it from the
 //  waiting picture itself (story 1192, bead context-grabber-kocz).
 
-import Foundation
+#if FOUNDATION_ESSENTIALS_ONLY
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 public enum WhiteboardLarryFrame: Equatable, Sendable {
   /// The part of the board on screen when the picture was taken.
