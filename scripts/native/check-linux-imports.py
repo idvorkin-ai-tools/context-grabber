@@ -7,7 +7,7 @@ import sys
 
 
 LINUX_MODULES = {
-    "BoardCore", "BoardOpsHarness", "ChatWireKit", "ContextCore", "CSQLite", "TouchReplay",
+    "BoardCore", "BoardOpsHarness", "BoardWasm", "ChatWireKit", "ContextCore", "CSQLite", "TouchReplay",
     "CoreFoundation", "Dispatch", "Distributed", "Foundation", "FoundationEssentials",
     "FoundationInternationalization", "FoundationNetworking", "FoundationXML", "Glibc",
     "Observation", "RegexBuilder", "Swift", "Synchronization", "Testing", "XCTest",

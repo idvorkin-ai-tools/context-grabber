@@ -103,6 +103,9 @@ let package = Package(
     .testTarget(
       name: "BoardCoreTests", dependencies: ["BoardCore"], path: "Tests/ContextCoreTests", sources: boardTests,
       swiftSettings: [.unsafeFlags(["-module-alias", "ContextCore=BoardCore"])]),
+    // The web board's exports asked on the host, against the app's own rules (spec
+    // 2026-11-22-board-rules-on-the-web-design.md): the answers build everywhere, only the exports are WASI's.
+    .testTarget(name: "BoardWasmTests", dependencies: ["BoardWasm", "BoardCore"]),
   ],
   swiftLanguageModes: [.v5]
 )

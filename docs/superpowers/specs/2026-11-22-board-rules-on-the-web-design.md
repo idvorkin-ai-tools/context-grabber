@@ -242,6 +242,22 @@ whole lines until it is half a line under the lowest mark. `bw_info` says `"abi"
 - A stroke's `t` in the outline (`bw_outline_load`, `bw_outline_add`) is when it was made, unix ms: what tells ink
   newer than the picture. A stroke without one is taken as seen.
 
+## The interface, version 9: lines that look like headers
+
+Story 1267. The faint H the web board offers beside a line written big or underlined is the iPad's offer: the same
+lines, for the same reasons, over the loaded outline. `bw_info` says `"abi": 9`; versions 1 to 8 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_candidates` | `{"declined"?: [name]}`: strokes of lines Igor said were not headers | a reply: `{"candidates": [{"y", "top", "bottom", "left", "right", "why"}]}`, top down; `{"error"}` with no outline or a request that is not a JSON object |
+
+- A line is offered when it is written well bigger than his usual lines (once there are four lines of his to judge
+  by) or underlined across most of its width; `why` is `big` or `underline`, and `y` is the line's middle, where a
+  margin tap makes it a header.
+- A line already a header, or on a row holding one, is never offered; nor is one with a declined stroke on its row,
+  nor writing that is not his (a kept text, a card, a group of Larry's).
+- Asking changes nothing: the loaded outline stays as it was.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
