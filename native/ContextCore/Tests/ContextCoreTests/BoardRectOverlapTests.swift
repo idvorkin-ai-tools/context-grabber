@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// Story 1511: the board's rules ask whether two boxes overlap the way CoreGraphics answers `intersects`, so the
+/// Story 1512: the board's rules ask whether two boxes overlap the way CoreGraphics answers `intersects`, so the
 /// iPad, the Mac, Linux and the Cockpit's WebAssembly build land a paste in the same spot. The cases are the ones
 /// checked against Apple's `CGRect.intersects` on the Mac (macOS 27 SDK, 2026-11-23); swift-corelibs-foundation
 /// answers the first two the other way.

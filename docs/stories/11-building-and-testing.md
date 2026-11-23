@@ -1602,7 +1602,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1512:
 
 - **Summary:** The web board asks the app's own rules where a paste lands and how much room a drop opens
-- **Status:** implemented in 91bdde09, and 9076ef2a makes the rules ask their own `CGRect.overlaps` (boxes that only touch do not overlap, as Apple answers `intersects`; Foundation on Linux and WASI says they do); verified by `just wasm-test` (120 checks, a hand-worked paste and drop among them), the Linux rung (`just test-linux`, 894 tests, `BoardRectOverlapTests` among them) and the Cockpit's paste comparison (0 differences, none left on touching), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Status:** implemented in 9810a283, and 50e9918b makes the rules ask their own `CGRect.overlaps` (boxes that only touch do not overlap, as Apple answers `intersects`; Foundation on Linux and WASI says they do); verified by `just wasm-test` (120 checks, a hand-worked paste and drop among them), the Linux rung (`just test-linux`, 894 tests, `BoardRectOverlapTests` among them) and the Cockpit's paste comparison (0 differences, none left on touching), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 3
 - **Issues:** bead `context-grabber-edl`
 
