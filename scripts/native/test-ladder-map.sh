@@ -504,7 +504,7 @@ if grep -qxF "caffeinate -u -t 5" "$MARKS/caffeinate"; then ok "rung 2 wakes the
 run -- --rung 1.5 --changed native/App/Chat/ChatViews.swift
 if grep -qxF "caffeinate -i" "$MARKS/caffeinate" && ! grep -q -- "-d" "$MARKS/caffeinate"; then ok "the Mac rung keeps the Mac awake, not the display"
 else bad "the Mac rung's caffeinate: $(cat "$MARKS/caffeinate")"; fi
-# Story 1505 (context-grabber-xmwp): a time limit that can't be found stops the rung; it never runs with none.
+# Story 1507 (context-grabber-xmwp): a time limit that can't be found stops the rung; it never runs with none.
 run LADDER_TIME_LIMIT="$tmp/no-such-time-limit" -- --rung 1.5 --changed native/App/Chat/ChatViews.swift
 status=$?
 if [ "$status" -eq 2 ]; then ok "no time limit: the rung refuses"; else bad "no time limit: the rung refuses, exit $status"; fi

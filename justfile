@@ -76,7 +76,7 @@ native-test-host:
     scripts/native/test-ladder-map.sh
     # Story 785 (#954): the build lanes, their locks and simulators, sim-boot and the xcodebuild wait per lane.
     scripts/native/test-build-lane.sh
-    # Story 1505 (context-grabber-xmwp): the repo's own rung time limit stops a hang and all it started, exit 124.
+    # Stories 1505, 1506 (context-grabber-xmwp): the repo's own rung time limit stops a hang and all it started, exit 124.
     scripts/native/test-time-limit.sh
     # Stories 795, 797, 798 (context-grabber-mkd0): the host slots, six jobs on four, the wait, a killed holder.
     scripts/native/test-host-lane.sh

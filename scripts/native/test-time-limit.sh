@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Story 1505 (context-grabber-xmwp): the repo's own rung time limit. A command that finishes keeps its status, one that
+# Stories 1505, 1506 (context-grabber-xmwp): the repo's own rung time limit. A command that finishes keeps its status, one that
 # runs past its limit is stopped with everything it started (exit 124), a bad call is refused, and ~/.zshenv never
 # reaches the command. A "minute" is one second here (TIME_LIMIT_UNIT_S).
 cd "$(dirname "$0")/../.." || exit 1
