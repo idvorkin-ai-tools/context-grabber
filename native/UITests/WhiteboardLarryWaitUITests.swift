@@ -1,4 +1,4 @@
-//  Stories 775-777, 802, 805 and 806 (bead context-grabber-stl) on the simulator, against the fake Cockpit
+//  Stories 775, 777, 802, 804 and 805 (bead context-grabber-stl) on the simulator, against the fake Cockpit
 //  (scripts/native/test-whiteboard-ui.sh starts it): twenty seconds into a board turn Larry hasn't answered, the board
 //  offers Interrupt when he has the picture, and Retry when the Cockpit never took it. What each reading offers is
 //  `WhiteboardLarryWaitTests`, on the host; these hold the controls themselves, on an iPad.
@@ -8,11 +8,12 @@ import XCTest
 final class WhiteboardLarryWaitUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
-  /// Stories 777, 805, 806: a slow Larry on a Cockpit that marks nothing gets a quiet Interrupt past twenty seconds; a
+  /// Stories 777, 805: a slow Larry on a Cockpit that marks nothing gets a quiet Interrupt past twenty seconds; a
   /// tap frees the board, so the next tap is a fresh ask with a new clock.
   func testInterruptShowsPastTwentySecondsAndFreesTheBoard() throws {
     let (app, cockpit) = try launch()
     stroke(app, at: 0.5)
+    addTeardownBlock { try? self.post(cockpit + "/fake/larry-ops", "null") }
     try post(cockpit + "/fake/larry-ops", #"{"kind": "slow", "seconds": 45}"#)
     app.buttons["whiteboard-larry"].tap()
     let state = app.descendants(matching: .any)["whiteboard-note-state"]
