@@ -71,8 +71,9 @@ enum WebOutline {
     let ink = try (json["strokes"] as? [Any] ?? []).enumerated().map { try Self.ink($1, $0) }
     let boxes = try (json["boxes"] as? [Any] ?? []).enumerated().map { try box($1, $0) }
     let headers = try Self.headers(json["headers"])
-    return BoardOutline(
-      strokes: ink + boxes, headers: headers, groups: json["groups"] as? [String: String] ?? [:])
+    var groups = json["groups"] as? [String: String] ?? [:]
+    for id in boxes.flatMap(\.ids) where groups[id] == nil { groups[id] = id }
+    return BoardOutline(strokes: ink + boxes, headers: headers, groups: groups)
   }
 
   static func strokes(json any: Any) throws -> [BoardOps.Stroke] {

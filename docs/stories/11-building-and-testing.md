@@ -1602,7 +1602,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1508:
 
 - **Summary:** The web board asks the app's own outline which row of writing a tap is on and what folding a header does
-- **Status:** implemented in d58935af; verified by the Linux rung (`just test-linux`: ContextCore's 890 tests, the cross-builds and the app compile, every portable script check) and `just wasm-test` (113 checks, the hand-worked outline among them), 2026-11-22. The Cockpit's side compares it with its own rules on every recorded board and 150 seeded random boards with no difference. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Status:** implemented in 8a998f29; verified by the Linux rung (`just test-linux`: ContextCore's 890 tests, the cross-builds and the app compile, every portable script check) and `just wasm-test` (113 checks, the hand-worked outline among them), 2026-11-22. The Cockpit's side compares it with its own rules on every recorded board and 150 seeded random boards with no difference. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 2
 - **Issues:** bead `context-grabber-edl`
 
