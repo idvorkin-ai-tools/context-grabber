@@ -295,8 +295,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 790:
 
 - **Summary:** A failed UI test's screenshots can still be opened after the run
-- **Status:** implemented in [ce8857d2](https://github.com/idvorkin/context-grabber/commit/ce8857d2); verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild that writes its bundle for 8 s, silently, after its suite closes and then hangs: the stop waits for `Info.plist`, the failure names the bundle; one that never finishes is given up on at the limit and says so; a command's own bundle path is kept, a build gets none; the check fails against the old script), and on the simulator (rung 2, `GymTimerUITests`): the run's bundle at `native/Build/logs/ladder-ui-tests.xcresult` opened with `xcrun xcresulttool get test-results summary` (Passed, 1 test). That run's xcodebuild ended by itself, so the stop's wait was seen only with the fake
-- **Issues:** bead `context-grabber-r4wh` (2026-11-21: every recent result bundle in the pool slots held only `Staging`, no `Info.plist`, so `xcresulttool` called it corrupted and the screenshots failed tests keep were gone; evidence for two flaky tests had to be re-gathered by making the tests write PNGs)
+- **Status:** implemented in [ce8857d2](https://github.com/idvorkin/context-grabber/commit/ce8857d2); verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild that writes its bundle for 8 s, silently, after its suite closes and then hangs: the stop waits for `Info.plist`, the failure names the bundle; one that never finishes is given up on at the limit and says so; a command's own bundle path is kept, a build gets none; the check fails against the old script), and on the simulator (rung 2, `GymTimerUITests`): the run's bundle at `native/Build/logs/ladder-ui-tests.xcresult` opened with `xcrun xcresulttool get test-results summary` (Passed, 1 test). That run's xcodebuild ended by itself, so the stop's wait was seen only with the fake. Amended in b754485c (bead `context-grabber-wyp5`): the stop waits for the last of several test targets, verified on the host by the same script (a second target quiet for 12 s past 1 s idle and 2 s bundle limits runs to its pass; the check fails against the old script)
+- **Issues:** bead `context-grabber-r4wh` (2026-11-21: every recent result bundle in the pool slots held only `Staging`, no `Info.plist`, so `xcresulttool` called it corrupted and the screenshots failed tests keep were gone; evidence for two flaky tests had to be re-gathered by making the tests write PNGs); bead `context-grabber-wyp5` (2026-11-22: the stop armed on the first target's closing suite, so a second target that went quiet past the limits was stopped as hung; not yet seen on a run, the contracts' second target takes about 10 s)
 
 #### Use Case:
 - **As Igor,** or an agent, looking into a UI test that failed
@@ -305,7 +305,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** xcodebuild sits quiet after the last suite closes
-- **Given:** a UI test run whose last suite has closed, while xcodebuild is still writing the run's result bundle
+- **Given:** a UI test run whose last suite has closed (in a run of several test targets, the last target's), while xcodebuild is still writing the run's result bundle
 - **When:** the run's idle stop would fire
 - **Then:** the run waits until the bundle is written in full (up to two minutes after the suite closed), then stops xcodebuild if it is still there; the bundle sits beside the run's log, named for the run, and opens with `xcrun xcresulttool`; a failed run names it; a bundle not written in time is given up on and the run says it can't be opened
 
