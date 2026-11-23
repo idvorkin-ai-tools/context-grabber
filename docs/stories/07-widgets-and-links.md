@@ -603,7 +603,7 @@ apart."*
 ### User Story 238:
 
 - **Summary:** The drill's Stats pairs with Larry's box, from a pasted link or a code
-- **Status:** native app only: implemented in [68d25d32](https://github.com/idvorkin/context-grabber/commit/68d25d32) on think-a-card-trainer v0.3.9 (the field, the code parsing and the copyable failure are the library's, verified by its host tests); verified by host `just native-test`, the Mac build, and the iPad Pro 11-inch (M5) simulator smoke (the drill hook opened the drill; its two failures, the whiteboard's Larry turn offline and the call skipped with the lid closed, are not this change); the shared Keychain group is proven only by the signed phone build, and the first real pairing is Igor's
+- **Status:** native app only: implemented in [9535b2f0](https://github.com/idvorkin/context-grabber/commit/9535b2f0) on think-a-card-trainer v0.3.9 (the field, the code parsing and the copyable failure are the library's, verified by its host tests); verified by host `just native-test`, the Mac build, and the iPad Pro 11-inch (M5) simulator smoke (the drill hook opened the drill; its two failures, the whiteboard's Larry turn offline and the call skipped with the lid closed, are not this change); the shared Keychain group is proven only by the signed phone build, and the first real pairing is Igor's
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 
 Igor, 2026-11-23: the drill's *Stats* asked for pairing and there was nowhere to put a code; the ledger now checks
