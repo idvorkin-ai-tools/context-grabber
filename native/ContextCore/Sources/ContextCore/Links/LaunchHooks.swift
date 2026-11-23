@@ -31,6 +31,8 @@ public enum LaunchHook: Equatable, Sendable {
   case whatsNew
   /// `GRABBER_HOME=settings`.
   case homeSettings
+  /// `GRABBER_HOME=ink-side-by-side`: Settings, then Ink side by side over it (story 1209).
+  case inkSideBySide
   /// `GRABBER_SUPERMIX=<mix>`.
   case supermix(WorkoutSupermix.Mix)
   /// `GRABBER_INBOX_FIXTURE=1`.
@@ -121,6 +123,7 @@ public struct LaunchHooks: Equatable, Sendable {
     add(PaperStageHook(env).map(LaunchHook.paperStage))
     if env["GRABBER_WHATS_NEW"] == "open" { add(.whatsNew) }
     if env["GRABBER_HOME"] == "settings" { add(.homeSettings) }
+    if env["GRABBER_HOME"] == "ink-side-by-side" { add(.inkSideBySide) }
     add(env["GRABBER_SUPERMIX"].flatMap(WorkoutSupermix.Mix.init(rawValue:)).map(LaunchHook.supermix))
     if env["GRABBER_INBOX_FIXTURE"] == "1" { add(.inboxFixture) }
     if env["GRABBER_INBOX"] == "open" { add(.inbox) }

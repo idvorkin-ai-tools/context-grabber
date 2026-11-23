@@ -4,6 +4,10 @@ import XCTest
 
 @testable import ContextCore
 
+#if canImport(JavaScriptCore)
+  import JavaScriptCore
+#endif
+
 final class InkLatencyTests: XCTestCase {
   func testBeforeAnyStrokeTheCornerSaysDrawToMeasure() {
     let latency = InkLatency(side: .native)
@@ -72,11 +76,53 @@ final class InkLatencyTests: XCTestCase {
       "https://cockpit.example.net/ink?b=scratch")
   }
 
-  func testTheProbeListensBeforeThePageAndPostsToItsHandler() {
-    let script = InkLatency.webProbeScript
-    XCTAssertTrue(script.contains("capture: true"), "it must run before the page can stop the event")
-    XCTAssertTrue(script.contains("e.timeStamp"))
-    XCTAssertTrue(script.contains("requestAnimationFrame"))
-    XCTAssertTrue(script.contains("messageHandlers.\(InkLatency.messageHandler)"))
-  }
+  #if canImport(JavaScriptCore)
+    /// The spec's span, run in a real JavaScript engine: a pen-down at 100 ms on the page's clock and the next frame
+    /// at 116 ms is one 16 ms sample, posted at the frame and not before; a tap on the page's own button is none.
+    func testTheProbeTimesAPenDownToTheNextFrameAndSkipsThePagesButtons() throws {
+      let js = try XCTUnwrap(JSContext())
+      var thrown: [String] = []
+      js.exceptionHandler = { _, error in thrown.append(error?.toString() ?? "?") }
+      js.evaluateScript(
+        """
+        var window = this;
+        var listeners = [];
+        function addEventListener(type, fn, opts) { listeners.push({ type: type, fn: fn, opts: opts }); }
+        var frames = [];
+        function requestAnimationFrame(fn) { frames.push(fn); }
+        var clock = 0;
+        var performance = { now: function () { return clock; } };
+        var posts = [];
+        window.webkit = { messageHandlers: { "\(InkLatency.messageHandler)": { postMessage: function (m) { posts.push(m); } } } };
+        function el(tag, parent) {
+          return { tag: tag, parent: parent, closest: function (sel) {
+            var tags = sel.split(",").map(function (s) { return s.trim(); });
+            for (var n = this; n; n = n.parent) { if (tags.indexOf(n.tag) >= 0) return n; }
+            return null;
+          } };
+        }
+        function down(target, stamp) {
+          listeners.forEach(function (l) { l.fn({ target: target, timeStamp: stamp, pointerType: "pen" }); });
+        }
+        function frame(at) { clock = at; var due = frames; frames = []; due.forEach(function (f) { f(at); }); }
+        function sent() { return JSON.stringify(posts.map(function (p) { return p.ms; })); }
+        """)
+      js.evaluateScript(InkLatency.webProbeScript)
+      js.evaluateScript(InkLatency.webProbeScript)
+      XCTAssertEqual(js.evaluateScript("listeners.length")?.toInt32(), 1, "a second injection adds no second listener")
+      XCTAssertEqual(js.evaluateScript("listeners[0].type")?.toString(), "pointerdown")
+      XCTAssertEqual(
+        js.evaluateScript("listeners[0].opts.capture === true")?.toBool(), true,
+        "it must run before the page can stop the event")
+
+      js.evaluateScript("down(el('canvas', el('div')), 100); clock = 105")
+      XCTAssertEqual(js.evaluateScript("sent()")?.toString(), "[]", "nothing until the next frame")
+      js.evaluateScript("frame(116)")
+      XCTAssertEqual(js.evaluateScript("sent()")?.toString(), "[16]")
+
+      js.evaluateScript("down(el('svg', el('button', el('div'))), 200); frame(216)")
+      XCTAssertEqual(js.evaluateScript("sent()")?.toString(), "[16]", "a tap on the page's own button is not a stroke")
+      XCTAssertEqual(thrown, [])
+    }
+  #endif
 }

@@ -2015,7 +2015,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1209:
 
 - **Summary:** Ink side by side: the iPad's PencilKit ink beside the web board's, with how long each takes to reach a frame
-- **Status:** being built (bead context-grabber-vabk)
+- **Status:** implemented in e8090678; verified by InkLatencyTests (host) and the Mac build; the iPad simulator check is IPadInkSideBySideUITests, the latency itself the real iPad's
 - **Spec:** [Ink side by side](../superpowers/specs/2026-11-22-ink-side-by-side-design.md)
 
 #### Use Case:
@@ -2029,21 +2029,69 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I open Settings → *Ink side by side*
 - **Then:** the left half is a PencilKit canvas that draws, the right half is the Cockpit's */ink* page on its *scratch* board, and each half's corner reads *Draw to measure*
 
-- **Scenario:** A stroke on either half
-- **Given:** the screen open
-- **When:** I draw a stroke on one half
-- **Then:** that half's corner reads `last … ms · median … ms · n strokes`, and the log gains one `ink_side_by_side` event naming that side, the milliseconds, the median and the count
+### User Story 1213:
 
+- **Summary:** Ink side by side: a stroke on either half updates its corner and the log
+- **Status:** implemented in e8090678; verified by InkLatencyTests (host) and the Mac build
+- **Spec:** [Ink side by side](../superpowers/specs/2026-11-22-ink-side-by-side-design.md)
+
+#### Use Case:
+- **As someone** comparing the iPad's ink with the web board's
+- **I want to** see each stroke's time in that half's corner and in the log
+- **so that** a felt difference can be checked against a number, then and after the fact
+
+#### Acceptance Criteria:
+- **Scenario:** A stroke on either half
+- **Given:** the Ink side by side screen open
+- **When:** I draw a stroke on one half
+- **Then:** that half's corner reads `last … ms · median … ms · n strokes`, and the log gains one `ink_side_by_side` event naming that side, the milliseconds, the median and the count; a tap on the web board's own buttons and menus is not counted
+
+### User Story 1214:
+
+- **Summary:** Ink side by side: the Cockpit out of reach shows a copyable error, and the left half still works
+- **Status:** implemented in e8090678; verified by InkLatencyTests (host) and the Mac build
+- **Spec:** [Ink side by side](../superpowers/specs/2026-11-22-ink-side-by-side-design.md)
+
+#### Use Case:
+- **As someone** comparing the iPad's ink with the web board's
+- **I want to** know why the web half is empty and keep drawing on the left
+- **so that** a missing web board is a copyable error, not a blank half
+
+#### Acceptance Criteria:
 - **Scenario:** The Cockpit out of reach
 - **Given:** the Cockpit can't be reached
-- **When:** I open the screen
-- **Then:** the right half shows the page's own error, and the left half still draws and measures
+- **When:** I open the Ink side by side screen
+- **Then:** the right half shows the app's copyable error, *The web board didn't load* with the reason, and the left half still draws and measures
 
+### User Story 1215:
+
+- **Summary:** Ink side by side: each visit starts afresh
+- **Status:** implemented in e8090678; verified by InkLatencyTests (host) and the Mac build
+- **Spec:** [Ink side by side](../superpowers/specs/2026-11-22-ink-side-by-side-design.md)
+
+#### Use Case:
+- **As someone** comparing the iPad's ink with the web board's
+- **I want to** start each comparison with empty counts
+- **so that** one sitting's numbers never mix with the last one's
+
+#### Acceptance Criteria:
 - **Scenario:** Each visit starts afresh
 - **Given:** strokes measured on both halves
 - **When:** I leave the screen and open it again
 - **Then:** both corners read *Draw to measure* again
 
+### User Story 1216:
+
+- **Summary:** Ink side by side: not on the iPhone
+- **Status:** implemented in e8090678; verified by InkLatencyTests (host) and the Mac build
+- **Spec:** [Ink side by side](../superpowers/specs/2026-11-22-ink-side-by-side-design.md)
+
+#### Use Case:
+- **As someone** comparing the iPad's ink with the web board's
+- **I want to** see no Ink side by side row on the iPhone
+- **so that** the iPhone's Settings stays about what the iPhone does: it only looks at boards
+
+#### Acceptance Criteria:
 - **Scenario:** Not on the iPhone
 - **Given:** the iPhone
 - **When:** I open Settings

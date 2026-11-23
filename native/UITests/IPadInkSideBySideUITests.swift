@@ -1,14 +1,16 @@
 //  Story 1209 on the simulator: Settings → Ink side by side opens both halves, the left half draws and its corner
 //  counts the stroke. The web half's page needs the real Cockpit, so only its corner is checked here; the numbers
 //  themselves are InkLatencyTests' on the host, and the feel is the iPad's.
-//  Run: xcodebuild … -only-testing:GrabberNativeUITests/InkSideBySideUITests
+//  Run it on an iPad simulator; on a phone it skips (the row is not there).
+//  Run: xcodebuild … -only-testing:GrabberNativeUITests/IPadInkSideBySideUITests
 
 import XCTest
 
-final class InkSideBySideUITests: XCTestCase {
+final class IPadInkSideBySideUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
   func testBothHalvesOpenAndAStrokeOnTheLeftIsCounted() throws {
+    try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "an iPad simulator only")
     let app = XCUIApplication.forTests()
     app.launch()
     app.openHomeSettings()

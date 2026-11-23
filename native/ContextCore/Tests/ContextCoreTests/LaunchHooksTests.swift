@@ -190,6 +190,7 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertEqual(steps(["GRABBER_WHITEBOARD": "open"]), [.whiteboard])
     XCTAssertEqual(steps(["GRABBER_WHATS_NEW": "open"]), [.whatsNew])
     XCTAssertEqual(steps(["GRABBER_HOME": "settings"]), [.homeSettings])
+    XCTAssertEqual(steps(["GRABBER_HOME": "ink-side-by-side"]), [.inkSideBySide])
     XCTAssertEqual(steps(["GRABBER_INBOX_FIXTURE": "1"]), [.inboxFixture])
     XCTAssertEqual(steps(["GRABBER_INBOX": "open"]), [.inbox])
     XCTAssertEqual(steps(["GRABBER_CHAT_SEND_AGAIN": "1"]), [.chatSendAgain])

@@ -1,6 +1,6 @@
 # Ink side by side: the iPad's own ink beside the web board's
 
-Status: built for bead context-grabber-vabk (story 1209). Asked for by Igor on 2026-11-22 at 21:38, via Larry.
+Status: built for bead context-grabber-vabk (stories 1209, 1213–1216). Asked for by Igor on 2026-11-22 at 21:38, via Larry.
 
 ## Summary
 
@@ -35,7 +35,8 @@ does today, and nothing about the web board changes either.
   (PencilKit)*, the right *Web board (/ink)*. Each half fills the height under the bar.
 - **The left half** draws with a black pen under the Pencil or a finger. A **Clear** button in the bar empties it.
 - **The right half** is the Cockpit's */ink* page on its *scratch* board, the same page as in Safari, with its own
-  tools. If the Cockpit can't be reached, the half shows the page's own error and the left half still works.
+  tools. If the Cockpit can't be reached, the half shows the app's copyable error, *The web board didn't load* with
+  the reason, and the left half still works.
 - **The readout:** each half's top corner shows its numbers as `last 18 ms · median 21 ms · 12 strokes`, and
   *Draw to measure* before the first stroke. The numbers update with each stroke. Leaving the screen and coming back
   starts both counts again.
@@ -48,7 +49,8 @@ Both sides measure the same span: **from the moment the pen touched down to the 
 display draws**. That is the earliest frame the new stroke could appear in.
 
 - **Left (PencilKit):** the touch's own timestamp, to the first display-link tick after it.
-- **Right (web):** the pointer event's own timestamp, to the first animation frame after it.
+- **Right (web):** the pointer event's own timestamp, to the first animation frame after it. A tap on the page's
+  own buttons, menus and fields is not a stroke and is not counted, so both sides count only pen-downs that ink.
 
 Each side compares two times on one clock, so each number is sound on its own terms. They differ in what they
 can't see:
@@ -70,7 +72,9 @@ can't see:
   the web board's *scratch* board, which draws too.
 - Each stroke on either half updates that half's readout, `last … ms · median … ms · n strokes`, and adds one
   `ink_side_by_side` event to the log, naming the side.
-- With the Cockpit unreachable, the right half shows the page's error, and the left still draws and measures.
+- With the Cockpit unreachable, the right half shows the app's copyable *The web board didn't load* error, and the
+  left still draws and measures.
+- A tap on the web board's own buttons, menus or fields leaves the web readout unchanged.
 - Closing the screen and opening it again starts both readouts at *Draw to measure*.
 - The iPhone's Settings has no *Ink side by side* row.
 - The board's own drawing behaves exactly as before.

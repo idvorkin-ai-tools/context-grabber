@@ -72,11 +72,14 @@ public struct InkLatency: Equatable, Sendable {
   /// Injected into the web board at document start. It never changes the page: it listens on the window in the
   /// capture phase, before the page's own handlers can stop the event, takes the pointer event's own timestamp,
   /// and posts the time to the first animation frame after it. Both times are on the page's performance clock.
+  /// A pen-down on the page's own controls is not a stroke, so it is not timed.
   public static let webProbeScript = """
     (() => {
       if (window.__inkLatencyProbe) return;
       window.__inkLatencyProbe = true;
       addEventListener("pointerdown", (e) => {
+        const t = e.target;
+        if (t && t.closest && t.closest("button, a, input, select, textarea, label, [role=button], [role=menuitem]")) return;
         const down = e.timeStamp;
         requestAnimationFrame(() => {
           const ms = performance.now() - down;

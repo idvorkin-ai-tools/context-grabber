@@ -33,6 +33,7 @@ extension AppModel {
       case .paperStage(let hook): PaperTouchStage.show(hook)
       case .whatsNew: openWhatsNew(from: "hook")
       case .homeSettings: openHomeSettings()
+      case .inkSideBySide: openInkSideBySide()
       case .supermix(let mix): openWorkoutSupermix(from: "hook", mix: mix)
       // #305: three Inbox items as the share extension writes them (never sent), and the Inbox opened.
       case .inboxFixture: inbox.addFixture()
