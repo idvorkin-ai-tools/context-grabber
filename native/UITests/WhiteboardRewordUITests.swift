@@ -1,5 +1,6 @@
-//  Stories 940, 941 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): a kept
-//  text made by To text (the fake reads every picture as "hello"), a finger tap on it, and its words changed or emptied
+//  Stories 940, 941, 1197 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): a
+//  kept text made by To text (the fake reads every picture as "hello"), a finger tap that selects it and a second that
+//  opens it, and its words changed or emptied
 //  in the field that opens where it is. That one undo brings the old words back, and how it looks on the iPad, are the
 //  iPad's to show; the words, the wrap and Larry's event are `BoardRewordTests`, on the host.
 
@@ -44,13 +45,26 @@ final class WhiteboardRewordUITests: XCTestCase {
     app.descendants(matching: .any).matching(identifier: "whiteboard-reword").firstMatch
   }
 
-  /// Story 940: a tap on the text opens its words; more words and Return draw them in its place, wider, from its left.
+  /// Story 1197: the first tap selects the text (its label says so, no field); the second opens it.
+  private func selectThenOpen(_ app: XCUIApplication, _ text: PaperScreen.Box) -> XCUIElement {
+    PaperScreen.tap(app, text.center)
+    let named = app.descendants(matching: .any)["whiteboard-selection-label"]
+    XCTAssertTrue(named.appears(within: 5), "the first tap selected the text: \(app.debugDescription)")
+    XCTAssertEqual(named.label, "Selected: Text, tap to reword")
+    let words = field(app)
+    XCTAssertFalse(words.exists, "the first tap opens no field")
+    sleep(2)  // past the selection PaperKit makes of the same tap
+    PaperScreen.tap(app, text.center)
+    return words
+  }
+
+  /// Story 940: a second tap on the text opens its words; more words and Return draw them in its place, wider, from its
+  /// left.
   func testATapOnAKeptTextRewordsItInPlace() throws {
     let (app, before) = try boardWithAText()
     let send = app.buttons["whiteboard-send"]
     let glyphs = send.label
-    PaperScreen.tap(app, before.center)
-    let words = field(app)
+    let words = selectThenOpen(app, before)
     XCTAssertTrue(words.appears(within: 5), "the field opens: \(app.debugDescription)")
     XCTAssertEqual(words.value as? String, "hello", "with the text's words in it")
     words.typeText(" world\n")
@@ -67,11 +81,35 @@ final class WhiteboardRewordUITests: XCTestCase {
     XCTAssertEqual(after.minX, before.minX, accuracy: 0.01, "from the same left")
   }
 
+  /// Story 1197: a drag after the first tap moves the text, and opens nothing.
+  func testAFirstTapPicksUpATextToDrag() throws {
+    let (app, before) = try boardWithAText()
+    let send = app.buttons["whiteboard-send"]
+    let glyphs = send.label
+    PaperScreen.tap(app, before.center)
+    let named = app.descendants(matching: .any)["whiteboard-selection-label"]
+    XCTAssertTrue(named.appears(within: 5), "the first tap selected the text: \(app.debugDescription)")
+    sleep(2)  // past the selection PaperKit makes of the same tap
+    let from = app.coordinate(withNormalizedOffset: CGVector(dx: before.center.x, dy: before.center.y))
+    let to = app.coordinate(withNormalizedOffset: CGVector(dx: before.center.x, dy: before.center.y + 0.1))
+    // Slow, and held before the lift, as the group's drag (bead context-grabber-z93g).
+    from.press(forDuration: 0.3, thenDragTo: to, withVelocity: 200, thenHoldForDuration: 0.5)
+    // It moved, not where to: on the simulator PaperKit takes a drag on selected handwriting-like ink sideways (the log's
+    // ink_moved said dx -34, dy 0 for a drag 120 points down; bead context-grabber-vhae).
+    let moved = PaperScreen.settled(app, within: 10) { screen in
+      screen.ink.flatMap {
+        abs($0.center.x - before.center.x) > 0.01 || abs($0.center.y - before.center.y) > 0.01 ? $0 : nil
+      }
+    }
+    XCTAssertNotNil(moved, "the text moved from \(before): \(String(describing: PaperScreen(app).ink))")
+    XCTAssertFalse(field(app).exists, "a drag opens no field")
+    XCTAssertEqual(send.label, glyphs, "moved, not drawn")
+  }
+
   /// Story 941: emptied, the text goes.
   func testEmptyWordsDeleteTheText() throws {
     let (app, before) = try boardWithAText()
-    PaperScreen.tap(app, before.center)
-    let words = field(app)
+    let words = selectThenOpen(app, before)
     XCTAssertTrue(words.appears(within: 5), app.debugDescription)
     words.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 8) + "\n")
     // Return is done.
