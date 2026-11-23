@@ -992,6 +992,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(try opReports(cockpit).count, dismissed, "and asks Larry nothing")
 
     try larryOps(cockpit, stale: true)
+    // Send is dimmed once Larry has the board, until the next stroke (story 765): draw one before the second Send.
+    stroke(app, atHeight: 0.8)
+    wait(send(app), label: strokes(3))
     app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(retry.waitForExistence(timeout: 15), "a second refusal brings it back")
     let reported = try opReports(cockpit).count
