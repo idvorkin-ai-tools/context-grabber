@@ -1,6 +1,6 @@
 # The PaperKit board (a spike)
 
-Status: proposed and built as a spike (bead context-grabber-0xrz, story 1217). It's an experiment until Igor has drawn on
+Status: proposed and built as a spike (bead context-grabber-0xrz, stories 1217–1219). It's an experiment until Igor has drawn on
 it. The real board doesn't change.
 
 Igor, 2026-11-22 22:02 (via Larry): "Upgrade from PencilKit to PaperKit on the whiteboard app and try to use all the
@@ -20,7 +20,7 @@ The full inventory, taken from this Mac's iOS 27.2 SDK, is in the bead.
 ## What Igor sees
 
 - On the iPad, Settings (the Home screen's gear) → *About and diagnostics* has a new row: **PaperKit board**. The
-  iPhone, which only looks at boards, doesn't show it.
+  iPhone, which only looks at boards, doesn't show it, and nor does the Mac, which has no Pencil.
 - It opens a blank page with everything PaperKit offers turned on:
   - **Pens:** pen, pencil, marker, monoline, fountain pen, watercolor, crayon and reed. The pen in hand when the page
     opens is the **fountain pen**.
@@ -43,14 +43,14 @@ The full inventory, taken from this Mac's iOS 27.2 SDK, is in the bead.
 | Board object | PaperKit element | Fits? |
 |---|---|---|
 | Igor's ink | PencilKit strokes in the page's element list (iOS 27 stroke ids are stable) | Yes, as today |
-| Larry's marks (ghosts), Larry's kept groups | Strokes or shapes, each with per-element locks (`MarkupInteractions`: move only, read only) | Partly. PaperKit has no "group" or "reply": the board would still keep which elements belong to which reply. |
-| Larry's boxes, circles and arrows | `ShapeMarkup` rectangle, ellipse, line with an arrow end | Yes. They'd become real shapes, editable as shapes instead of snapped ink. |
+| Larry's marks (ghosts), Larry's kept groups | Strokes or shapes, each with per-element locks (move only, read only) | Partly. PaperKit has no "group" or "reply": the board would still keep which elements belong to which reply. |
+| Larry's boxes, circles and arrows | Shape elements: a rectangle, an ellipse, a line with an arrow end | Yes. They'd become real shapes, editable as shapes instead of snapped ink. |
 | Kept texts (Larry's words written as ink) | A text box, or text inside a shape | Changes the look. Today they're handwriting-like ink, and a text box is typed text. Igor's call. |
 | Connectors (an arrow linking two things) | None. A line whose ends are plain points. | No. The board keeps the link and redraws the line when an end moves, as it does today. |
 | Headers and folds (the outline) | None. A fold hides a run of rows. | No. It stays the board's own, drawn over the page. |
 | Rows (the ruled page and the room between lines) | None. PaperKit has no lines or rows. | No. It stays the board's own paper beneath the page. |
 | Question cards | An adornment (a tappable badge, iOS 27) for the marker, the card itself the board's | Partly |
-| The callout Igor asked for | Speech bubble (`chatBubble`) | Yes |
+| The callout Igor asked for | The speech bubble shape | Yes |
 
 In short, pens and shapes would move straight over. Groups, connectors, folds and rows are the board's own ideas, and
 would stay the board's whatever PaperKit draws.
@@ -62,4 +62,4 @@ would stay the board's whatever PaperKit draws.
   lines with and without arrowheads.
 - A shape or arrow drawn there can be selected, moved, resized and restyled.
 - Closing the page leaves no trace on any board.
-- On the iPhone the row isn't there.
+- On the iPhone and the Mac the row isn't there.

@@ -464,8 +464,8 @@ private struct HomeSettingsView: View {
           }
           .tint(.primary)
           .accessibilityIdentifier("home-settings-whats-new")
-          // Story 1217: every pen and shape PaperKit has, on a scratch page. The iPhone only looks at boards.
-          if UIDevice.current.userInterfaceIdiom != .phone {
+          // Stories 1217–1219: every pen and shape PaperKit has, on a scratch page, on the iPad alone.
+          if UIDevice.current.userInterfaceIdiom == .pad && !ProcessInfo.processInfo.isMacCatalystApp {
             NavigationLink {
               PaperKitBoardView(log: model.log)
             } label: {
