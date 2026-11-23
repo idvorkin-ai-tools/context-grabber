@@ -1533,7 +1533,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1505:
 
 - **Summary:** A Mac or simulator rung always runs under a time limit, from this repo, so a hang can't hold a build lane
-- **Status:** in progress on branch `fix/ladder-time-limit-xmwp`
+- **Status:** implemented in 5b2276ff; verified on the host rung (`just test`): `scripts/native/test-time-limit.sh` (a hang and the child it started stopped in seconds with exit 124, a command that ignores TERM stopped by the KILL, a finished command's status kept, bad calls refused, the lane count unchanged past it) and the ladder's map self-test (a missing time limit stops rung 1.5, exit 2, nothing built; that case fails against the ladder before this change, which ran the rung with no limit)
 - **Issues:** bead `context-grabber-xmwp` (2026-11-21: every Mac and simulator rung printed "no …/mac-driver/bin/time-limit: rung N runs with no time limit, and a hang holds the build lock", because `~/gits/mac-driver` wasn't checked out)
 
 #### Use Case:
