@@ -30,7 +30,8 @@ final class ChatDecisionsModel: ObservableObject {
   @Published private(set) var folds: ChatDecisionFolds
   private let foldsKey: String
 
-  private let log: SessionLog
+  /// The search on Decisions logs with it (story 1132).
+  let log: SessionLog
   private let inbox: InboxModel
   let cockpit: String
   private var readFailing = false

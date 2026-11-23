@@ -144,6 +144,23 @@ try:
         check(False, "a fold without its lines and strokes is refused")
     except urllib.error.HTTPError as e:
         check(e.code == 400, "a fold without its lines and strokes is refused")
+    # Story 1132: GET /asks/search, which ChatAskSearchUITests relies on.
+    call("/fake/asks", {"open": True})
+    found = call("/asks/search?q=RAMEN")
+    check([t["key"] for t in found["threads"]] == ["igor2-88g.881"] and found["terms"] == ["ramen"],
+          "a search finds an open ask by an option")
+    check("option" in [m["field"] for m in found["threads"][0]["matches"]], "the option is a matched field")
+    hidden = call("/asks/search?q=passport")
+    check(hidden["threads"] == [] and (hidden["open"], hidden["answered"]) == (0, 1), "answered ones are counted, not shown")
+    check([t["key"] for t in call("/asks/search?q=passport&all=1")["threads"]] == ["igor2-88g.882"],
+          "all=1 shows the answered ask")
+    for q, code in (("%20", 400), ("bdfail", 502)):
+        try:
+            call("/asks/search?q=" + q)
+            check(False, "q=%s is a %d" % (q, code))
+        except urllib.error.HTTPError as e:
+            check(e.code == code, "q=%s is a %d" % (q, code))
+    call("/fake/asks", {"open": False})
 finally:
     fake.kill()
     os.unlink(report)

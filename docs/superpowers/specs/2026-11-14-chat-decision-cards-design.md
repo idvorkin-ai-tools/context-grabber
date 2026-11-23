@@ -19,6 +19,7 @@ chat's own bead), the thread carries the ask's card at its top and its row in th
 - Answer a decision in one tap from the phone, with the same effect as answering it on the Cockpit.
 - See from the list where a decision is waiting, and reach all of them at once.
 - Close, snooze or abandon an ask from the phone, as on the Cockpit's card.
+- Find an ask, open or long answered, by a few words of it, as on the Cockpit's Inbox.
 - Answer in Igor's own words when no option fits, or when he doesn't understand them, from every card (Igor,
   2026-11-22: *"When we have a decision card it always needs to have an other so I can add another option."*)
 - A failure never loses the card: it stays, with a copyable problem.
@@ -121,6 +122,30 @@ to refresh. A Decisions list that can't be read shows a copyable problem; *Selec
 On *Decisions* a finished card gives way to its line at once, the first as much as the last (#1072): it never stays on
 screen after the Cockpit has taken the answer, where a further tap would only answer it again.
 
+**Searching the asks** (Igor, 2026-11-22, bead context-grabber-4dme: *"search in the Inbox by title and content"*,
+the same search as the Cockpit's own Inbox). *Decisions* has a search box at its top, *Search asks: title, context,
+options, answers*. As Igor types, and once he pauses, the asks that say every one of his words show in place of the
+cards: each word anywhere in the ask, in any order, case ignored, and characters like `.` or `<` are just characters.
+An ask is searched whole: its question, all of Larry's context, its options and their details, its answer, Igor's notes
+on it and the rest of its conversation. The open asks are found (a snoozed one too, since it is still his) in the
+Cockpit's order; answered and closed ones only with **Answered too** ticked beside the box, newest first after the open
+ones.
+- A line beside the box counts what matched: *1 open · 0 answered*, or *0 open · 3 answered (tick to show)* while
+  answered ones match but are hidden. It counts the search, never the open asks the *Decisions (N)* row counts.
+- Each found ask is a row: its question with Igor's words marked, *Snoozed* or *Answered* where it is, and, when the
+  words were found past the question, up to three lines under it naming where (*context*, *option*, *answer*, *note*,
+  *in thread*) with the words around the match, the words marked there too.
+- No ask matches: *No asks match.*, with the count line still saying what ticking would show.
+- A tap on a row opens the ask: an open ask on *Decisions* opens the chat its card is in, with the card at the top; any
+  other opens its own chat in the app when Chat has it, and otherwise its page on the Cockpit, as an Inbox link does.
+- Emptying the box, its clear button, *Cancel* or Escape on a keyboard bring the cards back as they were; leaving
+  *Decisions* forgets the search.
+- A search that fails (the Cockpit can't be reached, the phone is offline, or the Cockpit refuses it) shows a copyable
+  problem in place of the rows, naming the words searched and the status, and the next change to the words tries again.
+
+The box is on *Decisions*, so it is there while any ask is open; with none open there is no row to reach it by (a
+follow-up may give the search a way in of its own).
+
 **When the asks are read.** When the Chat list opens or is pulled, when a thread opens, when *Decisions* opens, and after
 each answer, snooze, close or abandon. Not on the open thread's four-second poll. Offline, or with no Cockpit address,
 nothing is read and no card, mark or row shows. A failed read leaves the cards and marks as they were, shows nothing on
@@ -133,8 +158,10 @@ changed, already answered, refused, with the status and the Cockpit's reason), e
 whether the answer went into the chat (and why not, when it didn't), each fold and opening of a card (which ask,
 where), and a failed read of the asks. A card opened again from its fold is a card shown again, and says so. A shown card says
 whether it offered *Other…*, and a tap on *Other…* is logged; an answer in Igor's words is logged as an answer with its
-length. Never the option's words, Igor's own words or the reason typed for a close beyond their length. Every problem is
-copyable, naming the screen, the operation and the ask.
+length. Never the option's words, Igor's own words or the reason typed for a close beyond their length. Each search says how many words
+and characters it had, whether answered asks were in it, what it found (open, answered, rows) or why it failed, and a
+tap on a found row says which ask and where it went; never the words searched, which only a failed search's copyable
+problem carries. Every problem is copyable, naming the screen, the operation and the ask.
 
 ## Acceptance criteria
 
@@ -160,6 +187,11 @@ copyable, naming the screen, the operation and the ask.
   other place; the row's mark and the count are unchanged by it.
 - A refused answer leaves the card with a copyable problem, and the buttons work again.
 - An ask answered elsewhere says *Already answered elsewhere* and leaves; one changed says so and shows the new version.
+- Typing words into *Decisions*' search box shows, once he pauses, the asks that say every word anywhere (the question,
+  context, options, answer, notes or conversation), case ignored; a match past the question has a line naming where,
+  with the words marked; the count line reads *N open · M answered*, with *(tick to show)* while answered matches are
+  hidden; *Answered too* shows them after the open ones; *No asks match.* when none shows; a tap opens the ask; an
+  emptied box brings the cards back; a failed search is a copyable problem with its words and status.
 - Offline or with no address: no cards, no marks, no row, and nothing else in Chat changes.
 
 ## Depends on the Cockpit
@@ -168,6 +200,10 @@ The Cockpit lists the open asks (without the snoozed ones), each with the chat i
 option's label, closes or abandons one with a reason, snoozes one to a preset, and refuses any of those for an ask that
 changed since it was read, sending the ask as it now is. Asked to, it also writes an answer, a close or an abandon into
 the ask's chat as Igor's message, once only however often it is asked, and says whether it did.
+
+It searches the asks by words (cockpit story 206): the open ones, and the answered and closed ones when asked, counting
+both either way, each with up to three places past its question where the words were found, and the words split as it
+split them for marking.
 
 A Cockpit from before those two (Larry, 2026-11-14) lists no chat for an ask and writes nothing into one. With it, an
 ask is on a chat only when it is that chat's own bead, and the card always gives way to its one line.

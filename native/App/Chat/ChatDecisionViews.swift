@@ -227,6 +227,8 @@ struct ChatDecisionsRow: View {
 struct ChatDecisionsView: View {
   @ObservedObject var chat: ChatModel
   @ObservedObject var decisions: ChatDecisionsModel
+  /// Story 1132: the search box's words and what they found.
+  @StateObject private var search: ChatAskSearchModel
   let voice: ChatVoiceModel
   let logger: BugLogger
 
@@ -235,41 +237,18 @@ struct ChatDecisionsView: View {
     self.decisions = chat.decisions
     self.voice = voice
     self.logger = logger
+    _search = StateObject(
+      wrappedValue: ChatAskSearchModel(log: chat.decisions.log, inbox: chat.inbox, cockpit: chat.cockpit))
   }
 
   var body: some View {
     // A scroll view, not a List: a List row holding a link takes every tap on its buttons for the link.
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 14) {
-        if let problem = decisions.readProblem {
-          BugProblemView(
-            problem: .grabber(problem, context: "ChatDecisionsView.refresh", extra: ["cockpit": .string(chat.cockpit)]),
-            logger: logger)
-        }
-        ForEach(decisions.shown) { ask in
-          VStack(alignment: .leading, spacing: 4) {
-            ChatDecisionFoldable(decisions: decisions, ask: ask, place: "list", voice: voice, logger: logger)
-            NavigationLink {
-              ChatThreadView(chat: chat, voice: voice, key: ask.chatToOpen, title: ask.title, logger: logger)
-                .onAppear { decisions.openedChat(ask) }
-            } label: {
-              Label("Open chat", systemImage: "bubble.left.and.bubble.right").font(.footnote)
-            }
-            .accessibilityIdentifier("decision-open-chat-\(ask.id)")
-            .padding(.leading, 12)
-          }
-        }
-        // #1072: keyed apart from the cards. Under the ask's own id, in the one lazy stack, an answered ask's row took over
-        // its card's view: the card stayed on screen, answered and still tappable, and nothing after it showed.
-        ForEach(decisions.finished.map { (key: "finished-" + $0.id, id: $0.id, title: $0.title) }, id: \.key) { done in
-          VStack(alignment: .leading, spacing: 2) {
-            Text(done.title).font(.subheadline).foregroundStyle(.secondary)
-            if let line = decisions.card(done.id).line { ChatDecisionLine(text: line) }
-          }
-          .padding(.horizontal, 12)
-        }
-        if decisions.shown.isEmpty && decisions.finished.isEmpty && decisions.readProblem == nil {
-          Text("No decisions waiting.").foregroundStyle(.secondary)
+        if search.active {
+          ChatAskSearchResults(chat: chat, search: search, voice: voice, logger: logger)
+        } else {
+          cards
         }
       }
       .padding(.horizontal, 16)
@@ -279,9 +258,46 @@ struct ChatDecisionsView: View {
     .navigationTitle("Decisions")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("chat-decisions-list")
+    .searchable(text: $search.query, prompt: ChatAskSearch.prompt)
+    .onChange(of: search.query) { search.changed() }
+    .onChange(of: search.answeredToo) { search.changed() }
     .refreshable { await decisions.refresh(reason: "pull") }
     .task { await decisions.refresh(reason: "decisions") }
     .onDisappear { decisions.leftDecisions() }
     .chatTextSize()
+  }
+
+  /// Every open ask as a card, and what the finished ones gave way to.
+  @ViewBuilder private var cards: some View {
+    if let problem = decisions.readProblem {
+      BugProblemView(
+        problem: .grabber(problem, context: "ChatDecisionsView.refresh", extra: ["cockpit": .string(chat.cockpit)]),
+        logger: logger)
+    }
+    ForEach(decisions.shown) { ask in
+      VStack(alignment: .leading, spacing: 4) {
+        ChatDecisionFoldable(decisions: decisions, ask: ask, place: "list", voice: voice, logger: logger)
+        NavigationLink {
+          ChatThreadView(chat: chat, voice: voice, key: ask.chatToOpen, title: ask.title, logger: logger)
+            .onAppear { decisions.openedChat(ask) }
+        } label: {
+          Label("Open chat", systemImage: "bubble.left.and.bubble.right").font(.footnote)
+        }
+        .accessibilityIdentifier("decision-open-chat-\(ask.id)")
+        .padding(.leading, 12)
+      }
+    }
+    // #1072: keyed apart from the cards. Under the ask's own id, in the one lazy stack, an answered ask's row took over
+    // its card's view: the card stayed on screen, answered and still tappable, and nothing after it showed.
+    ForEach(decisions.finished.map { (key: "finished-" + $0.id, id: $0.id, title: $0.title) }, id: \.key) { done in
+      VStack(alignment: .leading, spacing: 2) {
+        Text(done.title).font(.subheadline).foregroundStyle(.secondary)
+        if let line = decisions.card(done.id).line { ChatDecisionLine(text: line) }
+      }
+      .padding(.horizontal, 12)
+    }
+    if decisions.shown.isEmpty && decisions.finished.isEmpty && decisions.readProblem == nil {
+      Text("No decisions waiting.").foregroundStyle(.secondary)
+    }
   }
 }

@@ -55,7 +55,7 @@ json_list() { printf '%s\n' "$@" | jq -R . | jq -cs 'map(select(length > 0))'; }
 
 # The areas' classes. The suite scripts hold what each area runs in full. What an iPhone does with boards (story 746) is
 # the smoke's whiteboard section, on the phone's simulator (story 770): no class of its own, no second session.
-chat_area="ChatArchiveUITests ChatDecisionUITests ChatFileUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
+chat_area="ChatArchiveUITests ChatAskSearchUITests ChatDecisionUITests ChatFileUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
 whiteboard_area="WhiteboardConnectUITests WhiteboardEraserUITests WhiteboardGroupTapUITests WhiteboardHelpFeedbackUITests WhiteboardLetteringUITests WhiteboardLinkChipUITests WhiteboardListeningUITests WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardPlaybackUITests WhiteboardQuestionUITests WhiteboardRewordUITests WhiteboardRowDeleteUITests WhiteboardScratchOutUITests WhiteboardTheirsTapUITests WhiteboardTitleRenameUITests WhiteboardToTextUITests WhiteboardTurnUITests"
 # #795: the other features' own classes, by directory. Only classes that run on the ladder's simulator and open that
 # feature: Windows has none (MacKeysUITests is the Mac build's), nor Call, Archive or LiveActivity, so those paths stay
