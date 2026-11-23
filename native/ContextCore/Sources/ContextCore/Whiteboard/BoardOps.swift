@@ -126,8 +126,12 @@ public enum BoardOps {
   }
 
   public enum Op: Equatable, Sendable {
-    /// Everything whose top is at or below `y` moves down by `dy`.
+    /// Everything whose top is at or below `y` moves down by `dy`, exactly: the board's own room, its cut already a
+    /// clear line.
     case translateBelow(y: CGFloat, dy: CGFloat)
+    /// Larry's make-room (the wire's `translate` with `below_y`, story 1195): `y` snaps to a clear line and `dy` to
+    /// whole lines (`BoardRoom.larry`) before everything at or below the cut moves.
+    case makeRoom(y: CGFloat, dy: CGFloat)
     /// The strokes (or kept texts) with these ids move.
     case translateIDs([String], dx: CGFloat, dy: CGFloat)
     /// A ghost of Larry's text.
@@ -161,7 +165,7 @@ public enum BoardOps {
         out.formUnion(ids)
       case .connector(let connector):
         for end in [connector.from, connector.to] { if case .id(let id) = end { out.insert(id) } }
-      case .translateBelow, .addText, .addStrokes, .overlay, .removeOverlay:
+      case .translateBelow, .makeRoom, .addText, .addStrokes, .overlay, .removeOverlay:
         break
       }
     }
@@ -234,10 +238,12 @@ public enum BoardOps {
     public var rebasedFrom: Int?
     /// Story 961: a stale batch's names that Igor moved or erased since it was made.
     public var conflictIDs: [String]?
+    /// Story 1195: each make-room of the batch, what he asked for and the clear line and whole lines used (`room`).
+    public var rooms: [Room]?
 
     public init(
       label: String, ok: Bool, rev: Int, reason: String? = nil, missingIDs: [String]? = nil, rebasedFrom: Int? = nil,
-      conflictIDs: [String]? = nil
+      conflictIDs: [String]? = nil, rooms: [Room]? = nil
     ) {
       self.label = label
       self.ok = ok
@@ -246,6 +252,7 @@ public enum BoardOps {
       self.missingIDs = missingIDs
       self.rebasedFrom = rebasedFrom
       self.conflictIDs = conflictIDs
+      self.rooms = rooms
     }
 
     public var wire: [String: Any] {
@@ -254,7 +261,37 @@ public enum BoardOps {
       if let missingIDs, !missingIDs.isEmpty { out["missing_ids"] = missingIDs }
       if let rebasedFrom { out["rebased_from"] = rebasedFrom }
       if let conflictIDs, !conflictIDs.isEmpty { out["conflict_ids"] = conflictIDs }
+      if let rooms, !rooms.isEmpty { out["room"] = rooms.map(\.wire) }
       return out
+    }
+  }
+
+  /// Story 1195: one make-room of Larry's as asked and as the board made it: the cut on a clear line, whole lines.
+  public struct Room: Equatable, Codable, Sendable {
+    public var askedY: CGFloat
+    public var askedDy: CGFloat
+    public var y: CGFloat
+    public var dy: CGFloat
+
+    public init(askedY: CGFloat, askedDy: CGFloat, y: CGFloat, dy: CGFloat) {
+      self.askedY = askedY
+      self.askedDy = askedDy
+      self.y = y
+      self.dy = dy
+    }
+
+    public var wire: [String: Any] {
+      ["asked_below_y": Double(askedY), "asked_dy": Double(askedDy), "below_y": Double(y), "dy": Double(dy)]
+    }
+
+    /// As the iPad sends it in `op_result.room`.
+    public init?(wire any: Any) {
+      guard let json = any as? [String: Any],
+        let askedY = (json["asked_below_y"] as? NSNumber)?.doubleValue,
+        let askedDy = (json["asked_dy"] as? NSNumber)?.doubleValue,
+        let y = (json["below_y"] as? NSNumber)?.doubleValue, let dy = (json["dy"] as? NSNumber)?.doubleValue
+      else { return nil }
+      self.init(askedY: askedY, askedDy: askedDy, y: y, dy: dy)
     }
   }
 
@@ -310,7 +347,7 @@ public enum BoardOps {
         return .success(.translateIDs(ids, dx: dx ?? 0, dy: dy ?? 0))
       }
       guard let y = place("below_y"), let dy else { return .failure(Refusal(reason: Reason.badOp)) }
-      return .success(.translateBelow(y: y, dy: dy))
+      return .success(.makeRoom(y: y, dy: dy))
     case "add_text":
       let text = (json["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
       guard let id = json["id"] as? String, isName(id), let x = place("x"), let y = place("y"), !text.isEmpty else {
@@ -427,7 +464,7 @@ public enum BoardOps {
     var kinds: [String: Int] = [:]
     for op in batch.ops {
       switch op {
-      case .translateBelow: kinds["translate_below", default: 0] += 1
+      case .translateBelow, .makeRoom: kinds["translate_below", default: 0] += 1
       case .translateIDs: kinds["translate_ids", default: 0] += 1
       case .addText: kinds["add_text", default: 0] += 1
       case .addStrokes: kinds["add_strokes", default: 0] += 1

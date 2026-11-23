@@ -23,7 +23,7 @@ final class BoardOpsTests: XCTestCase {
   func testATranslateBelowALine() {
     let b = batch([["op": "translate", "below_y": 300, "dy": 120]])
     XCTAssertNil(b.refusal)
-    XCTAssertEqual(b.ops, [.translateBelow(y: 300, dy: 120)])
+    XCTAssertEqual(b.ops, [.makeRoom(y: 300, dy: 120)], "Larry's translate below a line is a make-room (story 1195)")
     XCTAssertEqual(b.board, "b1")
     XCTAssertEqual(b.baseRev, 0)
     XCTAssertEqual(b.label, "room")
@@ -129,7 +129,7 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertNil(rows[0].ops)
     XCTAssertEqual(rows[1].ops?.key, "r2")
     XCTAssertEqual(rows[1].ops?.baseRev, 4)
-    XCTAssertEqual(rows[1].ops?.ops, [.translateBelow(y: 10, dy: 50)])
+    XCTAssertEqual(rows[1].ops?.ops, [.makeRoom(y: 10, dy: 50)])
   }
 
   // MARK: The applier (stories 816, 819)
@@ -624,5 +624,106 @@ final class BoardOpsTests: XCTestCase {
       ]
     XCTAssertEqual(source.batches(from: .rows(later)).map(\.key), ["r4", "r5"])
     XCTAssertEqual(source.batches(from: .event(.pen(down: true, idleMs: 0, t: 1))), [])
+  }
+
+  // MARK: Larry's make-room lands between lines (story 1195, bead context-grabber-2gu)
+
+  func testLarrysRoomInsideALineCutsAtItsTopAndMovesWholeLines() {
+    // A line of writing from 300 to 340; he asks at 310, 10 into it, for 50.
+    let strokes = [
+      stroke("above", y: 100), stroke("line-a", y: 300, height: 30), stroke("line-b", y: 305, height: 35),
+      stroke("below", y: 500),
+    ]
+    let plan = BoardOps.plan([.makeRoom(y: 310, dy: 50)], strokes: strokes, pages: 2)
+    let down = CGVector(dx: 0, dy: 80)
+    XCTAssertEqual(plan.offsets, [1: down, 2: down, 3: down], "the whole line moves, by whole lines")
+    XCTAssertEqual(plan.rooms, [BoardOps.Room(askedY: 310, askedDy: 50, y: 300, dy: 80)])
+  }
+
+  func testLarrysRoomNearALinesBottomCutsUnderIt() {
+    let strokes = [stroke("line-a", y: 300, height: 30), stroke("line-b", y: 305, height: 35), stroke("below", y: 500)]
+    let plan = BoardOps.plan([.makeRoom(y: 330, dy: 40)], strokes: strokes, pages: 2)
+    XCTAssertEqual(plan.offsets, [2: CGVector(dx: 0, dy: 40)], "the line stays whole above the cut")
+    XCTAssertEqual(plan.rooms.first?.y, 340)
+  }
+
+  func testLarrysRoomOnClearPaperStaysWhereHeAsked() {
+    let strokes = [stroke("above", y: 100), stroke("below", y: 500)]
+    let plan = BoardOps.plan([.makeRoom(y: 300, dy: 120)], strokes: strokes, pages: 2)
+    XCTAssertEqual(plan.offsets, [1: CGVector(dx: 0, dy: 120)])
+    XCTAssertEqual(plan.rooms, [BoardOps.Room(askedY: 300, askedDy: 120, y: 300, dy: 120)])
+  }
+
+  func testLarrysRoomNeverSplitsAGroupAcrossTheLine() {
+    // Story 842: a group of his from 100 to 430; asked at 410, far below its top, the cut lands under it.
+    let strokes = [stroke("g-top", y: 100), stroke("g-bottom", y: 410), stroke("below", y: 600)]
+    var metas = BoardStrokeMeta()
+    for name in ["g-top", "g-bottom"] { metas.set(BoardMeta(["group": "g"])!, for: name) }
+    let plan = BoardOps.plan([.makeRoom(y: 410, dy: 40)], strokes: strokes, metas: metas, pages: 2)
+    XCTAssertEqual(plan.offsets, [2: CGVector(dx: 0, dy: 40)], "the group stays whole; what is under it moves")
+    XCTAssertEqual(plan.rooms.first?.y, 430)
+  }
+
+  func testLarrysClosingRoomClosesBlankPaperOnlyInWholeLines() {
+    // Blank paper from 120 to 300: he asks to close 250 at 200; 160 is all there is, in whole lines.
+    let strokes = [stroke("above", y: 100), stroke("below", y: 300)]
+    let plan = BoardOps.plan([.makeRoom(y: 200, dy: -250)], strokes: strokes, pages: 2)
+    XCTAssertEqual(plan.offsets, [1: CGVector(dx: 0, dy: -160)])
+    XCTAssertEqual(plan.rooms.first?.dy, -160)
+  }
+
+  func testHisNextTurnHearsTheRoomUsed() {
+    var applier = BoardOpApplier()
+    let b = batch([["op": "translate", "below_y": 310, "dy": 50]])
+    guard case .apply(let batch) = applier.receive(b, board: "b1", editable: true, ready: true) else {
+      return XCTFail("applies")
+    }
+    let strokes = [stroke("line-a", y: 300, height: 30), stroke("below", y: 500)]
+    let plan = BoardOps.plan(batch.ops, strokes: strokes, pages: 2)
+    applier.changed()
+    guard case .applied(let result) = applier.report(batch, .applied(plan)) else { return XCTFail("reported") }
+    XCTAssertEqual(result.rooms, [BoardOps.Room(askedY: 310, askedDy: 50, y: 300, dy: 80)])
+    let room = result.wire["room"] as? [[String: Any]]
+    XCTAssertEqual(room?.first?["asked_below_y"] as? Double, 310)
+    XCTAssertEqual(room?.first?["asked_dy"] as? Double, 50)
+    XCTAssertEqual(room?.first?["below_y"] as? Double, 300)
+    XCTAssertEqual(room?.first?["dy"] as? Double, 80)
+    XCTAssertEqual(room?.compactMap(BoardOps.Room.init(wire:)), result.rooms, "the wire reads back")
+    let saved = try? JSONDecoder().decode(BoardOps.Result.self, from: JSONEncoder().encode(result))
+    XCTAssertEqual(saved, result, "kept for the next turn across a relaunch")
+  }
+
+  func testTheBoardsOwnRoomStaysExact() {
+    // A paste's or a drop's push arrives with its cut worked out already: no second snap.
+    let strokes = [stroke("line-a", y: 300, height: 30), stroke("below", y: 500)]
+    let plan = BoardOps.plan([.translateBelow(y: 310, dy: 50)], strokes: strokes, pages: 2)
+    XCTAssertEqual(plan.offsets, [1: CGVector(dx: 0, dy: 50)])
+    XCTAssertTrue(plan.rooms.isEmpty)
+  }
+
+  /// On Igor's real boards (the board-ops fixtures, 13f700bf and family): at every height down the board, a make-room
+  /// of his cuts through nothing that moves whole, and moves by whole lines.
+  func testOnTheRealBoardsEveryCutLandsBetweenLines() throws {
+    for name in ["list-board", "family-board", "judge-board", "ghost-delete-board"] {
+      let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        .appendingPathComponent("Fixtures/board-ops/\(name).json")
+      let board = try BoardSnapshot(json: try JSONSerialization.jsonObject(with: Data(contentsOf: url)))
+      let (strokes, texts, metas) = board.planInput
+      let boxes = BoardOps.shownBoxes(strokes: strokes, texts: texts, groups: metas.groups)
+      let bottom = try XCTUnwrap(boxes.map(\.maxY).max())
+      var inside = 0
+      for y in stride(from: CGFloat(0), through: bottom + 40, by: 7) {
+        if boxes.contains(where: { y > $0.minY && y < $0.maxY }) { inside += 1 }
+        let plan = BoardOps.plan(
+          [.makeRoom(y: y, dy: 50)], strokes: strokes, texts: texts, metas: metas, pages: board.pageCount)
+        let room = try XCTUnwrap(plan.rooms.first)
+        XCTAssertFalse(
+          boxes.contains { room.y > $0.minY && room.y < $0.maxY }, "\(name): asked at \(y), cut at \(room.y) splits ink"
+        )
+        XCTAssertEqual(room.dy, 80, "\(name): whole lines")
+        for (_, shift) in plan.offsets { XCTAssertEqual(shift.dy, 80) }
+      }
+      XCTAssertGreaterThan(inside, 0, "\(name): some heights fall inside its writing")
+    }
   }
 }

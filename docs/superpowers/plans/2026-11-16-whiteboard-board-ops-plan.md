@@ -34,7 +34,9 @@ batch the same way, whoever sent it.
   items moved, ids not found. Ops apply in order; each sees the board as the ops before it left it.
 - `BoardOps.Readiness` and `BoardOps.readiness(penDown:liftedAt:now:)`: now, after a wait, or on the lift. The hold
   after a lift is `BoardOps.hold`, 500 ms.
-- `BoardOps.Result`: `label, ok, rev, reason?, missing_ids?, rebased_from?, conflict_ids?` → `wire`.
+- `BoardOps.Result`: `label, ok, rev, reason?, missing_ids?, rebased_from?, conflict_ids?, room?` → `wire`. `room` (story
+  1195): `[{asked_below_y, asked_dy, below_y, dy}]`, one per make-room, Larry's `translate` with `below_y` parsed as
+  `.makeRoom` and snapped by `BoardRoom.larry` (the clear line `BoardRoom.cut` finds, whole lines).
 
 `Whiteboard/BoardOpApplier.swift`
 

@@ -22,8 +22,19 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 ### Larry makes room
 
 - Larry answers a turn with "make room here". Everything on the board below that line, including Igor's ink, pictures,
-  pasted text and kept marks, slides straight down by the amount Larry asked for. Nothing is scaled, split or
-  redrawn; whole strokes move.
+  pasted text and kept marks, slides straight down. Nothing is scaled, split or redrawn; whole strokes move.
+- **Every cut lands between lines, and the room is whole lines** (Igor, 2026-11-22, design board: "every cut lands
+  between lines"; bead context-grabber-2gu, story 1195). Larry's line snaps as every other push does (a paste, a drop,
+  room by hand): a height on clear paper stays where it is; a height inside a line of writing moves to its top when
+  that is nearer and within two lines, else to its bottom, so a line of handwriting, a kept text or a group of his
+  moves whole or stays whole, never split. The distance rounds up to whole ruled lines: asked for 50 points, the board
+  opens 80. Asked to close room (a negative distance), it closes blank paper only, in whole lines, as room by hand
+  does, and nothing closes onto ink.
+- **Larry hears what was used.** His next turn says, for each make-room in the change, the height and distance he
+  asked for and the clear line and distance the board used, so he knows where the room really is.
+- A change from an older look that applies to the board as it is now (below) snaps on the board as it is now, at the
+  height Larry saw. If Igor opened room by hand in between, the push still lands at that height on the moved board;
+  whether it should follow Igor's room is an open question, not decided (bead context-grabber-2gu).
 - The board grows a page at the bottom when the push needs one. It never loses ink off the end.
 - One tap on Undo puts everything back where it was, page count included. Redo pushes it down again.
 - If Igor is drawing when the answer arrives (the Pencil is down, or was lifted less than a moment ago), the push
@@ -138,6 +149,8 @@ with each picture:
 - Several changes in one answer, such as making room and then placing text in the gap, are applied together as one
   undo, or not at all.
 - A push asked for at a line below the last ink just adds blank paper; nothing moves.
+- A push asked for inside a tall drawing whose top and bottom are both more than two lines away lands under the
+  drawing, so the drawing stays whole.
 - An answer with changes for a different board, or for a board that was deleted, is ignored and logged.
 - An answer whose change names a board revision no board can have (a fraction, or a number too large to be one) is
   refused whole like any other change the board can't take: nothing moves, Larry is told why, the rest of his answer
@@ -509,8 +522,11 @@ whiteboard skill and here, so a change to the wire on one side shows as a failur
 
 ## Acceptance
 
-- Larry asks for room below a line on a board with ink above and below it. The ink below moves down exactly that
-  far, the ink above doesn't move, and one Undo restores the board exactly.
+- Larry asks for room below a line on a board with ink above and below it. The ink below moves down that far, rounded
+  up to whole lines, the ink above doesn't move, and one Undo restores the board exactly.
+- Larry asks for room at a height inside a line of writing: the cut lands at the clear line next to it (its top when
+  nearer and within two lines, else its bottom), no line, text or group is split, and his next turn names the clear
+  line and distance used beside the ones he asked for.
 - A push that needs another page adds one. Undo removes it again.
 - With the Pencil down, a push waits, then applies within a second of the Pencil lifting.
 - When Igor drew new strokes after Larry looked, the push still applies to the board as it is now, and Larry's next

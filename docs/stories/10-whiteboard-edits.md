@@ -86,7 +86,42 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A push in the middle of the board
 - **Given:** a board with ink above and below a line, and Larry answers my turn with "make room below that line"
 - **When:** his answer lands with the Pencil up
-- **Then:** every stroke, kept mark and pasted line whose top is at or below the line moves straight down exactly that far, the ink above doesn't move, a page is added at the bottom if the push needs one, and one tap on Undo puts the board back as it was, page count included; Redo pushes it down again
+- **Then:** every stroke, kept mark and pasted line whose top is at or below the line moves straight down that far, the ink above doesn't move, a page is added at the bottom if the push needs one, and one tap on Undo puts the board back as it was, page count included; Redo pushes it down again. The line he names snaps to a clear line and the distance to whole lines first (story 1195)
+
+---
+
+### User Story 1195:
+
+- **Summary:** Larry's make-room lands between lines and moves whole lines
+- **Issues:** bead context-grabber-2gu (Igor, 2026-11-22, design board: "every cut lands between lines")
+- **Status:** in progress on branch `native/larry-room-lines-2gu`
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** whose board Larry opens room in
+- **I want to** have his cut land between my lines and open whole lines, as every other push does
+- **so that** a line of my handwriting is never split and the room he opens is room I can write in
+
+#### Acceptance Criteria:
+- **Scenario:** He names a height inside a line of writing
+- **Given:** a line of my handwriting, and Larry asks for 50 points of room at a height a little way into it
+- **When:** his push lands
+- **Then:** the cut is at the clear line at the top of that line of writing (its bottom when that is nearer, or the top is more than two lines away), the whole line moves down 80 points (whole lines, rounded up), nothing of it stays behind, and a group of his across the height moves whole or stays whole
+
+- **Scenario:** He hears what was used
+- **Given:** his push was snapped
+- **When:** his next turn goes to him
+- **Then:** it says, for each make-room, the height and distance he asked for and the clear line and distance the board used
+
+- **Scenario:** He asks to close room
+- **Given:** blank paper between two lines of writing, and Larry asks to close more than there is
+- **When:** his change lands
+- **Then:** only the blank paper closes, in whole lines, and nothing closes onto ink
+
+- **Scenario:** A push from an older look (open question, not decided)
+- **Given:** Igor opened room by hand after Larry looked
+- **When:** Larry's push arrives and still applies
+- **Then:** it snaps at the height Larry saw, on the board as it is now, as today
 
 ---
 
