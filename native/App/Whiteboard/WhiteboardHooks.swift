@@ -6,5 +6,6 @@ import ContextCore
 extension AppModel {
   func runBoardFixtureHook(_ hook: BoardFixtureHook) {
     whiteboards.addFixture(hook.board, from: hook.from, oldInk: hook.oldInk)
+    if let thread = hook.thread { WhiteboardThreads().set(thread, board: hook.board) }
   }
 }

@@ -200,6 +200,8 @@ final class WhiteboardModel: ObservableObject {
   /// a board opened while its Send waits, the waiting picture's (story 1192).
   var larryFrame: WhiteboardLarryFrame?
   var watchTask: Task<Void, Never>?
+  /// Story 1206 (bead context-grabber-dbku): its thread is slid in over it; the board waits, saved, for Back.
+  var asideForChat = false
   var lookFailures = 0
 
   static let ghostsKey = "whiteboard_ghosts"
