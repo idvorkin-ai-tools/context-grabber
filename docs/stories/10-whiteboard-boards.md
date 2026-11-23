@@ -604,7 +604,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 403:
 
 - **Summary:** The colour follows light and dark mode
-- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels; a screenshot of white ink on the deep Cream comes from the run before the menu moved); ink contrast on every colour by host tests (`BoardPaperTests`). On paper, which stays light, its colour staying with the board is `WhiteboardPaperLinesUITests.testRuledLinesStayWithTheBoardUnderTheInk` since bead `context-grabber-y8r`
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels; a screenshot of white ink on the deep Cream comes from the run before the menu moved); ink contrast on every colour by host tests (`BoardPaperTests`). On paper, which stays light, its colour staying with the board is `WhiteboardPaperLinesUITests.testRuledLinesStayWithTheBoardUnderTheInk` since bead `context-grabber-y8r`, since story 757 part of `testANewBoardOpensWithTheGrid`
 - **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
 
 #### Use Case:
