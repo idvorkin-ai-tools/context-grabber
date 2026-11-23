@@ -132,13 +132,13 @@ final class WhiteboardMarkChoiceTests: XCTestCase {
   func testKeepTakesTheChosenMarkOffTheGhosts() {
     var (turns, claudes, larrys) = board()
     _ = turns.tap(hitting: { $0 == larrys[1] })
-    XCTAssertEqual(turns.keepChosen(), larrys[1])
+    XCTAssertEqual(turns.keepChosenReply(), [larrys[1]])
     XCTAssertNil(turns.chosen)
     XCTAssertEqual(turns.ghosts, claudes + [larrys[0]])
 
     _ = turns.tap(hitting: { $0 == claudes[0] })
-    XCTAssertEqual(turns.keepChosen(), claudes[0])
-    XCTAssertNil(turns.keepChosen(), "nothing chosen, nothing kept")
+    XCTAssertEqual(turns.keepChosenReply(), [claudes[0]])
+    XCTAssertNil(turns.keepChosenReply(), "nothing chosen, nothing kept")
   }
 
   func testDismissRemovesOnlyThatMark() {

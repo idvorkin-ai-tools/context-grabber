@@ -293,7 +293,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1154:
 
 - **Summary:** Keep beside any mark of Larry's reply keeps the whole reply as one group
-- **Status:** in progress (bead context-grabber-it0e)
+- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testKeepBesideOneEyeKeepsAllSevenOfTheFace`) and the simulator (`WhiteboardTheirsTapUITests.testKeepBesideOneMarkOfAReplyKeepsTheWholeReply`)
 - **Issues:** bead context-grabber-it0e (Igor on the iPad, 2026-11-22 21:28: "Keep is not keeping the group properly"; he kept one eye, both labels and the arrow of Larry's 7-mark smiley face one mark at a time, and the face circle, the smile and the other eye stayed behind as marks to keep. Igor chose option A at 21:34)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep beside any mark of a reply keeps the whole reply*
 
@@ -308,19 +308,64 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap Keep
 - **Then:** all seven become ink where they showed, as one group named for his reply, no marks of that reply are left to keep, and one undo named *Keep* takes all seven back
 
-- **Scenario:** Dismiss still takes one
-- **Given:** the same reply showing, Keep and Dismiss beside the arrow
-- **When:** I tap Dismiss, then Keep beside one eye
-- **Then:** the arrow is gone, and the other six are kept as one group
+---
 
+### User Story 1210:
+
+- **Summary:** After a Dismiss, Keep beside the reply keeps the rest as one group
+- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testDismissTakesOneAndKeepThenTakesTheRestAsOneGroup`)
+- **Issues:** bead context-grabber-it0e
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep beside any mark of a reply keeps the whole reply*
+
+#### Use Case:
+- **As someone** keeping most of a picture Larry drew me
+- **I want to** dismiss one of its marks and keep the rest with one Keep
+- **so that** the mark I turned down stays gone and the rest stays one picture
+
+#### Acceptance Criteria:
+- **Scenario:** Dismiss still takes one
+- **Given:** Larry's reply of seven marks shows, and I dismissed its arrow with the Dismiss beside it
+- **When:** I tap Keep beside one eye
+- **Then:** the arrow is still gone, and the other six are kept as one group
+
+---
+
+### User Story 1211:
+
+- **Summary:** Keep beside a reply's mark leaves another reply's marks showing
+- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testKeepBesideOneEyeKeepsAllSevenOfTheFace`)
+- **Issues:** bead context-grabber-it0e
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep beside any mark of a reply keeps the whole reply*
+
+#### Use Case:
+- **As someone** looking at two replies Larry drew
+- **I want to** keep one reply without keeping the other
+- **so that** I still decide on each of his replies by itself
+
+#### Acceptance Criteria:
 - **Scenario:** Another reply's marks stay
-- **Given:** two of Larry's replies showing
-- **When:** I tap Keep beside a mark of the first
+- **Given:** two of Larry's replies show, Keep and Dismiss beside a mark of the first
+- **When:** I tap Keep
 - **Then:** the whole first reply is kept and the second's marks still show, to keep or dismiss
 
+---
+
+### User Story 1212:
+
+- **Summary:** Keep beside a lone mark, his text or Claude's mark keeps it alone
+- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testALoneMarkHisTextAndClaudesAreKeptAlone`)
+- **Issues:** bead context-grabber-it0e
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep beside any mark of a reply keeps the whole reply*
+
+#### Use Case:
+- **As someone** keeping a mark that belongs to no reply still showing
+- **I want to** have Keep keep just that mark
+- **so that** Keep never reaches past what I chose when there is no reply to keep
+
+#### Acceptance Criteria:
 - **Scenario:** A lone mark, his text, Claude's marks
-- **Given:** a reply with only one mark left showing, his text from a change, or one of Claude's marks
-- **When:** I tap Keep beside it
+- **Given:** a reply with only one mark left showing, his text from a change, or one of Claude's marks, with Keep and Dismiss beside it
+- **When:** I tap Keep
 - **Then:** that mark alone is kept, as before
 
 ---

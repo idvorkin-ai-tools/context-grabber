@@ -308,9 +308,6 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return kept
   }
 
-  /// Keep: the chosen mark leaves the ghosts; the caller turns it into ink. Nil with nothing chosen.
-  public mutating func keepChosen() -> Ghost? { removeChosen() }
-
   /// Keep beside a chosen mark of Larry's (story 1154; bead context-grabber-it0e): it and every other mark of its reply
   /// still showing leave the ghosts, in the order they came, for the caller to keep as that reply's group. A mark of
   /// Claude's, his text from a change (no reply's) and a reply's last mark showing leave alone. Nil with nothing chosen.
