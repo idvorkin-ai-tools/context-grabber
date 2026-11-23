@@ -226,7 +226,8 @@ Order, hiding and Reset in Settings work as before.
    from links and Shortcuts. *Reset to default* puts every row back, in the default order.
 2. **About and diagnostics** — what used to be the bottom of the home screen: *Build* (commit, branch, version), *This launch*
    (the log's name and when it started, and where to find logs in Files), and *Report a problem* with its
-   reminder that a shake works on any screen.
+   reminder that a shake works on any screen. See the [PaperKit board spike](2026-11-22-paperkit-board-spike-design.md)
+   for its diagnostics entry.
 3. **About** (#303, the same page in every one of Igor's apps): a row that opens the app's name, its version and
    build, the commit it was built from as a link to that commit on GitHub, and a link to the repository. A build
    from uncommitted changes says so and links the commit underneath. A value the build did not record reads

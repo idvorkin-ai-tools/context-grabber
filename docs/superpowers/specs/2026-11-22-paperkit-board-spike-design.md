@@ -1,7 +1,7 @@
 # The PaperKit board (a spike)
 
-Status: proposed and built as a spike (bead context-grabber-0xrz, stories 1217–1219). It's an experiment until Igor has drawn on
-it. The real board doesn't change.
+This spike lets Igor try PaperKit's drawing tools before deciding what belongs on the whiteboard. See
+[stories 1217–1219](../../stories/10-whiteboard-boards.md#user-story-1217) for implementation and verification status.
 
 Igor, 2026-11-22 22:02 (via Larry): "Upgrade from PencilKit to PaperKit on the whiteboard app and try to use all the
 different pen types and callout types… I want the fountain pen for sure. What are all my pens, all my shapes? Can I do
@@ -24,19 +24,19 @@ The full inventory, taken from this Mac's iOS 27.2 SDK, is in the bead.
 - It opens a blank page with everything PaperKit offers turned on:
   - **Pens:** pen, pencil, marker, monoline, fountain pen, watercolor, crayon and reed. The pen in hand when the page
     opens is the **fountain pen**.
+  - The picker also has an eraser, a lasso and a ruler.
   - **Shapes**, from the tool picker's **+**: rectangle, rounded rectangle, ellipse, line, speech bubble (the callout,
     with a tail you can aim), polygon, star and block arrow. Fill, outline and opacity can each be changed.
   - **Lines and arrows:** a plain line, an arrow, or a line with arrowheads at both ends. Lines can bend.
   - **Text boxes**, and text typed inside a shape.
   - **Images, stickers, a magnifier (loupe) and links.**
-- The page is a scratch pad. It isn't saved and isn't sent to Larry, and closing it throws it away. It can't harm a board.
-- Opening it and leaving it each write one line to the session log, as with the board's other debug screens.
+- Closing the scratch page discards its contents. Reopening starts with a blank page.
+- See [PaperKit board events](../../debugging/whiteboard.md#the-paperkit-board) for the session log fields.
 
 ## Non-goals
 
-- No change to the real board, its storage, Larry's turn, or the ink it already has.
+- The scratch page is separate from the saved whiteboard and Larry's conversation.
 - No connectors. PaperKit has none, and faking them on the scratch pad would only tell us about the fake.
-- Nothing is saved.
 
 ## How the board's objects would map onto PaperKit (if the board moved onto its elements)
 

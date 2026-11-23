@@ -1439,7 +1439,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1217:
 
 - **Summary:** I try every pen and shape PaperKit has on a scratch page before the board takes any of them
-- **Status:** implemented in [8a891f0a](https://github.com/idvorkin/context-grabber/commit/8a891f0a); verified by lint and host tests (`just native-test`) and the Mac build (`just native-build-mac`, which compiles the page); not yet opened on the iPad simulator (the Mac's screen was locked) or drawn on with the Pencil on the iPad. No iPhone runs
+- **Status:** implemented in [8a891f0a](https://github.com/idvorkin/context-grabber/commit/8a891f0a). Lint and host tests passed (`just native-test`) and the Mac build compiled the page (`just native-build-mac`). Opening the page and using its picker await live verification on iPad.
 - **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
 - **Issues:** bead context-grabber-0xrz
 
@@ -1459,7 +1459,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1218:
 
 - **Summary:** Closing the PaperKit scratch page throws it away
-- **Status:** implemented in [8a891f0a](https://github.com/idvorkin/context-grabber/commit/8a891f0a); verified by lint and host tests (`just native-test`) and the Mac build (`just native-build-mac`); not yet checked on the iPad simulator or the iPhone
+- **Status:** implemented in [8a891f0a](https://github.com/idvorkin/context-grabber/commit/8a891f0a), with the same lint, host and build checks as [story 1217](#user-story-1217). Discarding the scratch page awaits live verification on iPad.
 - **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
 - **Issues:** bead context-grabber-0xrz
 
@@ -1479,7 +1479,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1219:
 
 - **Summary:** The PaperKit scratch page is only on the iPad
-- **Status:** implemented in [8a891f0a](https://github.com/idvorkin/context-grabber/commit/8a891f0a); verified by lint and host tests (`just native-test`) and the Mac build (`just native-build-mac`); not yet checked on the iPad simulator or the iPhone
+- **Status:** the iPad-only restriction was implemented in [f9fdc347](https://github.com/idvorkin/context-grabber/commit/f9fdc347). Lint passed for the changed Swift files (rung 0). Platform visibility awaits live verification.
 - **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
 - **Issues:** bead context-grabber-0xrz
 
