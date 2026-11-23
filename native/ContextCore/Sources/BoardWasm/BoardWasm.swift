@@ -9,7 +9,7 @@
   import Foundation
 
   /// This interface's version: up when an export's arguments, results or JSON change.
-  let abi = 4
+  let abi = 5
 
   /// The loaded board, its boxes as the rules take them (computed when first asked), and why the last call failed.
   var board: BoardSnapshot?
