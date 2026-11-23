@@ -166,15 +166,13 @@ native-build-sim: native-project
 
 # Once per simulator: grant Health access through Health's own sheet (a UI test taps it; nothing else can) and
 # grab the fixture week from the simulator's Health store. sim-smoke.sh then checks the exports.
-native-sim-health: native-project
+native-sim-health:
     #!/usr/bin/env bash
     set -uo pipefail
-    # Story 1508: in lane 1, under its lock: the named simulator is lane 1's, and the other lanes copy their Health
-    # access from it (`just native-sim-lanes refresh`).
-    if [ -z "${BUILD_LANE:-}" ]; then
-      mkdir -p ~/tmp/agent/locks
-      exec lockf -k -t "${BUILD_LANE_WAIT:-3600}" "$(scripts/native/build-lane.sh lock 1)" env BUILD_LANE=1 BUILD_LANES="$(scripts/native/build-lane.sh count)" BUILD_LANE_PORT_OFFSET=0 just native-sim-health
-    fi
+    . scripts/native/sim-lane.sh
+    export SIM="{{native_sim}}"
+    take_lane_one bash "$0" || exit
+    just native-project || exit
     scripts/native/sim-boot.sh "{{native_sim}}" || exit  # the one booted simulator (story 980)
     scripts/native/xcodebuild-log.sh sim-health "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
@@ -191,9 +189,15 @@ native-sim-lanes *mode:
 # Native rung 2's smoke: the simulator build driven by launch hooks, judged from its session log. It waits while another
 # xcodebuild runs: a simulator run under contention counts as failed.
 # Only the features this branch touched (scripts/native/smoke-features.sh), the app silent; SMOKE_ONLY=all for every one.
-# The smoke takes the first free build lane itself and runs on that lane's own simulator (story 1508).
-native-test-sim: native-build-sim
-    scripts/native/xcodebuild-idle.sh && SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{native_sim}}" {{native_bundle}} {{native_sim_app}}
+native-test-sim:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    . scripts/native/sim-lane.sh
+    export SIM="{{native_sim}}"
+    take_lane_one bash "$0"
+    just native-build-sim
+    scripts/native/xcodebuild-idle.sh
+    SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{native_sim}}" {{native_bundle}} {{native_sim_app}}
 
 # Story 1019 (bead 0u3k): the contract tests on real PaperKit and PencilKit (native/ContractTests), hosted in the app on
 # an iPad simulator in a build lane: what the whiteboard relies on the platform doing. Story 1020 (bead 8o93): with the

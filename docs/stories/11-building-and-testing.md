@@ -1732,29 +1732,59 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** `just wasm-test` loads the module under node and replays each session, then loads each session's last board whole and again in two halves
 - **Then:** every session replays as the app's own replay test expects (contract 1, no mismatch but ops-move's known one, each turn's hint the end of the recorded one), the board answers every cut the same whole or in halves, a cut with nothing loaded is NaN with a reason, and the one 32-bit midpoint case answers as pinned
 
+---
+
 ### User Story 1508:
 
-- **Summary:** A simulator is driven only from the build lane that owns it
-- **Status:** implemented in [bdfebd7e](https://github.com/idvorkin/context-grabber/commit/bdfebd7e); verified on the host by `scripts/native/test-sim-lane.sh` (lane ownership, sim-boot and a test run refused with exit 64 outside the owning lane, a build allowed, a script outside any lane taking one); no simulator run (the Mac's screen was locked)
+- **Summary:** Simulator scripts started by hand take the first free build lane
+- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823). Verified on the host by `scripts/native/test-sim-lane.sh` with a script started outside any lane. The Mac's screen was locked, so there was no simulator run.
 - **Issues:** bead context-grabber-w7nl (2026-11-22 ~21:20: a dead-code lane's timer smoke, run outside any lane, went to lane 1's iPad while lane 1 ran the whiteboard suite on it: three smoke failures, each different, and the suite's own run spoiled)
 
 #### Use Case:
 - **As Igor,** with several agents running simulator checks on one Mac at once
-- **I want to** have every simulator run go to its own lane's simulator, never to one another job is testing on
-- **so that** a failure means the change broke something, not that two runs fought over one simulator
+- **I want to** have the smoke and UI suite scripts take a lane when I start them directly
+- **so that** I can run them by hand while other jobs use their own simulators
 
 #### Acceptance Criteria:
-- **Scenario:** A smoke started by hand
+- **Scenario:** A simulator script started by hand
 - **Given:** no build lane is held
-- **When:** the simulator smoke or a UI suite script is started
-- **Then:** it takes the first free build lane, says so, and runs on that lane's own simulator, even when it was given another lane's simulator
+- **When:** I start the simulator smoke script or a UI suite script directly
+- **Then:** it announces that it is taking a lane and runs on the first free lane's simulator for that model, including when given another lane's simulator UDID
 
+---
+
+### User Story 1509:
+
+- **Summary:** Booting or testing on a build lane's simulator requires its lane
+- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64.
+- **Issues:** bead context-grabber-w7nl
+
+#### Use Case:
+- **As Igor,** sharing the Mac with other simulator jobs
+- **I want to** have boot and test commands refused outside the simulator's owning lane
+- **so that** a command started by hand cannot interrupt another job's tests
+
+#### Acceptance Criteria:
 - **Scenario:** Another lane's simulator
-- **Given:** a run that holds build lane 2, or no lane
-- **When:** it boots, or runs tests on, the simulator build lane 1 owns
-- **Then:** it is refused with exit 64 before anything boots or builds, and the message names the simulator, its lane and how to run it in a lane
+- **Given:** a command holds build lane 2 or holds no lane
+- **When:** it targets lane 1's simulator for booting or testing
+- **Then:** it exits 64 before booting or running Xcode, and the message names the simulator and its lane and explains how to run the command
 
+---
+
+### User Story 1510:
+
+- **Summary:** Simulator operations that require no build lane still run
+- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823). Verified on the host by `scripts/native/test-sim-lane.sh` with a simulator build command and an unowned simulator accepted by the guard.
+- **Issues:** bead context-grabber-w7nl
+
+#### Use Case:
+- **As Igor,** building for the simulator or testing on a device outside the build lanes
+- **I want to** run those operations without taking a lane
+- **so that** they can run while the build lanes are occupied
+
+#### Acceptance Criteria:
 - **Scenario:** A build, or a simulator of no lane
 - **Given:** no build lane is held
-- **When:** it builds for a lane's simulator, or tests on a simulator no lane owns
-- **Then:** it runs as before
+- **When:** I build for a lane's simulator or run tests on a simulator no lane owns
+- **Then:** the command proceeds without requiring a build lane

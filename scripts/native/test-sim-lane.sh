@@ -27,18 +27,27 @@ export MARKS=$tmp/marks
 cat >"$fakes/xcrun" <<F
 #!/usr/bin/env bash
 echo "xcrun \$*" >>"\$MARKS/xcrun"
+[ "\$1 \$2" != "simctl install" ] || exit 31
 [ "\$1 \$2 \$3" = "simctl list devices" ] || exit 0
-echo "== Devices =="; echo "-- iOS 27.0 --"
-echo "    iPad Pro 11-inch (M5) ($PAD) (Booted) "
-echo "    iPad Pro 11-inch (M5) lane 2 ($L2PAD) (Shutdown) "
-echo "    iPhone 17 ($PHONE) (Shutdown) "
-echo "    iPhone 16e ($OTHER) (Booted) "
+cat <<'DEVICES'
+== Devices ==
+-- iOS 27.0 --
+    iPad Pro 11-inch (M5) ($PAD) (Booted)
+    iPad Pro 11-inch (M5) lane 2 ($L2PAD) (Shutdown)
+    iPhone 17 ($PHONE) (Shutdown)
+    iPhone 16e ($OTHER) (Booted)
+DEVICES
 F
 cat >"$fakes/xcodebuild" <<'F'
 #!/usr/bin/env bash
-echo "xcodebuild $*" >>"$MARKS/xcodebuild"
-echo "** BUILD SUCCEEDED **"
+echo "xcodebuild lane=${BUILD_LANE:-none} $*" >>"$MARKS/xcodebuild"
+case " $* " in
+  *" test "*) echo "** TEST SUCCEEDED **" ;;
+  *) echo "** BUILD SUCCEEDED **" ;;
+esac
 F
+printf '#!/usr/bin/env bash\nexit 0\n' >"$fakes/xcodegen"
+printf '#!/usr/bin/env bash\nexit 1\n' >"$fakes/pgrep"
 chmod +x "$fakes"/*
 with() { env PATH="$fakes:$PATH" BUILD_LOCK_DIR="$tmp/locks" SMOKE_LOCK_PROBE="echo unlocked" "$@"; }
 lib() { with bash -c '. scripts/native/sim-lane.sh; "$@"' _ "$@"; }
@@ -105,5 +114,27 @@ is "a run of built tests in lane 2 on lane 1's iPad: exit 64" "$?" 64
 rm -f "$MARKS/xcodebuild"
 XACT=build xlog
 [ -e "$MARKS/xcodebuild" ] && ok "a build for the simulator, outside a lane: it runs" || bad "a build for the simulator, outside a lane: it runs"
+
+recipe() {
+  with SIM="iPad Pro 11-inch (M5)" BUILD_LANES=2 BUILD_LANE_WAIT=0 SMOKE_ONLY=mirror \
+    NATIVE_LOG_DIR="$tmp/logs" SIM_DEVICES_DIR="$tmp/devices" "$@" >"$out" 2>&1
+}
+: >"$MARKS/xcodebuild"
+: >"$MARKS/xcrun"
+recipe lockf -k -t 0 "$tmp/locks/build.lock" just native-test-sim
+is "the standalone smoke waits for lane 1 even when lane 2 is free" "$?" 75
+if [ -s "$MARKS/xcodebuild" ] || [ -s "$MARKS/xcrun" ]; then
+  bad "busy lane 1: the standalone smoke started work"
+fi
+
+recipe just native-sim-health
+is "the default Health grant succeeds" "$?" 0
+has "the default Health grant runs on lane 1's iPad" "$MARKS/xcodebuild" "xcodebuild lane=1 -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build -destination platform=iOS Simulator,id=$PAD"
+
+recipe just native-test-sim
+has "the standalone smoke installs on the iPad with the default Health grant" "$MARKS/xcrun" "simctl install $PAD "
+
+recipe BUILD_LANE=2 just native-test-sim
+has "a smoke already in lane 2 installs on its own iPad" "$MARKS/xcrun" "simctl install $L2PAD "
 
 exit "$fail"

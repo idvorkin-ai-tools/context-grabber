@@ -197,9 +197,11 @@ simulator belongs to no lane. `sim-boot.sh`, and `xcodebuild-log.sh` for a `test
 simulator, refuse with exit 64 a simulator another lane owns, or a lane's simulator from a run that holds no lane, and
 say how to run it; a build for the simulator isn't refused. `sim-smoke.sh`, `test-chat-ui.sh` and
 `test-whiteboard-ui.sh` started outside a lane take the first free one themselves (`build-lane.sh run`) and use that
-lane's own simulator, reading a lane's udid they were given as its model. `just native-test-sim` therefore runs its smoke
-in a lane, and `just native-sim-health` in lane 1, whose simulator the other lanes copy Health access from. On
-2026-11-22 a smoke run by hand went to lane 1's iPad while lane 1 ran the whiteboard suite on it, and spoiled both.
+lane's own simulator, reading a lane's udid they were given as its model. From outside a lane, `just native-test-sim`
+and `just native-sim-health` wait for lane 1 so the smoke uses the simulator that received the default Health grant.
+Inside a lane those recipes use its own simulator. Refresh existing copies with `just native-sim-lanes refresh`
+after granting Health access in lane 1. On 2026-11-22 a smoke run by hand went to lane 1's iPad while lane 1 ran the
+whiteboard suite on it, and spoiled both.
 
 **Host builds and tests take a host slot** (stories 795, 797, 798; bead context-grabber-mkd0). Twenty agents' `just
 test` at once loaded the 18-core Mac to 281 (2026-11-22), and lanes only cover Xcode. So swift-format and SwiftLint

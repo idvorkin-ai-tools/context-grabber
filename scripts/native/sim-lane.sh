@@ -22,6 +22,15 @@ take_lane() {
   exec "$sim_lane_here/build-lane.sh" run env SIM_LANE_TAKEN=1 bash "$@"
 }
 
+take_lane_one() {
+  [ -z "${BUILD_LANE:-}" ] || return 0
+  local lock lanes
+  lock=$("$sim_lane_here/build-lane.sh" lock 1) || return
+  lanes=$("$sim_lane_here/build-lane.sh" count) || return
+  mkdir -p "${lock%/*}" || return
+  exec lockf -k -t "${BUILD_LANE_WAIT:-3600}" "$lock" env BUILD_LANE=1 BUILD_LANES="$lanes" BUILD_LANE_PORT_OFFSET=0 "$@"
+}
+
 sim_name() {  # <udid|name>: the simulator's name, or nothing for a udid this Mac doesn't have
   if [[ $1 =~ ^[0-9A-Fa-f-]{36}$ ]]; then
     xcrun simctl list devices available 2>/dev/null | sed -nE "s/^ +(.+) \\($1\\) \\(.*$/\\1/p" | head -1

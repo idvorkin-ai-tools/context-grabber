@@ -491,7 +491,9 @@ one for every 12 GB, at most four, at least one (four on a 48 GB Mac, one on a 1
 number. A job takes the first free lane, waits only while every lane is busy, and says which lane it got. Each lane has
 its own iPhone and iPad simulators: lane 1's are the named ones, as on a one-lane Mac, and another lane's are copies of
 them made once, so they keep Health access and the seeded data. A copy made before lane 1 had something new (its Health access granted, its data seeded) keeps the old state, so copies can be refreshed on request: lane by lane, each lane's copies are thrown away and copied again from lane 1's, only while that lane is idle (a busy lane is skipped and named, never interrupted) and only while lane 1 is idle (so the fresh copy is a true copy, never a blank simulator). A report lists each lane's copies, which exist and which are missing, and changes nothing. Jobs in different lanes never share a simulator or a
-fake server's port. A simulator job also waits while as many other Xcode builds run as there are lanes (on a one-lane
+fake server's port. The standalone smoke recipe waits for lane 1 when started outside a lane, so it uses the same
+simulator as the default Health access grant even when other lanes are free. A smoke run already in a lane uses that
+lane's own simulator. A simulator job also waits while as many other Xcode builds run as there are lanes (on a one-lane
 Mac: any other), because startup waits fail under that load, and it says so. If they are still running after half an
 hour, the rung refuses to start. A test that fails while more builds ran than there are lanes is reported as
 contention: it counts as failed and is rerun, not debugged. Each lane's simulator is left booted afterwards for that

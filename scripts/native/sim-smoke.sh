@@ -492,7 +492,11 @@ mirror_check() {  # $1 = fixture | healthkit
   : >"$DOCS/exports/fixture.json"; : >"$DOCS/exports/summary.json"; : >"$DOCS/exports/raw.json"
   SIMCTL_CHILD_GRABBER_MIRROR="$1" relaunch
   if ! wait_for mirror_fixture_done 120; then
-    if [ "$1" = healthkit ]; then fail=$before; echo "skip  mirror ($1): no Health access on this simulator; run just native-sim-health"; return; fi
+    if [ "$1" = healthkit ]; then
+      fail=$before
+      echo "skip  mirror ($1): no Health access on this simulator. Run just native-sim-health in lane 1, then just native-sim-lanes refresh for existing copies."
+      return
+    fi
     bad "mirror ($1): no mirror_fixture_done"; return
   fi
   f=$(newest_log)
