@@ -1228,6 +1228,26 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 1138:
+
+- **Summary:** Open a chat while ticking, and come back to the same ticks
+- **Status:** native app only: implemented on branch `native/chat-select-open-1258`; verification below once it lands
+- **Issues:** [#1258](https://github.com/idvorkin/context-grabber/issues/1258)
+- **Spec:** [Native chat — Reading a chat before archiving it](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man reviewing which chats to archive
+- **I want to** open one to see what it says, then come back to my ticks
+- **so that** I archive only what I've checked, without starting the review again
+
+#### Acceptance Criteria:
+- **Scenario:** Peeking at a chat while ticking
+- **Given:** I tapped *Review* or *Select* and ticked a chat
+- **When:** I press and hold a row and tap *Open chat*, or tap the arrow at its end, then tap *Back*
+- **Then:** the chat opened as it would from the list, and back on the list I am still ticking, on the same side of the switch, with the same ticks and the same *Archive (N)*; opening it ticked or unticked nothing
+
+---
+
 ### User Story 824:
 
 - **Summary:** Switch between the recommendations and every chat without losing a tick

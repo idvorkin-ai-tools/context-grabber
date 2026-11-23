@@ -127,6 +127,13 @@ thread ticked under one stays ticked under the other, and *Archive (N)* counts a
 or not. *Recommendations* with nothing left that looks done says *Nothing looks done* in place of the rows. *Cancel* or
 *Archive (N)* ends the ticking, and the next *Select* or *Review* opens on its own side again.
 
+**Reading a chat before archiving it** (Igor, 2026-11-22, #1258: *"On this page let me open the chat so I can see and
+then go back if I want to archive it"*). While ticking, a tap on a row still ticks or unticks it, and every row also
+opens its chat, two ways: a press and hold on the row offers *Open chat*, and a small arrow at the row's end opens it
+at once. The chat opens as it would from the list. *Back* returns to the ticking exactly as he left it: the same side
+of the switch, the same ticks, the same *Archive (N)*. Opening a chat never ticks or unticks it; whatever he does in
+the chat (a reply, say) shows on its row when he is back, as anywhere else.
+
 **A thread.** Bubbles: Igor's on the right, Larry's on the left, oldest at the top, opening at the newest. Images
 show inline, tap to see full size; the full-size view always has a Done that shows on any picture, white or
 dark, and a swipe down closes it too. The full-size picture zooms (#907, Igor, 2026-11-14: *"Need to be able to pinch
