@@ -94,7 +94,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 434:
 
 - **Summary:** Ruled lines, like notebook paper
-- **Status:** implemented on paper in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`). 40 points is provisional until Igor has seen it; the old canvas has no ruled lines; asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Status:** implemented on paper in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`). 40 points is provisional until Igor has seen it; the old canvas has no ruled lines; asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#678](https://github.com/idvorkin/context-grabber/issues/678)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -274,7 +274,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 523:
 
 - **Summary:** One kind of lines at a time
-- **Status:** implemented on paper in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`); asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Status:** implemented on paper in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`); asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -579,7 +579,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 538:
 
 - **Summary:** Every page is ruled the same
-- **Status:** the line positions implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); the 40-point spacing is provisional until Igor has seen it. Drawn on paper in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`), which shows one page at a time; two pages ruled alike is from `BoardPagesTests`.
+- **Status:** the line positions implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); the 40-point spacing is provisional until Igor has seen it. Drawn on paper in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`), which shows one page at a time; two pages ruled alike is from `BoardPagesTests`.
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -779,7 +779,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 598:
 
 - **Summary:** A board on paper says what it can't do yet
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) and [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: the bar and the Board menu). The paste button back in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); that it's there is checked on an iPhone simulator (`WhiteboardPaperGhostsUITests`: `testAGhostShowsOnThePaperAndKeepMakesItInk`, named `testAGhostShowsOnThePaperAndATapKeepsIt` before story 825). The Board menu's grid in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) and [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: the bar and the Board menu). The paste button back in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); that it's there is checked on an iPhone simulator (`WhiteboardPaperGhostsUITests`: `testAGhostShowsOnThePaperAndKeepMakesItInk`, named `testAGhostShowsOnThePaperAndATapKeepsIt` before story 825). The Board menu's grid in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1479,7 +1479,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 633:
 
 - **Summary:** Larry's marks come back when a board on paper opens
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`). Extended to earlier replies in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4), verified by host tests (`WhiteboardMarksTests`). `WhiteboardTurnUITests` covers a dismissed set staying gone
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`). Extended to earlier replies in [10727b6c](https://github.com/idvorkin/context-grabber/commit/10727b6c), verified by host tests (`WhiteboardMarksTests`). `WhiteboardTurnUITests` covers a dismissed set staying gone
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1875,7 +1875,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 652:
 
 - **Summary:** A grid on a board on paper
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, an old-canvas test dropped 2026-11-07; host `BoardPagesTests`; feel on a big board is the iPad's)
+- **Status:** implemented in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, an old-canvas test dropped 2026-11-07; host `BoardPagesTests`; feel on a big board is the iPad's)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#678](https://github.com/idvorkin/context-grabber/issues/678)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1895,7 +1895,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 653:
 
 - **Summary:** Lines stay with their board on paper
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, since story 757 part of `testANewBoardOpensWithTheGrid`; `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07); a new board starting with the grid, not none, in [c0e22ba](https://github.com/idvorkin/context-grabber/commit/c0e22ba) (story 410, #915), verified by host tests (`BoardLinesTests`)
+- **Status:** implemented in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, since story 757 part of `testANewBoardOpensWithTheGrid`; `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07); a new board starting with the grid, not none, in [c0e22ba](https://github.com/idvorkin/context-grabber/commit/c0e22ba) (story 410, #915), verified by host tests (`BoardLinesTests`)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#915](https://github.com/idvorkin/context-grabber/issues/915)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1915,7 +1915,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 654:
 
 - **Summary:** Lines are never ink
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, the stroke count; that they can't be erased or lassoed follows from their not being in the drawing, and hasn't been driven with those tools)
+- **Status:** implemented in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, the stroke count; that they can't be erased or lassoed follows from their not being in the drawing, and hasn't been driven with those tools)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1935,7 +1935,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 655:
 
 - **Summary:** Lines and ghosts show on every colour
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, since story 757 part of `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`; `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour, an old-canvas test dropped 2026-11-07; on paper `testRuledLinesStayWithTheBoardUnderTheInk` keeps a board's colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour); since story 770 Lilac alone, the grid on Plain being `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`
+- **Status:** implemented in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, since story 757 part of `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`; `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour, an old-canvas test dropped 2026-11-07; on paper `testRuledLinesStayWithTheBoardUnderTheInk` keeps a board's colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour); since story 770 Lilac alone, the grid on Plain being `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1955,7 +1955,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 656:
 
 - **Summary:** Changing colour or lines leaves the ink
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`, since story 757 part of `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, with a stroke where it pasted *HI*; `paper_ink_look` after each change); since bead `context-grabber-y8r` on Lilac and Plain; since story 770 on Lilac alone
+- **Status:** implemented in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`, since story 757 part of `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, with a stroke where it pasted *HI*; `paper_ink_look` after each change); since bead `context-grabber-y8r` on Lilac and Plain; since story 770 on Lilac alone
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1975,7 +1975,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 657:
 
 - **Summary:** The Board menu never costs a stroke
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5). Choosing the colour already chosen takes the same path; its test, `testTheFirstStrokeAfterChoosingTheSameColourDraws`, hasn't been run on a simulator yet; since bead `context-grabber-y8r` the first two cases share one launch, and since [e234dc6](https://github.com/idvorkin/context-grabber/commit/e234dc6) the same-colour case has its own again, on a fresh board choosing Plain (chained after the others, the menu tap missed the colour row); verified on the simulator (the whole whiteboard suite, 0 failures). Since [efab29b9](https://github.com/idvorkin/context-grabber/commit/efab29b9) (#880) a Board-menu row whose tap the on-screen keyboard's rise cancelled is tapped again; verified on the iPad Pro 11-inch (M5) simulator, `WhiteboardPaperLinesUITests` four times with no retry, 28 of 28 (the second tap was needed 3 times, each a miss before), against 13 of 14 before it
+- **Status:** implemented in [7af07efc](https://github.com/idvorkin/context-grabber/commit/7af07efc); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5). Choosing the colour already chosen takes the same path; its test, `testTheFirstStrokeAfterChoosingTheSameColourDraws`, hasn't been run on a simulator yet; since bead `context-grabber-y8r` the first two cases share one launch, and since [e234dc6](https://github.com/idvorkin/context-grabber/commit/e234dc6) the same-colour case has its own again, on a fresh board choosing Plain (chained after the others, the menu tap missed the colour row); verified on the simulator (the whole whiteboard suite, 0 failures). Since [efab29b9](https://github.com/idvorkin/context-grabber/commit/efab29b9) (#880) a Board-menu row whose tap the on-screen keyboard's rise cancelled is tapped again; verified on the iPad Pro 11-inch (M5) simulator, `WhiteboardPaperLinesUITests` four times with no retry, 28 of 28 (the second tap was needed 3 times, each a miss before), against 13 of 14 before it
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#880](https://github.com/idvorkin/context-grabber/issues/880) (the menu's UI tests flaky on the iPad simulator: opening the Board menu raises the on-screen keyboard there, and a row tapped as it rises is cancelled, so `WhiteboardPaperLinesUITests` taps the row again while the menu is still up)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 

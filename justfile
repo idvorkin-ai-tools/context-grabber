@@ -107,6 +107,8 @@ native-test-host:
     # Story 789 (#993): every story ID is used once and sits in its journey's ranges in docs/stories/README.md.
     # Stories 791-794: reserve hands out free IDs against main, open PRs and a locked ledger; pre-merge catches a collision.
     scripts/native/test-story-ids.sh
+    # Beads t309, lldg: every commit a story links is in this branch's history (no sha left behind by a rebase).
+    scripts/native/test-story-commits.sh
     # Bead wq2j: every board test file is in BoardCoreTests or listed as staying in ContextCoreTests.
     scripts/native/test-board-tests-listed.sh
     # Story 1502 (bead 2b54): docs/TESTING.md's one-a-line lists match the host checks and the suites' classes.

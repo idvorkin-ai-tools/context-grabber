@@ -14,7 +14,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1159:
 
 - **Summary:** The session log records which earlier replies stayed on the board
-- **Status:** implemented in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4). The simulator verified that the earlier marks stayed (`WhiteboardTurnUITests`). The `earlier_stayed` and `earlier_replies` fields have not yet been seen in a session log
+- **Status:** implemented in [10727b6c](https://github.com/idvorkin/context-grabber/commit/10727b6c). The simulator verified that the earlier marks stayed (`WhiteboardTurnUITests`). The `earlier_stayed` and `earlier_replies` fields have not yet been seen in a session log
 - **Issues:** bead `context-grabber-n8ab`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
