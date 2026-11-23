@@ -189,7 +189,7 @@ for its line. Both over the loaded outline; `bw_info` says `"abi": 5`; versions 
 
 ## The interface, version 6: a connector's route
 
-Story 1621. A connector's shaft runs where `BoardConnectors.route` says: straight from one end's side to the other's,
+Story 1621. A connector's shaft runs where the iPad's connectors route it: straight from one end's side to the other's,
 unless that crosses a box in the way; then one orthogonal elbow that crosses nothing (across then down, else down
 then across); else straight anyway. `bw_info` says `"abi": 6`; versions 1 to 5 are unchanged.
 

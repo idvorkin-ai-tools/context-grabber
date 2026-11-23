@@ -1582,7 +1582,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1621:
 
 - **Summary:** The web board asks the app's own rules where a connector's shaft runs
-- **Status:** implemented in bf2243a8; verified by `just wasm-test` (148 checks, a hand-worked straight route and one elbow round a box among them), the Linux rung (894 tests) and the Cockpit's comparison (60 seeded layouts, 3,432 routes, 548 with an elbow, 0 differences), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Status:** implemented in e3a1668f; verified by `just wasm-test` (148 checks, a hand-worked straight route and one elbow round a box among them), the Linux rung (894 tests) and the Cockpit's comparison (60 seeded layouts, 3,432 routes, 548 with an elbow, 0 differences), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 6
 - **Issues:** bead `context-grabber-edl`
 
