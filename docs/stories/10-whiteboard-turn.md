@@ -956,8 +956,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1192:
 
 - **Summary:** A board reopened while its Send waits says so
-- **Status:** implemented in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552) (split from story 1176); verified by host tests (`WhiteboardOneSendTests`: a board reopened while it waits). Not yet seen on the iPad. A Send refused or deleted while its board is closed frees nothing to keep: its words are lost, bead context-grabber-tetc.
-- **Issues:** bead context-grabber-rtl (Igor, design board, 2026-11-22: "one Send button that waits when offline")
+- **Status:** implemented in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552) (split from story 1176); verified by host tests (`WhiteboardOneSendTests`: a board reopened while it waits). Not yet seen on the iPad. A Send refused or deleted while its board is closed frees nothing to keep: its words are lost, bead context-grabber-tetc. The reopened board remembering what the waiting picture showed (no second copy on a repeat tap, ink drawn after it still new) in COMMIT_KOCZ, verified by host tests (`WhiteboardOneSendTests`: the picture's revision and part of the board, with folds open, restored from the outbox).
+- **Issues:** bead context-grabber-rtl (Igor, design board, 2026-11-22: "one Send button that waits when offline"); bead context-grabber-kocz (review of PR #1236: a reopened board's repeat tap could send the identical picture, and ink drawn after the Send counted as sent)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *One Send*
 
 #### Use Case:
@@ -970,6 +970,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a Send waiting in the outbox and the board closed
 - **When:** I open the board again
 - **Then:** the note reads *Waiting to send* again; when it goes Larry's clock starts and *Interrupt* is offered, and if it can't go what I said with it waits for the next picture
+
+- **Scenario:** A repeat tap after the reopened Send goes
+- **Given:** a board reopened while its Send waited, and the Send has now gone
+- **When:** I tap *Send to Larry* with nothing drawn since the Send and the same pages on screen
+- **Then:** the note says *Larry already has this* and no second copy goes; had I drawn after the Send, before closing the board or since opening it, or moved to other pages, a fresh picture goes
 
 ---
 

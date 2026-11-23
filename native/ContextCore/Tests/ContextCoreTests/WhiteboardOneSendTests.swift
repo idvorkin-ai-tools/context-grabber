@@ -82,6 +82,68 @@ final class WhiteboardOneSendTests: XCTestCase {
     XCTAssertEqual(turn.state, .awaiting(since: at(5), sent: 4))
   }
 
+  // MARK: Opened again while it waits (story 1192, bead context-grabber-kocz)
+
+  /// A Send taken at the board's version `rev` of `rect` (`folds` open), as the outbox gives it back (its JSON;
+  /// `WhiteboardMarksTests` takes one through the outbox's store).
+  private func queued(rev: Int, rect: CGRect, folds: BoardFoldMap? = nil) throws -> WhiteboardPicture {
+    var picture = WhiteboardPicture(
+      board: "b1", title: "Plan", rect: folds.map { $0.toPicture(rect) } ?? rect, scale: 2,
+      report: BoardTurnReport(rev: rev))
+    picture.folds = folds
+    return try JSONDecoder().decode(WhiteboardPicture.self, from: JSONEncoder().encode(picture))
+  }
+
+  private let shown = CGRect(x: 12.3, y: 401.7, width: 820.1, height: 1100.9)
+
+  func testAReopenedSendThatWentIsNotSentAgainOnARepeatTap() throws {
+    let picture = try queued(rev: 4, rect: shown)
+    XCTAssertEqual(picture.report?.rev, 4, "the outbox keeps the picture's revision")
+    var turn = WhiteboardLarryTurn()
+    turn.reopenedWaiting(sent: picture.report?.rev, version: 4, now: at(0))
+    XCTAssertTrue(turn.outboxSent(now: at(5)))
+    let frame = WhiteboardLarryFrame.picture(picture)
+    XCTAssertFalse(frame.moved(to: shown))
+    XCTAssertEqual(
+      turn.tapped(version: 4, moved: frame.moved(to: shown), now: at(6)), .alreadyHas,
+      "the same pages, nothing new: no second copy")
+    XCTAssertTrue(frame.moved(to: shown.offsetBy(dx: 0, dy: 300)), "other pages on screen")
+    XCTAssertEqual(turn.tapped(version: 4, moved: true, now: at(7)), .send(words: nil))
+  }
+
+  func testInkDrawnAfterTheSendBeforeTheBoardClosedIsStillNew() throws {
+    let picture = try queued(rev: 4, rect: shown)
+    var turn = WhiteboardLarryTurn()
+    turn.reopenedWaiting(sent: picture.report?.rev, version: 6, now: at(0))
+    XCTAssertEqual(turn.state, .awaiting(since: at(0), sent: 4), "the picture's revision, not the board's now")
+    _ = turn.outboxSent(now: at(5))
+    XCTAssertEqual(
+      turn.tapped(version: 6, moved: WhiteboardLarryFrame.picture(picture).moved(to: shown), now: at(6)),
+      .send(words: nil), "the two strokes drawn after it go")
+  }
+
+  func testAPictureThatDoesntSayItsRevisionIsTakenAsTheBoardNow() {
+    var turn = WhiteboardLarryTurn()
+    turn.reopenedWaiting(sent: nil, version: 6, now: at(0))
+    XCTAssertEqual(turn.state, .awaiting(since: at(0), sent: 6))
+    var behind = WhiteboardLarryTurn()
+    behind.reopenedWaiting(sent: 9, version: 6, now: at(0))
+    XCTAssertEqual(behind.state, .awaiting(since: at(0), sent: 6), "never ahead of the board")
+  }
+
+  func testAWaitingPictureWithFoldsOpenShowsThePagesItWasTakenOf() throws {
+    let folds = BoardFoldMap(steps: [
+      BoardFoldMap.Step(header: "h1", top: 500.1, slide: 0.2), BoardFoldMap.Step(header: "h2", top: 900.3, slide: 77.7),
+    ])
+    let picture = try queued(rev: 4, rect: shown, folds: folds)
+    XCTAssertEqual(picture.folds, folds, "the outbox keeps the folds")
+    XCTAssertNotEqual(picture.frame.h, Double(shown.height), "the frame is the taller picture")
+    XCTAssertTrue(picture.shows(shown))
+    XCTAssertFalse(picture.shows(shown.offsetBy(dx: 0, dy: 1)))
+    XCTAssertFalse(WhiteboardLarryFrame.picture(picture).moved(to: shown))
+    XCTAssertTrue(WhiteboardLarryFrame.rect(shown).moved(to: shown.insetBy(dx: 1, dy: 1)))
+  }
+
   func testWaitingIsOnlyForATurnOut() {
     var turn = WhiteboardLarryTurn()
     turn.waitsInOutbox()

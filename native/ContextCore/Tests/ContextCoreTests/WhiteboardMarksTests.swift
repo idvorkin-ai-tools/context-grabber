@@ -299,6 +299,21 @@ final class WhiteboardMarksTests: XCTestCase {
     func add(_ path: String) { all.append(path) }
   }
 
+  /// Story 1192 (bead context-grabber-kocz): a board opened while its Send waits reads back from the outbox the board's
+  /// revision and the folds the picture was taken with, so it knows what the picture showed.
+  func testAWaitingSendKeepsItsRevisionAndFoldsInTheOutbox() throws {
+    let store = try outbox()
+    let folds = BoardFoldMap(steps: [BoardFoldMap.Step(header: "h1", top: 2050.5, slide: 33.3)])
+    var sending = WhiteboardPicture(
+      board: "b1", title: "Plan", rect: folds.toPicture(frame), scale: 2, report: BoardTurnReport(rev: 7))
+    sending.folds = folds
+    try store.add(InboxItem(id: "m1", kind: .text, sharedAt: 1, text: "board", whiteboard: sending))
+    let waiting = try XCTUnwrap(store.item("m1")?.whiteboard)
+    XCTAssertEqual(waiting.report?.rev, 7)
+    XCTAssertEqual(waiting.folds, folds)
+    XCTAssertTrue(waiting.shows(frame))
+  }
+
   /// Two Sends queued with no thread go to one thread, and the board keeps it with nobody watching: the sent items can
   /// be forgotten by Chat, and another board's thread is left alone.
   func testPicturesQueuedWithNoThreadShareTheOneTheFirstStarts() async throws {
