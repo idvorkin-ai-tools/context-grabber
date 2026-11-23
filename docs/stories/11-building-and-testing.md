@@ -1582,7 +1582,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1623:
 
 - **Summary:** The web board asks the app's own rules how much room a reply of Larry's opens when kept over ink written since its picture, and where a text of his set on ink lands
-- **Status:** implemented in 5bf30260 and 4a396ffc (where a text of his set on ink lands; on the Cockpit 4,055 text landings agree but for two classes counted apart: the Cockpit lands a text a full half line under the writing above where the app lands half of that, and a few whole-line 32-bit ties); verified by `just wasm-test` (157 checks, a hand-worked late room among them), the Linux rung (894 tests) and the Cockpit's comparison (recorded, 60 seeded and its five real boards: 9,732 keeps, 3,034 opening room, 0 differences), 2026-11-23. On the Mac, `just native-test` passes (SwiftLint, swift-format, host tests), 2026-11-23.
+- **Status:** implemented in ee948947 and 21039401 (where a text of his set on ink lands; on the Cockpit 4,055 text landings agree but for two classes counted apart: the Cockpit lands a text a full half line under the writing above where the app lands half of that, and a few whole-line 32-bit ties); verified by `just wasm-test` (157 checks, a hand-worked late room among them), the Linux rung (894 tests) and the Cockpit's comparison (recorded, 60 seeded and its five real boards: 9,732 keeps, 3,034 opening room, 0 differences), 2026-11-23. On the Mac, `just native-test` passes (SwiftLint, swift-format, host tests), 2026-11-23.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 8
 - **Issues:** bead `context-grabber-edl`
 
