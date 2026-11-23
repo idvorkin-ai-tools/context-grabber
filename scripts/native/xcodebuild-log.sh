@@ -154,14 +154,14 @@ if [ "$sim_test" -eq 1 ]; then
     fi
   fi
 fi
-# The run's tests that open the mic and haven't finished: passed, or failed on their last try.
+# The run's tests that open the mic and haven't finished: passed, skipped, or failed on their last try.
 tries=1
 [ "${UI_TEST_RETRY:-1}" = 1 ] && tries=2
 mics_left() {
   local m t c n
   for m in ${mics[@]+"${mics[@]}"}; do
     t=${m%%/*} c=${m#*/} c=${c%%/*} n=${m##*/}
-    grep -qF "Test Case '-[$t.$c $n]' passed" "$log" && continue
+    grep -qF -e "Test Case '-[$t.$c $n]' passed" -e "Test Case '-[$t.$c $n]' skipped" "$log" && continue
     [ "$(grep -cF "Test Case '-[$t.$c $n]' failed" "$log")" -ge "$tries" ] && continue
     echo "$c/$n"
   done

@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Sourced by sim-smoke.sh, sim-boot.sh, xcodebuild-log.sh, test-ladder.sh and the contract tests' recipe.
+# Sourced by sim-smoke.sh, xcodebuild-log.sh and test-ladder.sh.
 # Story 827 (#419): the simulator smoke's audio checks while the Mac's screen is locked. A locked Mac starves the
 # simulator's audio (timer cues late or empty, keepalive ok:false, breathing silent), and the rerun cost 5 to 12
 # minutes, so those checks are skipped and said to be, never counted as passed. Sourced by sim-smoke.sh.
@@ -17,28 +17,6 @@ mac_locked() {
   state=$(${SMOKE_LOCK_PROBE:-ioreg -n Root -d1} 2>/dev/null)
   # Whole, then matched: grep -q on a pipe could stop ioreg early, and pipefail would read that as unlocked.
   grep -qE '"CGSSessionScreenIsLocked"[[:space:]]*=[[:space:]]*(Yes|true)' <<<"$state"
-}
-
-# Story 1022 (bead context-grabber-208e): nothing that tests on a simulator, or boots one, starts on a locked Mac: its
-# audio server starves and the app aborts when a test opens the mic, each crash a dialog on Igor's screen.
-# wait_unlocked <what>: true at once when unlocked; locked, says so once and looks again every SIM_LOCK_POLL seconds (5)
-# for up to SIM_LOCK_WAIT (120: the signing guard's 24 looks 5 s apart), true once unlocked; still locked, it says
-# <what> didn't start and returns 75, for the caller to exit with.
-wait_unlocked() {
-  local what=${1:-the simulator run} limit=${SIM_LOCK_WAIT:-120} poll=${SIM_LOCK_POLL:-5} waited=0
-  mac_locked || return 0
-  [ "$limit" -le 0 ] || echo "the Mac's screen is locked: waiting up to $limit s for it to be unlocked before $what" >&2
-  while [ "$waited" -lt "$limit" ]; do
-    sleep "$poll"
-    waited=$((waited + poll))
-    if ! mac_locked; then
-      echo "the Mac's screen is unlocked: starting $what" >&2
-      return 0
-    fi
-  done
-  echo "the Mac's screen is locked, so $what didn't start (waited $waited s): a locked Mac starves the simulator's audio" \
-    "and the app can crash when a test opens the mic (story 1022); unlock it and rerun" >&2
-  return 75
 }
 
 # audio_ok <check>: true to run it; false while the screen is locked, with a skip line that counts it.

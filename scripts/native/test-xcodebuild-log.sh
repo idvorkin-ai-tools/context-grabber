@@ -32,9 +32,9 @@ if [ -n "${FAKE_PASS_CASE:-}" ]; then  # a test that doesn't open the mic passes
   c="Test Case '-[GrabberNativeUITests.OtherUITests testOther]'"
   printf '%s\n' "$c started." "$c passed (1.000 seconds)."
 fi
-if [ -n "${FAKE_MIC_DONE:-}" ]; then  # the run's test that opens the mic passes before the screen locks (bead wm8y)
+if [ -n "${FAKE_MIC_DONE:-}" ]; then  # the run's test that opens the mic passes, or skips itself, before the screen locks (bead wm8y)
   c="Test Case '-[GrabberNativeUITests.SynthUITests testMic]'"
-  printf '%s\n' "$c started." "$c passed (1.000 seconds)."
+  printf '%s\n' "$c started." "$c $FAKE_MIC_DONE (1.000 seconds)."
 fi
 if [ -n "${FAKE_EARLY_FAIL:-}" ]; then  # a case fails while the screen is still unlocked
   c="Test Case '-[GrabberNativeUITests.SynthUITests testEarly]'"
@@ -245,7 +245,7 @@ simrun() {  # simrun [VAR=value...] -- <command...>
   shift
   rm -f "$dir/args" "$dir/xcrun"
   env MIC_TESTS="$dir/mics" ${vars[@]+"${vars[@]}"} PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
-    SMOKE_LOCK_PROBE="${LOCK_PROBE:-cat $dir/lock}" XCODEBUILD_LOCK_POLL=1 SIM_LOCK_POLL=1 scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" \
+    SMOKE_LOCK_PROBE="${LOCK_PROBE:-cat $dir/lock}" XCODEBUILD_LOCK_POLL=1 scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" \
     "$@" 2>&1 >/dev/null
 }
 # Bead wm8y: the run's tests that open the mic, as scripts/native/mic-tests.txt lists them.
@@ -280,9 +280,9 @@ status=$?
   bad "a locked class of only mic tests: $status $out"
 case $out in *"every test this run took in opens the mic, so none ran"*) ok "and says none ran";; *) bad "none ran said: $out";; esac
 echo '"CGSSessionScreenIsLocked"=Yes' >"$dir/lock"
-simrun SIM_LOCK_WAIT=60 -- xcodebuild -scheme X "${sim[@]}" build >/dev/null
+simrun -- xcodebuild -scheme X "${sim[@]}" build >/dev/null
 [ $? -eq 0 ] && [ -e "$dir/args" ] && ok "a simulator build on a locked screen starts as before" || bad "a locked build was held"
-simrun SIM_LOCK_WAIT=60 -- xcodebuild -scheme X test >/dev/null
+simrun -- xcodebuild -scheme X test >/dev/null
 [ $? -eq 0 ] && [ -e "$dir/args" ] && ok "and so does a test run that isn't on a simulator" || bad "a locked test off the simulator was held"
 : >"$dir/lock"
 start=$SECONDS
@@ -315,11 +315,16 @@ grep -q "testLate" "$dir/logs/fake.log" && ok "a lock mid-run with no test that 
   bad "a lock mid-run with no mic test stopped it: $status $out"
 [ "$status" -eq 65 ] && ok "and a test that fails after it fails the run (65), not sent back" || bad "a failure after the lock exited $status"
 : >"$dir/lock"
-out=$(simrun FAKE_MIC_DONE=1 FAKE_LOCK="$dir/lock" FAKE_PASS_CASE=1 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+out=$(simrun FAKE_MIC_DONE=passed FAKE_LOCK="$dir/lock" FAKE_PASS_CASE=1 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
 status=$?
 [ "$status" -eq 0 ] && [ ! -s "$dir/xcrun" ] && ok "a lock after the test that opens the mic has passed doesn't stop the run" ||
   bad "a lock after the mic test: $status $out"
 case $out in *"no test that opens the mic could start, so it ran on"*) ok "and says it ran on";; *) bad "ran on said: $out";; esac
+: >"$dir/lock"
+out=$(simrun FAKE_MIC_DONE=skipped FAKE_LOCK="$dir/lock" FAKE_PASS_CASE=1 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+[ "$status" -eq 0 ] && [ ! -s "$dir/xcrun" ] && ok "a lock after the test that opens the mic skipped itself doesn't stop the run" ||
+  bad "a lock after the mic test skipped: $status $out"
 # Bead context-grabber-i5x4: a run of two test targets closes a suite after each; the stop stays on to the last.
 : >"$dir/lock"
 start=$SECONDS

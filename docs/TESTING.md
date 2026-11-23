@@ -338,12 +338,11 @@ log (`/usr/bin/log show --predicate 'process == "loginwindow" AND eventMessage C
 
 Each of those crashes also put a *GrabberNative quit unexpectedly* dialog on the Mac's screen until BugKit 0.3.16 (seven
 on the evening of 2026-11-21, bead `context-grabber-208e`; since then a simulator crash ends quietly at its file), and the
-run is lost either way, so **no simulator test run starts on a locked Mac, and one is stopped when the
-screen locks under it** (stories 1022, 1023). The wrapper every test run goes through, `sim-boot.sh` (so the smoke, the Health
-grant and every UI test suite), rung 2 and `just native-test-contracts` look at the lock the way BugKit's signing guard
-does (`ioreg`'s `CGSSessionScreenIsLocked`) before they start: locked, they say so once and look again every 5 s
-(`SIM_LOCK_POLL`) for up to two minutes (`SIM_LOCK_WAIT`), then exit 75, having started nothing. During a simulator test
-run the wrapper's two-second look at the lock stops the run the moment it sees the screen locked: it ends xcodebuild and
+run is lost either way, so **no test that opens the mic runs on a locked Mac, and a run is stopped when the
+screen locks under it with one still to run** (stories 1022, 1023). The wrapper every test run goes through looks at the
+lock the way BugKit's signing guard does (`ioreg`'s `CGSSessionScreenIsLocked`) before it starts: locked, it skips the
+tests that open the mic, as above. During a simulator test run whose tests that open the mic haven't all passed,
+skipped or failed, the wrapper's two-second look at the lock stops the run the moment it sees the screen locked: it ends xcodebuild and
 the app and its test runner on that simulator (`simctl terminate`), and exits 75 saying when, or 65 if a case had
 already failed before the lock. A run of several test targets (`just native-test-contracts` is two) closes a suite after
 each, so the stop stays on to the last: a lock seen between two targets stops the run once the next one starts, if the

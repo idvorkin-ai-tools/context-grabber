@@ -1346,7 +1346,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1023:
 
 - **Summary:** A simulator test run in flight is stopped when the Mac's screen locks while a test that opens the mic is still to run, before it can crash the app
-- **Status:** implemented in a344919f (spec 73476853); verified on the host by `scripts/native/test-xcodebuild-log.sh` (the lock probe faked: a lock mid-run stops it within seconds, ends the app and its runner on that simulator and exits 75, or 65 after an earlier failure; a lock after the tests finished changes nothing). Amended on branch `native/sim-lock-targets-i5x4` (bead `context-grabber-i5x4`): a run of two test targets is guarded to its last, verified on the host by the same script (a lock between the targets stops the run once the second starts, exit 75; one lifted before it starts lets the run pass). On the simulator (iPhone 17 lane 2, 2026-11-22, the probe reading a file flipped to locked 3 s into `GymTimerUITests`): the run was stopped and exited 75 with the line, no xcodebuild and no app left running, no new crash report; flipped back, the same class passed. Amended on branch `fix/locked-skip-mic-wm8y` (bead `context-grabber-wm8y`): verified on the host by `scripts/native/test-xcodebuild-log.sh` (a lock mid-run with no listed test to come doesn't stop the run, and a test that fails after it fails the run, 65; a lock after the listed test passed doesn't stop it, and its pass stands with a line; with the listed test still to come, the stops above as before)
+- **Status:** implemented in a344919f (spec 73476853); verified on the host by `scripts/native/test-xcodebuild-log.sh` (the lock probe faked: a lock mid-run stops it within seconds, ends the app and its runner on that simulator and exits 75, or 65 after an earlier failure; a lock after the tests finished changes nothing). Amended on branch `native/sim-lock-targets-i5x4` (bead `context-grabber-i5x4`): a run of two test targets is guarded to its last, verified on the host by the same script (a lock between the targets stops the run once the second starts, exit 75; one lifted before it starts lets the run pass). On the simulator (iPhone 17 lane 2, 2026-11-22, the probe reading a file flipped to locked 3 s into `GymTimerUITests`): the run was stopped and exited 75 with the line, no xcodebuild and no app left running, no new crash report; flipped back, the same class passed. Amended on branch `fix/locked-skip-mic-wm8y` (bead `context-grabber-wm8y`): verified on the host by `scripts/native/test-xcodebuild-log.sh` (with the listed test still to come, the stops above as before; the run that goes on is story 1510)
 - **Issues:** bead `context-grabber-208e`, as story 1022; bead `context-grabber-wm8y`, as story 1022; bead `context-grabber-i5x4` (the stop stood down after the first of two test targets: `just native-test-contracts` closes a suite per target, two in slot 12's log of 2026-11-21, so a lock during the second wasn't stopped)
 
 #### Use Case:
@@ -1360,11 +1360,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** the screen is seen locked (it is looked at every 2 s)
 - **Then:** the run is stopped within seconds, naming the tests that open the mic still to run: xcodebuild is ended and the app and its test runner are ended on that simulator before a test can open the mic, and the run exits 75 saying when the screen locked, that the run was stopped so the app could not crash, and to unlock and rerun; if a case had already failed before the lock, the run fails with exit 65 instead, naming the lock; once the run's tests have all finished, a lock no longer stops it, and its result stands
 - **And:** a run of several test targets (the contract tests are two) is guarded to the end of its last: a lock seen during any target stops the run as above, and one seen between two targets stops it as soon as the next target starts while the screen is still locked; unlocked by then, the run goes on: a pass stands with a line saying the screen locked, a failure after that lock is read as story 1018 says, and a later lock that stops the run is the one it names, its 75 or 65 counting the cases that had failed before it
-
-- **Scenario:** The screen locks with no test that opens the mic to come
-- **Given:** a simulator test run with no test that opens the mic, or whose ones have all finished, or that skipped them as it started locked
-- **When:** the screen is seen locked
-- **Then:** the run goes on; a pass stands with a line saying the screen locked and no test that opens the mic could start, and a test that fails after the lock fails the run as on an unlocked Mac
 
 ---
 
@@ -1499,6 +1494,25 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a UI test that taps, holds or looks for a mic control, the voice button, a microphone picker or a call, itself or through a helper in its file
 - **When:** `just test` runs
 - **Then:** the check fails, naming it, unless `scripts/native/mic-tests.txt` lists it as one that opens the mic (with its test target, skipped on a locked Mac) or as reviewed and not, each with why; a listed test that no longer exists fails the check too
+
+---
+
+### User Story 1510:
+
+- **Summary:** A simulator test run with no test that opens the mic still to run goes on when the Mac's screen locks
+- **Status:** implemented on branch `fix/locked-skip-mic-wm8y`; verified on the host by `scripts/native/test-xcodebuild-log.sh` (the lock probe faked: a lock mid-run with no listed test to come doesn't stop the run, and a test that fails after it fails the run, 65; a lock after the listed test passed, or skipped itself, doesn't stop it, and a pass stands with a line)
+- **Issues:** bead `context-grabber-wm8y`, as story 1022
+
+#### Use Case:
+- **As Igor,** stepping away from the Mac while agents test
+- **I want to** have a simulator test run that can no longer open the mic run on when the screen locks
+- **so that** a locked Mac doesn't send back a run it can't crash, and its result stands
+
+#### Acceptance Criteria:
+- **Scenario:** The screen locks with no test that opens the mic to come
+- **Given:** a simulator test run with no test that opens the mic, or whose ones have all passed, skipped themselves or failed, or that skipped them as it started locked
+- **When:** the screen is seen locked
+- **Then:** the run goes on; a pass stands with a line saying the screen locked and no test that opens the mic could start, and a test that fails after the lock fails the run as on an unlocked Mac
 
 ---
 
