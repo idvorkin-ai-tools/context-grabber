@@ -55,7 +55,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 1, `bw_info abi is 1: ${JSON.stringify(info)}`);
+check(info.abi === 2, `bw_info abi is 2: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -168,6 +168,49 @@ check(call('bw_load', { board: 'texts', strokes: [text('a', 0), text('b', 100)] 
 // A board it can't read: -1, why, and nothing loaded after.
 check(call('bw_load', 'not json') === -1 && /could not be read/.test(error() ?? ''), 'an unreadable board is refused, saying why');
 check(Number.isNaN(x.bw_cut_y(0)), 'and nothing is loaded after it');
+
+// Interface 2, story 1508 (spec, rows and folds): the outline, held apart from the board, answers the row a tap is on and what a
+// header folds. Built by hand so every number is worked out: a header at 100, two indented lines under it, a line back
+// at the header's indent at 300 (which ends its section) and a kept text at 400.
+const reply = (pointer) => JSON.parse(read(pointer));
+const ask = (name, body) => reply(call(name, body));
+check(reply(x.bw_row_at(100)).error === 'no outline is loaded', 'a row with no outline says none is loaded');
+check(ask('bw_fold', { id: 'H' }).error === 'no outline is loaded', 'a fold with no outline says none is loaded');
+check(call('bw_outline_add', { strokes: [] }) === -1 && error() === 'no outline is loaded', 'no new outline ink without an outline');
+const outline = {
+  strokes: [line('h1', 100), { ...line('b1', 140), points: [[60, 140], [200, 140]] },
+    { ...line('b2', 180), points: [[60, 180], [200, 180]] }, line('n', 300)],
+  boxes: [{ id: 't', box: [0, 400, 100, 440] }],
+  groups: { t: 't' },
+  headers: [{ id: 'H', ids: ['h1'] }],
+};
+check(call('bw_outline_load', outline) === 5, `the outline: four strokes and a box ${error() ?? ''}`);
+const rowAt = (y) => reply(x.bw_row_at(y)).row;
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+check(same(rowAt(100), { bottom: 102, header: 'H', top: 98 }), `the header's row at 100: ${JSON.stringify(rowAt(100))}`);
+check(same(rowAt(119), { bottom: 102, header: 'H', top: 98 }), 'within half a line below it, still the header');
+check(same(rowAt(140), { bottom: 142, names: ['b1'], top: 138 }), `a line of ink at 140: ${JSON.stringify(rowAt(140))}`);
+check(rowAt(250) === null, `blank paper at 250: ${JSON.stringify(rowAt(250))}`);
+check(same(rowAt(420), { bottom: 440, names: [], top: 400 }), `a kept text is no one's ink: ${JSON.stringify(rowAt(420))}`);
+// The fold: b1 and b2 tuck under H; the rest slides up to a line under the header in whole lines (300 - 102 = 198, four
+// lines down less one = 120); two lines hidden; the section ended 80 under the header row.
+const folded = { fold: { bottom: 80, ids: ['b1', 'b2'], lines: 2, own: ['b1', 'b2'], shift: 120 } };
+check(same(ask('bw_fold', { id: 'H' }), folded), `folding H: ${JSON.stringify(ask('bw_fold', { id: 'H' }))}`);
+check(same(ask('bw_fold', { id: 'H' }), folded) && same(rowAt(140), { bottom: 142, names: ['b1'], top: 138 }), 'asking leaves the outline as it was');
+check(same(ask('bw_fold', { id: 'nobody' }), { fold: null }), 'no such header: nothing to fold');
+check(ask('bw_fold', {}).error === 'no header id', 'a fold with no id says so');
+// New ink at the end, and ink it can't read.
+check(call('bw_outline_add', { strokes: [line('n2', 340)] }) === 6, `new ink at 340 ${error() ?? ''}`);
+check(same(rowAt(340), { bottom: 342, names: ['n2'], top: 338 }), `and its row: ${JSON.stringify(rowAt(340))}`);
+check(call('bw_outline_add', { strokes: [{ points: [[0, 0]] }] }) === -1 && /no id/.test(error() ?? ''), 'outline ink with no id is refused, saying why');
+check(call('bw_outline_add', { strokes: [{ id: 'z', points: [] }] }) === -1 && /no points/.test(error() ?? ''), 'outline ink with no points is refused, saying why');
+check(same(rowAt(340), { bottom: 342, names: ['n2'], top: 338 }) && call('bw_outline_add', { strokes: [] }) === 6, 'and the outline is as it was');
+check(call('bw_outline_load', { boxes: [{ id: 't', box: [0, 400, 100, 440] }] }) === 1 && same(rowAt(420), { bottom: 440, names: [], top: 400 }), `a box with no group is still no one's ink: ${JSON.stringify(rowAt(420))}`);
+check(call('bw_outline_load', { boxes: [{ id: 'b', box: [0, 0] }] }) === -1 && /\[left, top, right, bottom\]/.test(error() ?? ''), 'a box with no four sides is refused, saying why');
+check(call('bw_outline_load', { headers: 'nope' }) === -1 && /headers could not be read/.test(error() ?? ''), 'headers that are not a list are refused, saying why');
+check(reply(x.bw_row_at(100)).error === 'no outline is loaded', 'and nothing is loaded after it');
+// The outline is apart from the board: bw_load's board still answers cuts.
+check(call('bw_load', hand) === 3 && x.bw_cut_y(99) === 98, 'the board and the outline are held apart');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

@@ -1599,6 +1599,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1508:
+
+- **Summary:** The web board asks the app's own outline which row of writing a tap is on and what folding a header does
+- **Status:** implemented in 2314e279; verified by the Linux rung (`just test-linux`: ContextCore's 890 tests, the cross-builds and the app compile, every portable script check) and `just wasm-test` (113 checks, the hand-worked outline among them), 2026-11-22. The Cockpit's side compares it with its own rules on every recorded board and 150 seeded random boards with no difference. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 2
+- **Issues:** bead `context-grabber-edl`
+
+#### Use Case:
+- **As Igor,** writing headers and folding them on the Cockpit's web ink board as well as on the iPad
+- **I want to** have the web board ask the app's own outline which row a tap is on and what a fold tucks away
+- **so that** a header made or folded on the web lands exactly where it would on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** Rows and folds from the module's outline
+- **Given:** the module built by `just wasm`, and a board's outline (its writing with real points, its kept texts as boxes, its groups and headers) sent to it
+- **When:** `just wasm-test` asks which row heights are on and what folding a header would do, adds new writing, and sends ink it can't read
+- **Then:** the row is the header's on a header's line, the line's strokes in board order elsewhere, none on blank paper; the fold names what it tucks away, how far the rest slides, how many lines it hides and where its section ended, and leaves the outline as it was; new writing goes in at the end; ink with no id or no points is refused saying why; and with nothing loaded each question says so
+
+---
+
 ### User Story 1507:
 
 - **Summary:** A time limit that can't be found stops the rung instead of running it with none
