@@ -374,7 +374,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(first.count, 2, "\(first)")
     // Larry's marks, ghosts nobody kept, on the board as it's saved.
     waitUntil(
-      NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: on, ' AND label ENDSWITH ' showing'"), ghosts(app), timeout: 15)
+      NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: on, ' AND label ENDSWITH ' showing'"), ghosts(app),
+      timeout: 15)
     shot(app, "his marks showing, not kept")
 
     waitForTheSave(app)

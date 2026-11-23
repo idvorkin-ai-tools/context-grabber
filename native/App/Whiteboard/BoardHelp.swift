@@ -130,7 +130,8 @@ struct BoardHelpSheet: View {
         // Story 1171 (bead context-grabber-4ic).
         Row(
           gesture: "Ask at my pauses (the sparkles)",
-          does: "On, each pause in your writing or talking asks whoever answers the board, Larry or Claude, for a look. "
+          does:
+            "On, each pause in your writing or talking asks whoever answers the board, Larry or Claude, for a look. "
             + "Off, nothing is asked and the mic stays closed; marks already showing stay.")
       ]
     ),
