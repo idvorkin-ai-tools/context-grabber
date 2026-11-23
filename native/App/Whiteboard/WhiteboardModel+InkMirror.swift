@@ -72,10 +72,35 @@ extension WhiteboardModel {
     let frame = pictureFrame()?.rect
     let nothing = !drawing.strokes.isEmpty && frame == nil
     if nothing != nothingOnScreen { nothingOnScreen = nothing }
+    larryFrameMovedNow(frame)
     if let sentFrame, sentFrame != frame {
       self.sentFrame = nil
       sent = nil
     }
+  }
+
+  /// Bead context-grabber-x3tm: whether the pages on screen are other than those Larry's last picture showed.
+  func larryFrameMovedNow(_ frame: CGRect? = nil) {
+    let moved = (frame ?? pictureFrame()?.rect).map { larryFrame?.moved(to: $0) ?? true } ?? true
+    if moved != larryFrameMoved { larryFrameMoved = moved }
+  }
+
+  /// Bead context-grabber-x3tm (story 765): Larry already has the board as it is, so Send is dimmed until the next
+  /// stroke, words or other pages on screen. A board only looked at goes by its own `sent` (story 343).
+  var larryHasThis: Bool {
+    editable && larry.hasThis(version: ops.rev, moved: larryFrameMoved)
+  }
+
+  /// Bead context-grabber-x3tm: what dims Send, for the session log.
+  func logLarryHas(why: String) {
+    let frame = pictureFrame()?.rect
+    log.event(
+      "whiteboard",
+      [
+        "action": "larry_has", "board": board.id, "why": why, "has": larry.has ?? -1, "rev": ops.rev,
+        "frame_moved": larryFrameMoved, "moved_now": frame.map { larryFrame?.moved(to: $0) ?? true } ?? true,
+        "words": larry.wordsWaiting, "dimmed": larryHasThis,
+      ])
   }
 
   /// Larry's picture, for Send and his turn: the pages on screen (story 433). Claude's own turns frame theirs as they

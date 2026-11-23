@@ -205,11 +205,13 @@ struct WhiteboardView: View {
           // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
           .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
           // Story 1176: one button. On a board drawn here it is Larry's turn, dimmed while its picture waits in the
-          // outbox; a board only looked at is dimmed after a send until other pages are on screen (story 343).
+          // outbox, and once Larry has the board as it is until the next stroke (bead context-grabber-x3tm); a board
+          // only looked at is dimmed after a send until other pages are on screen (story 343).
           .disabled(
             model.isEmpty || model.nothingOnScreen || model.larrySending || model.sendWaiting(in: inbox.items)
-              || (!model.editable && model.sent != nil)
+              || (!model.editable && model.sent != nil) || model.larryHasThis
           )
+          .accessibilityHint(model.larryHasThis ? "Larry already has this board" : "")
           .accessibilityIdentifier("whiteboard-send")
         }
       }

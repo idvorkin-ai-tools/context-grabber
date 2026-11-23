@@ -30,7 +30,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** One send, one message
 - **Given:** I have just sent the board to Larry and he is looking at it
 - **When:** I tap Send to Larry again before drawing anything more
-- **Then:** nothing is sent, and the note says *Larry already has this* (story 765); on a board I only look at, the button is disabled until other pages are on screen. Since story 1176 Send on a board I draw on is Larry's turn
+- **Then:** the button is dimmed and nothing can be sent until I draw, speak or bring other pages on screen (story 765); on a board I only look at, the button is disabled until other pages are on screen. Since story 1176 Send on a board I draw on is Larry's turn
 
 ---
 
@@ -991,10 +991,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I open the board again
 - **Then:** the note reads *Waiting to send* again; when it goes Larry's clock starts and *Interrupt* is offered, and if it can't go what I said with it waits for the next picture
 
-- **Scenario:** A repeat tap after the reopened Send goes
+- **Scenario:** Send after the reopened Send goes
 - **Given:** a board reopened while its Send waited, and the Send has now gone
-- **When:** I tap *Send to Larry* with nothing drawn since the Send and the same pages on screen
-- **Then:** the note says *Larry already has this* and no second copy goes; had I drawn after the Send, before closing the board or since opening it, or moved to other pages, a fresh picture goes
+- **When:** I look at *Send to Larry* with nothing drawn since the Send and the same pages on screen
+- **Then:** it is dimmed and no second copy can go (story 765); had I drawn after the Send, before closing the board or since opening it, or moved to other pages, it is lit and a tap sends a fresh picture
 
 ---
 
@@ -1486,21 +1486,31 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 765:
 
-- **Summary:** A repeat tap doesn't send Larry the same picture again
-- **Status:** implemented in [61761b8](https://github.com/idvorkin/context-grabber/commit/61761b8); verified by host tests (`WhiteboardLarryTurnTests`: a repeat tap with nothing new sends nothing, a pause that sent counts too, a stroke, waiting words or another part of the board on screen send, with no turn out a tap always sends, a failed picture lets the same board go again; `WhiteboardLarryClockTests.testARepeatTapIsAnsweredForTwoSeconds`; `just native-test`) and the Mac build (`just native-build-mac`). The whiteboard's UI classes passed on the iPad simulator with it in (`just test-ladder`, at 98878ae), though none of them makes a repeat tap. Another part of the board on screen sending was added after that run and is verified on the host only. Not yet seen on the iPad; *Larry's turn* and *Send to Larry* made one button (story 1176) in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552), verified by host tests and the whiteboard UI tests on the iPad simulator
-- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) (seven identical pictures in twelve seconds)
+- **Summary:** Send to Larry is dimmed once Larry has this picture, until the next stroke
+- **Status:** implemented in [61761b8](https://github.com/idvorkin/context-grabber/commit/61761b8); verified by host tests (`WhiteboardLarryTurnTests`: a repeat tap with nothing new sends nothing, a pause that sent counts too, a stroke, waiting words or another part of the board on screen send, a failed picture lets the same board go again; `WhiteboardLarryClockTests.testARepeatTapIsAnsweredForTwoSeconds`; `just native-test`) and the Mac build (`just native-build-mac`). The whiteboard's UI classes passed on the iPad simulator with it in (`just test-ladder`, at 98878ae), though none of them makes a repeat tap. Another part of the board on screen sending was added after that run and is verified on the host only. Not yet seen on the iPad; *Larry's turn* and *Send to Larry* made one button (story 1176) in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552), verified by host tests and the whiteboard UI tests on the iPad simulator. Dimmed until the next stroke once Larry has this picture, reverting story 1176's *with no turn out a tap always sends* (bead context-grabber-x3tm): [eeb806e4](https://github.com/idvorkin/context-grabber/commit/eeb806e4), its `larry_has` log in [3cd2e198](https://github.com/idvorkin/context-grabber/commit/3cd2e198); verified by host tests (`just native-test`, `WhiteboardLarryTurnTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked with the lock probe overridden on Igor's word: `WhiteboardLarryWaitUITests` 3 of 3 and `WhiteboardTurnUITests` 8 of 8), `testSendIsDimmedOnceLarryHasTheBoardUntilTheNextStroke` among them; not yet seen on the iPad.
+- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) (seven identical pictures in twelve seconds); bead context-grabber-x3tm (Igor, 2026-11-22: dimmed until the next stroke once Larry has this picture, reverting story 1176's *with no turn out a tap always sends*)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *A repeat tap sends nothing*
 
 #### Use Case:
 - **As someone** waiting on Larry and not sure my tap took
-- **I want to** be told he already has the picture
-- **so that** his thread isn't filled with copies and I know the tap was heard
+- **I want to** see that he already has the picture
+- **so that** his thread isn't filled with copies and I know there is nothing to send
 
 #### Acceptance Criteria:
 - **Scenario:** Nothing new since the picture
 - **Given:** Larry is looking at a picture, I have drawn and said nothing since, and the same part of the board is on screen
-- **When:** I tap *Send to Larry* (one button since story 1176)
-- **Then:** no picture goes, and the note says *Larry already has this* with the clock for two seconds; had I drawn a stroke, said something or scrolled to another page, a fresh picture would go at once and the clock restart
+- **When:** I look at *Send to Larry* (one button since story 1176)
+- **Then:** it is dimmed, and VoiceOver's hint says Larry already has this board; had I drawn a stroke, said something or scrolled to another page, it would light and a tap would send a fresh picture at once and restart the clock
+
+- **Scenario:** He has answered
+- **Given:** Larry has answered the picture, and I have drawn and said nothing since, with the same part of the board on screen
+- **When:** I look at *Send to Larry*
+- **Then:** it is still dimmed, until my next stroke, words or other pages on screen
+
+- **Scenario:** A picture that didn't reach him, or Interrupt
+- **Given:** a Send refused or deleted from the Inbox, or a turn I interrupted (story 805)
+- **When:** I look at *Send to Larry* with nothing new drawn
+- **Then:** it is lit, and a tap sends the picture
 
 ---
 
@@ -1939,7 +1949,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 775:
 
 - **Summary:** A picture that hasn't reached the Cockpit in 20 seconds offers Retry
-- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098), [4d8a67e](https://github.com/idvorkin/context-grabber/commit/4d8a67e) (bead `context-grabber-stl`), reconciled with story 773 in [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); verified by host tests (`WhiteboardLarryWaitTests`: `testNoMarkAtTwentySecondsIsStuckWithRetryAndDismiss`, `testNoMarkIsStuckOnlyOnACockpitThatMarks`, `testTheMarkIsFoundByTheMessagesId`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad, nor against a hung Cockpit. Retry itself, a Cockpit that marks nothing and a picture that lands after all are stories 802–804; seen on the iPad simulator in [#1242](https://github.com/idvorkin/context-grabber/pull/1242) (`WhiteboardLarryWaitUITests.testAStuckPictureOffersRetryAndARetryLands`, against the fake Cockpit's stuck picture: *Retry* and *Dismiss* showing, no *Interrupt*)
+- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098), [4d8a67e](https://github.com/idvorkin/context-grabber/commit/4d8a67e) (bead `context-grabber-stl`), reconciled with story 773 in [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); verified by host tests (`WhiteboardLarryWaitTests`: `testNoMarkAtTwentySecondsIsStuckWithRetryAndDismiss`, `testNoMarkIsStuckOnlyOnACockpitThatMarks`, `testTheMarkIsFoundByTheMessagesId`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad, nor against a hung Cockpit. Retry itself, a Cockpit that marks nothing and a picture that lands after all are stories 802–804; seen on the iPad simulator in [#1242](https://github.com/idvorkin/context-grabber/pull/1242) (`WhiteboardLarryWaitUITests.testAStuckPictureOffersRetryAndARetryLands`, against the fake Cockpit's stuck picture: *Retry* and *Dismiss* showing, no *Interrupt*); since story 1176 that test's picture is a *Send*, so it is now `testASlowSendOffersNoRetry` (bead context-grabber-x3tm): no *Retry* or *Dismiss* while the Cockpit holds it, and his answer lands once it is taken. A pause's own stuck picture is held on the host only. A Send offers no Retry, only Interrupt; Retry stays for a pause's own picture (bead context-grabber-x3tm, Igor's card 4): [7f187416](https://github.com/idvorkin/context-grabber/commit/7f187416); verified by host tests (`just native-test`, `WhiteboardLarryTurnTests`) and the iPad simulator (rung 2, 2026-11-22, the Mac locked with the lock probe overridden on Igor's word: `WhiteboardLarryWaitUITests` 3 of 3 and `WhiteboardTurnUITests` 8 of 8), `testASlowSendOffersNoRetry` among them.
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
 
 #### Use Case:
@@ -1952,6 +1962,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a picture sent to Larry, with no mark from the Cockpit on its message
 - **When:** twenty seconds pass
 - **Then:** the bar shows *Larry hasn't got the picture* as a problem I can copy, with *Retry* and *Dismiss* beside it, and the canvas is not covered
+
+- **Scenario:** A Send the Cockpit is slow to take (story 1176; Igor, 2026-11-22: Interrupt only, no Retry beside it)
+- **Given:** I tapped *Send to Larry* and the Cockpit hasn't taken the picture after twenty seconds
+- **When:** I look at the bar
+- **Then:** there is no *Retry* and no *Dismiss*: the Send is the outbox's to retry, and it goes by itself once the Cockpit takes it; *Retry* is only for a picture the board handed him itself after a pause
 
 ---
 

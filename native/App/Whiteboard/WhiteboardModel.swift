@@ -196,7 +196,12 @@ final class WhiteboardModel: ObservableObject {
   var sentFrame: CGRect?
   /// The part of the board in the picture Larry's turn last took: a tap with another part on screen sends (story 765). On
   /// a board opened while its Send waits, the waiting picture's (story 1192).
-  var larryFrame: WhiteboardLarryFrame?
+  var larryFrame: WhiteboardLarryFrame? {
+    didSet { larryFrameMovedNow() }
+  }
+  /// Other pages are on screen than the last picture of Larry's showed, kept as the view scrolls: Send lights then
+  /// (bead context-grabber-x3tm).
+  @Published var larryFrameMoved = true
   var watchTask: Task<Void, Never>?
   var lookFailures = 0
 

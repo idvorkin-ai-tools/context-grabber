@@ -15,7 +15,7 @@ final class WhiteboardLarryWaitUITests: XCTestCase {
     stroke(app, at: 0.5)
     addTeardownBlock { try? self.post(cockpit + "/fake/larry-ops", "null") }
     try post(cockpit + "/fake/larry-ops", #"{"kind": "slow", "seconds": 45}"#)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let state = app.descendants(matching: .any)["whiteboard-note-state"]
     XCTAssertTrue(state.appears(within: 10), app.debugDescription)
     let interrupt = app.buttons["whiteboard-larry-interrupt"]
@@ -28,18 +28,19 @@ final class WhiteboardLarryWaitUITests: XCTestCase {
     expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: state)
     waitForExpectations(timeout: 10)
     // The next tap sends at once, never *Larry already has this*: a fresh clock.
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(state.appears(within: 10), app.debugDescription)
     XCTAssertFalse(interrupt.exists, "the fresh turn's twenty seconds start again")
   }
 
-  /// Stories 775, 802, 804: on a Cockpit that marks, a picture it hasn't taken in twenty seconds is stuck, with Retry
-  /// and Dismiss; Retry sends the same picture again, the problem goes, and his answer ends the turn.
-  func testAStuckPictureOffersRetryAndARetryLands() throws {
+  /// Story 775 (bead context-grabber-x3tm; Igor, 2026-11-22: Interrupt only, no Retry beside it): a Send the Cockpit
+  /// holds past twenty seconds is the outbox's to retry, so the board offers no Retry or Dismiss, and his answer lands
+  /// once the Cockpit takes it. Retry on a pause's own stuck picture is `WhiteboardLarryWaitTests`, on the host.
+  func testASlowSendOffersNoRetry() throws {
     let (app, cockpit) = try launch()
     addTeardownBlock { try? self.post(cockpit + "/fake/board-stuck", #"{"seconds": 0}"#) }
     stroke(app, at: 0.4)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let state = app.descendants(matching: .any)["whiteboard-note-state"]
     XCTAssertTrue(state.appears(within: 10), app.debugDescription)
     // The first turn lands and is answered, so the thread is one whose pictures carry marks.
@@ -47,18 +48,35 @@ final class WhiteboardLarryWaitUITests: XCTestCase {
     waitForExpectations(timeout: 20)
     try post(cockpit + "/fake/board-stuck", #"{"seconds": 28}"#)
     stroke(app, at: 0.6)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(state.appears(within: 10), app.debugDescription)
-    let retry = app.buttons["whiteboard-larry-retry"]
-    XCTAssertTrue(retry.appears(within: 26), app.debugDescription)
-    XCTAssertTrue(app.buttons["whiteboard-larry-dismiss"].exists)
-    XCTAssertFalse(app.buttons["whiteboard-larry-interrupt"].exists, "stuck offers Retry, not Interrupt")
-    shot(app, "Larry hasn't got the picture, with Retry and Dismiss")
-    retry.tap()
-    // The resend lands at once and Larry answers it: the problem and the clock go.
-    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: retry)
+    sleep(24)
+    XCTAssertFalse(app.buttons["whiteboard-larry-retry"].exists, "a Send is the outbox's to retry")
+    XCTAssertFalse(app.buttons["whiteboard-larry-dismiss"].exists)
+    shot(app, "A slow Send, no Retry")
+    // Once the Cockpit takes it, Larry answers and the clock goes.
     expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: state)
-    waitForExpectations(timeout: 15)
+    waitForExpectations(timeout: 25)
+  }
+
+  /// Story 765 (bead context-grabber-x3tm): once Larry has the board, Send is dimmed while he looks and after he
+  /// answers, until the next stroke.
+  func testSendIsDimmedOnceLarryHasTheBoardUntilTheNextStroke() throws {
+    let (app, _) = try launch()
+    stroke(app, at: 0.4)
+    let send = app.buttons["whiteboard-send"]
+    XCTAssertTrue(send.isEnabled, "a board he hasn't seen")
+    send.tap()
+    let state = app.descendants(matching: .any)["whiteboard-note-state"]
+    XCTAssertTrue(state.appears(within: 10), app.debugDescription)
+    XCTAssertFalse(send.isEnabled, "dimmed while he looks")
+    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: state)
+    waitForExpectations(timeout: 20)
+    XCTAssertFalse(send.isEnabled, "still dimmed once he has answered")
+    shot(app, "Send dimmed once Larry has the board")
+    stroke(app, at: 0.6)
+    expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: send)
+    waitForExpectations(timeout: 5)
   }
 
   private func launch() throws -> (XCUIApplication, String) {

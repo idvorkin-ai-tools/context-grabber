@@ -67,6 +67,7 @@ extension WhiteboardModel {
       ])
     followSend(inbox.items)
     checkLarryWait()
+    logLarryHas(why: "send")
   }
 
   /// The board on screen: a *Send* of this board still in the outbox is waiting again, and the Inbox is watched for when

@@ -477,15 +477,19 @@ in the outbox and a turn failed with nothing queued. They are one button now.
   moment it left the outbox, and the three minutes count from there.
 - **Closing the board while it waits loses nothing.** It goes from the outbox as any message does; a board opened again
   while it still waits says *Waiting to send* again, and starts Larry's clock when it goes. Once it has gone, the board
-  knows what that picture showed, as it would had it never closed: a tap with nothing drawn since the Send and the same
-  pages on screen says *Larry already has this* and sends no second copy, while ink drawn after the Send (before the
-  board closed, or since it opened) or other pages on screen send a fresh picture.
+  knows what that picture showed, as it would had it never closed: with nothing drawn since the Send and the same pages
+  on screen, Send stays dimmed and no second copy goes, while ink drawn after the Send (before the board closed, or
+  since it opened) or other pages on screen light it for a fresh picture.
 - **A Send the Cockpit refuses, or one deleted from the Inbox while it waits,** frees the turn and its words wait for the
   next picture. A refusal shows as a copyable problem naming the board and the reason.
   A Send refused or deleted while its board is closed does not yet keep its words for the next picture (bead
   context-grabber-tetc).
-- **Repeat taps.** With no turn out a tap always sends, new ink or not: asking him to look again is a real request.
-  While he is looking at the board as it is, a tap says *Larry already has this* (story 765).
+- **Once Larry has this picture, Send is dimmed until the next stroke** (Igor, 2026-11-22, bead context-grabber-x3tm;
+  until then a tap with no turn out always sent). While he looks and after he answers, with nothing drawn or said
+  since and the same pages on screen, the button is dimmed; new ink, words waiting or other pages on screen light it.
+  A picture that didn't reach him, or *Interrupt*, lights it too (story 805).
+- **Confirmed by Igor, 2026-11-22:** the message is the turn's note (*your turn on the board*) or the words that waited;
+  a waiting Send just waits, dimmed; once he has it the note offers *Interrupt* only, with no Retry beside it.
 - **A board only looked at** (the iPhone's, another device's) keeps its own *Send to Larry*: it takes no turn and doesn't
   look, the bar says *Sent to Larry: his reply shows in Chat*, and the button is dimmed until other pages are on screen.
 - Retry and Dismiss (stories 775, 776) stay for the pictures the board hands him itself after a pause on a Larry board;
@@ -713,6 +717,6 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - One Send (story 1176): the bar's right group is Talk, *Ask at my pauses* and Send, with no *Larry's turn*. With no network, tap
   Send to Larry: the note reads *Waiting to send · 0:00* and counts, the button is dimmed, and a pause or a second tap
   sends nothing. The network back: the picture goes once, the note reads *Larry · 0:00*, and his marks arrive with no
-  further tap. Close the board while it waits and open it again: it still says *Waiting to send*; when it goes, a tap says *Larry
-  already has this* unless something was drawn after the Send. Delete it from the
+  further tap. Close the board while it waits and open it again: it still says *Waiting to send*; when it goes, Send stays dimmed
+  unless something was drawn after the Send. Once he answers, Send stays dimmed until the next stroke. Delete it from the
   Inbox: the turn is free and the button lights.

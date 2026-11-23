@@ -137,11 +137,50 @@ final class WhiteboardLarryTurnTests: XCTestCase {
     XCTAssertEqual(turn.state, .awaiting(since: at(12), sent: 1))
   }
 
-  func testWithNoTurnOutATapAlwaysSends() {
+  // Bead context-grabber-x3tm (Igor, 2026-11-22): once he has this picture, Send is dimmed until the next stroke, his
+  // answer or not.
+  func testAfterHisAnswerHeStillHasTheBoardUntilTheNextStroke() {
+    var turn = WhiteboardLarryTurn()
+    XCTAssertFalse(turn.hasThis(version: 1, moved: false), "nothing has gone yet")
+    _ = turn.tapped(version: 1, now: at(0))
+    XCTAssertTrue(turn.hasThis(version: 1, moved: false), "while he looks")
+    XCTAssertEqual(turn.replied(version: 1, now: at(40)), .done)
+    XCTAssertTrue(turn.hasThis(version: 1, moved: false), "and after he answers")
+    XCTAssertEqual(turn.tapped(version: 1, now: at(41)), .alreadyHas, "a tap that arrives anyway sends nothing")
+    XCTAssertFalse(turn.hasThis(version: 2, moved: false), "the next stroke lights it")
+    XCTAssertFalse(turn.hasThis(version: 1, moved: true), "so do other pages on screen")
+    XCTAssertEqual(turn.tapped(version: 2, now: at(42)), .send(words: nil))
+  }
+
+  func testAPictureThatDidntReachHimLightsSend() {
     var turn = WhiteboardLarryTurn()
     _ = turn.tapped(version: 1, now: at(0))
-    XCTAssertEqual(turn.replied(version: 1, now: at(40)), .done)
-    XCTAssertEqual(turn.tapped(version: 1, now: at(41)), .send(words: nil), "asking him to look again is a request")
+    turn.failed(turn.state, words: nil)
+    XCTAssertFalse(turn.hasThis(version: 1, moved: false))
+  }
+
+  // Story 805: Interrupt makes the next tap a fresh ask.
+  func testInterruptLightsSend() {
+    var turn = WhiteboardLarryTurn()
+    _ = turn.tapped(version: 1, now: at(0))
+    XCTAssertTrue(turn.interrupted())
+    XCTAssertFalse(turn.hasThis(version: 1, moved: false))
+    XCTAssertEqual(turn.tapped(version: 1, now: at(2)), .send(words: nil))
+  }
+
+  func testATimeoutLeavesHimWithTheBoard() {
+    var turn = WhiteboardLarryTurn()
+    _ = turn.tapped(version: 1, now: at(0))
+    XCTAssertEqual(turn.tick(version: 1, now: at(181)), .done)
+    XCTAssertTrue(turn.hasThis(version: 1, moved: false))
+  }
+
+  func testAReopenedWaitingSendIsOfItsOwnVersion() {
+    var turn = WhiteboardLarryTurn()
+    turn.reopenedWaiting(sent: 3, version: 5, now: at(0))
+    XCTAssertTrue(turn.outboxSent(now: at(1)))
+    XCTAssertTrue(turn.hasThis(version: 3, moved: false))
+    XCTAssertFalse(turn.hasThis(version: 5, moved: false), "ink drawn after the Send is new")
   }
 
   func testAFailedPictureLetsTheSameBoardGoAgain() {

@@ -4,7 +4,8 @@
 //  and words wait; when he answers, or the turn times out, one fresh picture goes if anything changed. A tap on
 //  *Larry's turn* or *Send to Larry* goes at once and takes over what was waiting, unless he is looking at this very
 //  part of the board with nothing waiting: then it sends nothing and says so (story 765, #879: seven identical pictures
-//  in twelve seconds). The board's model owns the clock, the board's version (bumped on every change of its ink), which
+//  in twelve seconds). Once he has a picture, while he looks and after he answers, the button is dimmed until something
+//  is new (`hasThis`, bead context-grabber-x3tm). The board's model owns the clock, the board's version (bumped on every change of its ink), which
 //  part of the board is on screen and the sending; it hands them in.
 
 public struct WhiteboardLarryTurn: Equatable, Sendable {
@@ -49,8 +50,17 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
   /// The turn's picture is a *Send* still waiting in the outbox (story 1176): the board says *Waiting to send*, the
   /// timeout doesn't run, and nothing else goes until it has gone.
   public private(set) var waitingToSend = false
+  /// The board's version in the last picture that went to him, kept after he answers (bead context-grabber-x3tm): Send
+  /// is dimmed while the board is still that version. Nil once a picture didn't reach him or he was interrupted.
+  public private(set) var has: Int?
 
   public init() {}
+
+  /// Larry already has the board as it is (bead context-grabber-x3tm, story 765): the last picture to go was of
+  /// `version`, the same part of it is on screen (`moved` false) and no words wait. Send is dimmed until that changes.
+  public func hasThis(version: Int, moved: Bool) -> Bool {
+    has == version && queued == nil && !moved
+  }
 
   /// A turn is out: the bar shows how long he has been looking (`WhiteboardLarryClock`, story 667).
   public var looking: Bool { state != .idle }
@@ -99,12 +109,11 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
     return followUp(sent: sent, version: version, now: now)
   }
 
-  /// Igor tapped *Larry's turn* or *Send to Larry*: the picture goes now, whatever was waiting, with the words that
-  /// waited. With his turn out on the board at `version`, no words waiting and the picture's part of the board still
-  /// the one on screen (`moved` false), nothing goes (story 765); with no turn out it always goes, since asking him to
-  /// look again is a real request.
+  /// Igor tapped *Send to Larry*: the picture goes now, whatever was waiting, with the words that waited. When he
+  /// already has the board at `version` (`hasThis`), turn out or not, nothing goes (story 765, bead
+  /// context-grabber-x3tm): the button is dimmed then, so this answers a tap that arrives anyway.
   public mutating func tapped(version: Int, moved: Bool = false, now: ContinuousClock.Instant) -> Tap {
-    if case .awaiting(_, let sent) = state, version == sent, queued == nil, !moved {
+    if hasThis(version: version, moved: moved) {
       alreadyHasAt = now
       return .alreadyHas
     }
@@ -117,6 +126,7 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
     if state == turn {
       state = .idle
       waitingToSend = false
+      has = nil
     }
     if let words { queued = queued.map { "\(words) \($0)" } ?? words }
   }
@@ -138,6 +148,8 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
     state = .idle
     latest = nil
     alreadyHasAt = nil
+    // Story 805: the next tap is a fresh ask, never *Larry already has this*.
+    has = nil
     return true
   }
 
@@ -154,6 +166,7 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
   public mutating func reopenedWaiting(sent: Int? = nil, version: Int, now: ContinuousClock.Instant) {
     guard state == .idle else { return }
     state = .awaiting(since: now, sent: min(sent ?? version, version))
+    has = min(sent ?? version, version)
     waitingToSend = true
   }
 
@@ -184,6 +197,7 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
   /// A picture goes: the turn is out on `version`, and the words that waited go with it.
   private mutating func go(version: Int, now: ContinuousClock.Instant) -> String? {
     state = .awaiting(since: now, sent: version)
+    has = version
     latest = nil
     alreadyHasAt = nil
     nothingToAdd = false
