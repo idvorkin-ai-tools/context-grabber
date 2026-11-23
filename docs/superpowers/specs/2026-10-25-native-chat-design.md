@@ -599,6 +599,15 @@ answering — your messages are kept and go when it does*, still copyable, with 
 waiting message reads *Not sent yet · the Cockpit isn't answering*. This is distinct from the *No network* line, which
 is the phone being offline. Other failures (the Cockpit answering with an error) keep their plain reason.
 
+**A Cockpit that blinks is not a bug report** (#1245–#1253, #1259, #1268). The Cockpit sits behind a proxy that
+sometimes answers 502, 503 or 504 for a moment; on 2026-11-22 one poll in a hundred did, for hours, and each blip,
+healed by the next poll, filed an automatic report. Now a read of the list or a thread that fails that way, or times
+out, can't connect or loses its connection, still shows its copyable error at once, and the open thread keeps polling; the list, while it
+shows such an error on screen, reads again every 15 seconds. The error files an automatic report only when the
+failures have gone on, with no read getting through, for 2 minutes, and then once for that outage (with how long and
+how many reads failed). A read failing because the device's own connection is down never files. The full rule is in
+the spec *An error on screen files a report by itself*.
+
 **A read that was stopped, or overtaken, says nothing** (bead `context-grabber-exg6`, the codex review of 2026-11-21:
 the Mac's log held `refresh_failed: cancelled` each time the list was left while it was still reading). Leaving the
 list or a thread before its read is answered, or iOS cutting a read short, is not a failure: no problem appears, and
@@ -711,6 +720,8 @@ asked him to confirm the build and he couldn't tell; only board pictures said).
   web; never the link), links_folded (thread, folded or not), and links_read_failed (thread, why) once per thread when
   a wide list could not read a row's links.
 - A thread that cannot be read logs one error when the problem starts or changes, not one per poll.
+- `chat` cockpit_outage when the Cockpit's outage files its one report (`filed`, with its length in ms and the reads
+  that failed) and when a read gets through after one (`ended`, the same fields, whether it filed).
 - Every error on screen is copyable, with the thread and the Cockpit's answer.
 
 ## Acceptance criteria
