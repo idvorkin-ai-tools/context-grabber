@@ -434,6 +434,7 @@ private struct LinkChip: View {
     case .gist: return "doc.text"
     case .web: return "link"
     case .inbox: return "tray"
+    case .install: return "arrow.down.app"
     }
   }
 }

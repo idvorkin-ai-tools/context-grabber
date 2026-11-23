@@ -10,6 +10,8 @@ public struct ChatLink: Equatable, Sendable, Identifiable {
     case web
     /// A thread on the Cockpit, an Inbox question being one (story 744): its Cockpit link or `larry://inbox/<key>`.
     case inbox(thread: String)
+    /// An over-the-air build the Cockpit serves (story 1133): `itms-services://` with its `https` manifest on the Cockpit.
+    case install(manifest: URL)
 
     /// The session log's name for it; never the link itself.
     public var logName: String {
@@ -18,6 +20,7 @@ public struct ChatLink: Equatable, Sendable, Identifiable {
       case .gist: return "gist"
       case .web: return "web"
       case .inbox: return "inbox"
+      case .install: return "install"
       }
     }
   }
@@ -67,6 +70,10 @@ public enum ChatLinks {
     finder.ranges(in: text).compactMap { match in
       let written = trimmed(String(text[match]))
       let lower = written.lowercased()
+      if lower.hasPrefix(installPrefix) {
+        guard let link = installLink(written) else { return nil }
+        return (range: match.lowerBound..<text.index(match.lowerBound, offsetBy: written.count), link: link)
+      }
       guard lower.hasPrefix("https://") || lower.hasPrefix("http://") || lower.hasPrefix(ChatCockpitLink.prefix),
         let url = URL(string: written),
         let host = url.host?.lowercased(), !host.isEmpty
@@ -104,7 +111,7 @@ public enum ChatLinks {
       /// The detector's links, and each `larry://` link, which it does not know (story 744).
       func ranges(in text: String) -> [Range<String.Index>] {
         let all = NSRange(location: 0, length: (text as NSString).length)
-        let larry = ChatLinks.schemeRanges(in: text, [ChatCockpitLink.prefix])
+        let larry = ChatLinks.schemeRanges(in: text, [ChatCockpitLink.prefix, ChatLinks.installPrefix])
         let found = detector.matches(in: text, range: all).compactMap { Range($0.range, in: text) }
           .filter { match in !larry.contains { $0.overlaps(match) } }
         return (found + larry).sorted { $0.lowerBound < $1.lowerBound }
@@ -120,7 +127,7 @@ public enum ChatLinks {
       init?() {}
 
       func ranges(in text: String) -> [Range<String.Index>] {
-        ChatLinks.schemeRanges(in: text, ["https://", "http://", ChatCockpitLink.prefix])
+        ChatLinks.schemeRanges(in: text, ["https://", "http://", ChatCockpitLink.prefix, ChatLinks.installPrefix])
       }
     }
   #endif
@@ -193,6 +200,23 @@ public enum ChatLinks {
     return ChatLink(url: url, kind: .web, label: webLabel(host: host, parts: parts), id: page)
   }
 
+  /// An over-the-air install link, which the detector may not know (story 1133).
+  static let installPrefix = "itms-services://"
+
+  /// The Cockpit's install link as an *Install* chip: `action=download-manifest` and an `https` manifest on the
+  /// Cockpit's own host; anything else is no link at all, so a message never offers a build from elsewhere.
+  static func installLink(_ written: String) -> ChatLink? {
+    guard let url = URL(string: written),
+      let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
+      items.contains(where: { $0.name == "action" && $0.value == "download-manifest" }),
+      let raw = items.first(where: { $0.name == "url" })?.value,
+      let manifest = URL(string: raw), manifest.scheme?.lowercased() == "https",
+      manifest.host?.lowercased() == CockpitPage.host
+    else { return nil }
+    return ChatLink(
+      url: url, kind: .install(manifest: manifest), label: "Install", id: "install:\(manifest.absoluteString)")
+  }
+
   /// Lavish, the review pages Larry hands over, on the Cockpit's host (#1138): Larry's, not the blog's preview.
   static let lavishPort = 8444
 
@@ -212,9 +236,15 @@ public enum ChatLinks {
   /// any other Cockpit link with *Larry* for the tailnet host, which never shows (story 744).
   public static func address(_ link: ChatLink) -> String {
     if case .inbox(let key) = link.kind { return ChatCockpitLink.prefix + "inbox/" + key }
+    if case .install(let manifest) = link.kind { return "Install " + larrySpelled(manifest) }
     guard link.url.host?.lowercased() == CockpitPage.host else { return link.url.absoluteString }
-    let port = link.url.port.map { ":\($0)" } ?? ""
-    let rest = link.url.path + (link.url.query.map { "?" + $0 } ?? "") + (link.url.fragment.map { "#" + $0 } ?? "")
+    return larrySpelled(link.url)
+  }
+
+  /// A Cockpit address with *Larry* for its tailnet host.
+  private static func larrySpelled(_ url: URL) -> String {
+    let port = url.port.map { ":\($0)" } ?? ""
+    let rest = url.path + (url.query.map { "?" + $0 } ?? "") + (url.fragment.map { "#" + $0 } ?? "")
     return "Larry" + port + rest
   }
 }

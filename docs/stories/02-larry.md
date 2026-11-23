@@ -2957,6 +2957,26 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 1133:
+
+- **Summary:** An install link from the Cockpit is an *Install* chip that offers the build
+- **Status:** native app only: implemented on branch `native/install-chip-xwns`; `ChatLinksTests` (host: the Cockpit's link, an encoded manifest, another host, an `http` manifest, no or another `action`) pass and the Mac build compiles; not yet seen on the simulator (no simulator run while the whiteboard work holds the iPhone simulators) or the phone, where iOS's install prompt is the check
+- **Issues:** bead context-grabber-xwns
+- **Spec:** [Chat with Larry in Grabber Native — An install link is an Install chip](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, reading Larry's message that a new build is ready to install over the air
+- **I want to** tap an *Install* chip where the long `itms-services` link was
+- **so that** iOS offers the build without my copying the link into Safari
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit's install link, then ones from elsewhere
+- **Given:** Larry's message "Build 412 is up: itms-services://?action=download-manifest&url=https://c-5004.squeaker-teeth.ts.net/builds/412/manifest.plist" and another holding the same link with an `http://` manifest, one with a manifest on another host, and one with no `action`
+- **When:** I open the thread and tap the chip
+- **Then:** the first bubble reads "Build 412 is up: [Install]", the strip has one *Install* chip, *All links* spells it with *Larry* and no tailnet address, and the tap hands the link to iOS, which asks to install the build; the other three links read as plain words with nothing to tap and no chip on the strip
+
+---
+
 ### User Story 747:
 
 - **Summary:** A table in Larry's message reads as a table
