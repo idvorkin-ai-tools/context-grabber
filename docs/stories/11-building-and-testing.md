@@ -1597,6 +1597,16 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** `just wasm-test` sends a batch with an unknown op, then a make-room, a move of a grouped stroke with a missing name and a text, on a small board
 - **Then:** the first is refused as `unknown_op`; the make-room opens whole lines; the group moves whole, the missing name is listed and the text stays where he put it
 
+- **Scenario:** Connectors and controls on the web board
+- **Given:** a web board with named boxes and existing ink
+- **When:** Larry connects from a point inside a box, moves a box into a connector's route, or sets and removes controls in a batch
+- **Then:** the connector attaches to the box by name and routes around boxes in its way, and the Cockpit receives the control changes in batch order
+
+- **Scenario:** A text name is reused
+- **Given:** the Cockpit measures each showing ghost and each new text where it appears in the batch
+- **When:** Larry replaces a text with another one of the same name
+- **Then:** each operation places the text and makes room using that instance's dimensions
+
 ---
 
 ### User Story 1621:

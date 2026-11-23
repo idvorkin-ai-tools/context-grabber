@@ -11,27 +11,31 @@ import Foundation
 #endif
 
 enum WebOps {
-  static func number(_ any: Any?) -> CGFloat? { (any as? NSNumber).map { CGFloat($0.doubleValue) } }
-
   static func hex(_ color: UInt32?) -> Any {
     guard let color else { return NSNull() }
     let digits = String(color, radix: 16)
     return "#" + String(repeating: "0", count: max(0, 6 - digits.count)) + digits
   }
 
-  static func color(_ any: Any?) -> UInt32? {
-    guard let s = any as? String, s.count == 7, s.first == "#" else { return nil }
-    return UInt32(s.dropFirst(), radix: 16)
+  static func measurement(_ any: Any?) -> CGSize? {
+    guard let wh = any as? [Any], wh.count == 2,
+      let w = WebOutline.number(wh[0]), w.isFinite, w > 0,
+      let h = WebOutline.number(wh[1]), h.isFinite, h > 0
+    else { return nil }
+    return CGSize(width: w, height: h)
   }
 
-  /// One of Larry's text ghosts showing: `{"id", "x", "y", "text", "font", "size", "color"}`.
+  /// One of Larry's text ghosts showing: `{"id", "x", "y", "text", "font", "size", "color", "measured"}`.
   static func ghost(_ any: Any) -> BoardOps.Text? {
-    guard let g = any as? [String: Any], let id = g["id"] as? String, let x = number(g["x"]), let y = number(g["y"]),
-      let text = g["text"] as? String
+    guard let g = any as? [String: Any], let id = g["id"] as? String, let x = WebOutline.number(g["x"]),
+      let y = WebOutline.number(g["y"]), let text = g["text"] as? String
     else { return nil }
-    return BoardOps.Text(
+    var ghost = BoardOps.Text(
       id: id, x: x, y: y, text: text, font: (g["font"] as? String).flatMap(BoardOps.Font.init(rawValue:)) ?? .plain,
-      size: number(g["size"]).flatMap { $0 > 0 ? $0 : nil } ?? 18, color: color(g["color"]))
+      size: WebOutline.number(g["size"]).flatMap { $0 > 0 ? $0 : nil } ?? 18,
+      color: WhiteboardTurn.hexColor(g["color"]))
+    ghost.measured = measurement(g["measured"])
+    return ghost
   }
 
   static func text(_ t: BoardOps.Text) -> [String: Any] {
@@ -39,6 +43,22 @@ enum WebOps {
       "id": t.id, "x": Double(t.x), "y": Double(t.y), "text": t.text, "font": t.font.rawValue, "size": Double(t.size),
       "color": hex(t.color),
     ]
+  }
+
+  static func overlayWire(_ change: BoardOverlays.Change) -> [String: Any] {
+    switch change {
+    case .set(let overlay):
+      let rect = overlay.rect
+      var wire: [String: Any] = [
+        "op": "overlay", "id": overlay.id, "kind": overlay.kind.rawValue, "label": overlay.label,
+        "rect": ["x": Double(rect.minX), "y": Double(rect.minY), "w": Double(rect.width), "h": Double(rect.height)],
+      ]
+      wire["style"] = overlay.style?.object
+      wire["tap_event"] = overlay.tapEvent?.object
+      return wire
+    case .remove(let id):
+      return ["op": "remove_overlay", "id": id]
+    }
   }
 
   /// The batch as read: its refusal, label, base revision and the names its ops use (what an older look conflicts on).
@@ -50,44 +70,40 @@ enum WebOps {
     ]
   }
 
-  /// `{"batch": the message's ops JSON, "key", "board"?}` → `{"batch": batchWire, "plan"?}`. `board`, when given, is
+  /// `{"batch": the message's ops JSON, "board"?}` → `{"batch": batchWire, "plan"?}`. `board`, when given, is
   /// `{"strokes": [ink], "boxes": [kept texts and cards], "metas": {name: notes}, "folds": {name: "h:<header>"},
-  /// "ghosts": [text], "measured": {text id: [width, height]}, "pages"}`: ink and boxes as `bw_outline_load` reads them,
-  /// a box's name the one Larry knows it by; `measured`, the box each of his texts (ghosts and `add_text`s) takes as
-  /// the Cockpit draws it, since text measuring is compiled out on WASI.
+  /// "ghosts": [text], "measured": {op index: [width, height]}, "pages"}`: ink and boxes as `bw_outline_load` reads
+  /// them, a box's name the one Larry knows it by.
   /// The plan names what it touches; nothing is placed by canvas index.
   static func plan(_ json: Any?) throws -> [String: Any] {
     guard let json = json as? [String: Any] else { throw WebOutlineUnreadable(description: "ops ask for an object") }
-    guard let batch = BoardOps.batch(json["batch"], key: json["key"] as? String ?? "", source: "web") else {
+    guard let batch = BoardOps.batch(json["batch"], key: "", source: "web") else {
       return ["batch": NSNull()]
     }
     var out: [String: Any] = ["batch": batchWire(batch)]
     guard batch.refusal == nil, let board = json["board"] as? [String: Any] else { return out }
     let ink = try (board["strokes"] as? [Any] ?? []).enumerated().map { try WebOutline.ink($1, $0) }
-    let boxes = try (board["boxes"] as? [Any] ?? []).enumerated().map { try WebOutline.box($1, $0) }
+    var boxes = try (board["boxes"] as? [Any] ?? []).enumerated().map { try WebOutline.box($1, $0) }
+    let kept = boxes.enumerated().map { WebOutline.boxText($1, $0) }
+    for i in boxes.indices { boxes[i].t = kept[i].t }
     let strokes = ink + boxes
     var metas = BoardStrokeMeta()
     for (name, raw) in board["metas"] as? [String: Any] ?? [:] {
       if let meta = BoardMeta(raw) { metas.set(meta, for: name) }
     }
-    let measured = (board["measured"] as? [String: Any] ?? [:]).compactMapValues { any -> CGSize? in
-      guard let wh = any as? [Any], wh.count == 2, let w = number(wh[0]), let h = number(wh[1]) else { return nil }
-      return CGSize(width: w, height: h)
-    }
-    let ghosts = (board["ghosts"] as? [Any] ?? []).compactMap(ghost).map { g -> BoardOps.Text in
-      var g = g
-      g.measured = measured[g.id]
-      return g
-    }
-    let ops = batch.ops.map { op -> BoardOps.Op in
+    let measured = board["measured"] as? [String: Any] ?? [:]
+    let ghosts = (board["ghosts"] as? [Any] ?? []).compactMap(ghost)
+    let ops = batch.ops.enumerated().map { index, op -> BoardOps.Op in
       guard case .addText(var text) = op else { return op }
-      text.measured = measured[text.id]
+      text.measured = measurement(measured[String(index)])
       return .addText(text)
     }
     let plan = BoardOps.plan(
-      ops, strokes: strokes, metas: metas, folds: board["folds"] as? [String: String] ?? [:], ghosts: ghosts,
+      ops, strokes: strokes, texts: kept, metas: metas, folds: board["folds"] as? [String: String] ?? [:],
+      ghosts: ghosts,
       pages: (board["pages"] as? NSNumber)?.intValue ?? 1)
     let name = { (i: Int) in strokes[i].ids[0] }
+    var selected = Set<String>()
     out["plan"] =
       [
         "moves": Dictionary(
@@ -101,7 +117,8 @@ enum WebOps {
             "color": hex(s.color), "meta": s.meta?.object ?? NSNull(), "hidden": s.hidden,
           ]
         },
-        "metas": plan.metas.mapValues(\.object), "forget": plan.forgetMetas.sorted(), "select": plan.select,
+        "metas": plan.metas.mapValues(\.object), "forget": plan.forgetMetas.sorted(),
+        "select": plan.select.filter { selected.insert($0).inserted }, "overlays": plan.overlays.map(overlayWire),
         "texts": plan.texts.map(text), "dismissed": plan.dismissed, "inked": plan.inked.map(text),
         "missing_ids": plan.missingIDs, "rooms": plan.rooms.map(\.wire), "moved": plan.moved,
         "pages_after": plan.pagesAfter, "connected": plan.connected, "rerouted": plan.rerouted,

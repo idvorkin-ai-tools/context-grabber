@@ -110,7 +110,7 @@ public enum WhiteboardTurn {
   }
 
   /// `#RRGGBB` as a colour; nil for anything else.
-  static func hexColor(_ any: Any?) -> UInt32? {
+  package static func hexColor(_ any: Any?) -> UInt32? {
     guard let s = any as? String, s.count == 7, s.first == "#", s.dropFirst().allSatisfy(\.isHexDigit) else {
       return nil
     }
