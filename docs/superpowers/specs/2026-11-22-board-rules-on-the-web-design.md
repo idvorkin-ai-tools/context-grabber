@@ -225,7 +225,7 @@ puts the plan on its own board. `bw_info` says `"abi": 7`; versions 1 to 6 are u
 
 ## The interface, version 8: the room a late reply opens
 
-Story 1622. A reply of Larry's kept over ink Igor wrote after its picture opens room by `BoardRoom.late`: the marks
+Story 1623. A reply of Larry's kept over ink Igor wrote after its picture opens room by `BoardRoom.late`: the marks
 stay where he drew them, and from the top of the line of writing the newer ink starts in, everything below goes down
 whole lines until it is half a line under the lowest mark. `bw_info` says `"abi": 8`; versions 1 to 7 are unchanged.
 
