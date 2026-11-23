@@ -328,7 +328,7 @@ xcodebuilds() { pgrep -x xcodebuild 2>/dev/null | wc -l | tr -d ' '; }
 
 rung_0() {
   if [ "${#swift[@]}" -gt 0 ]; then
-    xcrun swift-format lint --strict --parallel --configuration native/.swift-format "${swift[@]}" || return
+    scripts/native/host-lane.sh run xcrun swift-format lint --strict --parallel --configuration native/.swift-format "${swift[@]}" || return
   fi
   just native-lint
 }

@@ -148,6 +148,24 @@ zsh reads `~/.zshenv`, so the ladder passes the lane's `BUILD_LANES` past it aga
 given the simulator's name so that it resolves the lane's own device inside the lane:
 `scripts/native/build-lane.sh run ~/gits/mac-driver/bin/time-limit 30 caffeinate -i scripts/native/test-chat-ui.sh "iPhone 17"`.
 
+**Host builds and tests take a host slot** (stories 795, 797, 798; bead context-grabber-mkd0). Twenty agents' `just
+test` at once loaded the 18-core Mac to 281 (2026-11-22), and lanes only cover Xcode. So swift-format and SwiftLint
+(`just native-lint-format`, `just native-lint`, rung 0), ContextCore's `swift test` (`just native-test-host`, so
+`just test`, `just native-test` and the no-mistakes test step) and the Mac Catalyst build (`just native-build-mac`)
+each run in `scripts/native/host-lane.sh run <command…>`: one of `HOST_LANES` slots machine-wide, else a quarter of the
+cores, at most four and at least one (four on the M5 Pro). Slot N's lock is `~/tmp/agent/locks/host-N.lock`. While
+every slot is busy it says once that it is waiting for a host slot, polls, and after `HOST_LANE_WAIT` seconds (an hour)
+exits 75 having run nothing; the job gets `HOST_LANE` and `HOST_LANES`. The locks are lockf's, so a holder that dies,
+even by `kill -9`, frees its slot at once and a lock file left behind holds nothing (a killed `lockf` leaves its
+command running unseen by the slots, as a killed build lane's does). The slot is taken around one command at a time,
+never inside another slot, since a holder waiting for a second slot can deadlock; a build lane may take one inside
+it (the Mac rung's build does), never the reverse, and a slot wait inside the Mac rung counts in its time limit. The
+`swift` binary itself is not wrapped: a raw `swift test` takes no slot, so run a host test by hand as
+`scripts/native/host-lane.sh run swift test --filter <Tests>` from `native/ContextCore`. `test-linux` takes no slot
+(Linux has no `lockf`, and it runs only there). `scripts/native/test-host-lane.sh` checks it with real locks in a
+temporary folder: six jobs on four slots, never more than four at once, the waiting line, the hour's exit 75, and a
+killed holder.
+
 **Each lane has its own simulators.** Lane 1's are the named ones (`SIM`, default *iPhone 17*, and `WHITEBOARD_SIM`,
 default *iPad Pro 11-inch (M5)*), as on a one-lane Mac. Lane N's are *iPhone 17 lane N* and *iPad Pro 11-inch (M5) lane
 N*: `scripts/native/sim-udid.sh` resolves a name to the job's lane's device, and the first time a lane needs one it is

@@ -41,7 +41,7 @@ native-format:
 
 # Fails on any swift-format finding: what native-format would change, or a rule it cannot fix.
 native-lint-format:
-    xcrun swift-format lint --strict --recursive --parallel --configuration native/.swift-format {{native_swift}}
+    scripts/native/host-lane.sh run xcrun swift-format lint --strict --recursive --parallel --configuration native/.swift-format {{native_swift}}
 
 # Fails on any SwiftLint finding (native/.swiftlint.yml: force unwraps, casts, tries and implicitly unwrapped
 # optionals, each allowed only under a `swiftlint:disable:next` with its reason).
@@ -49,7 +49,7 @@ native-lint:
     #!/usr/bin/env bash
     set -uo pipefail
     command -v swiftlint >/dev/null || { echo "swiftlint is not installed: just setup (or brew install swiftlint)" >&2; exit 1; }
-    cd native && swiftlint lint --strict --quiet
+    cd native && ../scripts/native/host-lane.sh run swiftlint lint --strict --quiet
 
 # Native rung 0 on its own: swift-format over the Swift files this branch touched, SwiftLint over the tree.
 native-lint-touched:
@@ -64,7 +64,8 @@ native-test-host:
     # pipefail: a failing suite must fail the recipe instead of hiding behind tail's exit 0; -e: so must every script
     # check, not only the last (the ladder's map check failed unseen from story 746 until 2026-11-10).
     set -euo pipefail
-    (cd native/ContextCore && swift test 2>&1 | grep -E "Test Suite 'All tests'|Executed|failed|error" | tail -20) || exit 1
+    # Stories 795, 797, 798: in one of the host slots, whose waiting line stays outside the filtered pipe.
+    scripts/native/host-lane.sh run bash -c "set -o pipefail; cd native/ContextCore && swift test 2>&1 | grep -E \"Test Suite 'All tests'|Executed|failed|error\" | tail -20" || exit 1
     # The device build's signing path, with fakes: BugKit's screen-lock guard and "No Accounts" (bug-kit#53).
     scripts/native/test-signing-guard.sh
     # #279: every breathing clip ends in silence, not on a click.
@@ -75,6 +76,8 @@ native-test-host:
     scripts/native/test-ladder-map.sh
     # Story 785 (#954): the build lanes, their locks and simulators, sim-boot and the xcodebuild wait per lane.
     scripts/native/test-build-lane.sh
+    # Stories 795, 797, 798 (context-grabber-mkd0): the host slots, six jobs on four, the wait, a killed holder.
+    scripts/native/test-host-lane.sh
     # Where a UI test run's time went, from a real run's log.
     scripts/native/test-ui-timings.sh
     # #1038 (story 1016): the ladder report keeps a retry, a wrong-device skip and a missing deploy apart, on a fixture.
@@ -188,7 +191,7 @@ testflight *args: native-project
 native-build-mac: native-project
     #!/usr/bin/env bash
     set -uo pipefail
-    scripts/native/xcodebuild-log.sh build-mac "BUILD SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
+    scripts/native/host-lane.sh run scripts/native/xcodebuild-log.sh build-mac "BUILD SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=macOS,variant=Mac Catalyst,arch=arm64" \
       CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual CODE_SIGN_ENTITLEMENTS=Mac/AdHoc.entitlements \
       GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build

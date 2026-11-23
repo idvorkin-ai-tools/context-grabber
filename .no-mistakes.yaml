@@ -58,7 +58,8 @@ document:
 
 test:
   instructions: |
-    Host rung only: run the touched module's host tests (`swift test --filter <Tests>` in native/ContextCore)
+    Host rung only: run the touched module's host tests in a host slot
+    (`../../scripts/native/host-lane.sh run swift test --filter <Tests>` in native/ContextCore; never a raw `swift test`)
     and read the diff. Do not build for, create,
     or boot a simulator, and do not run xcodebuild against a simulator or device: the driving
     session owns live evidence under the build turn and records it in the PR body (only one simulator may run on
