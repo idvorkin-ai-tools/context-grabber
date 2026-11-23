@@ -211,7 +211,7 @@ final class ChatImageUITests: XCTestCase {
     XCTAssertTrue(app.buttons["whiteboard-done"].appears(within: 10), "one Back to the boards: \(app.debugDescription)")
   }
 
-  /// Story 1207: a board slid in over its thread goes back to that thread with *Open in Chat*.
+  /// Story 1225: a board slid in over its thread goes back to that thread with *Open in Chat*.
   func testOpenInChatOnABoardFromItsThreadGoesBack() throws {
     let app = try launchThread(
       "igor2-88g.603", board: "board-603", picture: false, boardThread: "igor2-88g.603", conversationOpen: true)

@@ -679,12 +679,12 @@ struct ChatThreadView: View {
   @Environment(\.dismiss) private var dismiss
   /// Story 1207: the board this thread was slid in over, so *Board* on it goes back rather than opening a second copy.
   private var cameFromBoard: String?
-  /// Story 1206: this thread, slid in over a board, has left the screen without uncovering it.
-  private var leftOverBoard: (() -> Void)?
+  /// Story 1223: the boards set aside under this thread, told when it comes and goes.
+  private var under = BoardsUnder()
 
   init(
     chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger,
-    cameFromBoard: String? = nil, leftOverBoard: (() -> Void)? = nil
+    cameFromBoard: String? = nil, under: BoardsUnder = BoardsUnder()
   ) {
     self.chat = chat
     self.inbox = chat.inbox
@@ -693,7 +693,7 @@ struct ChatThreadView: View {
     self.fixedTitle = title
     self.logger = logger
     self.cameFromBoard = cameFromBoard
-    self.leftOverBoard = leftOverBoard
+    self.under = under
   }
 
   /// The + (#536): an empty thread with the ordinary bar; its first Send starts the thread.
@@ -841,13 +841,14 @@ struct ChatThreadView: View {
     }
     // No identifier on the whole screen: SwiftUI hands it down over a contained element's own, and the decision
     // card's `decision-card-<id>` read as `chat-thread` (#878, on the simulator).
-    .onAppear { if let key { chat.open(key) } }
+    .onAppear {
+      under.appeared(screenID)
+      if let key { chat.open(key) }
+    }
     .onDisappear {
       if let key { chat.close(key) }
       chat.viewGone()
-      // Story 1206: gone without pushing anything of its own, so it was either popped back to the board or taken down
-      // with it; the board tells which.
-      if jumpTo == nil, boardJump == nil { leftOverBoard?() }
+      under.left(screenID)
     }
     // A new chat becomes its thread once the Cockpit has the first message: the same screen, now live.
     .onChange(of: first?.chatThread) { _, thread in
@@ -855,10 +856,11 @@ struct ChatThreadView: View {
     }
     .onChange(of: messages.last?.id, initial: true) { runHoldHook() }
     .navigationDestination(item: $jumpTo) { target in
-      ChatThreadView(chat: chat, voice: voice, key: target, title: chat.title(of: target), logger: logger)
+      ChatThreadView(
+        chat: chat, voice: voice, key: target, title: chat.title(of: target), logger: logger, under: under)
     }
     .navigationDestination(item: $boardJump) { jump in
-      if let screen = chat.boardScreen(jump.board, key) { screen }
+      if let screen = chat.boardScreen(jump.board, key, under) { screen }
     }
     .environment(\.jumpToBoard, { board, from in go(toBoard: board, from: from) })
     // Story 744: an Inbox chip, in a bubble or the strip above, opens its thread here; any other link as ever.

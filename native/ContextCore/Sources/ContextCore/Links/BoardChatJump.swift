@@ -1,4 +1,4 @@
-//  Bead context-grabber-dbku, stories 1206–1208 (spec: native chat, *Between a board and its chat*): a jump between a
+//  Bead context-grabber-dbku, stories 1206–1208, 1223–1226 (spec: native chat, *Between a board and its chat*): a jump between a
 //  board and its thread opens the other straight over where Igor is, never through home or a list.
 
 import Foundation
@@ -43,4 +43,21 @@ public enum BoardChatJump {
     if case .board = target, openElsewhere { return .broughtForward }
     return .slidIn
   }
+}
+
+/// Story 1223: which screen is on top of a board set aside for its chat. Each screen over the board says when it comes
+/// on screen and when it leaves, in whatever order the stack reports them; the board is left uncovered (popped back to,
+/// or taken down with everything over it) only when the screen that leaves is still the one on top.
+public struct BoardCover: Equatable, Sendable {
+  public private(set) var top: String?
+
+  public init() {}
+
+  public mutating func appeared(_ screen: String) { top = screen }
+
+  /// The board is on screen again.
+  public mutating func uncovered() { top = nil }
+
+  /// Whether the screen leaving, or left a moment ago, is still the last one over the board.
+  public func lastOver(_ screen: String) -> Bool { top == screen }
 }

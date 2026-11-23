@@ -206,9 +206,10 @@ final class AppModel: ObservableObject {
     LinkLauncher.handler = { [weak self] route in self?.open(route: route, from: "shortcut") }
     chat.findBoard = { [weak self] board, context in await self?.findBoard(board, context: context) }
     chat.openBoard = { [weak self] board in self?.open(route: .whiteboard(board: board), from: "chat") }
-    chat.boardScreen = { [weak self] board, thread in
+    chat.boardScreen = { [weak self] board, thread, under in
       guard let self, let entry = self.whiteboards.index.board(board) else { return nil }
-      return AnyView(WhiteboardView(board: entry, store: self.whiteboards, app: self, cameFromThread: thread))
+      return AnyView(
+        WhiteboardView(board: entry, store: self.whiteboards, app: self, cameFromThread: thread, under: under))
     }
     chat.boardOpenElsewhere = { [weak self] board in self?.whiteboards.isOpen(board) ?? false }
     chat.viewGone = { [weak self] in self?.screenGone(.chat) }

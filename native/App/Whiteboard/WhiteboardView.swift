@@ -24,8 +24,11 @@ struct WhiteboardView: View {
   /// Bead context-grabber-dbku, story 1206: the board's thread, slid in over the board by *Open in Chat* or the note.
   @State private var chatJump: ChatJump?
   @Environment(\.dismiss) private var dismiss
-  /// Story 1207: the thread this board was slid in over, so *Open in Chat* on it goes back rather than piling up.
+  /// Story 1225: the thread this board was slid in over, so *Open in Chat* on it goes back rather than piling up.
   private let cameFromThread: String?
+  /// Story 1223: the boards set aside under this one, told when it comes and goes.
+  private let under: BoardsUnder
+  @State private var screenID = UUID().uuidString
   private let chat: ChatModel
   private let logger: BugLogger
   private let log: SessionLog
@@ -71,7 +74,10 @@ struct WhiteboardView: View {
   /// Story 889: a question card's own answer is spoken with Chat's mic.
   private let chatVoice: ChatVoiceModel
 
-  init(board: BoardEntry, store: WhiteboardStore, app: AppModel, cameFromThread: String? = nil) {
+  init(
+    board: BoardEntry, store: WhiteboardStore, app: AppModel, cameFromThread: String? = nil,
+    under: BoardsUnder = BoardsUnder()
+  ) {
     _model = StateObject(
       wrappedValue: WhiteboardModel(
         board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit,
@@ -86,6 +92,7 @@ struct WhiteboardView: View {
     onPhone = store.onPhone
     openChat = { [weak app] key in app?.open(route: .chat(thread: key), from: "whiteboard") }
     self.cameFromThread = cameFromThread
+    self.under = under
     chat = app.chat
     decisions = app.chat.decisions
     chatVoice = app.chatVoice
@@ -258,12 +265,14 @@ struct WhiteboardView: View {
       }
     }
     .onAppear {
+      under.appeared(screenID)
       model.backFromChat()
       model.opened()
       model.startWatchingLarry()
     }
     .onDisappear {
-      // Story 1206: its thread slid in over it; the board waits, saved, for Back.
+      under.left(screenID)
+      // Story 1223: its thread slid in over it; the board waits, saved, for Back.
       if chatJump != nil {
         model.setAsideForChat()
         return
@@ -275,7 +284,7 @@ struct WhiteboardView: View {
     .navigationDestination(item: $chatJump) { jump in
       ChatThreadView(
         chat: chat, voice: chatVoice, key: jump.thread, title: chat.title(of: jump.thread), logger: logger,
-        cameFromBoard: model.board.id, leftOverBoard: { [model] in model.chatLeftOverBoard() })
+        cameFromBoard: model.board.id, under: under.adding(model))
     }
     .onChange(of: scenePhase) { _, phase in
       if phase == .background {
