@@ -34,7 +34,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1179:
 
 - **Summary:** A header made or unmade by a tap is one Undo of its own
-- **Status:** implemented in [e206ac70](https://github.com/idvorkin/context-grabber/commit/e206ac70) and [e498cc55](https://github.com/idvorkin/context-grabber/commit/e498cc55) (*Not a header* on a fold undoes with its ink, one Undo); verified by `WhiteboardOutlineUITests.testAMarginTapsHeaderIsOneUndoThatLeavesTheInk` and `testNotAHeaderOnAFoldIsOneUndoThatPutsTheFoldBack` with the whole of `WhiteboardOutlineUITests` and `WhiteboardScratchOutUITests` (rung 2, iPad simulator, 2026-11-22; no iPhone run); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [28d35f89](https://github.com/idvorkin/context-grabber/commit/28d35f89) and [f9034ae2](https://github.com/idvorkin/context-grabber/commit/f9034ae2) (*Not a header* on a fold undoes with its ink, one Undo), reported to Larry once in [616275fb](https://github.com/idvorkin/context-grabber/commit/616275fb); verified by `WhiteboardOutlineUITests.testAMarginTapsHeaderIsOneUndoThatLeavesTheInk` and `testNotAHeaderOnAFoldIsOneUndoThatPutsTheFoldBack` with the whole of `WhiteboardOutlineUITests` and `WhiteboardScratchOutUITests` (rung 2, iPad simulator, 2026-11-22; no iPhone run); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 - **Issues:** bead `context-grabber-ssl` (a header made or unmade alone was no Undo step: Undo took back the stroke before it and left the ▾)
 

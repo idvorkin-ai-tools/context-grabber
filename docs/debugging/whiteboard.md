@@ -199,7 +199,8 @@ to that event's own bullet; never join two events on one line.
   - **sent** or **held** (with reason) when events go to the Cockpit at once, with why, events and ms; when the cap let some go, also events_dropped and dropped_kinds (a count per wire `type`; bead context-grabber-27sv).
 - `board_outline`:
   - **margin_tap** with y, did and changed
-  - **changed** with label, moved, hidden, shown, headers, folded, pages and ms
+  - **changed** with label, undo_step (the change was an Undo step: it moved ink, or made or unmade a header), moved, hidden, shown, headers, folded, pages and ms
+  - **header_undo** and **header_redo** (story 1179, context-grabber-ssl), an Undo or Redo of a header made or unmade, with board, label, headers and declined (as it put them back)
   - **hold_menu** with y and items
   - **hold_chose** with item
   - **erase_fold** (stories 902–905) with board, via (eraser, eraser_rub for the pixel eraser, scratch, or eraser_cancelled: what a called-off stroke still took), folds, headers, strokes, path, took, can_undo and undo_name
