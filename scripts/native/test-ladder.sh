@@ -399,7 +399,14 @@ xcodebuild_sim() {  # <log name> <done line> <xcodebuild arguments...>
 }
 # The smoke's sections for the paths this climb takes as changed (--changed's, or git's since the base).
 smoke_sections() { scripts/native/smoke-features.sh "$base" ${changed[@]+"${changed[@]}"}; }
-only_testing() { for c in "$@"; do printf -- '-only-testing:GrabberNativeUITests/%s\n' "$c"; done; }
+# Story 1501: these classes launch the Board Lab, so they are in its bundle (the GrabberNative scheme runs both).
+board_lab_classes=" WhiteboardEraserUITests WhiteboardTitleRenameUITests "
+only_testing() {
+  for c in "$@"; do
+    case "$board_lab_classes" in *" $c "*) printf -- '-only-testing:BoardLabUITests/%s\n' "$c" ;;
+    *) printf -- '-only-testing:GrabberNativeUITests/%s\n' "$c" ;; esac
+  done
+}
 step_warm=  # set just before a build step: whether the lane's build folder already held a build (#1038)
 step() {  # <label> <command...>: times one step of rung 2
   local label=$1 start=$SECONDS status warm=$step_warm

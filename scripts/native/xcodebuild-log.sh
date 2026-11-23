@@ -88,7 +88,7 @@ if [ "$is_test" -eq 1 ]; then
   done
 fi
 # The app and its UI test runner, ended on the simulator when a lock stops the run, before a test can open the mic.
-sim_apps=${SIM_TEST_BUNDLES:-com.idvorkin.grabbernative com.idvorkin.grabbernative.uitests.xctrunner}
+sim_apps=${SIM_TEST_BUNDLES:-com.idvorkin.grabbernative com.idvorkin.grabbernative.uitests.xctrunner com.idvorkin.grabbernative.boardlab com.idvorkin.grabbernative.boardlab.uitests.xctrunner}
 end_sim_apps() {
   [ -n "$sim_udid" ] || return 0
   for b in $sim_apps; do xcrun simctl terminate "$sim_udid" "$b" >/dev/null 2>&1; done

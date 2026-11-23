@@ -69,7 +69,8 @@ or a 400 with its reason, then {ok, text, too_long, advice, model, via} with the
 lists the pictures' sizes so far.
 Recorded board sessions (story 1174): POST /fake/session {"name": "ops-move"} (one of the Cockpit's recordings, scrubbed,
 under native/ContextCore/Tests/ContextCoreTests/Fixtures/board-sessions; "thread": a key to play it on instead of its own,
-which is made titled as the Cockpit's host titles it) plays that session back: each strokes post is answered with its
+which is made titled as the Cockpit's host titles it, or "first" for the thread of the first board message after it, as
+a board the app makes has a key nobody knows beforehand: the Board Lab's GRABBER_LAB_SESSION, story 1501) plays that session back: each strokes post is answered with its
 count, new and erased against the board's send before, and the n-th of Igor's messages on that thread gets, a moment
 later, Larry's replies and the receipts recorded after the n-th turn (his rows on the message's own board and picture,
 his batch's base revision as far behind the message's rev as it was behind the recorded one). GET /fake/session says the
@@ -483,8 +484,9 @@ def load_session(name, thread=None):
             groups.append([])
         elif step["step"] in ("reply", "receipt") and groups:
             groups[-1].append(step)
-    key = thread or header["thread"]
-    THREADS.setdefault(key, {"title": "Board, " + key, "messages": [], "seen": ""})
+    key = None if thread == "first" else thread or header["thread"]
+    if key:
+        THREADS.setdefault(key, {"title": "Board, " + key, "messages": [], "seen": ""})
     return {"name": header["name"], "thread": key, "groups": groups, "turns": turns, "next": 0, "ids": {},
             "strokes": {}, "answers": {}, "hints": {}, "pending": 0}
 
@@ -903,8 +905,9 @@ class Handler(BaseHTTPRequestHandler):
                 OP_REPORTS.append({"rev": data.get("rev"), "op_result": data.get("op_result"),
                                    "events": len(data.get("events") or []),
                                    "event_types": [e.get("type") for e in data.get("events") or []]})
-        if SESSION and key == SESSION["thread"]:
+        if SESSION and (key == SESSION["thread"] or (SESSION["thread"] is None and data.get("board"))):
             with LOCK:
+                SESSION["thread"] = key  # "first": the thread of the first board message after it was chosen
                 SESSION["hints"][m["id"]] = session_hint(key, data)
                 play_session_later(key, m, data)
             return self._json(200, {"ok": True, "thread": key, "message": m, "title": t["title"]})

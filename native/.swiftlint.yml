@@ -12,6 +12,7 @@ included:
   - Widgets
   - Shared
   - Share
+  - BoardLab
 force_unwrapping:
   severity: error
 force_try:
