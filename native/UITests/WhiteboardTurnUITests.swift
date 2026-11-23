@@ -268,7 +268,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     stroke(app)
     wait(asking, label: "Ask at my pauses: on, 1 showing", timeout: 8)
     XCTAssertGreaterThan(try turnsAsked(cockpit), before, "on, a pause asks")
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     wait(asking, label: "Ask at my pauses: on, 3 showing", timeout: 15)
 
     // Off, on the Larry board, from the long press's row: Claude's mark goes, Larry's two stay.
