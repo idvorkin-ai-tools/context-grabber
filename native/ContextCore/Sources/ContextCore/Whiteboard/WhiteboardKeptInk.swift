@@ -31,17 +31,35 @@ public struct KeptInkColours: Equatable, Sendable {
 }
 
 public enum WhiteboardKeptInk {
+  /// The soft edge, in view pixels, a whole mark's own colour falls short of every pixel its strokes touch: in the logs
+  /// the view's colour spans 2 to 4 pixels less than the strokes drawn alone touch, each way (context-grabber-smmj).
+  public static let softEdge = 4
+
+  /// How wide and tall a whole mark's own colour spans on screen, judged from the same strokes drawn alone: their own
+  /// colour's span, or every pixel they touch less the soft edge, whichever is more. Drawn alone, a thin text keeps
+  /// little of its true colour and that span is noise (context-grabber-smmj: 71 one time and 149 the next for one
+  /// 155-pixel text), while every pixel it touches spans the same each time (157); a thick mark's colour spans as far as
+  /// it touches, so it's judged as before.
+  public static func wholeSpan(_ expected: KeptInkColours) -> (width: Int, height: Int) {
+    (
+      max(expected.inkWidth, expected.allWidth - softEdge),
+      max(expected.inkHeight, expected.allHeight - softEdge)
+    )
+  }
+
   /// Why a kept mark looks only partly drawn, or nil when it looks whole. **cut** when the view's ink colour spans under
-  /// three quarters of what the same strokes' colour spans drawn alone (a tile left empty or drawn in another colour).
+  /// three quarters of what a whole mark's colour spans (`wholeSpan`, logged as `whole_span`: a tile left empty or drawn in another colour).
   /// Like is measured with like: a thin letter's true colour is only its middle, so against every pixel the strokes touch,
-  /// soft edges among them, a small label drawn whole read as cut (context-grabber-qko5: 9 of 13 pixels tall).
-  /// **dark** when the spot has dark pixels the keep added and the ink isn't dark itself (a tile drawn black). Nothing is
-  /// judged when the strokes drawn alone show none of their colour (a pen too thin to read).
+  /// soft edges and all, a small label drawn whole read as cut (context-grabber-qko5: 9 of 13 pixels tall), and against
+  /// only the true colour the strokes keep drawn alone, a thin text cut at a tile edge could read as whole
+  /// (context-grabber-smmj). **dark** when the spot has dark pixels the keep added and the ink isn't dark itself (a tile
+  /// drawn black). Nothing is judged when the strokes drawn alone show none of their colour (a pen too thin to read).
   public static func partMissing(
     drawn: KeptInkColours, expected: KeptInkColours, darkBefore: Int, ink: [Int]
   ) -> String? {
     guard drawn.ink >= 0, expected.ink > 0, expected.inkWidth > 0, expected.inkHeight > 0 else { return nil }
-    if drawn.inkWidth * 4 < expected.inkWidth * 3 || drawn.inkHeight * 4 < expected.inkHeight * 3 { return "cut" }
+    let whole = wholeSpan(expected)
+    if drawn.inkWidth * 4 < whole.width * 3 || drawn.inkHeight * 4 < whole.height * 3 { return "cut" }
     let inkIsDark = ink.allSatisfy { $0 < 80 }
     if !inkIsDark, drawn.dark - darkBefore > max(20, drawn.ink / 10) { return "dark" }
     return nil
