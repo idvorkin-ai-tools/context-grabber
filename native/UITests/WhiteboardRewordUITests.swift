@@ -124,7 +124,7 @@ final class WhiteboardRewordUITests: XCTestCase {
     XCTAssertEqual(send.label, glyphs, "moved, not drawn")
   }
 
-  /// Story 1201: a small text dragged from inside onto a line drops there and pushes the line down (story 973).
+  /// Story 1151: a small text dragged from inside onto a line drops there and pushes the line down (story 973).
   func testASmallTextDroppedOnALinePushesItDown() throws {
     let (app, before) = try boardWithAText()
     // A line under where the text will land, drawn with nothing selected.
@@ -146,7 +146,7 @@ final class WhiteboardRewordUITests: XCTestCase {
       "the line went down clear of the text: \(String(describing: PaperScreen(app).ink))")
   }
 
-  /// Story 1201: a drag from a corner's knob, even the part of it inside the selection, still stretches.
+  /// Story 1150: a drag from a corner's knob, even the part of it inside the selection, still stretches.
   func testAStretchFromACornerKnobStillStretches() throws {
     let cockpit = try XCTUnwrap(
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")

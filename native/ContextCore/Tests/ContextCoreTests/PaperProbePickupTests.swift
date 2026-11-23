@@ -63,7 +63,7 @@ final class PaperProbePickupTests: XCTestCase {
     XCTAssertTrue(PaperProbe.resizeIsMove(stretched, selected: Set(keys), onHandleInside: true))
     // Begun on the handle outside the box: a stretch he meant.
     XCTAssertFalse(PaperProbe.resizeIsMove(stretched, selected: Set(keys), onHandleInside: false))
-    // A stroke at the corner it stretched from that kept its place and size (a full stop) leaves it a stretch.
+    // A corner stroke that kept its place and size (absent from moved, a full stop) still leaves it a move.
     XCTAssertTrue(PaperProbe.resizeIsMove(Array(stretched.dropLast()), selected: Set(keys), onHandleInside: true))
     // A move PaperKit made as a move is its own.
     let carried = keys.map { move($0, 0, 105) }
