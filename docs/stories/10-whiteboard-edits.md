@@ -94,7 +94,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Larry's make-room lands between lines and moves whole lines
 - **Issues:** bead context-grabber-2gu (Igor, 2026-11-22, design board: "every cut lands between lines")
-- **Status:** in progress on branch `native/larry-room-lines-2gu`
+- **Status:** implemented in [16f264ef](https://github.com/idvorkin/context-grabber/commit/16f264ef); verified by host tests (`BoardOpsTests`: `testLarrysRoomInsideALineCutsAtItsTopAndMovesWholeLines`, `testLarrysRoomNearALinesBottomCutsUnderIt`, `testLarrysRoomOnClearPaperStaysWhereHeAsked`, `testLarrysRoomNeverSplitsAGroupAcrossTheLine`, `testLarrysClosingRoomClosesBlankPaperOnlyInWholeLines`, `testHisNextTurnHearsTheRoomUsed`, `testTheBoardsOwnRoomStaysExact`, and `testOnTheRealBoardsEveryCutLandsBetweenLines` on the four real-board fixtures; `just test`), the Mac build (`just native-build-mac`), and on the iPad simulator (`WhiteboardPaperGhostsUITests`, all 21, Larry's push and its Undo among them). Not yet seen on the iPad, nor against the real Larry; the push from an older look after Igor opened room by hand is still open
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
