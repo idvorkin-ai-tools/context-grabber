@@ -12,7 +12,7 @@ doc=docs/TESTING.md
 fail=0
 # The first backticked word of each "- " line under the heading, up to the next heading.
 section() { awk -v h="$1" '/^#/ {on = ($0 == h); next} on && /^- `/' "$doc" | sed -E 's/^- `([^`]+)`.*/\1/'; }
-only_testing() { grep -oE 'only-testing:GrabberNativeUITests/[A-Za-z0-9]+' "$1" | sed 's/.*\///'; }
+only_testing() { grep -oE 'only-testing:[A-Za-z0-9]+UITests/[A-Za-z0-9]+' "$1" | sed 's/.*\///'; }
 same() { # name, what the doc lists, what the source holds, where the source is
   local missing extra
   [ -z "$3" ] && { echo "FAIL $1: found nothing in $4"; fail=1; return; }
