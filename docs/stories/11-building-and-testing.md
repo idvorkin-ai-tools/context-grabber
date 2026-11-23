@@ -1483,3 +1483,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** an agent or Igor needs a build on a device
 - **When:** they open the deploy document from the agent instructions or the testing guide
 - **Then:** it names the command for each path, what *unavailable* means, how to wait for a device, the signing rules, what to do before the profile expires, how to add a device, which iCloud environment each build uses, and a table of speed-ups with their estimated savings
+
+---
+
+### User Story 1502:
+
+- **Summary:** The lists every PR adds to in the testing guide are one item a line, and the host rung fails when one drifts from its script
+- **Status:** implemented on branch `native/testing-lists-2b54`; verified on the host rung by `scripts/native/test-testing-lists.sh` in `just test` (a dropped class, two classes out of order, a new UI test file and a new host check each fail by name on a copy of the tree; the real tree passes) and the Mac build (rung 1.5); no simulator or phone run, as nothing in the app changed
+- **Issues:** bead context-grabber-2b54 (#1217 hit a merge conflict in the whiteboard suite's one long table row on every rebase, four rounds, each sending the pipeline back to review)
+
+#### Use Case:
+- **As Igor,** with several agents landing whiteboard PRs at once
+- **I want to** have the testing guide list the host rung's script checks and each UI suite's classes one to a line, in name order for the classes
+- **so that** two PRs that each add a class or a check edit different lines and merge without a conflict, and the guide can't silently fall behind what the scripts run
+
+#### Acceptance Criteria:
+- **Scenario:** A PR adds a whiteboard or chat UI test class, or a host script check
+- **Given:** the testing guide's lists of the host checks, the chat suite's classes and the whiteboard suite's classes, each item on its own line
+- **When:** the host rung runs (on the Mac or the Linux box)
+- **Then:** it fails naming each class or check that the suite's script, the whiteboard's test files or the host recipe has and the guide doesn't list, or the guide lists and they don't have, and each suite list that is out of name order; with none of these it passes
