@@ -36,7 +36,7 @@ final class BoardRoomTests: XCTestCase {
     let landing = BoardRoom.place(size, view: view, ink: ink)
     XCTAssertNil(landing.push)
     let box = CGRect(origin: landing.origin, size: size)
-    XCTAssertFalse(box.intersects(ink[0].insetBy(dx: -BoardRoom.air, dy: -BoardRoom.air)), "\(box)")
+    XCTAssertFalse(box.overlaps(ink[0].insetBy(dx: -BoardRoom.air, dy: -BoardRoom.air)), "\(box)")
     XCTAssertGreaterThanOrEqual(box.minX, BoardMargin.width + BoardRoom.air, "right of the margin")
   }
 

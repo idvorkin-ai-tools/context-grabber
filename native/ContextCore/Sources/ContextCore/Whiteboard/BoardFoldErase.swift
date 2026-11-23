@@ -44,7 +44,7 @@ extension BoardOutline {
       header.words.compactMap { at[$0] }.contains { m in
         let s = self.strokes[m]
         let pad = r + (s.pen > 0 ? s.pen : 3) / 2
-        guard !s.hidden, s.bounds.insetBy(dx: -pad, dy: -pad).intersects(Self.bounds(of: dots)) else { return false }
+        guard !s.hidden, s.bounds.insetBy(dx: -pad, dy: -pad).overlaps(Self.bounds(of: dots)) else { return false }
         let line = s.points.count > 1 ? s.points : s.points + s.points
         return dots.contains { d in zip(line, line.dropFirst()).contains { Self.distance(d, $0.0, $0.1) <= pad } }
       }

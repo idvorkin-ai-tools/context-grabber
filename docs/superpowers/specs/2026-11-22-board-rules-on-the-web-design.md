@@ -129,6 +129,27 @@ held apart from the board `bw_load` keeps:
 The web board's "Swift N/M" level moves each answer over one step at a time: below the step the web board answers
 itself, at or above it the module does, so the two can be compared on the same board.
 
+## The interface, version 3: where a paste lands, and the room a drop opens
+
+Story 1513. The next two steps of the web board's Swift level: a paste (text pasted as a kept text) lands where the
+iPad's would, and a selection dropped on writing pushes it down by the iPad's rule. Both are asked of the board
+`bw_load` keeps, with plain numbers; `bw_info` says `"abi": 3`, and versions 1 and 2 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_place` | `w`, `h`, then the view's `left`, `top`, `right`, `bottom` (all `f64`, board points) | a reply: `{"x", "y", "push": null}` where a clear patch holds it, else `{"x", "y", "push": {"cut", "dy"}}`; `{"error"}` with nothing loaded |
+| `bw_drop` | the dropped block's `left`, `top`, `right`, `bottom`, then the box it was lifted from (all `f64`) | a reply: `{"push": null}` when it opens no room, else `{"push": {"cut", "dy"}}`; `{"error"}` with nothing loaded |
+
+- The Cockpit measures the pasted text and sends its size: the module has no font.
+- A paste lands on the clear patch of the view nearest its middle that holds it with half a line of air all round, right
+  of the margin and inside the page. When none does, it goes under the writing above the clear line nearest the view's
+  middle, and room opens there: as much as it needs beyond the blank paper already there, in whole lines.
+- A drop opens room only when the block sits on writing other than the line it was lifted from (touching an edge is
+  not sitting on it). Then everything below the clear line nearest its top goes down by whole lines until the first of
+  it is half a line under the block.
+- For a drop the loaded board is everything but what was dropped: the Cockpit loads that board before asking.
+- The Cockpit moves the writing; the module only answers where and how far.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
@@ -137,6 +158,14 @@ within about 1e-4 points of the exact middle of a row, where the rule breaks a t
 in the spike, 9 of about 4,600 queries on the recorded boards, 8 of them heights placed there on purpose and one from a
 plain 1.5-point sweep (the title-build board at 100). The module answers as the 32-bit rules do; the replay test pins
 that one case so a change shows. If it matters, the rules get their own 64-bit geometry, a change on the app's side.
+
+### Boxes that only touch
+
+On Apple's platforms two boxes that only share an edge or a corner do not meet; in the Foundation that Linux and
+WebAssembly use, they do. The board's rules therefore decide whether boxes meet themselves, the way Apple does: an edge
+or a corner shared is no overlap, any area is. Without that, a paste whose half line of air exactly touched a line of
+writing landed elsewhere on the web than on the iPad (found by the Cockpit's comparison on its seeded random boards,
+2026-11-22, and checked against Apple on the Mac).
 
 ## Acceptance criteria
 
