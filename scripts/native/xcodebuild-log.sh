@@ -239,9 +239,10 @@ locked_failure() {
     "run, not failed; unlock the Mac and rerun. The whole log: $log" >&2
   exit 75
 }
+timed=
 if grep -q "^Test Case '" "$log"; then
   "$(dirname "$0")/ui-timings.py" "$log" --run "$name" --jsonl "${UI_TIMINGS_JSONL:-${log%/*}/ui-timings.jsonl}" \
-    --flaky-out "$flaky" || echo "ui-timings could not read $log" >&2
+    --flaky-out "$flaky" && timed=1 || echo "ui-timings could not read $log" >&2
 fi
 # Story 1017: a run that would pass, with a case that passed only on its retry, fails: a flake is a failure to fix, not a
 # pass to forget. A known one, chased under its bead, goes in the quarantine file instead.
@@ -278,7 +279,8 @@ if [ -e "$stopped" ]; then
   # Bead context-grabber-36f: the suite line says failed when any try of a case failed, even one its retry then passed,
   # where xcodebuild's own end would have called the run a success. So a failed suite whose failures were all retried
   # to a pass is judged as passed here, and pass() then fails it for the flake unless it is quarantined (story 1017).
-  if [ "${last##* failed}" != "$last" ] && retried_to_pass; then last=" passed"; fi
+  # Only when ui-timings read the log: without its flake list, pass() would let the flake through.
+  if [ -n "$timed" ] && [ "${last##* failed}" != "$last" ] && retried_to_pass; then last=" passed"; fi
   case $last in
     *" passed"*) pass ;;
     *)

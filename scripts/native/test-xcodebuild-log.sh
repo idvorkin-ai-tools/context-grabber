@@ -133,6 +133,11 @@ out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1)
 [ $? -eq 0 ] && ok "and a quarantined one passes there" || bad "a quarantined retried pass in a failed suite after a hang: $out"
 out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed FAKE_EARLY_FAIL=1 XCODEBUILD_IDLE_SECONDS=1)
 [ $? -eq 65 ] && ok "but a case whose last try failed still fails it" || bad "a failed case beside a quarantined flake passed: $out"
+printf '\377\376\n' >"$dir/quarantine"
+out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1)
+status=$?
+case "$status $out" in "65 "*"ui-timings could not read"*) ok "and when ui-timings can't read the run, the failed suite stays a failed run";;
+  *) bad "a failed suite after a hang, with ui-timings failing, exited $status: $out";; esac
 echo "SynthUITests.testFlaky because it is flaky" >"$dir/quarantine"
 flake env >/dev/null
 [ $? -eq 65 ] && ok "a quarantine without the bead that tracks it quarantines nothing" || bad "an untracked quarantine let it pass"
