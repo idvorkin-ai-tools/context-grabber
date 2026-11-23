@@ -3278,7 +3278,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1603:
 
 - **Summary:** A long decision card at the top of its thread scrolls inside itself instead of covering the chat
-- **Status:** native app: implemented in [169740b9](https://github.com/idvorkin/context-grabber/commit/169740b9); verified by host tests (`just native-test`, `ChatDecisionCapTests`), the Mac build, and the iPad simulator (rung 2: `ChatDecisionUITests` 7/7, `testALongCardInItsThreadScrollsInsideAndLeavesTheChatOnScreen`: the card stays at its cap, about 60% of the thread, the context opens inside it and scrolls to the last option, the message bar stays on screen); not yet seen on a device. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Status:** native app: implemented in [b4c4ed4f](https://github.com/idvorkin/context-grabber/commit/b4c4ed4f) and [1a248af4](https://github.com/idvorkin/context-grabber/commit/1a248af4); verified by host tests (`just native-test`, `ChatDecisionCapTests`), the Mac build, and the iPad simulator (rung 2: `ChatDecisionUITests` 7/7, `testALongCardInItsThreadScrollsInsideAndLeavesTheChatOnScreen`: the card stays at its cap, about 60% of the thread, the context opens inside it and scrolls to the last option, the message bar stays on screen); not yet seen on a device. No iPhone runs (whiteboard work, Igor 2026-11-22)
 - **Issues:** bead context-grabber-o2i2, formerly 97s (Larry, 2026-11-22, Cockpit thread igor2-88g.1620: *"an expanded chat message/card grows to its full height instead of scrolling within a bounded height"*)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *A long card at the top of its thread*
 
@@ -3293,11 +3293,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I tap the context to see all of it
 - **Then:** the card stops at about 60% of the chat's height; the question, the fold chevron and the **⋯** stay at its
   top; I scroll inside the card to read the rest and reach the last option; the conversation and the message bar stay
-  on screen under it; tapping the context again closes it to its first lines and the card shrinks back
-- **Scenario:** A short card
-- **Given:** a card whose whole context and options fit
-- **When:** I open its context
-- **Then:** it is drawn at its own height, as before, with nothing to scroll
+  on screen under it; tapping the context again closes it to its first lines and the card shrinks back; a card whose
+  whole context and options fit is drawn at its own height, as before, with nothing to scroll
 
 ---
 

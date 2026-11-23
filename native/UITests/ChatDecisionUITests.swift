@@ -276,7 +276,6 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertEqual(try answers(cockpit).count, before, "folding told the Cockpit nothing")
   }
 
-  /// Story 830: a refused answer leaves the card, buttons live, with a copyable problem.
   /// Story 1603 (bead context-grabber-o2i2): a context longer than the screen, opened, leaves the card at about 60% of
   /// the thread with its heading on top; the rest scrolls inside the card down to its last option, the message bar stays
   /// on screen, and a tap on the context closes it again.
@@ -323,6 +322,7 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertTrue(try answers(cockpit).isEmpty, "reading and scrolling sends nothing")
   }
 
+  /// Story 830: a refused answer leaves the card, buttons live, with a copyable problem.
   func testARefusedAnswerLeavesTheCardWithACopyableProblem() throws {
     let cockpit = try fakeCockpit()
     let app = launch(cockpit, ["GRABBER_LINK": "grabbernative://chat?thread=igor2-88g.880"])
