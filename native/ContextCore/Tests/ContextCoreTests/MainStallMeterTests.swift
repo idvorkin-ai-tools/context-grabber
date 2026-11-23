@@ -100,6 +100,18 @@ final class MainStallMeterTests: XCTestCase {
     XCTAssertNil(meter.stopped(at: 300.5))
   }
 
+  func testAReplyFirstAfterSuspensionLeavesStallTimingToTheNextLook() {
+    // The reply runs at 300 s, then the iPad sleeps again before the watch's next look at 302 s: no stall, since the
+    // main thread answered every look the watch made.
+    var meter = MainStallMeter(threshold: 1, now: 0)
+    XCTAssertEqual(meter.checked(at: 1.25), .began(waited: 1.25))
+    XCTAssertEqual(meter.answered(at: 300), .away(gap: 298.75))
+    XCTAssertNil(meter.answered(at: 301))
+    XCTAssertNil(meter.checked(at: 302))
+    XCTAssertNil(meter.checked(at: 302.25))
+    XCTAssertEqual(meter.checked(at: 303.25), .began(waited: 1.25))
+  }
+
   func testAStopFirstAfterSuspensionSaysAwayOnce() {
     var meter = MainStallMeter(threshold: 1, now: 0)
     XCTAssertEqual(meter.checked(at: 1.25), .began(waited: 1.25))

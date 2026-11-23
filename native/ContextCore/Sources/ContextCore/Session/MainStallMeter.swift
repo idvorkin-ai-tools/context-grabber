@@ -21,6 +21,7 @@ public struct MainStallMeter: Sendable {
   private var lastAnswer: Double
   private var lastLook: Double?
   private var stalling = false
+  private var awaySaid = false
 
   public init(threshold: Double, now: Double) {
     self.threshold = threshold
@@ -31,7 +32,12 @@ public struct MainStallMeter: Sendable {
   /// The watch looking, off the main thread.
   public mutating func checked(at now: Double) -> Word? {
     guard let lastLook else { return nil }
-    if let away = takeAway(since: lastLook, at: now) { return away }
+    let gap = now - lastLook
+    if gap >= 5 {
+      let said = awaySaid
+      restart(at: now)
+      return said ? nil : .away(gap: gap)
+    }
     self.lastLook = now
     guard !stalling, now - lastAnswer >= threshold else { return nil }
     stalling = true
@@ -41,7 +47,14 @@ public struct MainStallMeter: Sendable {
   /// The main thread answering a look.
   public mutating func answered(at now: Double) -> Word? {
     guard let lastLook else { return nil }
-    if let away = takeAway(since: lastLook, at: now) { return away }
+    let gap = now - lastLook
+    if gap >= 5 {
+      defer {
+        awaySaid = true
+        stalling = false
+      }
+      return awaySaid ? nil : .away(gap: gap)
+    }
     defer {
       lastAnswer = now
       stalling = false
@@ -60,12 +73,6 @@ public struct MainStallMeter: Sendable {
     lastAnswer = now
     lastLook = now
     stalling = false
-  }
-
-  private mutating func takeAway(since lastLook: Double, at now: Double) -> Word? {
-    let gap = now - lastLook
-    guard gap >= 5 else { return nil }
-    restart(at: now)
-    return .away(gap: gap)
+    awaySaid = false
   }
 }

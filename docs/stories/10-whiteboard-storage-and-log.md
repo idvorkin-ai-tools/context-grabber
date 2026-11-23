@@ -219,7 +219,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1221:
 
 - **Summary:** The log never calls the app's time away a stuck main thread
-- **Status:** implemented in [78a1fb1e](https://github.com/idvorkin/context-grabber/commit/78a1fb1e); verified by host tests (`MainStallMeterTests`: the iPad's 921 s away said as away, the 6.5 s real stall still a stall, away mid-stall, the 5 s line; `just native-test`) and the Mac build (`just native-build-mac`); the simulator was not run (a suspension and its gap need the device); not yet seen on the iPad
+- **Status:** implemented in [78a1fb1e](https://github.com/idvorkin/context-grabber/commit/78a1fb1e), verified by host tests (`MainStallMeterTests`: the iPad's 921 s away said as away, the 6.5 s real stall still a stall, away mid-stall, the 5 s line; `just native-test`) and the Mac build (`just native-build-mac`); changed in [d3d9fbf4](https://github.com/idvorkin/context-grabber/commit/d3d9fbf4) and its review follow-up (the gap said once whether a look, a reply or a stop comes first, a sleep-inclusive clock, stall timing restarting at the next look), verified by host tests only (`MainStallMeterTests`: reply-first, stop-first, a second sleep after a reply-first resume); the simulator was not run (a suspension and its gap need the device); not yet seen on the iPad
 - **Issues:** bead context-grabber-55vm (the iPad, 2026-11-20 and 11-21: `main_stall` waited_ms of 281,422 to 921,354 in grabber-20261120-071137, 1,158,372 in 062630, 297,938 and 361,127 in 20261121-075408, and 2,957,505 in 101810, each the app's time away; the watch hadn't stopped, so a real hang on the board would have been lost among them)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The log says what held the board up while Igor wrote*
 
@@ -232,7 +232,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The app comes back after being suspended
 - **Given:** the app was suspended or the iPad slept for at least five seconds while the watch was still running
 - **When:** the app comes back
-- **Then:** the first watch look, main-thread reply, or stop records one `main_stall` `away` with the time since the last look and discards any stall in progress
+- **Then:** the first watch look, main-thread reply, or stop records one `main_stall` `away` with the time since the last look, discards any stall in progress, and times the next stall from the watch's next look
 - **And:** a normal stop before suspension and the next start appear as `stopped` and `watching`
 - **And:** each start and stop of the watch names the app's state and its scenes' states
 - **And:** a real stall lasting at least a second while the watch keeps looking still records `main_stall` `began` and `ended`
