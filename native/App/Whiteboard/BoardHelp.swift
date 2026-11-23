@@ -98,7 +98,9 @@ struct BoardHelpSheet: View {
     (
       "On the page",
       [
-        Row(gesture: "Hold a finger still", does: "The same menu: Make room here, Paste, Make header."),
+        Row(
+          gesture: "Hold a finger still",
+          does: "The same menu. On ink, Select or Delete what is under the finger first."),
         Row(
           gesture: "Hold the Pencil on a word",
           does: "Picks it up: drag and lift to move it, or lift without moving to select it."),
