@@ -57,7 +57,7 @@ public enum BoardEventsSend {
     request.httpMethod = "POST"
     request.timeoutInterval = timeout
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
     var body = report.wire
     body["board"] = board
     if let build, !build.isEmpty { body["build"] = build }

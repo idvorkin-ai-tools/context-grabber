@@ -18,6 +18,12 @@ public enum WhiteboardLogArchive {
     public var seq: Int
     public var t: Int
     public var line: String
+
+    public init(seq: Int, t: Int, line: String) {
+      self.seq = seq
+      self.t = t
+      self.line = line
+    }
   }
 
   /// The whiteboard's lines of this launch, newest last, at most `keep`: what the next send takes from.
@@ -51,10 +57,10 @@ public enum WhiteboardLogArchive {
   /// launch and its place in it beside the line, cut to the archive's 8 KB.
   public static func records(_ lines: [Line], launch: String, build: [String: String] = [:]) -> [[String: Any]] {
     var head: [String: Any] = ["guid": guid(launch, 0), "launch": launch, "seq": 0, "kind": "header"]
-    for (name, value) in build where !value.isEmpty { head = CallLogArchive.fitted(head, field: name, text: value) }
+    for (name, value) in build where !value.isEmpty { head = ArchiveRecord.fitted(head, field: name, text: value) }
     return [head]
       + lines.map { line in
-        CallLogArchive.fitted(
+        ArchiveRecord.fitted(
           ["guid": guid(launch, line.seq), "launch": launch, "seq": line.seq, "t": line.t], field: "line",
           text: line.line)
       }

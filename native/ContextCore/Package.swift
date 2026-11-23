@@ -5,6 +5,46 @@ import PackageDescription
 let chatWireSources = [
   "Chat/ChatWire.swift", "Chat/ChatDecisions.swift", "Chat/ChatMove.swift", "Chat/ChatLinks.swift",
   "Chat/ChatBubbleLinks.swift", "Chat/ChatCockpitLink.swift", "Cockpit/CockpitAddress.swift",
+  "Archive/ArchiveRecord.swift",
+]
+
+// BoardCore's: the whole Whiteboard directory, new files included, and the CoreGraphics stand-ins it needs on Linux.
+let boardSources = ["Whiteboard", "Platform/LinuxGeometry.swift"]
+
+// The board's tests, built against BoardCore alone (`just board-test`). Every Board*, Whiteboard* and Paper* test file
+// is in this list or the next; scripts/native/test-board-tests-listed.sh says which a new one is missing from. Their
+// `@testable import ContextCore` reaches BoardCore through a module alias, so they are written as before.
+let boardTests = [
+  "BoardBlockedEditTests.swift", "BoardCanvasOutcomeTests.swift", "BoardConnectorsTests.swift",
+  "BoardDissolveTests.swift", "BoardEventsCapTests.swift", "BoardFindTests.swift", "BoardFoldEraseTests.swift",
+  "BoardFoldMarkerTests.swift", "BoardFoldPictureTests.swift", "BoardHeaderMarksTests.swift", "BoardIndexTests.swift",
+  "BoardInkHeadersTests.swift", "BoardKeepingTests.swift", "BoardLabelOneLineTests.swift",
+  "BoardLetteringTests.swift", "BoardLinesTests.swift", "BoardMarginHoldTests.swift", "BoardMarksReplayTests.swift",
+  "BoardMeaningTests.swift", "BoardMicMenuTests.swift", "BoardOpsControlsTests.swift", "BoardOpsInkTests.swift",
+  "BoardOutlineTests.swift", "BoardPagesTests.swift", "BoardPaperTests.swift", "BoardPicturePagesTests.swift",
+  "BoardPlaybackOffScreenTests.swift", "BoardPlaybackTests.swift", "BoardRealFontTests.swift",
+  "BoardReplayTests.swift", "BoardRewordTests.swift", "BoardRoomBandTests.swift", "BoardRoomDropTests.swift",
+  "BoardRoomLateTests.swift", "BoardRoomTests.swift", "BoardSaveTimingTests.swift", "BoardSelectionLabelTests.swift",
+  "BoardShapeSnapTests.swift", "BoardSpeechEndTests.swift", "BoardSyncFailureTests.swift",
+  "BoardSyncRetryTests.swift", "BoardThreadFindTests.swift", "BoardThreadRefusalTests.swift",
+  "BoardToTextTests.swift", "BoardUndoButtonsTests.swift", "BoardUndoProbeTests.swift",
+  "PaperProbeHandwritingOfferTests.swift", "PaperProbeMoveAuditTests.swift", "PaperProbeOwnersApartTests.swift",
+  "PaperProbeTests.swift", "WhiteboardFingerTests.swift", "WhiteboardFrameTests.swift",
+  "WhiteboardGhostTurnsTests.swift", "WhiteboardInkTests.swift", "WhiteboardKeepGroupTests.swift",
+  "WhiteboardLarryClockTests.swift", "WhiteboardLarryListeningTests.swift", "WhiteboardLarryTurnTests.swift",
+  "WhiteboardLarryWaitTests.swift", "WhiteboardLostConnectionTests.swift", "WhiteboardMarkChoiceTests.swift",
+  "WhiteboardNoteTests.swift", "WhiteboardPacerTests.swift", "WhiteboardPasteTests.swift",
+  "WhiteboardQuestionsTests.swift", "WhiteboardResponderTests.swift", "WhiteboardScratchOutTests.swift",
+  "WhiteboardSpeechTests.swift", "WhiteboardStreamTests.swift", "WhiteboardTidyGroupTests.swift",
+  "WhiteboardTidyTests.swift", "WhiteboardTurnTests.swift", "WhiteboardWordsOnlyTests.swift",
+  "WhiteboardWritingVadTests.swift",
+]
+
+// Board test files that need more of ContextCore than the board (the Inbox, the call log, the session log): they stay
+// in ContextCoreTests and see only BoardCore's public API.
+let boardTestsInContextCore = [
+  "BoardDebugTimingTests.swift", "BoardOpsTests.swift", "BoardTouchReplayTests.swift",
+  "WhiteboardLogArchiveTests.swift", "WhiteboardMarksTests.swift", "WhiteboardStrokesTests.swift",
 ]
 
 // The platform-free half of the native app: everything here runs under `swift test` on the Mac (docs/TESTING.md).
@@ -28,13 +68,17 @@ let package = Package(
     // The Cockpit chat wire the chat screen and the board share, in place under ContextCore (plan
     // 2026-11-22-contextcore-targets-plan.md); ContextCore excludes the same files and re-exports the module.
     .target(name: "ChatWireKit", path: "Sources/ContextCore", sources: chatWireSources),
+    .target(name: "BoardCore", dependencies: ["ChatWireKit"], path: "Sources/ContextCore", sources: boardSources),
     .target(
       name: "ContextCore",
-      dependencies: ["ChatWireKit", .target(name: "CSQLite", condition: .when(platforms: [.linux]))],
-      exclude: chatWireSources),
+      dependencies: ["ChatWireKit", "BoardCore", .target(name: "CSQLite", condition: .when(platforms: [.linux]))],
+      exclude: chatWireSources + boardSources),
     .executableTarget(name: "BoardOpsHarness", dependencies: ["ContextCore"]),
     .executableTarget(name: "TouchReplay", dependencies: ["ContextCore"]),
-    .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"]),
+    .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"] + boardTests),
+    .testTarget(
+      name: "BoardCoreTests", dependencies: ["BoardCore"], path: "Tests/ContextCoreTests", sources: boardTests,
+      swiftSettings: [.unsafeFlags(["-module-alias", "ContextCore=BoardCore"])]),
   ],
   swiftLanguageModes: [.v5]
 )

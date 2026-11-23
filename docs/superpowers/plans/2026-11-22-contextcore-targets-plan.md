@@ -60,6 +60,24 @@ Edits to break the cycle, kept small:
   piece that needs it in an extension file in ContextCore, or move the shared type down.
 - A board test that needs ContextCore goes in `ContextCoreTests` and sees only the board's public API.
 
+## Measured (2026-11-22, a Mac with about twenty other agents' builds running, so the numbers are noisy)
+
+| Edit, then the board's tests | Before (`swift test --filter 'Board|Whiteboard|Paper'`) | After (`just board-test`) |
+|---|---|---|
+| a board test file, one class run, old layout vs new | 6.3 s | 3.8 s |
+| a board source body, one class run, old layout vs new | 6.0 s | 2.8 s |
+| a board test file, every board test | 13.1 s | 9.5 s |
+| a board source body, every board test, same tree (median of 3) | 7.1 s | 6.4 s |
+| a non-board source, every board test, same tree (median of 3) | 6.4 s | 5.4 s |
+| a board interface change, every board test, old layout vs new | 17.8 s | 22.2 s |
+| cold build, scratch path empty | 17 to 29 s | 18 to 22 s |
+
+The win is a few seconds an edit, not a cold-build win: the board is about 80 heavy files and sits on ContextCore's
+critical path either way, and a change to the board's public interface now recompiles its dependents in ContextCore.
+The lasting gain is the boundary: board code can't reach into the rest of ContextCore, and its tests build and run
+without it. The whole board bundle runs 871 tests; six board-named test files (`boardTestsInContextCore`) stay in
+ContextCoreTests.
+
 ## Verification
 
 `just native-test` (both bundles, the same test count as before), `just native-build-mac`, the iPad simulator build.

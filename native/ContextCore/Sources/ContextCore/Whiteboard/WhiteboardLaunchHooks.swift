@@ -25,6 +25,11 @@ public struct WhiteboardHooks: Equatable, Sendable {
     /// The wait before the first press: 3 unless the first field is a number.
     public var delay: Double
     public var presses: [String]
+
+    public init(delay: Double, presses: [String]) {
+      self.delay = delay
+      self.presses = presses
+    }
   }
 
   /// `GRABBER_WHITEBOARD_LARRY_TIMEOUT=<seconds>[,dismiss]`: how long a turn of Larry's is out before the board stops
@@ -32,6 +37,11 @@ public struct WhiteboardHooks: Equatable, Sendable {
   public struct LarryTimeout: Equatable, Sendable {
     public var seconds: Double
     public var dismiss: Bool
+
+    public init(seconds: Double, dismiss: Bool) {
+      self.seconds = seconds
+      self.dismiss = dismiss
+    }
   }
 
   /// `GRABBER_WHITEBOARD_LARRY_WAIT=retry` / `dismiss` / `interrupt`: the control that taps itself, once, when the
