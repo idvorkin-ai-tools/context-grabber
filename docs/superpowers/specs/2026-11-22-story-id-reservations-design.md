@@ -55,7 +55,9 @@ table, the next block above every ID any journey holds in the journey table, on 
 lists how many free IDs every journey has left, so a second journey running low is seen at the same time. A journey
 that adds stories quickly, like the whiteboard, takes a large block (hundreds) rather than twenty at a time, so it
 does not run out again within the week (bead `context-grabber-0e04`: the whiteboard ran out on 2026-11-22 and agents
-went back to picking IDs by hand, one of them reusing an ID an open PR already held).
+went back to picking IDs by hand, one of them reusing an ID an open PR already held). The block is added on purpose,
+never by an agent or the pipeline's review or document step mid-PR to make room for its own story: they stop and
+report the full journey (bead `context-grabber-1vvb`).
 
 ## The pre-merge check
 
