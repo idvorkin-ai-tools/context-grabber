@@ -465,6 +465,7 @@ extension WhiteboardModel {
     // Story 1176: while the board's Send waits in the outbox, an answer to an earlier picture sends nothing.
     if update.replied, !larrySending, !larry.waitingToSend {
       larryFollowUp(larry.replied(version: ops.rev, now: .now), why: "reply")
+      logLarryHas(why: "reply")
     }
     let batches = Dictionary(grouping: opBatches(from: .rows(rows))) { $0.batch.key }
     let toShow = Set(update.marks.map(\.id))

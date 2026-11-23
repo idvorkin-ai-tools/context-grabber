@@ -91,6 +91,18 @@ extension WhiteboardModel {
     editable && larry.hasThis(version: ops.rev, moved: larryFrameMoved)
   }
 
+  /// Bead context-grabber-x3tm: what dims Send, for the session log.
+  func logLarryHas(why: String) {
+    let frame = pictureFrame()?.rect
+    log.event(
+      "whiteboard",
+      [
+        "action": "larry_has", "board": board.id, "why": why, "has": larry.has ?? -1, "rev": ops.rev,
+        "frame_moved": larryFrameMoved, "moved_now": frame.map { larryFrame?.moved(to: $0) ?? true } ?? true,
+        "words": larry.wordsWaiting, "dimmed": larryHasThis,
+      ])
+  }
+
   /// Larry's picture, for Send and his turn: the pages on screen (story 433). Claude's own turns frame theirs as they
   /// always have.
   func pictureFrame() -> (rect: CGRect, scale: CGFloat)? {
