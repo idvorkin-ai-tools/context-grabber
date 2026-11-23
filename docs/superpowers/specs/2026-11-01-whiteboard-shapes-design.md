@@ -77,6 +77,10 @@ suggest changes the board until Igor keeps it.
       no words), and a tap anywhere else picks up as here, the first tap selecting and the second rewording (bead
       context-grabber-9d1; decided 2026-11-22, Igor away, reversible).
     - A tap off every group, on his own writing or blank paper, does what it did.
+    - **A word of his own that a connector joins is one thing** (Igor, 2026-11-22, decision card igor2-88g.1620.5:
+      "a connected word is one thing; a tap takes it whole"). An arrow end on his word makes the word a group, as the
+      outline already labels it *Group* (story 1094), so a finger tap on any stroke of it selects the whole word,
+      ready to drag, as for Larry's groups. His writing that no arrow joins stays plain ink.
     - **A kept text inside a group** (decided 2026-11-22, Igor away, reversible): the first tap selects the group; a
       second tap on the text while its group is selected opens its words for rewording, as a tap on a text outside
       any group does at once.
