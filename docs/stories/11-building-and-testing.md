@@ -1411,3 +1411,80 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a call that went wrong filed a report less than ten minutes ago
 - **When:** a call the smoke expects to be clean goes wrong again and its report is held back by the window
 - **Then:** that call's check still fails
+
+---
+
+### User Story 1027:
+
+- **Summary:** One command puts main, development-signed, on the Cockpit's /builds page for the iPad
+- **Status:** implemented on branch `native/ota-omes`; verified on the host (`scripts/native/test-ota.sh` in `just native-test`: arguments, the dry run, the destination overridable) and on the Mac against a real package (`just ota --check-ipa` on the 9ec60f90 development export: all three profiles list the iPad, expiring 2027-11-20). A full `just ota` from the main checkout is owed after the merge
+- **Issues:** bead `context-grabber-omes` (Igor, 2026-11-22: staying on development builds; record and optimise the build loop)
+
+#### Use Case:
+- **As Igor,** staying on development builds and away from the Mac's cable
+- **I want to** have one command build main, sign it for development and put it on the Cockpit's /builds page
+- **so that** the iPad installs the newest main over the air, and I know exactly which build it is
+
+#### Acceptance Criteria:
+- **Scenario:** An over-the-air build
+- **Given:** a clean main and the Mac unlocked
+- **When:** `just ota` runs
+- **Then:** it archives main as `just testflight --export-only` does, exports it development-signed under the signing lock and the screen-lock guard, copies it to the Cockpit's builds folder as `grabber-<commit>.ipa`, and prints the version, build, commit, the start of its SHA-256 and each step's seconds
+- **And:** `--dry-run` prints that plan and builds, switches and copies nothing
+
+---
+
+### User Story 1028:
+
+- **Summary:** The over-the-air build refuses a package the iPad can't install, and never prints its id
+- **Status:** implemented on branch `native/ota-omes`; verified on the host (`scripts/native/test-ota.sh`: no iPad id stops it with exit 78, the id shown only masked) and on the Mac (`just ota --check-ipa` with an id not in the profile names each of the three profiles and exits 78)
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** installing from /builds on the iPad
+- **I want to** have a build whose profile lacks the iPad stopped before it is published, and one ota at a time
+- **so that** /builds never offers a package that fails to install, and the public repo never carries a device id
+
+#### Acceptance Criteria:
+- **Scenario:** A profile without the iPad
+- **Given:** the iPad's id from the environment or the gitignored local file
+- **When:** the exported package's profiles (the app, the widgets, the share extension) are checked
+- **Then:** one that doesn't list the iPad stops the run before the copy, naming the profile and how to add the device; the id is shown only as its first and last four characters; no id at all stops it the same way; a second ota while one runs stops at once (exit 75); and a profile expiring within 30 days is warned about
+
+---
+
+### User Story 1029:
+
+- **Summary:** After each merge batch, main is built over the air and Igor's thread says what it holds
+- **Status:** implemented on branch `native/ota-omes`; verified on the host (`scripts/native/test-ota.sh`: a throwaway history with merges at chosen times, a fake ota and a fake `larry`: the first run, an open batch, a finished batch, the post, a restart, a batch that ended while no watcher ran, busy, failed and stopped builds); the real watcher against main in a dry run
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** whose agents merge several PRs in a row
+- **I want to** have a new over-the-air build made once a batch of merges settles, and told in my thread which PRs it holds
+- **so that** the iPad is never far behind main and I know when to install
+
+#### Acceptance Criteria:
+- **Scenario:** A batch of merges settles
+- **Given:** the watcher is running and main has merges since the last build
+- **When:** ten minutes pass with no newer merge
+- **Then:** it runs `just ota` and posts *New build on /builds: <version> (<build>) <commit>, with: <the PRs merged since the last build>* to the thread, and remembers the commit built outside the repository; a newer merge keeps the batch open, nothing new does nothing, a restart neither rebuilds nor skips a batch, a build that couldn't start is tried at the next poll, and one that needs a person is posted and stops the watcher
+
+---
+
+### User Story 1500:
+
+- **Summary:** One document says how a build reaches each device, and what would make it faster
+- **Status:** implemented on branch `native/ota-omes` (docs/DEPLOYING.md, linked from AGENTS.md and docs/TESTING.md)
+- **Issues:** bead `context-grabber-omes`
+
+#### Use Case:
+- **As Igor,** or an agent about to deploy
+- **I want to** read one page covering the cable and network install, the over-the-air build, signing, renewing the profile, adding a device and iCloud's two environments
+- **so that** a deploy, a lost account or an expiring profile is handled the same way each time, and the next speed-up is chosen from measured numbers
+
+#### Acceptance Criteria:
+- **Scenario:** Before a deploy
+- **Given:** an agent or Igor needs a build on a device
+- **When:** they open the deploy document from the agent instructions or the testing guide
+- **Then:** it names the command for each path, what *unavailable* means, how to wait for a device, the signing rules, what to do before the profile expires, how to add a device, which iCloud environment each build uses, and a table of speed-ups with their estimated savings

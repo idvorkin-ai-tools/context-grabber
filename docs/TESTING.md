@@ -707,6 +707,9 @@ upload alone, a censored climb, and a failure on the rerun after a locked screen
 
 ## The phone
 
+How a build gets to a device at all, the cable and network install, the over-the-air `just ota` and its watcher,
+signing and adding a device, is [DEPLOYING.md](DEPLOYING.md).
+
 `just native-run-device` builds, installs and launches; `just pull-logs` brings back the session logs, reports and
 crashes. What only the phone can show: HealthKit and CoreLocation (and CoreLocation's silence while the phone is
 still), the audio session — the Gym Timer's ducking window, a podcast resuming, echo cancellation on a call, the
