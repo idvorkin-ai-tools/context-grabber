@@ -1159,7 +1159,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1009:
 
 - **Summary:** VoiceOver says what Undo will take back
-- **Status:** implemented in [11536e97](https://github.com/idvorkin/context-grabber/commit/11536e97), [73d8e538](https://github.com/idvorkin/context-grabber/commit/73d8e538); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, PencilKit's *Add Strokes* read as plain *Undo*, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); on the iPad simulator (rung 2, 2026-11-20, `WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`: 44 points wide, the bar's 36 high, plain *Undo* for a stroke, *Undo Keep group* taking the group back); not yet seen on the iPad
+- **Status:** implemented in [11536e97](https://github.com/idvorkin/context-grabber/commit/11536e97), [73d8e538](https://github.com/idvorkin/context-grabber/commit/73d8e538); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, PencilKit's *Add Strokes* read as plain *Undo*, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); on the iPad simulator (rung 2, 2026-11-20, `WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`: 44 points wide, the bar's 36 high, plain *Undo* for a stroke, *Undo Keep group* taking the group back); not yet seen on the iPad; the step is now *Keep all*: Keep group and Keep all made one *Keep all* (bead context-grabber-yqau) in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e), verified by host tests (`WhiteboardKeepAllTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22, lane 1's *iPad Pro 11-inch (M5)*: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`, `WhiteboardConnectUITests`, `WhiteboardHelpFeedbackUITests`, 32 tests passing); not yet seen on the iPad (`testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`)
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Undo and Redo on the board's own bar*
 - **Issues:** [#965](https://github.com/idvorkin/context-grabber/issues/965)
 
@@ -1172,7 +1172,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A named step on top
 - **Given:** I have just kept a group of Larry's marks
 - **When:** VoiceOver reaches the Undo button
-- **Then:** it reads *Undo Keep group*; for my own stroke it reads *Undo*, and with nothing to undo it says the button is dimmed
+- **Then:** it reads *Undo Keep all*; for my own stroke it reads *Undo*, and with nothing to undo it says the button is dimmed
 
 ---
 

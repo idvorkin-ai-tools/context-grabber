@@ -93,7 +93,7 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   dismissed, is still missing.
 - **Keeping a ghost that ink has come under makes room too.** When Igor keeps one of Larry's text ghosts and his
   writing has since reached under it, the keep opens room the same way, and one Undo takes back both the kept text and
-  the room. Keep all is as before: a label on ink moves under it (story 895).
+  the room. Keep all keeps his marks where they showed and makes room for what Igor wrote after the picture, as for his other marks (story 895).
 
 ### Larry hears the pen and taps
 
@@ -445,8 +445,9 @@ that drift when he makes room."
   other's, around anything in its way, as a connector routes.
 - If several replies arrive between looks, a connector sees the ready changes from earlier replies, including a named
   stroke one of those replies added.
-- Keep, or Keep all, makes it a real connector, joined to its two things and following them from then on. With Keep
-  all it is part of the one Undo.
+- Keep, or Keep all, makes it a real connector, joined to its two things and following them from then on. When Keep
+  all groups it with other marks from the reply, the connector still follows its ends and goes back to Larry with its
+  route. It is part of the one Undo.
 - An end on bare paper keeps as a plain arrow where he drew it, as the web board keeps it. A mark naming something the
   board doesn't have shows nothing, and is set aside as if dismissed.
 - Dismiss throws it away, like any mark.
@@ -482,8 +483,8 @@ what a change would do except to send it to Igor's real board, and paused his ch
   placed by the picture he answered) shows them where the iPad would, and says, for each, whether a finger tapping on
   it reaches it or which other mark of his takes the tap instead. A tap at a point can be part of the check, and says
   which mark it would choose.
-- **Keeping a reply as a group checks too** (#942): Igor's *Keep group* on one of the reply's marks can be part of the
-  check. The marks become his ink under one group named for the reply, and a later change of Larry's that moves or
+- **Keeping a reply as a group checks too** (#942): Igor's *Keep all* of the reply's marks (once *Keep group*) can be part of
+  the check. The marks become his ink under one group named for the reply, and a later change of Larry's that moves or
   erases that group by its name shows it moving or going as one.
 
 ### A recorded board session replays too (contract v1, bead context-grabber-09tx, stories 1173, 1174, 1182, 1183)

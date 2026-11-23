@@ -100,8 +100,8 @@ extension PaperBoardController {
 
   /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it; #894 (stories 1004–1006): his
   /// marks kept over ink written after his picture. The room opens and the marks land in one change, one undo named
-  /// *Keep* (*Keep group* for a group), as a paste and its room are one. `why` names it in the log: keep_text,
-  /// keep_late or keep_group.
+  /// *Keep* (*Keep all* for a Keep all), as a paste and its room are one. `why` names it in the log: keep_text,
+  /// keep_late or keep_all.
   func keep(_ strokes: [PKStroke], making push: BoardRoom.Push, why: String) -> Bool {
     guard let markup = paper.markup, !strokes.isEmpty else { return false }
     let (ink, hashes) = opStrokes(markup)
@@ -111,7 +111,7 @@ extension PaperBoardController {
     plan.pagesAfter = board.pages(
       after: plan.pagesAfter, inkMaxY: PKDrawing(strokes: strokes).bounds.maxY, redoWaiting: false)
     let framesBefore = inkFrames
-    let name = why == "keep_group" ? WhiteboardModel.keepGroupUndoName : WhiteboardModel.keepUndoName
+    let name = why == "keep_all" ? WhiteboardModel.keepAllUndoName : WhiteboardModel.keepUndoName
     guard let (held, _, _) = put(plan, on: markup, hashes: hashes, adding: strokes, named: name) else { return false }
     model.stepped(held.inkDrawing)
     noteInk(held, since: framesBefore, report: true)

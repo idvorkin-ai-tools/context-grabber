@@ -605,7 +605,7 @@ on the iPad is for Igor's eye. How faint the grid looks, and how it feels at 120
 - `WhiteboardRewordUITests`: a kept text made by To text (the fake reads every picture as "hello"), a finger tap on it, and its words changed or emptied in the field that opens where it is (stories 940, 941); the words, the wrap and Larry's event are `BoardRewordTests`, on the host
 - `WhiteboardRowDeleteUITests`: the boards list's delete (stories 396, 399)
 - `WhiteboardScratchOutUITests`: a word scratched out stays gone when he writes on, and Undo and Redo still bring it back and take it again, with `GRABBER_WHITEBOARD_ZIGZAG` reading the second stroke as a fast zigzag (story 890, #999); what counts as a zigzag is `WhiteboardScratchOutTests`, on the host
-- `WhiteboardTheirsTapUITests`: keeps three marks of Larry's with *Keep all*, taps the first with a finger and deletes the selection, which takes that circle alone, the other two staying, and one Undo puts it back, read from the sheet's pixels (story 1140, #1171)
+- `WhiteboardTheirsTapUITests`: keeps three marks of Larry's one at a time with *Keep*, taps the first with a finger and deletes the selection, which takes that circle alone, the other two staying, and one Undo puts it back, read from the sheet's pixels (story 1140, #1171)
 - `WhiteboardTitleRenameUITests`: taps a board's name in its bar and renames it there: the bar and the list's row take the name, a long name stays cut short with every bar button there, the next stroke draws and the Board menu still opens and closes, and another device's board has no tappable name (story 1160)
 - `WhiteboardToTextUITests`: To text beside the selected ink (`GRABBER_WHITEBOARD_AFTER_INK=select`), its picture read by the fake's `POST /ink/to-text`, and the words in the ink's place, or a copyable problem with the ink left alone (stories 920, 921)
 - `WhiteboardTurnUITests`: the whiteboard turn against the fake Cockpit, Claude's ghosts from `POST /whiteboard/suggest` and Larry's marks over chat (cockpit#85; the fake answers a message with a board's picture with a row of marks, and `POST /fake/larry-draws` has him draw unprompted): a stroke and a pause bring one ghost, *Larry's turn* brings his two beside Claude's one with no further tap, unprompted marks replace his, a reopened board shows his newest set, a dismissed set stays gone on the next look and the next open, and words on an empty board bring a ghost and reach the Cockpit in the turn's text (stories 344, 345, 349, 357, 360, 371, 380, 382, 383, 386, 388), read from the *Ask at my pauses* accessibility label (the ghosts showing) and the Send button's label (the strokes drawn); `testAPauseBringsAGhostAndLarryTakesATurn` keeps a screenshot of Claude's and Larry's ghosts in its result (story 371), and `testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard` counts the fake Cockpit's pause requests via `GET /fake/turns` and reads the UI through accessibility ([story 1171](stories/10-whiteboard-boards.md#user-story-1171)). The turn's rules are `WhiteboardGhostTurnsTests`, on the host: Claude's fade and Larry's stay, each author's set replacing only their own, a stream's marks landing one at a time, a Cockpit that doesn't stream, whether the switch gates pauses and speech, a stale answer, words held for the next turn (stories 351, 357, 358, 367, 370, 373; the fake's `/many` and `/plain` addresses are left for a look by hand); a reading broken part way is `WhiteboardStreamTests`, on the host
@@ -642,7 +642,7 @@ board-ops bug, on the Mac with no simulator, in seconds (#936, story 990). The b
 
 ```bash
 just board-ops --board <snapshot.json> --ops <batch.json> [--ops <next.json>] [--keep id,id] [--out <prefix>]
-just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-group <reply id>[@<picture ms>]]
+just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-all -|<reply id>@<picture ms>,…]
 ```
 
 - **The snapshot** is the board's strokes JSON, the body the board posts to `POST /whiteboard/strokes` or the
@@ -655,10 +655,16 @@ just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-gr
 - **A reply with marks** (#941): his chat message with `shapes` shows them as his ghosts, placed by the message's
   frame as the iPad places them, and tries a tap on each: the result's `taps` say which mark each chose, and
   `unreachable` (ringed in red on the picture) names a mark a tap can't reach with the mark that takes it instead.
-  `--tap x,y` is a finger tap at a board point. `--keep-group <reply id>` is Igor's Keep group (#942): the reply's
-  marks become ink under the one group `reply-<id>`, which a later batch can move or erase by that name.
-  `--keep-group <reply id>@<ms>` keeps it as if its picture was taken at that unix ms (#894): ink made after it
-  (each stroke's `t`) that the reply lands on is pushed under it, and the step's `covered` and `room` say so.
+  `--tap x,y` is a finger tap at a board point. `--keep-all -` is Igor's Keep all (#942, bead context-grabber-yqau):
+  every mark showing becomes ink, each reply of two or more under the one group `reply-<id>`, which a later batch can
+  move or erase by that name, and his text ghosts become kept texts, making room for what they land on (#938).
+  `--keep-all <reply id>@<ms>,…` keeps them as if each reply's picture was taken at that unix ms (#894). A step file
+  can also specify `{"keep_all": {"reply-id": 1763432004500}}`, with `{}` for unknown picture times. Each entry must
+  give a nonempty reply ID and a signed 64-bit integer timestamp. Repeated reply IDs in the flag and invalid entries
+  fail the replay.
+  `covered` counts distinct things made after the corresponding picture that a reply's marks sit on. `room`
+  describes the push for those collisions or for change text landing on existing ink. The saved board records the
+  resulting page count and the names touched by that push for later batches.
 - **Out**: `<prefix>.png` (the board after, with what each step moved in orange, drew or kept in green, erased in red
   dashes, his ghosts in purple dashes, and each step's `op_result` on top, a missing id in capitals),
   `<prefix>-before.png`, `<prefix>.result.json` (each step's `op_result` and the names it moved, erased, drew and left

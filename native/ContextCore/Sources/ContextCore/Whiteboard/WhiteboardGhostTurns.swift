@@ -308,24 +308,6 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return kept
   }
 
-  /// The marks still showing from the chosen mark's reply of Larry's, the chosen one among them, in the order they came;
-  /// empty when nothing of his is chosen (#942, story 995).
-  public func chosenReply() -> [Ghost] {
-    guard let chosen, chosen.who == .larry, let reply = WhiteboardMarks.reply(of: chosen.id) else { return [] }
-    return ghosts.filter { $0.who == .larry && WhiteboardMarks.reply(of: $0.id) == reply }
-  }
-
-  /// Keep group: the chosen mark's whole reply leaves the ghosts, in the order it came; the caller makes it ink, one
-  /// group. Empty with nothing of his chosen.
-  public mutating func keepChosenReply() -> [Ghost] {
-    let reply = Set(chosenReply().map(\.id))
-    guard !reply.isEmpty else { return [] }
-    chosenID = nil
-    let kept = ghosts.filter { reply.contains($0.id) }
-    ghosts.removeAll { reply.contains($0.id) }
-    return kept
-  }
-
   /// Keep: the chosen mark leaves the ghosts; the caller turns it into ink. Nil with nothing chosen.
   public mutating func keepChosen() -> Ghost? { removeChosen() }
 

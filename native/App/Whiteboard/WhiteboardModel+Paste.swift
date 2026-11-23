@@ -49,7 +49,6 @@ extension WhiteboardModel {
 
   /// #966: what Undo and Redo call each keep, and Tidy overlaps.
   static let keepUndoName = "Keep"
-  static let keepGroupUndoName = "Keep group"
   static let keepAllUndoName = "Keep all"
   static let pasteUndoName = "Paste"
   static let tidyUndoName = "Tidy overlaps"

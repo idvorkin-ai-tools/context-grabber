@@ -1,6 +1,6 @@
 # The whiteboard: Ghosts and Larry's marks
 
-What Larry and Claude draw back: ghosts, Keep and Dismiss, how their marks look, keeping a reply as a group, Keep all and Tidy, and the room a kept reply makes. One of the whiteboard journey's files; the
+What Larry and Claude draw back: ghosts, Keep and Dismiss, how their marks look, Keep all (each reply kept as a group) and Tidy, and the room a kept reply makes. One of the whiteboard journey's files; the
 [journey table](README.md) lists them all.
 Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md),
 [shapes](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md),
@@ -286,7 +286,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A tap on a mark at the edge
 - **Given:** Larry's marks are showing on a board, one of them at the edge of the screen
 - **When:** I tap the one at the edge
-- **Then:** nothing on the board has changed, and Keep and Dismiss show beside it, wholly on screen
+- **Then:** nothing on the board has changed, only Keep and Dismiss show beside it, wholly on screen, and Keep keeps that mark alone
 
 ---
 
@@ -846,7 +846,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1004:
 
 - **Summary:** A kept reply of Larry's pushes what I wrote since his picture out of the way
-- **Status:** implemented in [6cd94985](https://github.com/idvorkin/context-grabber/commit/6cd94985), [64dae5ba](https://github.com/idvorkin/context-grabber/commit/64dae5ba); the simulator test reworked in [ebd344b5](https://github.com/idvorkin/context-grabber/commit/ebd344b5); verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-20, `WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`: his marks stay where they showed, both of Igor's lines move 40 points down clear of them, one undo puts them back and takes his marks away); not yet seen on the iPad
+- **Status:** implemented in [6cd94985](https://github.com/idvorkin/context-grabber/commit/6cd94985), [64dae5ba](https://github.com/idvorkin/context-grabber/commit/64dae5ba); the simulator test reworked in [ebd344b5](https://github.com/idvorkin/context-grabber/commit/ebd344b5); verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-20, `WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`: his marks stay where they showed, both of Igor's lines move 40 points down clear of them, one undo puts them back and takes his marks away); not yet seen on the iPad; made by Keep all, each mark against its own reply's picture: Keep group and Keep all made one *Keep all* (bead context-grabber-yqau) in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e), verified by host tests (`WhiteboardKeepAllTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22, lane 1's *iPad Pro 11-inch (M5)*: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`, `WhiteboardConnectUITests`, `WhiteboardHelpFeedbackUITests`, 32 tests passing); not yet seen on the iPad (`testKeepAllPushesWhatIgorWroteSinceThePictureUnderTheReply`); his text from a change kept by Keep all makes room in the same one room on branch `native/keep-all-yqau`, verified by host tests (`WhiteboardKeepAllTests`, `BoardMarksReplayTests`), not yet on the simulator or the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of Larry's makes room for what Igor wrote after Larry looked*; [the object-layer design](https://github.com/idvorkin/context-grabber/pull/912), *A late reply*
 - **Issues:** [#894](https://github.com/idvorkin/context-grabber/issues/894): Igor, 2026-11-14, "push what he wrote since the picture down the page to make room for Larry's reply"; board 302d5345, 2026-11-19, "group pushes purple text out of the way"
 
@@ -856,10 +856,15 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** his reply never lands on my newer ink, and his marks still sit beside what they name
 
 #### Acceptance Criteria:
-- **Scenario:** Keep group over writing newer than his picture
+- **Scenario:** Keep all over writing newer than his picture
 - **Given:** Larry's reply of several marks showing where I have written two lines since his picture went, under my older plan
-- **When:** I tap one of his marks and *Keep group*
+- **When:** I tap *Keep all* beside the count of marks to keep
 - **Then:** his marks become ink where they showed, my two lines and everything under them move down in whole lines until they sit half a line under his lowest mark, my plan above doesn't move, and one Undo puts my lines back and takes his marks away
+
+- **Scenario:** Keep all with his text from a change on my writing
+- **Given:** a text of Larry's from a change still showing, on a line I wrote after it showed, beside a reply of his
+- **When:** I tap *Keep all*
+- **Then:** the text stays where it showed and my line goes down under it in the same one room as the reply's, as Keep would have made room for it; a box of mine the text sits wholly inside stays where it is
 
 ---
 
@@ -925,20 +930,20 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 895:
 
-- **Summary:** Keep all of Larry's marks at once, in the order he drew them
-- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`) and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2)
+- **Summary:** Keep all of Larry's marks at once, where he drew them, each reply as one group
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`) and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2); his labels no longer move down off my writing, my newer writing makes room instead, as Keep group did: Keep group and Keep all made one *Keep all* (bead context-grabber-yqau) in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e), verified by host tests (`WhiteboardKeepAllTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22, lane 1's *iPad Pro 11-inch (M5)*: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`, `WhiteboardConnectUITests`, `WhiteboardHelpFeedbackUITests`, 32 tests passing); not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
 
 #### Use Case:
-- **As someone** whose board Larry answered with several labels
-- **I want to** keep them all in one go, each clear of my writing and still in order
-- **so that** his answer reads as he wrote it without my tapping every mark
+- **As someone** whose board Larry answered with several marks
+- **I want to** keep them all in one go, where he drew them, each reply in one piece
+- **so that** his answer reads as he wrote it, never sits on writing he didn't see, and I never tap every mark
 
 #### Acceptance Criteria:
-- **Scenario:** Larry's labels, one landing on my writing
-- **Given:** Larry's marks show on my board and the first of his labels sits on a line I wrote
+- **Scenario:** Larry's labels, one landing on what I wrote after his picture
+- **Given:** Larry's marks show on my board and the first of his labels sits on a line I wrote after his picture went
 - **When:** I tap Keep all beside the count of marks to keep
-- **Then:** every one of his marks becomes ink in his colour, the label on my writing moves just under it and the marks below it move down with it, my own ink doesn't move, and one undo takes all of them back
+- **Then:** every one of his marks becomes ink in his colour where it showed, my line and everything under it move down in whole lines until they sit under his lowest mark, ink that was in his picture doesn't move, and one undo takes all of it back
 
 ---
 
@@ -1019,9 +1024,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Keep a connector mark
-- **Given:** Larry's connector mark between two things, showing as a ghost
+- **Given:** Larry's connector mark between two things, showing as a ghost with other marks from its reply
 - **When:** I tap Keep, or Keep all
-- **Then:** it becomes a connector joining them (with Keep all, in the one Undo), and a push between them redraws it to where they are
+- **Then:** it becomes a connector joining them, a push between them redraws it to where they are, and Larry receives its route even when Keep all includes it in the reply's group and the one Undo
+- **Issues:** bead context-grabber-yqau
 
 ---
 
@@ -1205,21 +1211,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 995:
 
-- **Summary:** One tap keeps all of a reply of Larry's, as one group
-- **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad
+- **Summary:** One tap keeps all of Larry's replies, each as its own group
+- **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad; the popover's Keep group became the note line's Keep all: Keep group and Keep all made one *Keep all* (bead context-grabber-yqau) in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e), verified by host tests (`WhiteboardKeepAllTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22, lane 1's *iPad Pro 11-inch (M5)*: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`, `WhiteboardConnectUITests`, `WhiteboardHelpFeedbackUITests`, 32 tests passing); not yet seen on the iPad (`testKeepAllKeepsHisWholeReplyAndOneUndoTakesItBack`)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
 - **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942): Igor, 2026-11-17 19:15, via Larry: "accept the group", after keeping his four named boxes one mark at a time; [#966](https://github.com/idvorkin/context-grabber/issues/966): Igor, 2026-11-19, board 302d5345, via Larry: he kept Larry's whole reply group, it sat on top of his own plan, and undo couldn't take it back (story 1007)
 
 #### Use Case:
-- **As someone** Larry answered with a little drawing of several marks
-- **I want to** keep the whole of his reply with one tap, as one thing
-- **so that** his drawing lands whole and moves as one, and one Undo takes it all back
+- **As someone** whose board holds marks from several of Larry's replies
+- **I want to** keep every reply with one tap, each in its own group
+- **so that** each drawing moves as one and one Undo takes them all back
 
 #### Acceptance Criteria:
-- **Scenario:** Keep group
-- **Given:** Larry's reply of several marks showing, and I tap one of them
-- **When:** I tap *Keep group* between Keep and Dismiss
-- **Then:** every mark of that reply still showing becomes ink in his colours where it showed, none is left to keep, and one Undo takes them all back
+- **Scenario:** Two replies showing
+- **Given:** marks from two replies of Larry's show, each of several marks
+- **When:** I tap *Keep all* beside the count of marks to keep (there is no separate *Keep group*)
+- **Then:** all of the marks become ink where they showed, each reply forms one named group a finger tap picks up whole, any room they need is opened once, and one Undo takes them all back
 
 ---
 
@@ -1286,21 +1292,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 999:
 
-- **Summary:** Keep group is offered only when more than one mark of the reply shows
-- **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad
+- **Summary:** A reply with one mark left showing is kept alone, not as a group
+- **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad; no Keep group beside a mark, and a reply with one mark left kept alone by Keep all: Keep group and Keep all made one *Keep all* (bead context-grabber-yqau) in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e), verified by host tests (`WhiteboardKeepAllTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22, lane 1's *iPad Pro 11-inch (M5)*: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`, `WhiteboardConnectUITests`, `WhiteboardHelpFeedbackUITests`, 32 tests passing); not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
 - **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942)
 
 #### Use Case:
 - **As someone** keeping Larry's marks
-- **I want** *Keep group* only when there is a group to keep
-- **so that** the buttons beside one mark stay Keep and Dismiss
+- **I want** a group only when there is a group to keep
+- **so that** a lone mark of his is one thing on its own, as Keep makes it
 
 #### Acceptance Criteria:
 - **Scenario:** One mark left
 - **Given:** only one mark of his reply still shows
-- **When:** I tap it
-- **Then:** Keep and Dismiss show, and no *Keep group*
+- **When:** I tap it, or tap *Keep all*
+- **Then:** beside it only Keep and Dismiss show, and Keep all keeps it as one thing on its own, in no group
 
 ---
 
@@ -1427,7 +1433,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1140:
 
 - **Summary:** A finger tap on anything of Larry's I kept picks up that one thing alone, ready to drag
-- **Status:** implemented in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5), [e1409a33](https://github.com/idvorkin/context-grabber/commit/e1409a33); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: one of two kept marks, his ink nearer and a group's left to the group; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardTheirsTapUITests`, rung 2, 2026-11-22: three circles kept with Keep all, a finger tap selects the first alone, its Delete leaves the other two, one Undo brings it back); the drag not yet seen on the iPad
+- **Status:** implemented in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5), [e1409a33](https://github.com/idvorkin/context-grabber/commit/e1409a33); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: one of two kept marks, his ink nearer and a group's left to the group; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardTheirsTapUITests`, rung 2, 2026-11-22: three circles kept with Keep all, a finger tap selects the first alone, its Delete leaves the other two, one Undo brings it back); the drag not yet seen on the iPad; the three circles now kept one at a time with Keep, since Keep all keeps them as one group: Keep group and Keep all made one *Keep all* (bead context-grabber-yqau) in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e), verified by host tests (`WhiteboardKeepAllTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22, lane 1's *iPad Pro 11-inch (M5)*: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`, `WhiteboardConnectUITests`, `WhiteboardHelpFeedbackUITests`, 32 tests passing); not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on anything of Larry's he kept)
 - **Issues:** [#1171](https://github.com/idvorkin/context-grabber/issues/1171): Igor, 2026-11-22 17:21, on the iPad, Larry's steps written inside a box of his: "I want to be able to click what Larry wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"
 
@@ -1438,7 +1444,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** One of his, alone
-- **Given:** three marks of Larry's kept with Keep all, on a board I can draw on, no marks showing
+- **Given:** three marks of Larry's kept one at a time with Keep, on a board I can draw on, no marks showing
 - **When:** I tap one of them with a finger and drag it
 - **Then:** that mark alone is selected and moves; his other two and my ink stay where they were, and one Undo puts it back
 
@@ -1603,6 +1609,6 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** The board's own take-back comes just after a keep
-- **Given:** I have just tapped *Keep group* (or *Keep*, *Keep all* or *Tidy overlaps*), and the board then takes back a step of PaperKit's of its own, for a tap's dot, a zigzag or a dropped selection, before PaperKit's step is on top
+- **Given:** I have just tapped *Keep all* (or *Keep* or *Tidy overlaps*), and the board then takes back a step of PaperKit's of its own, for a tap's dot, a zigzag or a dropped selection, before PaperKit's step is on top
 - **When:** I press Undo until the keep is reached
 - **Then:** the keep is still a step of its own, named for it, and one Undo takes every mark it kept back off the board

@@ -1,5 +1,5 @@
-//  Kept labels laid out in order, and Tidy overlaps (spec 2026-11-01-whiteboard-shapes-design.md, *Keep all and Tidy
-//  overlaps*; stories 895, 896). Ported from the Cockpit's web board (`keepAll` and `tidy` in assets/ink/board.mjs). The
+//  Tidy overlaps (spec 2026-11-01-whiteboard-shapes-design.md, *Keep all and Tidy overlaps*; story 896). Ported from
+//  the Cockpit's web board (`tidy` in assets/ink/board.mjs); Keep all no longer lays labels out (context-grabber-yqau). The
 //  web board makes room by pushing the ink below down; the iPad never moves his ink, so a label that would sit on ink
 //  moves down to the first clear space under it instead. Board points throughout; the app hands in the ink as points
 //  and moves what this names.
@@ -9,19 +9,6 @@ import Foundation
 public enum WhiteboardTidy {
   /// The air left between ink and a label moved under it: half a ruled line, as on the web board.
   public static let air: CGFloat = 20
-
-  /// A mark about to be kept: its lines, and whether it is a label (words), which gets space of its own.
-  public struct Mark: Equatable, Sendable {
-    public var id: String
-    public var lines: [[CGPoint]]
-    public var label: Bool
-
-    public init(id: String, lines: [[CGPoint]], label: Bool) {
-      self.id = id
-      self.lines = lines
-      self.label = label
-    }
-  }
 
   /// How far down `box` moves to sit on no ink: 0 when no point of `ink` lies inside it (touching is fine). Each time
   /// it lands on ink it moves under the lowest of that ink across its width, with `air`, until it sits clear.
@@ -39,22 +26,6 @@ public enum WhiteboardTidy {
       guard let bottom else { return dy }
       dy = bottom + air - box.minY
     }
-  }
-
-  /// Keep several marks at once: top to bottom, a label that lands on ink moving under it, and every mark after one
-  /// that moved moving with it, so they keep the order they were drawn in. Each mark kept is ink for the next. How far
-  /// down each one goes, by id.
-  public static func keepAll(_ marks: [Mark], over ink: [[CGPoint]]) -> [String: CGFloat] {
-    var ink = ink.map(dense)
-    var offset: CGFloat = 0
-    var moves: [String: CGFloat] = [:]
-    for mark in marks.sorted(by: { bounds($0.lines).minY < bounds($1.lines).minY }) {
-      let box = bounds(mark.lines).offsetBy(dx: 0, dy: offset)
-      if mark.label { offset += clearing(box, of: ink) }
-      moves[mark.id] = offset
-      ink += mark.lines.map { line in dense(line).map { CGPoint(x: $0.x, y: $0.y + offset) } }
-    }
-    return moves
   }
 
   /// Tidy: kept labels that sit on other ink, his or a label's above, are laid out again top to bottom, each moved

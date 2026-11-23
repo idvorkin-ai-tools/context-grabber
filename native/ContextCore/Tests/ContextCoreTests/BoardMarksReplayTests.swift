@@ -19,7 +19,7 @@ final class BoardMarksReplayTests: XCTestCase {
 
   private func family(then more: [BoardReplay.Step] = []) throws -> BoardReplay {
     var replay = BoardReplay(try BoardSnapshot(json: try fixture("family-board")))
-    replay.run(BoardReplay.Step.steps(try fixture("family-marks"), key: "family") + more)
+    replay.run(try BoardReplay.Step.steps(fixture("family-marks"), key: "family") + more)
     return replay
   }
 
@@ -87,10 +87,10 @@ final class BoardMarksReplayTests: XCTestCase {
     }
   #endif
 
-  // MARK: Keep group (#942, story 995)
+  // MARK: Keep all (#942, stories 995, 999)
 
-  func testKeepGroupMakesTheReplyInkUnderOneGroupThatMovesAsOne() throws {
-    var replay = try family(then: [.keepGroup(row)])
+  func testKeepAllMakesTheReplyInkUnderOneGroupThatMovesAsOne() throws {
+    var replay = try family(then: [.keepAll()])
     let kept = replay.board.ink.filter { $0.meta?.group == "reply-\(row)" }
     XCTAssertGreaterThanOrEqual(kept.count, 7, "the four boxes and three lines at least, and the names' letters")
     XCTAssertEqual(replay.marks, [], "nothing of the reply left to keep")
@@ -100,7 +100,7 @@ final class BoardMarksReplayTests: XCTestCase {
       "board": "13f700bf-ddcb-4a89-a6b7-64c0047f24e3", "base_rev": replay.board.rev ?? 0, "label": "move family",
       "list": [["op": "translate", "ids": ["reply-\(row)"], "dy": 80]],
     ]
-    replay.run(BoardReplay.Step.steps(move, key: "move"))
+    replay.run(try BoardReplay.Step.steps(move, key: "move"))
     let outcome = try XCTUnwrap(replay.outcomes.last)
     XCTAssertEqual(outcome.action, "applied", "\(outcome.wire)")
     XCTAssertEqual(outcome.result?.missingIDs ?? [], [], "the group answers to its one name")
@@ -121,15 +121,15 @@ final class BoardMarksReplayTests: XCTestCase {
     ])
     json["strokes"] = strokes
     var replay = BoardReplay(try BoardSnapshot(json: json))
-    replay.run(BoardReplay.Step.steps(try fixture("family-marks"), key: "family") + more)
+    replay.run(try BoardReplay.Step.steps(fixture("family-marks"), key: "family") + more)
     return replay
   }
 
   /// When the picture was taken: after every stroke of the fixture, which end at 1763432004000.
   private let picture: Int64 = 1_763_432_004_500
 
-  func testKeepGroupOverALineWrittenAfterThePicturePushesItUnderTheReply() throws {
-    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepGroup(row, seen: picture)])
+  func testKeepAllOverALineWrittenAfterThePicturePushesItUnderTheReply() throws {
+    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepAll(seen: [row: picture])])
     let outcome = try XCTUnwrap(replay.outcomes.last)
     XCTAssertEqual(outcome.action, "kept")
     XCTAssertEqual(outcome.covered, 1, "\(outcome.wire)")
@@ -143,21 +143,21 @@ final class BoardMarksReplayTests: XCTestCase {
     XCTAssertEqual(reply.minY, 1564.8, accuracy: 4, "the reply stays where it showed")
   }
 
-  func testKeepGroupOverALineInHisPictureMovesNothing() throws {
-    let replay = try familyWithALateLine(madeAt: picture - 500, then: [.keepGroup(row, seen: picture)])
+  func testKeepAllOverALineInHisPictureMovesNothing() throws {
+    let replay = try familyWithALateLine(madeAt: picture - 500, then: [.keepAll(seen: [row: picture])])
     let outcome = try XCTUnwrap(replay.outcomes.last)
     XCTAssertEqual(outcome.covered, 0)
     XCTAssertNil(outcome.room)
     XCTAssertEqual(outcome.moved, [:])
   }
 
-  func testKeepGroupOverAReplyOfHisKeptAfterThePictureMovesNothing() throws {
+  func testKeepAllOverAReplyOfHisKeptAfterThePictureMovesNothing() throws {
     // He answers the same picture twice, and the second reply lands on the first, kept a moment before: his own ink,
     // made after the picture, is never Igor's to push.
     var again = try XCTUnwrap(try fixture("family-marks") as? [String: Any])
     again["id"] = "second"
-    var replay = try family(then: [.keepGroup(row, seen: picture)])
-    replay.run(BoardReplay.Step.steps(again, key: "again") + [.keepGroup("second", seen: picture)])
+    var replay = try family(then: [.keepAll(seen: [row: picture])])
+    replay.run(try BoardReplay.Step.steps(again, key: "again") + [.keepAll(seen: ["second": picture])])
     let outcome = try XCTUnwrap(replay.outcomes.last)
     XCTAssertEqual(outcome.action, "kept")
     XCTAssertEqual(outcome.covered, 0, "\(outcome.wire)")
@@ -165,22 +165,89 @@ final class BoardMarksReplayTests: XCTestCase {
     XCTAssertEqual(outcome.moved, [:])
   }
 
-  func testKeepGroupWithThePicturesTimeUnknownMovesNothing() throws {
-    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepGroup(row)])
+  func testKeepAllWithThePicturesTimeUnknownMovesNothing() throws {
+    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepAll()])
     XCTAssertEqual(replay.outcomes.last?.moved, [:])
   }
 
-  func testAKeepGroupStepFileCarriesThePicturesTime() {
-    let steps = BoardReplay.Step.steps(["keep_group": "r", "seen": 42], key: "k")
-    guard case .keepGroup(let reply, let seen)? = steps.first else { return XCTFail("not a keep group") }
-    XCTAssertEqual(reply, "r")
-    XCTAssertEqual(seen, 42)
+  func testAKeepAllStepFileCarriesEachRepliesPictureTime() throws {
+    let json = try JSONSerialization.jsonObject(with: Data(#"{"keep_all":{"r":1,"s":9223372036854775807}}"#.utf8))
+    let steps = try BoardReplay.Step.steps(json, key: "k")
+    guard case .keepAll(let seen)? = steps.first else { return XCTFail("not a keep all") }
+    XCTAssertEqual(seen, ["r": 1, "s": Int64.max])
   }
 
-  func testKeepGroupOfAReplyNotShowingKeepsNothing() throws {
-    let replay = try family(then: [.keepGroup("nope")])
+  func testAnInvalidPictureTimeRejectsTheWholeStepFile() throws {
+    for entries in [
+      #"{"r":123,"s":true}"#, #"{"r":123,"s":1.5}"#, #"{"r":123,"s":9223372036854775808}"#,
+      #"{"r":123,"s":"42"}"#, #"{"r":123,"":42}"#, #"{"r":123,"s":null}"#, "[]",
+    ] {
+      let json = try JSONSerialization.jsonObject(
+        with: Data(#"[{"keep_all":{}},{"keep_all":\#(entries)}]"#.utf8))
+      XCTAssertThrowsError(try BoardReplay.Step.steps(json, key: "k"), entries)
+    }
+  }
+
+  func testLoneMarkReportsTheNameLarryCanMoveAndExtendsTheBoard() throws {
+    let line = WhiteboardTurn.Shape(kind: .line, points: [.zero, CGPoint(x: 90, y: 10)])
+    let reply = WhiteboardMarks.Row(id: "r", shapes: [line], frame: CGRect(x: 40, y: 2200, width: 100, height: 40))
+    var replay = BoardReplay(BoardSnapshot(board: "b", rev: 10, pages: 1))
+    replay.run([.marks(reply), .keepAll()])
+    let kept = try XCTUnwrap(replay.outcomes.last)
+    XCTAssertEqual(kept.drawn, ["r#0.0"])
+    XCTAssertNil(kept.room)
+    XCTAssertEqual(kept.pagesBefore, 1)
+    XCTAssertEqual(kept.pagesAfter, 4)
+    XCTAssertEqual(replay.board.pages, 4)
+
+    replay.run([
+      .batch(
+        key: "m",
+        json: [
+          "board": "b", "base_rev": 11, "label": "move", "list": [["op": "translate", "ids": kept.drawn, "dy": 80]],
+        ])
+    ])
+    XCTAssertEqual(replay.outcomes.last?.moved["r#0.0"]?.dy, 80)
+  }
+
+  func testKeepingTextRecordsThePushForBatchesFromAnOlderLook() throws {
+    let line = BoardSnapshot.Ink(
+      id: "ink", points: [CGPoint(x: 40, y: 200), CGPoint(x: 200, y: 200)], meta: BoardMeta(["group": "words"]))
+    let kept = BoardSnapshot.Kept(
+      id: "kept", text: "kept", box: CGRect(x: 40, y: 300, width: 80, height: 30), color: "#000000", t: 1)
+    let ghosts = [
+      BoardOps.Text(id: "low", x: 55, y: 190, text: "lo"),
+      BoardOps.Text(id: "high", x: 55, y: 2200, text: "hi"),
+    ]
+    var replay = BoardReplay(BoardSnapshot(board: "b", rev: 10, pages: 1, ink: [line], texts: [kept], ghosts: ghosts))
+    replay.run([.keepAll()])
+    let outcome = try XCTUnwrap(replay.outcomes.last)
+    XCTAssertEqual(outcome.drawn, ["low", "high"])
+    XCTAssertEqual(outcome.covered, 0)
+    XCTAssertNotNil(outcome.room)
+    XCTAssertEqual(outcome.pagesBefore, 1)
+    XCTAssertEqual(outcome.pagesAfter, 4)
+    XCTAssertEqual(replay.board.pages, 4)
+
+    let move: BoardReplay.Step = .batch(
+      key: "m",
+      json: [
+        "board": "b", "base_rev": 10, "label": "move",
+        "list": [["op": "translate", "ids": ["ink", "kept", "words"], "dy": 80]],
+      ])
+    var loaded = BoardReplay(try BoardSnapshot(json: replay.board.json))
+    replay.run([move])
+    loaded.run([move])
+    for result in [replay, loaded] {
+      XCTAssertEqual(result.outcomes.last?.action, "refused")
+      XCTAssertEqual(result.outcomes.last?.result?.conflictIDs, ["ink", "kept", "words"])
+    }
+  }
+
+  func testKeepAllWithNothingShowingKeepsNothing() throws {
+    var replay = try family(then: [.keepAll()])
+    replay.run([.keepAll()])
     XCTAssertEqual(replay.outcomes.last?.action, "ignored")
-    XCTAssertEqual(replay.marks.count, replay.outcomes.first?.marks.count)
   }
 
   func testAReplyWithNoFrameShowsNothing() throws {

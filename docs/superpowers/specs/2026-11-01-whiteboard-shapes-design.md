@@ -36,16 +36,21 @@ suggest changes the board until Igor keeps it.
     whichever came first in his reply, and a line crossing another is chosen where the finger is closer to it.
   - The session log says, for each mark chosen, how many marks were within the finger's reach, and, for each set of
     marks shown, how many of each kind, so a mark that can't be tapped shows up in a phone's log.
-  - **Keep group keeps a whole reply as one thing** (#942; Igor, 2026-11-17, via Larry: "accept the group", after
-    keeping his four named boxes one mark at a time). When the chosen mark is one of Larry's and more of the marks from
-    the same reply of his still show, a third button, **Keep group** with how many (*Keep group · 11*), sits between
-    Keep and Dismiss. One tap keeps every mark of that reply still showing, where each showed, as ink in his colours:
-    nothing of Igor's moves, as with one Keep, unless the reply would land on what he wrote after Larry looked (below).
-    **One undo takes them all back.**
-  - What it keeps is **one group**, as Larry's own groups are: a push or a paste's room never splits it, the Pencil
-    held on any of it picks up all of it, and Larry hears it as one group (its strokes carry the same group note, named
-    for his reply) that he can move or erase by that one name. Tidy overlaps leaves it as it is. A mark of the reply
-    Igor already kept or dismissed is not in it; Claude's marks, and Larry's text from a change of his, never are.
+  - **Keep all keeps every mark of Larry's showing, each reply as one thing** (#942; Igor, 2026-11-17, via Larry:
+    "accept the group", after keeping his four named boxes one mark at a time; Igor, 2026-11-22, bead
+    context-grabber-yqau: "Keep group and Keep all become one button, Keep all"). There is one such button, **Keep all**,
+    in the note's line beside the count of marks to keep (below); beside a chosen mark there are only Keep and Dismiss.
+    One tap keeps every mark of Larry's still showing, from every reply of his that shows, where each showed, as ink in
+    his colours: nothing of Igor's moves, as with one Keep, unless the marks would land on what he wrote after Larry
+    looked (below). It is **one keep**: one room made for all of them and **one undo takes them all back**, named
+    *Keep all*.
+  - **What was kept together moves together.** The marks of each reply of his kept this way are **one group**, as
+    Larry's own groups are: a push or a paste's room never splits it, the Pencil held on any of it picks up all of it,
+    and Larry hears it as one group (its strokes carry the same group note, named for his reply) that he can move or
+    erase by that one name. Tidy overlaps leaves it as it is. Two replies showing are two groups, each named for its own
+    reply. A reply with only one mark left showing, and Larry's text from a change of his (which belongs to no reply),
+    are each kept as one thing on their own, as Keep keeps them. A mark of the reply Igor already kept or dismissed is
+    not in its group; Claude's marks never are, and Keep all leaves them showing.
     - **A drag that picks up part of a group brings the rest along** (bead context-grabber-1xdh; Igor, 2026-11-22: "when
       I select and want to move something, it's borked"). On the iPad a finger drag on Larry's kept text, with nothing
       selected, is taken by the system's handwriting view, which picks up only the paragraph under the finger: it moved
@@ -56,9 +61,10 @@ suggest changes the board until Igor keeps it.
       Undo named *Move*. It doesn't apply to a lasso of part of a group (he chose that part), to handwriting the system
       rewrapped (its strokes moved by different amounts), to a move the owners-apart rule puts right, or to Undo and
       Redo. The session log says, for each drop, how many strokes it brought along and from which groups.
+  - **Keep** on one chosen mark is unchanged: that piece alone, never grouped.
   - **A finger tap on any stroke of a group selects the whole group, ready to drag** (#947; Igor, 2026-11-18: "when I
     click select-all, I want some notion of fixed object on finger-click to move"). A group is a reply kept with
-    *Keep group*, or one of Larry's own groups. The tap must land on one of the group's strokes, within a finger's
+    *Keep all*, or one of Larry's own groups. The tap must land on one of the group's strokes, within a finger's
     reach of its line (a fingertip, about 22 screen points, whatever the zoom), not merely inside the group's box. All
     of the group is then selected, as a lasso round it would select it, and a finger drags it as one; one Undo puts it
     back where it was. The Pencil keeps drawing over it as before, and drawing fingers leave no dot for the tap.
@@ -79,8 +85,8 @@ suggest changes the board until Igor keeps it.
   - **A finger tap on anything of Larry's he kept, outside a group, picks up that one thing alone** (#1171; Igor,
     2026-11-22, on the iPad, with Larry's steps written inside a box of his: "I want to be able to click what Larry
     wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"). A
-    text of Larry's (kept with Keep or Keep all, or written by a change of his), a mark of his or Claude's kept with
-    Keep or Keep all, and a stroke Larry drew on the board: the tap on it, within a fingertip of its line as for a
+    text of Larry's (kept with Keep, kept alone by Keep all, or written by a change of his), a mark of his or Claude's
+    kept with Keep (or alone by Keep all), and a stroke Larry drew on the board: the tap on it, within a fingertip of its line as for a
     group, selects all of that one thing and nothing else, not his own ink under or beside it, nor Larry's other
     marks; a finger drags it alone, and one Undo puts it back. A lasso still takes whatever it rings, his ink
     included, and can split a text of Larry's.
@@ -128,10 +134,8 @@ suggest changes the board until Igor keeps it.
       own step was taken back cleanly or the strokes were moved back by hand.
   - The buttons stay together, beside the mark and wholly on screen as before, and never under the board's top-right
     corner (? and Feedback, and *Larry's edit blocked* when it shows): placed there, they move below that corner. Each
-    of the three takes at least 36 points each way, and a tap on any of them, or between them, never reaches the paper.
-  - The note line's *Keep all* stays as it was (story 895): every mark of his, each laid clear of Igor's writing, not
-    grouped.
-  - The session log says how many marks a group keep took, its strokes and its group's name.
+    takes at least 36 points each way, and a tap on either, or between them, never reaches the paper.
+  - The session log says how many marks a Keep all took, its strokes, and the groups it made, by name.
   - **Keep** does what a tap used to: the mark becomes real ink in Claude's colour (or the one it asked for, below),
     and his eraser and undo treat it like his own strokes. One undo takes it back.
   - **A reply of Larry's makes room for what Igor wrote after Larry looked** (#894, stories 1004–1006, 1037; Igor, 2026-11-14: push what he
@@ -139,7 +143,7 @@ suggest changes the board until Igor keeps it.
     2026-11-19, on a board where a kept group of Larry's landed on his writing: "group pushes purple text out of the
     way"). Larry places a reply on the picture he was sent, often minutes old, and Igor keeps writing meanwhile. This
     is the *A late reply* rule of the object-layer design (PR #912), which needs nothing from that design's objects.
-    - When **Keep** or **Keep group** would put marks of Larry's on ink drawn or pasted *after* the picture that reply
+    - When **Keep** or **Keep all** would put marks of Larry's on ink drawn or pasted *after* the picture that reply
       answers was taken (ink he could not have seen), that ink makes way in the same step: from the clear line at or
       above the top of the newer ink the marks land on, everything below moves straight down by whole lines until the first
       of it sits half a line under the lowest of the kept marks. Whole things move whole (a line of writing, a kept
@@ -157,12 +161,20 @@ suggest changes the board until Igor keeps it.
       each picture it sent Larry was taken, so a reply shown when the board next opens still knows what Igor wrote
       after it. A reply to a picture this device doesn't remember (sent from another device, or more than 200 pictures
       ago on this board) keeps as before, with nothing moved.
-    - It is Larry's drawn marks (Keep and Keep group). His text already makes room as it lands ([Larry edits the
-      board](2026-11-16-whiteboard-board-ops-design.md), *His text makes room*); *Keep all* lays his labels clear of
-      the writing (story 895); Claude's marks, which answer in seconds, are unchanged.
+    - It is Larry's marks, drawn marks kept with Keep and everything Keep all keeps, his text included. His text
+      kept with Keep, or from a change of his, already makes room as it lands ([Larry edits the
+      board](2026-11-16-whiteboard-board-ops-design.md), *His text makes room*); Claude's marks, which answer in
+      seconds, are unchanged.
+    - **Keep all makes room once, for all of it**: one room, under the lowest of the marks it keeps, for every thing
+      of Igor's that any kept mark lands on and that he made after the picture *that mark's* reply answers. When
+      replies to different pictures show together, ink in a reply's own picture never makes room for that reply's
+      marks, even if an earlier reply's picture didn't have it. A mark whose picture's time this device doesn't know
+      makes no room of its own, but the room made for the others goes under it too. His text from a change kept with
+      them makes room in that same one room, as it does with Keep: whatever it lands on goes down under it, a frame
+      it sits wholly inside aside, and the text stays where it showed.
     - Not yet (#912's *Reflow rules*): his other unkept marks don't slide with the ink, and blank paper further down
       doesn't take up the push: the push moves everything below the line, as a paste's room does, marks of Larry's
-      kept earlier from the same reply included (Keep group keeps a reply whole, so this only bites when Igor keeps a
+      kept earlier from the same reply included (Keep all keeps each reply whole, so this only bites when Igor keeps a
       reply mark by mark).
     - The session log's keep line says whether it made room, where and how far, how many things it landed on that Igor
       wrote after the picture, and when that picture was taken, or that its time isn't known.
@@ -259,19 +271,21 @@ and the iPad now waits the same way.
 - The session log says, for each pause, how long it waited, why (*rhythm*, *mid-line*, *+quick*, *question*, *new line*,
   *hand away*) and his usual gap, so the iPad can show whether it feels right.
 
-### Keep all and Tidy overlaps (stories 895, 896, 897; Igor, 2026-11-16: "match Larry's web board")
+### Keep all and Tidy overlaps (stories 895, 896, 897; Igor, 2026-11-16: "match Larry's web board"; 2026-11-22: "Keep all behaves like Keep group")
 
 Larry often answers with several labels down the page. Kept one by one they land exactly where he drew them, and on a
 board that moved on since his picture a label can land on Igor's writing. The Cockpit's web board (*/ink*) keeps them
-in order and can tidy overlaps; the iPad does the same, except that **his own ink never moves**: where the web board
-pushes the writing below down to make room, the iPad moves the label down to the first clear space instead.
+in order and can tidy overlaps. On the iPad, since 2026-11-22, **his marks stay where he drew them and Igor's newer
+writing makes room**, the one rule every keep follows (bead context-grabber-yqau; it replaces moving a label down to
+the first clear space, which the first Keep all did).
 
 - **Keep all**, in the note's line beside the count of marks to keep (as on the web board's ghost bar), keeps every mark
-  of Larry's showing at once, as one keep: **one undo takes them all back**. It is there only while his marks show. They are kept top to bottom: a label (words) that would sit on ink
-  moves down under that ink, half a line clear of it, and every mark after it moves down with it, so they stay in the
-  order he drew them. A line, arrow, box or circle is meant to sit on what it points at, so it never moves for ink of its
-  own; it moves only with a label above it that moved. Each mark kept is ink for the next. Nothing of his comes back on
-  the next look or open, as for a mark kept on its own.
+  of Larry's showing at once, as one keep: **one undo takes them all back**. It is there only while his marks show. It
+  is the only way to keep more than one mark at a time: there is no separate Keep group. Each mark becomes ink where it
+  showed; each reply's marks are one group (*What was kept together moves together*, above); and what Igor wrote after
+  a reply's picture, where that reply's marks land, moves down in whole lines under the lowest kept mark, in the same
+  step (*A reply of Larry's makes room*, above). Ink that was in the picture never moves for it. Nothing of his comes
+  back on the next look or open, as for a mark kept on its own.
 - **Board menu → Tidy overlaps** (one row: the menu has no room for more and still closes after a pick, #848) lays out again, top to bottom, every kept label (and pasted text) that sits on other
   ink, his or another label above it: each moves down under what it sits on, as above. Ink that only touches a label's
   edge isn't under it. His own strokes and kept shapes stay where they are. **One undo takes the tidy back.** With
@@ -456,9 +470,9 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
 - **A new reply adds his marks, never clears them** (Igor, 2026-11-22, bead `context-grabber-n8ab`: a 12-mark
   sequence diagram of Larry's vanished when his next reply, a label and then a question card, came in). Each new row's
   marks join the unkept ones from his earlier replies; those stay until Igor keeps or dismisses them (Keep, Keep
-  group, Keep all, Dismiss). Several rows that land between two looks all show. The count of marks to keep is all of
+  all, Dismiss). Several rows that land between two looks all show. The count of marks to keep is all of
   them, and Keep all keeps all of them. When he draws the same thing again, the copies show together: Igor clears the
-  one he doesn't want with Keep group or Dismiss, and Larry has no need to send a diagram again to keep it on the
+  one he doesn't want with Dismiss, and Larry has no need to send a diagram again to keep it on the
   board. Claude's ghosts never replace his, nor his Claude's. His
   marks stay until kept or dismissed: no timer, and the *Ask at my pauses* switch doesn't touch them.
 - **A kept or dismissed mark doesn't come back**, on the next look or the next time the board opens. Only that mark:
@@ -616,7 +630,7 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
   one: Keep and Dismiss appear beside it and nothing else changes. Keep: it becomes orange ink, the same line only
   stronger, that the eraser removes and undo takes back. Dismiss on another: it goes, and the rest stay.
 - Tap Larry's turn, then write two lines below the last of the board's ink while he looks. When his reply lands where
-  those lines are, Keep group: his marks stay where they showed, the two lines and everything under them move down in
+  those lines are, Keep all: his marks stay where they showed, the two lines and everything under them move down in
   whole lines until they sit under his lowest mark, the ink above doesn't move, and one Undo puts the lines back and
   takes his marks away. A reply that lands only on ink that was in his picture keeps with nothing moved.
 - Tap a mark at the very edge of the view: both buttons are wholly on screen. Tap off the marks, or start drawing:

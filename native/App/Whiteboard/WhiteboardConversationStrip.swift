@@ -71,7 +71,9 @@ struct WhiteboardNoteStrip: View {
         if let keep = line.keep { Text(keep).lineLimit(1).fixedSize() }
         if let keepAll = shown.keepAll {
           Button("Keep all", action: keepAll).buttonStyle(.borderless).fixedSize()
-            .accessibilityHint("Keeps every mark of Larry's, top to bottom, clear of your writing")
+            .accessibilityHint(
+              "Keeps every mark of Larry's where it showed, each reply as one group that moves together"
+            )
             .accessibilityIdentifier("whiteboard-keep-all")
         }
         if let interrupt = shown.interrupt {

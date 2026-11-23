@@ -44,29 +44,39 @@ extension WhiteboardModel {
     }
   }
 
-  // MARK: Keep all and Tidy overlaps (stories 895, 896)
+  // MARK: Keep all and Tidy overlaps (stories 895, 896, 995, 999)
 
   /// Larry's marks showing, for Keep all in the note's line.
   var larrysMarks: Int { turns.ghosts.filter { $0.who == .larry }.count }
 
-  /// Story 895: every mark of Larry's kept at once, top to bottom, a label on ink moved under it and the marks after it
-  /// with it. One keep, so one undo.
+  /// Keep all (stories 895, 995, 999; bead context-grabber-yqau, which made Keep group and Keep all one button): every
+  /// mark of Larry's showing becomes ink where it showed, each reply of his one group named for it (#942) that Larry
+  /// moves or erases by that one name, a lone mark or his text from a change kept as one thing on its own. What Igor wrote
+  /// after a reply's picture, under that reply's marks, makes room in the same step (#894). One keep, so one undo.
   func keepLarrysMarks() {
+    guard editable else { return }
     let marks = turns.keepAll(.larry)
-    guard editable, !marks.isEmpty else { return }
-    let moves = WhiteboardTidy.keepAll(
-      marks.map { .init(id: $0.id, lines: $0.lines, label: $0.kind == .text) }, over: Self.inkPoints(drawing))
+    guard !marks.isEmpty else { return }
+    let groups = WhiteboardMarks.keptGroups(marks.map(\.id))
     let started = Date()
     var strokes: [PKStroke] = []
+    var repliesByStroke: [String: String] = [:]
     for (i, ghost) in marks.enumerated() {
-      let dy = moves[ghost.id] ?? 0
-      // A moment of its own for each, a few milliseconds apart, so each label is known as one (and story 817's text).
+      // A moment of its own for each, a few milliseconds apart, so each is known as one thing (and story 817's text).
       let made = BoardText.time(started.addingTimeInterval(Double(i) * 0.005))
-      let lines = ghost.lines.map { line in line.map { CGPoint(x: $0.x, y: $0.y + dy) } }
       let mine =
-        connectorInk(ghost) ?? Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+        connectorInk(ghost)
+        ?? Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
       strokes += mine
-      if ghost.kind == .text { rememberLabel(made.date) }
+      if let reply = groups[ghost.id] {
+        // Named as Larry will hear them, before the canvas has them (`paper_keep` says the names survive it).
+        for name in opStrokes(mine).strokes.flatMap(\.ids) where repliesByStroke[name] == nil {
+          repliesByStroke[name] = reply
+        }
+      } else if ghost.kind == .text {
+        // Not in a group: a label Tidy overlaps may lay out again. Tidy leaves a group as it is.
+        rememberLabel(made.date)
+      }
       if let text = ghost.text {
         texts.append(
           BoardText(
@@ -75,14 +85,25 @@ extension WhiteboardModel {
       }
       settleLarrys(ghost)
     }
+    // #894 (story 1004): before the groups' notes, so the board it measures is the one he wrote on.
+    let late = lateRoom(marks)
     rememberTheirs(strokes)
+    if !repliesByStroke.isEmpty {
+      for (name, reply) in repliesByStroke {
+        if let note = WhiteboardMarks.groupNote(reply: reply, over: strokeMeta[name]) {
+          strokeMeta.set(note, for: name)
+        }
+      }
+      opLedger.setStrokeMeta(strokeMeta, board: board.id)
+    }
     if marks.contains(where: { $0.text != nil }) { opLedger.setTexts(texts, board: board.id) }
-    log.event(
-      "whiteboard",
-      [
-        "action": "keep_all", "board": board.id, "marks": marks.count, "strokes": strokes.count,
-        "moved": moves.values.filter { $0 > 0 }.count,
-      ])
+    var event: [String: Any] = [
+      "action": "keep_all", "board": board.id, "marks": marks.count, "strokes": strokes.count,
+      "groups": Set(groups.values).sorted().map(WhiteboardMarks.group(reply:)),
+    ]
+    event.merge(Self.lateFields(late, marks)) { $1 }
+    log.event("whiteboard", event)
+    if let push = late?.push, canvas?.keepMakingRoom(strokes, push: push, why: "keep_all") == true { return }
     add(strokes, named: Self.keepAllUndoName)
   }
 
@@ -142,42 +163,6 @@ extension WhiteboardModel {
     log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "keep", "who": kept.who.rawValue])
     settleLarrys(kept)
     ink(kept)
-  }
-
-  /// Story 999: how many of the chosen mark's reply still show; Keep group is offered from two.
-  var chosenReplyCount: Int { turns.chosenReply().count }
-
-  /// Keep group (#942, story 995): every mark of the chosen one's reply still showing, ink where it showed, in one keep
-  /// (one undo), its strokes one group named for the reply, which Larry moves or erases by that one name.
-  func keepChosenReply() {
-    guard editable, let reply = turns.chosen.flatMap({ WhiteboardMarks.reply(of: $0.id) }) else { return }
-    let marks = turns.keepChosenReply()
-    guard !marks.isEmpty else { return }
-    let started = Date()
-    var strokes: [PKStroke] = []
-    for (i, ghost) in marks.enumerated() {
-      // A moment of its own for each, a few milliseconds apart, as Keep all gives them. Not remembered as a label: Tidy
-      // overlaps leaves a group as it is.
-      let made = started.addingTimeInterval(Double(i) * 0.005)
-      strokes +=
-        connectorInk(ghost) ?? Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made)
-      settleLarrys(ghost)
-    }
-    // Named as Larry will hear them, before the canvas has them (`paper_keep` says the names survive it).
-    let names = opStrokes(strokes).strokes.flatMap(\.ids)
-    // #894 (story 1004): before the group's notes, so the board it measures is the one he wrote on.
-    let late = lateRoom(marks)
-    rememberTheirs(strokes)
-    strokeMeta.merge(WhiteboardMarks.groupNotes(names, reply: reply))
-    opLedger.setStrokeMeta(strokeMeta, board: board.id)
-    var event: [String: Any] = [
-      "action": "keep_group", "board": board.id, "marks": marks.count, "strokes": strokes.count,
-      "group": WhiteboardMarks.group(reply: reply),
-    ]
-    event.merge(Self.lateFields(late, marks)) { $1 }
-    log.event("whiteboard", event)
-    if let push = late?.push, canvas?.keepMakingRoom(strokes, push: push, why: "keep_group") == true { return }
-    add(strokes, named: Self.keepGroupUndoName)
   }
 
   /// Story 1000: where the corner's buttons are, in window points.
@@ -244,20 +229,29 @@ extension WhiteboardModel {
 
   /// #894 (stories 1004–1006): the room Larry's marks need when kept, for what Igor made after the picture they answer;
   /// nil when that picture's time isn't known on this device. His marks stay where they showed.
+  /// Keep all's text from a change (#938) makes room in the same one room.
   private func lateRoom(_ marks: [Ghost]) -> BoardRoom.Late? {
-    guard let seen = marks.compactMap(\.seen).min() else { return nil }
-    let boxes = marks.map { WhiteboardMarkChoice.bounds($0.lines).insetBy(dx: -$0.width / 2, dy: -$0.width / 2) }
+    guard marks.contains(where: { $0.seen != nil || $0.text != nil }) else { return nil }
+    // Keep all: each mark against its own reply's picture, one room for all of them.
+    let replies = marks.filter { $0.text == nil }.map { mark in
+      (box: WhiteboardMarkChoice.bounds(mark.lines).insetBy(dx: -mark.width / 2, dy: -mark.width / 2), seen: mark.seen)
+    }
+    let landing = marks.filter { $0.text != nil }.map { WhiteboardMarkChoice.bounds($0.lines) }
     let strokes = opStrokes(drawing.strokes).strokes
     let theirs = opLedger.theirs(board: board.id)
     return BoardRoom.late(
-      boxes, seen: seen, strokes: strokes, texts: texts, groups: strokeMeta.groups, folds: outline(of: strokes).tags,
-      theirs: theirs)
+      replies, landing: landing, strokes: strokes, texts: texts, groups: strokeMeta.groups,
+      folds: outline(of: strokes).tags, theirs: theirs)
   }
 
-  /// The keep's log fields for #894: the picture's time (or that it isn't known), what newer it sat on, the room.
+  /// The keep's log fields for #894: the picture's time (or that it isn't known), each reply's when Keep all kept
+  /// replies to more than one, what newer it sat on, the room.
   private static func lateFields(_ late: BoardRoom.Late?, _ marks: [Ghost]) -> [String: Any] {
-    guard let late, let seen = marks.compactMap(\.seen).min() else { return ["picture_t": NSNull()] }
-    var out: [String: Any] = ["picture_t": seen, "covered_newer": late.covered]
+    let seen = Set(marks.compactMap(\.seen)).sorted()
+    var out: [String: Any] = ["picture_t": seen.first.map { $0 as Any } ?? NSNull()]
+    if seen.count > 1 { out["picture_ts"] = seen }
+    guard let late else { return out }
+    out["covered_newer"] = late.covered
     if let push = late.push {
       out["late_cut"] = Double(push.cut)
       out["late_dy"] = Double(push.dy)

@@ -70,9 +70,9 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
 }
 
 /// Story 825 (#883): Keep and Dismiss beside the chosen mark, wholly on screen. Over the board, not in it, so a tap on
-/// them never reaches the board as a tap off the marks. Stories 995 and 1000 (#942): Keep group between them when more of the
-/// mark's reply of Larry's shows; each button at least 36 points each way, the capsule taking every tap within it, and
-/// never under the board's top-right corner.
+/// them never reaches the board as a tap off the marks. Story 1000 (#942): each button at least 36 points each way, the
+/// capsule taking every tap within it, and never under the board's top-right corner. Keeping more than one mark is Keep
+/// all, in the note's line (stories 995, 999; bead context-grabber-yqau): there is no Keep group here.
 private struct MarkChoiceButtons: View {
   @ObservedObject var model: WhiteboardModel
   let mark: CGRect?
@@ -81,8 +81,7 @@ private struct MarkChoiceButtons: View {
   var body: some View {
     GeometryReader { geometry in
       if let mark {
-        let group = model.chosenReplyCount
-        let size = CGSize(width: group > 1 ? 400 : 210, height: Self.height)
+        let size = CGSize(width: 210, height: Self.height)
         let origin = geometry.frame(in: .global).origin
         let place = WhiteboardMarkChoice.place(
           mark: mark, buttons: size, in: CGRect(origin: .zero, size: geometry.size),
@@ -90,11 +89,6 @@ private struct MarkChoiceButtons: View {
         HStack(spacing: 4) {
           Button(action: model.keepChosen) { Self.label("Keep", "checkmark") }
             .accessibilityIdentifier("whiteboard-mark-keep")
-          if group > 1 {
-            Button(action: model.keepChosenReply) { Self.label("Keep group · \(group)", "square.on.square") }
-              .accessibilityHint("Keeps all \(group) marks of this reply of Larry's as one group that moves together")
-              .accessibilityIdentifier("whiteboard-mark-keep-group")
-          }
           Button(action: model.dismissChosen) { Self.label("Dismiss", "xmark") }
             .accessibilityIdentifier("whiteboard-mark-dismiss")
         }

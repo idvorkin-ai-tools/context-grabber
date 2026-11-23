@@ -5,7 +5,7 @@ import Foundation
 
 public struct BoardUndoButtons: Equatable, Sendable {
   public struct Button: Equatable, Sendable {
-    /// What VoiceOver reads: the action and, when the step has one, its name (*Undo Keep group*).
+    /// What VoiceOver reads: the action and, when the step has one, its name (*Undo Keep all*).
     public var label: String
     public var enabled: Bool
 

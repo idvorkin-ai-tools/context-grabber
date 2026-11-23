@@ -316,10 +316,20 @@ public struct WhiteboardMarks: Sendable {
   /// The group a reply kept whole goes under (#942, story 995): Larry moves or erases it by this one name.
   public static func group(reply: String) -> String { "reply-\(reply)" }
 
-  /// The notes that make `names`, the strokes of a reply kept whole, one group.
-  public static func groupNotes(_ names: [String], reply: String) -> [String: BoardMeta] {
-    guard let meta = BoardMeta(["group": group(reply: reply)]) else { return [:] }
-    return Dictionary(names.map { ($0, meta) }, uniquingKeysWith: { a, _ in a })
+  /// A reply's group over the stroke's other notes.
+  public static func groupNote(reply: String, over existing: BoardMeta? = nil) -> BoardMeta? {
+    var object = existing?.object as? [String: Any] ?? [:]
+    object["group"] = group(reply: reply)
+    return BoardMeta(object)
+  }
+
+  /// Keep all (stories 895, 995, 999; bead context-grabber-yqau): the reply each of `marks` is kept under as one group,
+  /// by mark id. A reply with two or more of `marks` is a group; a reply with one, and a mark that belongs to no reply
+  /// (his text from a change), is kept alone and not named here.
+  public static func keptGroups(_ marks: [String]) -> [String: String] {
+    let replies = marks.compactMap { mark in reply(of: mark).map { (mark, $0) } }
+    let counts = Dictionary(replies.map { ($0.1, 1) }, uniquingKeysWith: +)
+    return Dictionary(replies.filter { counts[$0.1, default: 0] > 1 }, uniquingKeysWith: { a, _ in a })
   }
 
   /// How many rows a board remembers as showing on this device (story 1155); an older one stays in Chat.
