@@ -14,11 +14,65 @@ final class WhiteboardKeptInkTests: XCTestCase {
     XCTAssertNil(WhiteboardKeptInk.partMissing(drawn: drawn, expected: expected, darkBefore: 0, ink: purple))
   }
 
-  /// context-grabber-ikya: a kept text drawn in his purple only up to a tile's edge, 22 px of the 260 a whole one draws.
+  /// context-grabber-ikya, as logged on the iPad Pro 11-inch (M5) simulator: Larry's 13-glyph text drawn in his purple
+  /// only up to a tile's edge, 16 of its 155 pixels.
   func testATextCutAtATileEdgeIsCut() {
-    let drawn = KeptInkColours(ink: 22, other: 30, inkWidth: 12, inkHeight: 22)
-    let expected = KeptInkColours(ink: 260, inkWidth: 120, inkHeight: 24, allWidth: 124, allHeight: 28)
+    let drawn = KeptInkColours(ink: 22, other: 61, inkWidth: 16, inkHeight: 14)
+    let expected = KeptInkColours(ink: 31, inkWidth: 71, inkHeight: 13, allWidth: 157, allHeight: 24)
     XCTAssertEqual(WhiteboardKeptInk.partMissing(drawn: drawn, expected: expected, darkBefore: 0, ink: purple), "cut")
+  }
+
+  /// context-grabber-smmj: the same thin 13-glyph text drawn whole, twice, on the iPad Pro 11-inch (M5) simulator. Its
+  /// strokes drawn alone kept little true purple, 71 pixels wide one time and 149 the next; every pixel they touch spanned
+  /// 157 by 24 both times. Both whole.
+  func testAThinTextDrawnWholeIsWholeHoweverLittleColourItKeepsAlone() {
+    let first = KeptInkColours(ink: 264, other: 443, inkWidth: 155, inkHeight: 21)
+    let firstAlone = KeptInkColours(ink: 31, inkWidth: 71, inkHeight: 13, allWidth: 157, allHeight: 24)
+    XCTAssertNil(WhiteboardKeptInk.partMissing(drawn: first, expected: firstAlone, darkBefore: 0, ink: purple))
+    let second = KeptInkColours(ink: 152, other: 622, inkWidth: 154, inkHeight: 20)
+    let secondAlone = KeptInkColours(ink: 40, inkWidth: 149, inkHeight: 14, allWidth: 157, allHeight: 24)
+    XCTAssertNil(WhiteboardKeptInk.partMissing(drawn: second, expected: secondAlone, darkBefore: 0, ink: purple))
+  }
+
+  /// context-grabber-smmj: judged against the 71 pixels of purple its strokes kept alone, that text cut at a tile edge
+  /// 60 pixels in read as whole (cut fired only under about 53). Against what they touch, less the soft edge, it's cut.
+  func testAThinTextCutPartWayIsCutEvenWhenItsColourAloneIsNoisy() {
+    let drawn = KeptInkColours(ink: 100, other: 180, inkWidth: 60, inkHeight: 21)
+    let expected = KeptInkColours(ink: 31, inkWidth: 71, inkHeight: 13, allWidth: 157, allHeight: 24)
+    XCTAssertEqual(WhiteboardKeptInk.partMissing(drawn: drawn, expected: expected, darkBefore: 0, ink: purple), "cut")
+    XCTAssertEqual(WhiteboardKeptInk.wholeSpan(expected).width, 153)
+  }
+
+  /// A thick mark keeps its colour to its edge drawn alone, so it's judged by that colour, as before: Larry's 3-stroke
+  /// box on the iPad simulator, whole (63 of 64) and cut at a tile edge (19 of 64).
+  func testAThickMarkIsJudgedByItsOwnColour() {
+    let alone = KeptInkColours(ink: 456, inkWidth: 64, inkHeight: 23, allWidth: 66, allHeight: 25)
+    XCTAssertEqual(WhiteboardKeptInk.wholeSpan(alone).width, 64)
+    let whole = KeptInkColours(ink: 475, other: 314, inkWidth: 63, inkHeight: 23)
+    XCTAssertNil(WhiteboardKeptInk.partMissing(drawn: whole, expected: alone, darkBefore: 0, ink: purple))
+    let cut = KeptInkColours(ink: 133, dark: 360, other: 315, inkWidth: 19, inkHeight: 23)
+    XCTAssertEqual(WhiteboardKeptInk.partMissing(drawn: cut, expected: alone, darkBefore: 0, ink: purple), "cut")
+  }
+
+  /// Whole kept labels on the real iPad (2026-11-22, 21:24 session): 38, 17 and 1 strokes of Larry's purple.
+  func testWholeLabelsOnTheIPadAreWhole() {
+    let cases: [(KeptInkColours, KeptInkColours)] = [
+      (
+        KeptInkColours(ink: 387, inkWidth: 269, inkHeight: 27),
+        KeptInkColours(ink: 285, inkWidth: 269, inkHeight: 28, allWidth: 272, allHeight: 28)
+      ),
+      (
+        KeptInkColours(ink: 207, inkWidth: 162, inkHeight: 31),
+        KeptInkColours(ink: 147, inkWidth: 160, inkHeight: 31, allWidth: 164, allHeight: 33)
+      ),
+      (
+        KeptInkColours(ink: 71, inkWidth: 11, inkHeight: 11),
+        KeptInkColours(ink: 67, inkWidth: 10, inkHeight: 11, allWidth: 12, allHeight: 12)
+      ),
+    ]
+    for (drawn, alone) in cases {
+      XCTAssertNil(WhiteboardKeptInk.partMissing(drawn: drawn, expected: alone, darkBefore: 0, ink: purple))
+    }
   }
 
   /// The small label with its right half left blank is still found.

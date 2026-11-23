@@ -34,6 +34,7 @@ extension PaperBoardController {
       let drawn = self.drawnColours(in: spot, ink: want)
       let expected = heldLater.isEmpty ? KeptColours() : self.expectedColours(made, box: box, ink: want)
       let part = WhiteboardKeptInk.partMissing(drawn: drawn, expected: expected, darkBefore: darkBefore, ink: want)
+      let whole = WhiteboardKeptInk.wholeSpan(expected)
       let missing = inView && part != nil
       let whose = missing ? self.keptStrokesDrawn(heldLater, ink: want) : [:]
       // context-grabber-z8o: a kept mark the view drew none of, whose strokes drawn alone show none of their colour either,
@@ -49,7 +50,9 @@ extension PaperBoardController {
           "dark_px": drawn.dark, "dark_before": darkBefore, "other_px": drawn.other,
           "ink_span": [drawn.inkWidth, drawn.inkHeight],
           "expected_px": expected.ink, "expected_span": [expected.allWidth, expected.allHeight],
-          "expected_ink_span": [expected.inkWidth, expected.inkHeight], "attempt": attempt,
+          "expected_ink_span": [expected.inkWidth, expected.inkHeight],
+          "whole_span": [whole.width, whole.height],
+          "attempt": attempt,
           "missing": part ?? (none ? "none" : ""),
         ].merging(whose) { $1 })
       // A redraw in place first; the view a screen away and back only once that left it partly drawn.
