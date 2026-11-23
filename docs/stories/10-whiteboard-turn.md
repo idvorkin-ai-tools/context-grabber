@@ -831,6 +831,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** *Send to Larry* goes
 - **Then:** the picture still goes, with only the session log saying what became of the strokes
 
+- **Scenario:** The outbox cannot read the wrapped strokes file
+- **Given:** a queued Send whose wrapped strokes file is missing a readable strokes or folds list
+- **When:** *Send to Larry* goes
+- **Then:** the picture still goes, the strokes are skipped, and only the session log reports the unreadable file
+
 ---
 
 ### User Story 427:
@@ -876,8 +881,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1176:
 
 - **Summary:** One Send button that waits when offline
-- **Status:** implemented in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552); verified by host tests (`just native-test`), the Mac build (`just native-build-mac`) and the whiteboard UI suite on the iPad simulator (rung 2, 78 tests green: `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole` finds no *Larry's turn* and the three evenly spaced); iPhone tests were skipped by Igor's standing instruction of 2026-11-22. What Send does, offline, when it can't go and when the board reopens are stories 1189–1192.
-- **Issues:** bead context-grabber-rtl (Igor, design board, 2026-11-22: "one Send button that waits when offline")
+- **Status:** implemented in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552); verified by host tests (`just native-test`), the Mac build (`just native-build-mac`) and the whiteboard UI suite on the iPad simulator (rung 2, 78 tests green: `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole` finds no *Larry's turn* and the three evenly spaced); iPhone tests were skipped by Igor's standing instruction of 2026-11-22. What Send does, offline, when it can't go and when the board reopens are stories 1189–1192. A wrapped strokes file requires both lists since [a91f59f9](https://github.com/idvorkin/context-grabber/commit/a91f59f9) (bead context-grabber-fffb), verified by host tests against hand-written fixtures (`WhiteboardStrokesFileTests`) and the Mac build.
+- **Issues:** bead context-grabber-rtl (Igor, design board, 2026-11-22: "one Send button that waits when offline"); bead context-grabber-fffb (review of #1236: a waiting strokes file in the wrapped form names both its strokes and its folds; one without its folds is unreadable, never read as nothing folded)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *One Send*
 
 #### Use Case:

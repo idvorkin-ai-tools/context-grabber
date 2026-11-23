@@ -125,12 +125,17 @@ public enum WhiteboardStrokes {
   }
 
   /// The strokes file a board's picture waits beside in the outbox (story 424): the strokes alone, as a list, or, from a
-  /// board drawn here (story 1176), `{"strokes": [...], "folds": [...]}` with its folded sections. Nil when unreadable.
+  /// board drawn here (story 1176), `{"strokes": [...], "folds": [...]}` with its folded sections. Nil when unreadable,
+  /// and that includes a wrapped file without both lists. The writer always puts both lists in the wrapped form, so one
+  /// missing `folds` is damaged, and reading it as "nothing folded" would send a folded picture's strokes unfolded
+  /// (bead context-grabber-fffb).
   public static func file(_ raw: Data) -> (strokes: [[String: Any]], folds: [[String: Any]])? {
     let json = try? JSONSerialization.jsonObject(with: raw)
     if let strokes = json as? [[String: Any]] { return (strokes, []) }
-    guard let wrapped = json as? [String: Any], let strokes = wrapped["strokes"] as? [[String: Any]] else { return nil }
-    return (strokes, wrapped["folds"] as? [[String: Any]] ?? [])
+    guard let wrapped = json as? [String: Any], let strokes = wrapped["strokes"] as? [[String: Any]],
+      let folds = wrapped["folds"] as? [[String: Any]]
+    else { return nil }
+    return (strokes, folds)
   }
 
   /// The strokes file for a picture: a list when nothing is folded, as before, else with the folds beside.
