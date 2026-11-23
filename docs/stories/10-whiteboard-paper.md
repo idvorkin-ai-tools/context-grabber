@@ -1856,7 +1856,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1203:
 
 - **Summary:** Ink an Undo or Redo leaves in place shows whole
-- **Status:** in progress (bead context-grabber-9bll). Seen only on the iPad simulator, never on the iPad: after a group dropped just above my line was undone, the line showed only up to a 256-point tile edge (o1x8's failing try, 2026-11-22, main 89998b9c)
+- **Status:** implemented in [b03d7dcb](https://github.com/idvorkin/context-grabber/commit/b03d7dcb), every heal logged in [df48ce5f](https://github.com/idvorkin/context-grabber/commit/df48ce5f); verified by host tests (`just native-test`, `BoardUndoRedrawTests`, from the 9bll numbers) and the iPad simulator (rung 2, 2026-11-22, the Mac locked with the lock probe overridden on Igor's word: `WhiteboardUndoRedrawUITests` and `WhiteboardDropRoomUITests` pass, with the PaperKit contract tests); not yet seen on the iPad. The bug it answers was seen only on the iPad simulator, never on the iPad: after a group dropped just above my line was undone, the line showed only up to a 256-point tile edge (o1x8's failing try, 2026-11-22, main 89998b9c)
 - **Issues:** bead context-grabber-9bll
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Ink an Undo or Redo leaves in place is on the screen too*
 
