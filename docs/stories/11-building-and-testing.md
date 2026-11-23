@@ -1579,6 +1579,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1511:
+
+- **Summary:** A build on Igor's device that isn't the one we installed is named, with both builds
+- **Status:** implemented in 4639bc68; verified on the host rung (`just test`): `scripts/native/test-device-build-check.sh` (a mismatch named with both builds and exit 1, a match, no session yet after an install, a build posted over the air, nothing recorded; `just deploy` with a fake deploy-all records the device that took the build, not the one that refused, and checks its next session). Run on the real ledger and logs of 2026-11-22 it reported both devices MISMATCH: no network install had been recorded since 11-21. Not yet run after a real install
+- **Issues:** bead `context-grabber-yfsz` part 1 (2026-11-22: an agent told Larry the iPad was on b3e9de18 while its board posts and session log said 5569178f, installed around 22:57 by an install nobody recorded)
+- **Spec:** [Knowing which build is on Igor's devices](../superpowers/specs/2026-11-22-device-build-check-design.md)
+
+#### Use Case:
+- **As Igor,** asking agents what's on my iPad
+- **I want to** have every install recorded and checked against the build my device reports
+- **so that** nobody points me at a feature that isn't on my device, or misses one that is
+
+#### Acceptance Criteria:
+- **Scenario:** The device runs another build than the last install
+- **Given:** an install of one commit to the iPad, recorded by `just deploy`, `just native-run-device` or `just ota`
+- **When:** the iPad's newest session after it names another commit, and `just device-build-check` runs (on its own, or after `just deploy`)
+- **Then:** it says MISMATCH with both commits and their times, and exits 1
+
+---
+
 ### User Story 1507:
 
 - **Summary:** A time limit that can't be found stops the rung instead of running it with none

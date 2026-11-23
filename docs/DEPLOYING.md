@@ -12,7 +12,7 @@ While the whiteboard work is in progress (Igor, 2026-11-22), nothing is deployed
 | Path | Command | Build | Gets there | Logs back with `just pull-logs` |
 |---|---|---|---|---|
 | Cable or network, one device | `just native-run-device` (`DEVICE=<udid>` for the iPad) | Debug, development-signed | about a minute after the build; the device unlocked, on the cable or the same network | yes |
-| Cable or network, every device | `~/gits/bug-kit/scripts/deploy-all.sh context-grabber --only <device>` | Debug, development-signed, built once | the same | yes |
+| Cable or network, every device | `just deploy --only <device>` (BugKit's `deploy-all.sh`) | Debug, development-signed, built once | the same | yes |
 | Over the air | `just ota`, or `just ota-watch` after each merge batch | Release, development-signed | the iPad installs it from the Cockpit's /builds page, anywhere | yes (a development build) |
 | TestFlight | `just testflight` | Release, App Store-signed | the TestFlight app, 5-30 minutes after the upload | no |
 
@@ -21,15 +21,22 @@ While the whiteboard work is in progress (Igor, 2026-11-22), nothing is deployed
 `just native-run-device` builds under the signing lock, installs and launches on the phone, or on the device named
 by `DEVICE`, and records the install in the deploys ledger ([TESTING.md](TESTING.md) "The phone").
 
-BugKit's `deploy-all.sh` builds once and installs on every paired iPhone and iPad (bug-kit `docs/ops/deploying.md`):
+`just deploy` runs BugKit's `deploy-all.sh`, which builds once and installs on every paired iPhone and iPad (bug-kit
+`docs/ops/deploying.md`), records each device that took the build in the deploys ledger, and then checks the build the
+device reports (below). **Install through `just deploy`, not by calling `deploy-all.sh` directly:** an install the
+ledger doesn't hold is how, on 2026-11-22, an agent told Larry the iPad was on b3e9de18 when it ran 5569178f (story 1511).
 
 ```sh
-~/gits/bug-kit/scripts/deploy-all.sh context-grabber --only ipad-air-11-inch-m3   # one device, by its model folder
-~/gits/bug-kit/scripts/deploy-all.sh context-grabber --dry-run                    # what it would build and install
+just deploy --only ipad              # the iPad (ipad and phone stand for their model folders)
+just deploy --only ipad-air-11-inch-m3   # one device, by its model folder
+just deploy --dry-run                # what it would build and install
 ```
 
-- **`--only`** takes the folder names the listener uses, the device's model slugged (`ipad-air-11-inch-m3`,
-  `iphone-17-pro`), comma separated. Without it every paired iPhone and iPad gets the build, the iPhone included.
+- **`--only`** takes `ipad`, `phone`, or the folder names the listener uses, the device's model slugged
+  (`ipad-air-11-inch-m3`, `iphone-17-pro`), comma separated. Without it every paired iPhone and iPad gets the build,
+  the iPhone included.
+- **It installs the commit BugKit's config names for the app** (`~/.config/bug-kit/apps.json`'s `repo`, the main
+  checkout), whichever checkout runs it, and says so when that isn't this one.
 - **A deploy restarts the app.** It installs over the running app and relaunches it. Check that Igor isn't using the
   device (the iPad's newest session log, or his thread) and say in the thread when a deploy will restart it.
 - **`unavailable`** in `xcrun devicectl list devices`' State column (`connectionProperties.tunnelState` in its JSON) means
@@ -47,11 +54,30 @@ changes, instead of retrying the build. The pattern, by the device's name (no id
 
 ```bash
 until xcrun devicectl list devices 2>/dev/null | grep -F "iPad Air 11-inch (M3)" | grep -qv unavailable; do sleep 60; done
-~/gits/bug-kit/scripts/deploy-all.sh context-grabber --only ipad-air-11-inch-m3
+just deploy --only ipad
 ```
 
 Run it as a background task the lead can see and stop, not with `nohup`. The deploy still restarts the app when it
 lands, so the "is Igor using it" check applies when the device comes back, not when the watcher was started.
+
+### Which build is on the device: `just device-build-check`
+
+Story 1511 ([spec](superpowers/specs/2026-11-22-device-build-check-design.md)). Every install is in the deploys ledger
+(`~/tmp/agent/notes/lead-times/deploys.jsonl`): `cable` from `just native-run-device`, `network` from `just deploy`,
+and `ota_posted` from `just ota` (an offer: the iPad installs it when Igor taps it). `just device-build-check [ipad|phone]`
+reads each device's newest pulled session log (`just pull-logs` first) and compares the build it names with the last
+install:
+
+- **MATCH**: the device runs the build last installed, or a build posted over the air after it.
+- **MISMATCH**: it runs another build; both are named with their times, and the check exits 1. Find who installed it
+  before telling anyone what's on the device.
+- **NO SESSION YET**: no session has started since the install (the app hasn't opened).
+- **UNKNOWN**: no install recorded, or no logs pulled for the device.
+
+`just deploy` runs it itself after an install, pulling the logs until the session its launch starts shows up (up to
+`DEPLOY_CHECK_WAIT`, 120 s; a mismatch is polled through too, since an older session can be pulled first), and exits 1
+if it still mismatches at the deadline. **Before telling Igor or Larry which build a device is on,
+run it** rather than relying on memory.
 
 ## Over the air: `just ota`
 

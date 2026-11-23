@@ -28,6 +28,7 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-time-limit.sh`: the repo's own rung time limit, a hang and everything it started stopped (exit 124), a finished command's status kept, the lane count past it unchanged (stories 1505, 1506)
 - `scripts/native/test-host-lane.sh`: the host slots, six jobs on four, the wait, a killed holder (stories 795, 797, 798)
 - `scripts/native/test-ui-timings.sh`: the UI test timing digest against a real run's log
+- `scripts/native/test-device-build-check.sh`: the build each device last reported against the last install in the deploys ledger (match, mismatch, no session yet, over the air, unknown), and `just deploy` recording each installed device and checking its next session, with fakes (story 1511)
 - `scripts/native/test-ladder-report.sh`: the ladder report keeping a retry, a wrong-device skip and a missing deploy apart, on a fixture (#1038, story 1016)
 - `scripts/native/test-xcodebuild-log.sh`: the UI test run wrapper's time limit, retry, flake gate and quarantine (story 1017, after a hang too), hang stop (which waits for the result bundle to be written, story 790) start watchdog, a failure after the screen locked (story 1018), and on a locked screen the skip of the tests that open the mic and the mid-run stop while one is still to run (stories 1022, 1023, bead context-grabber-wm8y) against a fake xcodebuild
 - `scripts/native/test-own-child.sh`: the wrapper stops a watchdog at the end of a run only while it is still the wrapper's own child, so a number a watchdog left long ago, since given to another process on a busy Mac, isn't killed (bead context-grabber-tne1)
@@ -821,11 +822,13 @@ they name, the deploys ledger and the ladder logs, and writes `data.json` and a 
 minutes: asked, first commit, opened, merged, on a device. The ledger is `LEAD_TIMES_DEPLOYS` (default
 `~/tmp/agent/notes/lead-times/deploys.jsonl`), the ladder logs are `*ladder*.log` in `LEAD_TIMES_LADDER_LOGS` (default
 `~/tmp/agent/notes`), and the output goes to `LEAD_TIMES_OUT` (default `~/tmp/agent/notes/lead-times`), never the repo.
-Only a cable install (`cable`) or a build TestFlight offers (`testflight_available`) counts as on a device; an upload
+Only a cable or network install (`cable`, `network`) or a build TestFlight offers (`testflight_available`) counts as on
+a device; an upload
 (`testflight_upload`) has its own column (#1038).
 
 The ledger is written by `scripts/native/record-deploy.sh <phone|ipad|testflight> <sha> [kind]`: `just
-native-run-device` records each cable install, `just testflight` its upload, and the day TestFlight offers the build
+native-run-device` records each cable install, `just deploy` each network install, `just ota` the build it posts
+(`ota_posted`, story 1511), `just testflight` its upload, and the day TestFlight offers the build
 is recorded by hand with `testflight_available`. Until 2026-11-21 the recorder was a mac-driver script that was never
 checked out on this Mac, so no install had been recorded.
 

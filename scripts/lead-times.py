@@ -28,7 +28,7 @@ SCREEN_DIRS = ("native/App/", "native/UITests/", "native/Widgets/", "native/Shar
 PAGE = 30
 SLEPT_S = 3000  # a single rung over this was a slept or hung Mac, not a real run
 DEPLOY_LOG_START = "2026-11-14"
-ON_DEVICE = {"cable", "testflight_available"}  # the deploys ledger's kinds that put a build on a device (#1038)
+ON_DEVICE = {"cable", "network", "testflight_available"}  # the deploys ledger's kinds that put a build on a device (#1038)
 
 
 def gql(query, **variables):
