@@ -1,8 +1,10 @@
 # Reviewing each writing session on a board
 
-**Status: draft, waiting on Igor's approval.** Plan:
-[2026-11-23-board-interaction-review-plan.md](../plans/2026-11-23-board-interaction-review-plan.md). No stories yet:
-they are reserved once this is approved.
+**Status: approved by Igor, 2026-11-23** ("That design is approved, and it should work on the web board as well"),
+with the proposed answers to his open questions (see *Decisions*). Plan:
+[2026-11-23-board-interaction-review-plan.md](../plans/2026-11-23-board-interaction-review-plan.md). Stories 1237–1262
+in [storage, sync and the log](../../stories/10-whiteboard-storage-and-log.md#user-story-1237); bead
+`context-grabber-8ao5`.
 
 Igor, 2026-11-23: every writing session on a board should be reviewed afterwards for bugs, the ones insertion causes
 and the ones what he did causes, and it should be a shared core feature so the iPad and the web board both get it.
@@ -43,11 +45,11 @@ iPad and on the web board, because both ask the same rules.
 
 - Not fixing anything. A review reports; a fix is a bead and a story, as now.
 - Not judging the writing itself: what Igor wrote, its handwriting, its spelling or its sense.
-- Not filing GitHub issues or beads by itself (see *Open questions*).
+- Not filing GitHub issues or beads by itself (*Decisions*, 3).
 - Not a replacement for the session log or for BugKit's reports: those stay as they are, and a finding links to them
   where it can.
-- Not checking a surface for what it cannot see. The web board has no PaperKit, so a check that only the iPad can
-  observe reads *not checked* there, never *clean*.
+- Not checking a surface for what it cannot see. A check a surface did not record reads *not checked* there, and one
+  it saw only roughly reads *approximate*, never *clean*.
 - Not the Cockpit's own failures (Larry not answering, an HTTP 502). Those are already reported elsewhere.
 
 ## What a session is, and what is recorded
@@ -79,13 +81,13 @@ For each step the record keeps:
   after, whether kept ink drew whole and in its colour. Each surface records what it can, and says what it couldn't.
 
 The record holds board geometry, not pixels or words: what Igor wrote is in it only as strokes, as the board itself
-holds it. It stays on the device that made it (see *Open questions* for how long).
+holds it. It stays on the device that made it, for 14 days, and never syncs (*Decisions*, 2).
 
 ## When a review runs
 
 Both:
 
-- **On its own**, once the board has been idle for a while after writing (proposed: five minutes with no step), and
+- **On its own**, once the board has been idle for five minutes after writing (five minutes with no step), and
   when the board closes after a session with at least one step. A session cut short by the app closing is reviewed
   the next time the board opens.
 - **On demand**, from the board's menu: *Review this session*. It reviews the session so far, and again from its
@@ -104,7 +106,12 @@ happened with what the record says did. Every finding gets one of three verdicts
   knows it was seen, never counted as a bug.
 - **Unclear**: the review can't tell from the record whether Igor meant it. It asks him.
 
-And a check that the surface didn't record what it needs reads **not checked** for that session.
+A check also carries how well the surface could see, alongside its verdicts:
+
+- **Not checked**: the surface didn't record what the check needs, for that session. Never shown as clean.
+- **Approximate**: the surface recorded something close to what the check needs but not exactly it (the web board's
+  pen in hand, which it knows from the last input rather than from the tool held). A finding from an approximate
+  check is at most *unclear*, never a bug, and a clean approximate check says *approximate*, not clean.
 
 **Positions compare with a tolerance**: a move of under half a point is no move, and two things that only touch
 (share an edge) do not overlap. Both are far above the difference between the iPad's arithmetic and the web's, so a
@@ -177,14 +184,14 @@ session gives the same findings on both.
 - **Bug**: it went with nothing of his to end it and didn't come back.
 - **As designed**: it was taken (by the handwriting popover, say) and put back at once (stories 946, 949).
 - **Evidence**: the selection (what, how many), what took it, whether and when it came back.
-- Needs the surface's observation. The web board records it if it can (an *Open question* for Larry).
+- Needs the surface's observation. The web board records it if it can (*Larry's answer*, 7: it does).
 
 ### 8. A kept mark changed his pen
 
 - **Rule**: keeping a mark of Larry's leaves Igor holding the pen he held before: same tool, colour and width.
 - **Bug**: the pen after the keep differs, with no pen picked between.
 - **Evidence**: the keep, the pen before and after.
-- Needs the surface's observation.
+- Needs the surface's observation. On the web board it is approximate (*Larry's answer*, 8).
 
 ### 9. A kept mark drawn cut
 
@@ -193,28 +200,31 @@ session gives the same findings on both.
   redraws have had their chance.
 - **As designed**: it drew cut at first and a redraw healed it (counted, so a heal that is needed often shows).
 - **Evidence**: the keep, how much of the mark showed against how much should, its colour, the redraws tried.
-- Needs the surface's observation of what it drew.
+- Needs the surface's observation of what it drew. The web board records it from its keep (*Larry's answer*, 9).
 
 The first six are answered by the rules from the record alone, so they give the same answer wherever the record is
 replayed. The last three depend on what a surface saw, and are as good as its record of it.
 
 ## What Igor sees
 
-- **A quiet note per board.** After a review, the board's corner shows a small line, never a sheet or an alert:
-  *Reviewed · clean*, or *Reviewed · 1 to look at*. Findings marked *as designed* don't count toward it. The note
-  goes once he has opened it, or with his next stroke.
+- **A quiet note per board, only when there is something to look at.** After a review with a bug or an unclear
+  finding, the board's corner shows a small line, never a sheet or an alert: *Reviewed · 1 to look at*. Findings
+  marked *as designed* don't count toward it. A clean review of its own shows nothing at all; one he asked for from
+  the menu says *Reviewed · clean*, since he is waiting for an answer. The note goes once he has opened it, or with
+  his next stroke.
 - **The findings.** A tap on the note lists them, newest first: when, the check, the verdict, one line of what
   happened (*10 new strokes went into the fold under "Plans"*). A clean review lists what it checked and what it
   couldn't.
 - **Each finding copyable**, as every error in the app is: the check, the verdict, the step (its time, what it was,
   who started it), the evidence as above, the board and session, the build. Enough to file without the log.
 - **Replay that step.** Each finding has *Show me*: the board's playback opens at that step and shows the board just
-  before, then just after, with the ink the finding names marked. Unclear findings also offer *I meant that* and
+  before, then just after, with the ink the finding names marked. Ink erased in or before that step shows in the
+  *before*, as it was, because the review is honest about what happened. Unclear findings also offer *I meant that* and
   *Not what I meant*.
 
 ## How Larry gets findings
 
-- With the next picture of that board he receives, a short list of the session's findings: counts by check and
+- With the next picture of that board he receives (not a post of its own, and not only on the Cockpit's debug page), a short list of the session's findings: counts by check and
   verdict, then each finding that is a bug or unclear, as its copyable text. A clean session is one line.
 - Igor's answers to unclear findings go with them, so Larry learns what Igor meant.
 - The web board's reviews reach Larry the same way, so a finding is a finding whichever surface found it.
@@ -236,8 +246,8 @@ replayed. The last three depend on what a surface saw, and are as good as its re
 - A record made on either surface reviews to the same findings on the other: replay the iPad's session on the web or
   the web's on the Mac, and the list is the same.
 - What differs is only what a surface can see. The web board has no handwriting reflow, popover or PaperKit
-  drawing, so those steps never happen there, and the checks that need a surface's eyes say what it observed or
-  read *not checked*.
+  drawing, so those steps never happen there. It observes all three checks that need a surface's eyes, the pen in
+  hand only approximately, so check 8 reads *approximate* there.
 - The web board's recording, its note and its findings list are Larry's to build; the record's form, the checks and
   their verdicts are shared.
 
@@ -257,23 +267,32 @@ replayed. The last three depend on what a surface saw, and are as good as its re
   selection dragged, a room asked for, a fold asked for) is not flagged.
 - The same records reviewed on the Mac and through the web board's rules give the same findings, verdict for
   verdict.
-- A check the surface didn't record reads *not checked*, never clean.
+- A check the surface didn't record reads *not checked*, and one it saw only roughly reads *approximate*; neither
+  ever reads clean. An approximate check never calls a bug.
 - Every finding copies as text with the step, the rule and the evidence.
 - The recorded sessions used as tests are scrubbed as the board sessions already are: no words, and strokes reduced to
   their geometry.
 
-## Open questions for Igor
+## Decisions
 
-1. **How long is idle?** Five minutes is proposed. Shorter means findings sooner and more reviews of half-finished
-   work; longer means he may have left the board.
-2. **How long is a record kept, and where?** Proposed: on the device that made it, for 14 days, deleted with the board.
-   It never syncs. Keeping it longer gives Larry more to compare; it is Igor's writing, as geometry.
-3. **Does a finding ever file anything by itself?** Proposed: no. He copies it, or tells Larry, and a bead is filed
-   from there. An automatic bead for every bug is the other choice.
-4. **Larry's channel:** with the next picture (proposed), a post to the board's thread, or only on the Cockpit's board
-   debug page?
-5. **Does *Show me* show erased ink?** The step before an erase had it; showing it is honest about what happened, and
-   it shows ink he chose to remove.
-6. **Is the note too much?** A clean review could show nothing at all, and only a finding show a note.
-7. **For Larry: what can the web board record** for the three checks that need a surface's eyes (a selection held,
-   the pen in hand, the kept mark drawn), given that its pen, lasso and Undo are the page's own?
+Igor approved the spec on 2026-11-23 with the proposed answers to his questions:
+
+1. **Idle is five minutes** with no step. A review also runs when the board closes.
+2. **A record is kept on the device that made it, for 14 days**, and deleted with its board. It never syncs.
+3. **A finding never files anything by itself.** It is copied, or sent to Larry, and a bead is filed from there.
+4. **Larry gets the findings with the board's next picture.**
+5. ***Show me* shows ink that was erased**, in the *before* of the step that erased it.
+6. **A clean review shows nothing.** Only a finding to look at puts a note on the board (or a review he asked for).
+
+## Larry's answer: what the web board observes
+
+Larry, 2026-11-23, answering question 7: the web board can supply all three checks that need a surface's eyes.
+
+7. **A selection held: yes.** The page holds the lasso's selection until it is cleared and logs every change to it.
+8. **The pen in hand: approximate.** The page knows the pen type of every stroke, but between strokes it can see the
+   Pencil only on iPads that report hovering, so the web board says *the last input was the Pencil within a few
+   seconds*. Check 8 on the web board reads *approximate*, never *not checked*.
+9. **A kept mark drawn whole: yes.** A keep takes a mark as one group with one Undo, and the page logs the keep and its
+   ids.
+
+So the web board reports all nine checks, with check 8 marked approximate.

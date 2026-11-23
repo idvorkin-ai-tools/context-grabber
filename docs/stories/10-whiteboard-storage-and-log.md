@@ -7,7 +7,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 [paste](../superpowers/specs/2026-11-02-whiteboard-paste-design.md),
 [question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md),
 [to text and snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md),
-[reword and live snap](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md).
+[reword and live snap](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md),
+[reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md).
 
 ---
 
@@ -491,3 +492,523 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a tap on one of Larry's controls sends the events at once, with a `mic` event waiting
 - **When:** they go
 - **Then:** the post names the build too, and the waiting `mic` event goes with them
+
+---
+
+### User Story 1237:
+
+- **Summary:** A board idle for five minutes after writing is reviewed
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
+
+#### Use Case:
+- **As someone** someone who writes on a board and moves on
+- **I want to** have each session looked over without asking
+- **so that** an insertion bug that hid or moved my writing doesn't go unnoticed
+
+#### Acceptance Criteria:
+- **Scenario:** Idle after writing
+- **Given:** I wrote on a board
+- **When:** five minutes pass with no step
+- **Then:** the session is reviewed in the background, and writing is never held up
+
+---
+
+### User Story 1238:
+
+- **Summary:** Closing a board reviews its session
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
+
+#### Use Case:
+- **As someone** someone who closes a board soon after writing
+- **I want to** have that session reviewed too
+- **so that** a short session still gets looked at
+
+#### Acceptance Criteria:
+- **Scenario:** Closing
+- **Given:** a session with at least one step of mine
+- **When:** I close the board
+- **Then:** the session is reviewed, and a session cut short by the app closing is reviewed the next time the board opens
+
+---
+
+### User Story 1239:
+
+- **Summary:** A board only looked at is not reviewed
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
+
+#### Use Case:
+- **As someone** someone who opens a board just to read it
+- **I want to** have nothing reviewed
+- **so that** the review never speaks about sessions with nothing of mine in them
+
+#### Acceptance Criteria:
+- **Scenario:** Looking only
+- **Given:** a board opened with no stroke, choice or keep of mine
+- **When:** it closes
+- **Then:** no review runs and nothing shows
+
+---
+
+### User Story 1240:
+
+- **Summary:** Review this session, from the board's menu
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
+
+#### Use Case:
+- **As someone** someone who just saw something odd on the board
+- **I want to** review the session so far on demand
+- **so that** I don't have to wait five minutes to find out
+
+#### Acceptance Criteria:
+- **Scenario:** On demand
+- **Given:** a session with steps
+- **When:** I choose *Review this session*
+- **Then:** the findings are the same as the automatic review of the same session gives, and asking twice gives the same findings
+
+---
+
+### User Story 1241:
+
+- **Summary:** A review never changes the board
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Goals*
+
+#### Use Case:
+- **As someone** someone writing while a review runs
+- **I want to** have the board untouched by it
+- **so that** a review can never become a bug of its own
+
+#### Acceptance Criteria:
+- **Scenario:** Reviewing
+- **Given:** a session reviewed
+- **When:** the review finishes
+- **Then:** the board, its Undo stack and its folds are as they were before it
+
+---
+
+### User Story 1242:
+
+- **Summary:** A clean review shows nothing
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 6
+
+#### Use Case:
+- **As someone** someone whose sessions are almost always fine
+- **I want to** see nothing when nothing went wrong
+- **so that** the board stays quiet
+
+#### Acceptance Criteria:
+- **Scenario:** Clean
+- **Given:** a session where every check is clean or as designed
+- **When:** its automatic review finishes
+- **Then:** no note shows; a review I asked for from the menu says *Reviewed · clean*
+
+---
+
+### User Story 1243:
+
+- **Summary:** A finding puts a quiet note on the board
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*
+
+#### Use Case:
+- **As someone** someone whose writing a step mishandled
+- **I want to** see a small note, never an alert
+- **so that** I can look when I'm ready
+
+#### Acceptance Criteria:
+- **Scenario:** Something to look at
+- **Given:** a review with one bug or unclear finding
+- **When:** it finishes
+- **Then:** the board's corner says *Reviewed · 1 to look at*, as designed findings don't count, and the note goes once opened or with my next stroke
+
+---
+
+### User Story 1244:
+
+- **Summary:** Each finding is listed and copyable
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*
+
+#### Use Case:
+- **As someone** someone who wants to report what the review found
+- **I want to** copy a finding with its step and evidence
+- **so that** I can file it without reading the log
+
+#### Acceptance Criteria:
+- **Scenario:** Copying
+- **Given:** the note shows
+- **When:** I open it and copy a finding
+- **Then:** the text names the check, the verdict, the step's time, what it was and who started it, the evidence, the board, the session and the build
+
+---
+
+### User Story 1245:
+
+- **Summary:** Show me replays the step, erased ink included
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 5
+
+#### Use Case:
+- **As someone** someone looking at a finding
+- **I want to** see the board just before and just after its step
+- **so that** I can judge it with my own eyes
+
+#### Acceptance Criteria:
+- **Scenario:** Show me
+- **Given:** a finding about a step that erased ink
+- **When:** I tap *Show me*
+- **Then:** playback opens at that step showing the board before, with the erased ink as it was, then after, with the ink the finding names marked
+
+---
+
+### User Story 1246:
+
+- **Summary:** Answering an unclear finding
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *False positives*
+
+#### Use Case:
+- **As someone** someone the review asks whether he meant a move
+- **I want to** answer *I meant that* or *Not what I meant*
+- **so that** Larry and the review learn what I meant
+
+#### Acceptance Criteria:
+- **Scenario:** Answering
+- **Given:** an unclear finding in the list
+- **When:** I answer it
+- **Then:** it leaves the note, stays in the list marked with my answer, and my answer goes to Larry with the findings
+
+---
+
+### User Story 1247:
+
+- **Summary:** Larry gets the findings with the board's next picture
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *How Larry gets findings*; *Decisions*, 4
+
+#### Use Case:
+- **As someone** someone whose coach watches the board
+- **I want to** have Larry see each session's findings
+- **so that** he can raise them with me
+
+#### Acceptance Criteria:
+- **Scenario:** To Larry
+- **Given:** a reviewed session
+- **When:** the board's next picture goes to Larry
+- **Then:** it carries the counts by check and verdict and each bug or unclear finding as its copyable text, or one line for a clean session
+
+---
+
+### User Story 1248:
+
+- **Summary:** A session's record stays on its device for 14 days
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What a session is*; *Decisions*, 2
+
+#### Use Case:
+- **As someone** someone whose writing is in each record, as geometry
+- **I want to** keep the record on the device that made it
+- **so that** my writing goes nowhere new
+
+#### Acceptance Criteria:
+- **Scenario:** Keeping
+- **Given:** a record made on the iPad
+- **When:** 14 days pass, or its board is deleted
+- **Then:** the record is deleted, and it never synced to another device
+
+---
+
+### User Story 1249:
+
+- **Summary:** A finding never files anything by itself
+- **Status:** not implemented; asks: bead context-grabber-8ao5.2
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Decisions*, 3
+
+#### Use Case:
+- **As someone** someone who decides what is worth fixing
+- **I want to** have nothing filed for me
+- **so that** beads and issues stay the ones I meant
+
+#### Acceptance Criteria:
+- **Scenario:** A bug found
+- **Given:** a review with a bug
+- **When:** it finishes
+- **Then:** no bead or GitHub issue is filed; the finding can be copied or sent to Larry
+
+---
+
+### User Story 1250:
+
+- **Summary:** New writing hidden inside a fold is a bug
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 1
+
+#### Use Case:
+- **As someone** someone writing near a folded header
+- **I want to** be told when new ink went straight into a fold
+- **so that** I never lose writing I can't see
+
+#### Acceptance Criteria:
+- **Scenario:** Into a fold
+- **Given:** a step that only added ink
+- **When:** the ink is hidden the moment it lands, or a fold holds it with no fold step
+- **Then:** the review calls it a bug with the step, the header, the strokes and the fold's count before and after
+
+---
+
+### User Story 1251:
+
+- **Summary:** Writing the board placed on ink is a bug
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 2
+
+#### Use Case:
+- **As someone** someone whose board places pastes, drops and Larry's marks
+- **I want to** be told when one landed on ink that showed
+- **so that** nothing I wrote is covered
+
+#### Acceptance Criteria:
+- **Scenario:** Under ink
+- **Given:** a paste, drop, keep or text of Larry's
+- **When:** its ink crosses ink that showed before, past the tolerance, and the rules' room didn't open
+- **Then:** the review calls it a bug; my own pen writing over ink is never a finding
+
+---
+
+### User Story 1252:
+
+- **Summary:** My ink moved without my aim is a bug, or asked about
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 3
+
+#### Use Case:
+- **As someone** someone whose strokes should move only when I move them
+- **I want to** be told when they moved anyway
+- **so that** I trust the board with my writing
+
+#### Acceptance Criteria:
+- **Scenario:** Moved
+- **Given:** a step not aimed at my strokes
+- **When:** they move, or a push moves them other than the rules say
+- **Then:** the review calls it a bug, or *unclear* when the system moved them from a handle with no selection of mine
+
+---
+
+### User Story 1253:
+
+- **Summary:** Both owners' ink left moved together is a bug
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 4
+
+#### Use Case:
+- **As someone** someone sharing a board with Larry
+- **I want to** be told when one step moved his ink and mine together
+- **so that** the owners-apart rule is checked every session
+
+#### Acceptance Criteria:
+- **Scenario:** Both owners
+- **Given:** a step I didn't aim at both
+- **When:** ink of both owners stays moved after it settles
+- **Then:** the review calls it a bug; owners put apart by the rules read *as designed* (story 1145)
+
+---
+
+### User Story 1254:
+
+- **Summary:** A fold that swallowed newer ink is a bug
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 5
+
+#### Use Case:
+- **As someone** someone who writes under a folded header
+- **I want to** be told when folding again hid that writing
+- **so that** story 1231 is checked every session
+
+#### Acceptance Criteria:
+- **Scenario:** Refolding
+- **Given:** ink written under a header after its last fold
+- **When:** a fold step hides it
+- **Then:** the review calls it a bug with the extra ink's ids, times and box
+
+---
+
+### User Story 1255:
+
+- **Summary:** An Undo that didn't put the board back is a bug
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 6
+
+#### Use Case:
+- **As someone** someone who undoes a step
+- **I want to** be told when the board isn't as it was
+- **so that** Undo stays trustworthy
+
+#### Acceptance Criteria:
+- **Scenario:** Undo
+- **Given:** a step undone
+- **When:** the board differs from before that step past the tolerance, or the Undo took back another step
+- **Then:** the review calls it a bug naming what differs
+
+---
+
+### User Story 1256:
+
+- **Summary:** A selection lost with nothing of mine is a bug
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 7
+
+#### Use Case:
+- **As someone** someone who selected ink
+- **I want to** be told when the selection vanished on its own
+- **so that** I'm never left acting on nothing
+
+#### Acceptance Criteria:
+- **Scenario:** Lost
+- **Given:** a selection of mine
+- **When:** it goes with nothing of mine to end it and doesn't come back
+- **Then:** the review calls it a bug; one taken and put back at once reads *as designed*
+
+---
+
+### User Story 1257:
+
+- **Summary:** Keeping a mark that changed my pen is a bug
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 8
+
+#### Use Case:
+- **As someone** someone who keeps Larry's marks mid-writing
+- **I want to** be told when a keep left me a different pen
+- **so that** I keep writing with the pen I chose
+
+#### Acceptance Criteria:
+- **Scenario:** Pen
+- **Given:** the pen before a keep
+- **When:** the pen after differs with no pen picked between
+- **Then:** the review calls it a bug, or at most *unclear* where the surface knows the pen only approximately
+
+---
+
+### User Story 1258:
+
+- **Summary:** A kept mark drawn cut or in the wrong colour is a bug
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 9
+
+#### Use Case:
+- **As someone** someone who keeps Larry's marks
+- **I want to** be told when one drew partly or in black
+- **so that** his marks show as he made them
+
+#### Acceptance Criteria:
+- **Scenario:** Drawn
+- **Given:** a kept mark
+- **When:** after the board's redraws it is missing part, or in another colour
+- **Then:** the review calls it a bug; one a redraw healed reads *as designed*
+
+---
+
+### User Story 1259:
+
+- **Summary:** Moves within half a point, and edges that only touch, are no finding
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*
+
+#### Use Case:
+- **As someone** someone reviewed on the iPad and the web
+- **I want to** have arithmetic noise never called a bug
+- **so that** both surfaces agree
+
+#### Acceptance Criteria:
+- **Scenario:** Tolerance
+- **Given:** a stroke moved 0.4 pt, or two boxes that share an edge
+- **When:** the session is reviewed
+- **Then:** neither is a finding
+
+---
+
+### User Story 1260:
+
+- **Summary:** A check a surface can't see reads not checked or approximate
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*; *Larry's answer*
+
+#### Use Case:
+- **As someone** someone reading a review
+- **I want to** know what it couldn't see
+- **so that** a check it skipped never reads as clean
+
+#### Acceptance Criteria:
+- **Scenario:** Not seen
+- **Given:** a record with no observation for a check, or only an approximate one
+- **When:** it is reviewed
+- **Then:** that check reads *not checked*, or *approximate*, never clean, and an approximate check never calls a bug
+
+---
+
+### User Story 1261:
+
+- **Summary:** The same session gives the same findings on the iPad and the web board
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The iPad and the web board, through one core*
+
+#### Use Case:
+- **As someone** someone who writes on the iPad and the web board
+- **I want to** get the same review wherever a session is replayed
+- **so that** a finding is a finding whichever surface found it
+
+#### Acceptance Criteria:
+- **Scenario:** Replayed
+- **Given:** one session's record
+- **When:** it is reviewed on the Mac and through the web board's rules
+- **Then:** the findings match verdict for verdict
+
+---
+
+### User Story 1262:
+
+- **Summary:** The 2026-11-23 iPad sessions review to the manual verdict
+- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Acceptance criteria*
+
+#### Use Case:
+- **As someone** someone who reviewed those sessions by hand
+- **I want to** have the review reach the same answer
+- **so that** the review is trusted on real sessions
+
+#### Acceptance Criteria:
+- **Scenario:** Real sessions
+- **Given:** the two iPad sessions of 2026-11-22 and 2026-11-23, scrubbed
+- **When:** they are reviewed
+- **Then:** no bug; the 05:15 reflow *as designed* (story 1145); the 05:28 knob stretch *unclear*; the keeps clean; the selections lost to the popover *as designed*

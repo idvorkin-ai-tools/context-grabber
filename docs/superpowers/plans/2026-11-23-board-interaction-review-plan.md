@@ -1,8 +1,7 @@
 # Plan: reviewing each writing session on a board
 
-Spec: [2026-11-23-board-interaction-review-design.md](../specs/2026-11-23-board-interaction-review-design.md). Draft,
-waiting on Igor's approval of the spec; stories are reserved (`scripts/native/story-ids.py reserve 10-whiteboard-…`)
-and beads filed only once it is approved. Evidence the checks are built from: the manual review of 2026-11-23
+Spec: [2026-11-23-board-interaction-review-design.md](../specs/2026-11-23-board-interaction-review-design.md). Approved
+2026-11-23; stories 1237–1262, epic bead `context-grabber-8ao5` (part 1 `.1`, part 2 `.2`). Evidence the checks are built from: the manual review of 2026-11-23
 (`~/tmp/agent/notes/ipad-writing-review-2026-11-23.md`) and the event catalogue in `docs/debugging/whiteboard.md`.
 
 Four pieces, in this order. Each lands as its own PR; the record's form (slice 1) goes first because the other three
@@ -15,13 +14,13 @@ network, no clock read inside a check; the whiteboard file rule, one file per pi
 
 | File | What |
 |---|---|
-| `BoardSessionRecord.swift` | The record: a header (board id, surface `ipad`/`web`, build, contract version, the starting board in the `bw_outline_load` form), then steps as JSONL. A step: `t` (unix ms), `kind`, `by` (`pencil`, `finger`, `menu`, `larry`, `claude`, `rule`, `system`), `aim` (ids or a box), `changes` (per id: owner, before/after box and transform, hidden), `folds` (before/after per header: held ids), `undo_name`, and `seen` (surface observations: `selection_held`, `pen_before`/`pen_after`, `kept_drawn` {`span`, `whole_span`, `dark_px`, `heals`}), each absent when not observed. Codable, versioned |
-| `BoardReview.swift` | `BoardReview.run(record) -> BoardReviewReport`: replays the steps on a `BoardOutline` built from the starting board, asks the existing rules for each step's prediction, and runs the checks. A report: findings (`check`, `verdict` bug/asDesigned/unclear, `step` index and `t`, `story`, `evidence` as ordered key/values) and per check `checked`/`notChecked` |
+| `BoardSessionRecord.swift` | The record: a header (board id, surface `ipad`/`web`, build, contract version, the starting board in the `bw_outline_load` form), then steps as JSONL. A step: `t` (unix ms), `kind`, `by` (`pencil`, `finger`, `menu`, `larry`, `claude`, `rule`, `system`), `aim` (ids or a box), `changes` (per id: owner, before/after box and transform, hidden), `folds` (before/after per header: held ids), `undo_name`, and `seen` (surface observations: `selection_held`, `pen_before`/`pen_after` (with `pen_approx` when the surface knows the pen only from its last input, the web board), `kept_drawn` {`span`, `whole_span`, `dark_px`, `heals`}), each absent when not observed. Codable, versioned |
+| `BoardReview.swift` | `BoardReview.run(record) -> BoardReviewReport`: replays the steps on a `BoardOutline` built from the starting board, asks the existing rules for each step's prediction, and runs the checks. A report: findings (`check`, `verdict` bug/asDesigned/unclear, `step` index and `t`, `story`, `evidence` as ordered key/values) and per check `checked`/`approximate`/`notChecked` (an approximate check's finding is at most `unclear`) |
 | `BoardReview+Placement.swift` | Checks 1 (inside a fold) and 2 (under ink), using `BoardRoom`, paste `place`, `drop` and the late-reply rule for the predicted room |
 | `BoardReview+Moves.swift` | Checks 3 (Igor's ink moved) and 4 (both owners), using the owners-apart rule and the room and fold shift predictions; intent = `aim` ∪ predicted push/slide |
 | `BoardReview+Folds.swift` | Check 5, against `BoardOutline`'s fold with the header's recorded `ends` (story 1231) |
 | `BoardReview+Undo.swift` | Check 6: keeps a board snapshot per step and compares an Undo's result with the snapshot before the step it named |
-| `BoardReview+Seen.swift` | Checks 7–9, read only from `seen`; absent means `notChecked` |
+| `BoardReview+Seen.swift` | Checks 7–9, read only from `seen`; absent means `notChecked`, `pen_approx` makes check 8 `approximate` |
 | `BoardReviewText.swift` | The copyable text of a finding and the one-line summary for Larry, so both surfaces print the same words |
 
 - **Tolerance** in one place: 0.5 pt for a move, edge-touching is no overlap (the rules already decide meeting the
@@ -44,19 +43,18 @@ App files, each its own `+Review` extension:
 | `native/App/Whiteboard/BoardReviewNote.swift` | The corner note and the findings list; each finding a `BugProblemView`-style copyable block; *Show me* opens `BoardPlayback` at the step with before/after and the named ids marked; *I meant that* / *Not what I meant* |
 
 - **Storage**: the record and report beside the board, device-only (not in the board's iCloud files), pruned at
-  launch after the retention Igor picks (open question 2).
+  launch after 14 days (Igor's decision 2).
 - **Log**: `whiteboard` action `board_review` with board, session, steps, per-check counts by verdict, `not_checked`,
   `ms`; `board_review_answer` when Igor answers an unclear finding. Added to `docs/debugging/whiteboard.md`.
-- **To Larry**: the summary from `BoardReviewText` rides the next picture's post for that board (open question 4 may
-  move it).
+- **To Larry**: the summary from `BoardReviewText` rides the next picture's post for that board (Igor's decision 4).
 - **Menu**: *Review this session* in the board's menu.
 
 ## Slice 3: the web board (Larry's)
 
 - The Cockpit's web board writes the same record (slice 1's form, `surface: "web"`), calls `bw_review` at idle and on
   demand, and shows its own note and list from the report.
-- Its pen, lasso and Undo are the page's own, so it fills `seen` where it can (open question 7) and leaves the rest
-  absent, which the engine reports as *not checked*.
+- Its pen, lasso and Undo are the page's own, so it fills `seen` as Larry answered (2026-11-23): the selection and the
+  kept mark exactly, the pen with `pen_approx`, which the engine reports as *approximate*.
 - No app change is needed for it beyond slice 1; the app side only keeps `bw_review` and the record form stable.
 
 ## Slice 4: tests on recorded sessions
