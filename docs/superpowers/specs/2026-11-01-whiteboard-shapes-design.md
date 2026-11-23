@@ -198,14 +198,13 @@ suggest changes the board until Igor keeps it.
 - A ghost turn gives up **10 s** after it was asked, however much has arrived by then (the Cockpit's model takes about
   3 s, and an answer to an older drawing still lands where that drawing was). If no mark has arrived, none is shown and
   the bar says *Ghosts: the Cockpit isn't answering*. **An answer cut off after a mark has arrived is no failure**: the
-  marks already drawn stay, and the bar says nothing. A turn sent away (*Ask at my pauses* off) stops showing marks at
-  once, even with more on the way. A turn the Cockpit says came too soon (it
-  takes one every 2 s) is quietly skipped: the bar says nothing and the ghosts on the board stay.
+  marks already drawn stay, and the bar says nothing. A turn the Cockpit says came too soon (it takes one every 2 s)
+  is quietly skipped: the bar says nothing and the ghosts on the board stay.
 - **Ask at my pauses** is a switch in the board's bar, on by default and remembered. Until 2026-11-22 it was called
   *Ghosts* and read as Claude's alone (bead context-grabber-4ic; Igor, design board: "the switch becomes 'Ask at my
   pauses' for whoever answers"). It is about whoever answers the board, Larry or Claude. Off, nothing is asked after a
-  pause, whoever the responder is. Claude's ghosts go and a suggestion on its way is dropped. Larry's marks already
-  showing stay. *Larry's turn* and *Send to Larry* still go when tapped.
+  pause, whoever the responder is. Claude's ghosts go at once and any more from that turn are dropped. Larry's
+  marks already showing stay. *Larry's turn* and *Send to Larry* still go when tapped.
   - VoiceOver reads *Ask at my pauses: on* or *Ask at my pauses: off*, followed by the number of marks showing if any.
     The icon is sparkles when on and a crossed-out eye when off. See [the whiteboard design](2026-11-01-whiteboard-design.md)
     for the long-press menu and help sheet.

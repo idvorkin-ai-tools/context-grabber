@@ -532,7 +532,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Use Case:
 - **As someone** who sees a sparkle and a hand in the board's bar
 - **I want to** find out what each one does without trying it
-- **so that** I don't send Larry a picture or turn off Claude's suggestions by accident
+- **so that** I don't send Larry a picture or accidentally stop the board from asking at my pauses
 
 #### Acceptance Criteria:
 - **Scenario:** Long press the sparkle
@@ -1036,7 +1036,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 950:
 
 - **Summary:** The board's cheat sheet is one tap away
-- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) the ? opened *How this board works* listing every gesture the test names; its close and the fixed test's full pass not yet seen (the Mac's screen was locked for the rerun). The *Ask at my pauses* row was added in [f77304bd](https://github.com/idvorkin/context-grabber/commit/f77304bd) (see [story 1171](#user-story-1171) for simulator coverage). Not yet seen on the iPad
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408) and [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c), verified on the host and the Mac build. The *Ask at my pauses* row was added in [f77304bd](https://github.com/idvorkin/context-grabber/commit/f77304bd). On the iPad simulator, `WhiteboardHelpFeedbackUITests.testTheCheatSheetIsOneTap` checked that the sheet opens, lists the row and closes (see [story 1171](#user-story-1171) for the pre-rebase run). Not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 
 #### Use Case:

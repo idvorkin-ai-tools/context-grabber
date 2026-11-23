@@ -33,7 +33,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public private(set) var unsaid: String?
   /// The last turn in a line: Larry's words or ghosts not answering.
   public var note: String?
-  /// A stroke landed with Ghosts off since they last came on (story 1116).
+  /// At least one stroke landed since the pause switch was turned off (story 1116).
   public private(set) var writingUnwatched = false
   /// When Claude's ghosts go if nothing replaces them (story 358).
   public private(set) var fadeAt: ContinuousClock.Instant?
@@ -52,8 +52,8 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
 
   // MARK: Drawing and the pause
 
-  /// A stroke drawn or pasted. True: start Claude's pause. With Ghosts off nothing is asked, and the note says no one
-  /// is watching until Ghosts come back on (story 1114).
+  /// Registers ink drawn or pasted. Returns true if a pause should start. While the switch is off, the note says no
+  /// one is watching (story 1114).
   public mutating func stroked() -> Bool {
     guard on else {
       note = WhiteboardTurn.writingGhostsOff
@@ -110,7 +110,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   // MARK: Speech
 
   public enum Spoken: String, Sendable {
-    /// Ghosts off: nothing asked, and the words aren't kept for later.
+    /// Discard the words because the pause switch is off.
     case ghostsOff = "ghosts_off"
     /// Ask now: the caller cancels a waiting pause, since this turn's picture has its strokes.
     case now
@@ -118,14 +118,13 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     case held
   }
 
-  /// The board's mic may open: with Ghosts off it would hear words and reach no one, so it doesn't, and the note says
-  /// why (#824).
+  /// Reports whether the board's mic may open and sets a notice if the pause switch is off (#824).
   public mutating func micMayOpen() -> Bool {
     if !on { note = WhiteboardTurn.micGhostsOff }
     return on
   }
 
-  /// Ghosts went off with the mic open: it closes, and the note says why (#824).
+  /// Sets the notice when turning off the pause switch closes the mic (#824).
   public mutating func micClosedByGhostsOff() { note = WhiteboardTurn.micGhostsOff }
 
   /// He stopped talking (stories 345, 367).
@@ -162,7 +161,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   }
 
   public struct Answered: Equatable, Sendable {
-    /// Asked before a dismissal or Ghosts off: nothing of it shows.
+    /// The answer was requested before a dismissal or before the pause switch was turned off.
     public var stale = false
     /// Marks to land as the answer's first: a plain answer's, or a stream's empty set, which clears Claude's. A
     /// stream's marks landed as they came.
@@ -176,7 +175,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     public var cancelled = false
   }
 
-  /// How the turn's answer lands. Words that didn't get through go with the next turn, unless Ghosts went off meanwhile.
+  /// Words that didn't get through go with the next turn unless the pause switch was turned off meanwhile.
   public mutating func answered(
     _ answer: WhiteboardTurn.Answer, who: WhiteboardTurn.Who, asked generation: Int, streamed: Bool, said: String?
   ) -> Answered {

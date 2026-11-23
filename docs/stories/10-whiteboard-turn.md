@@ -465,18 +465,18 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 376:
 
 - **Summary:** A turn sent away shows no more marks
-- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); not covered by a test; to see on the iPad
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20). The switch dropping a pending answer is covered by the host test `WhiteboardGhostTurnsTests.testGhostsOffMidTurnMakesItsAnswerStaleAndForgetsTheOwedAsk`. See [story 825](10-whiteboard-marks.md#user-story-825) for the later change to taps outside marks. To see on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** drawing with Claude beside me
-- **I want to** have a dismissal stop the marks still on their way
+- **I want to** stop the marks still on their way when I turn off *Ask at my pauses*
 - **so that** what I sent away doesn't come back
 
 #### Acceptance Criteria:
 - **Scenario:** Sent away part way
-- **Given:** marks are arriving
-- **When:** I tap off them or turn *Ask at my pauses* off
+- **Given:** Claude's marks are arriving
+- **When:** I turn *Ask at my pauses* off
 - **Then:** they go and no more of that turn's marks appear
 
 ---

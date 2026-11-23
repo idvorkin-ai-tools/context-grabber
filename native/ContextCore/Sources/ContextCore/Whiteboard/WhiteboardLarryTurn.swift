@@ -132,7 +132,8 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
     return true
   }
 
-  /// Ghosts off: what pauses kept for the next picture is forgotten. A turn already out stays out.
+  /// Turning off the pause switch forgets ink and words waiting for the next picture. Larry can still answer a turn
+  /// already sent.
   public mutating func dropped() {
     latest = nil
     queued = nil
