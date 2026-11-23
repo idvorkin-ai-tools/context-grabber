@@ -370,6 +370,37 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1196:
+
+- **Summary:** A tap inside my own selection is always the selection's
+- **Status:** in progress on branch `native/selection-wins-tap-nkh`
+- **Issues:** bead context-grabber-nkh (read from the code on main, 2026-11-22, in the stories coherence pass, bead context-grabber-2qb; not reproduced on a device). The bead named this story 1153, which another story took first.
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on his own selection is still his*, *What the tap lands on inside it doesn't matter*
+
+#### Use Case:
+- **As someone** who lassoed several things at once, a group of Larry's and a kept text among them
+- **I want to** tap inside my selection and get its menu, whatever my finger lands on
+- **so that** the thing under my finger never takes my selection away or opens for rewording
+
+#### Acceptance Criteria:
+- **Scenario:** A tap on a group or a text inside a lasso selection
+- **Given:** no marks of Larry's showing, and a lasso selection round a kept group and a kept text
+- **When:** I tap with a finger inside the selection, on the group's stroke or on the text
+- **Then:** the whole selection stays and its menu shows; the group is not selected alone and the text does not open
+- **And:** the session log says `selection_kept_tap` with what the tap landed on
+
+- **Scenario:** The selection is the one thing tapped
+- **Given:** a group, a thing of Larry's or a text selected alone by an earlier tap
+- **When:** I tap its text again
+- **Then:** its words open, as before (stories 947, 1141)
+
+- **Scenario:** A tap outside the selection
+- **Given:** a lasso selection
+- **When:** I tap a group or a text outside it
+- **Then:** it behaves as before: the group is selected, the text opens or is picked up
+
+---
+
 ### User Story 968:
 
 - **Summary:** Delete on the selection's menu works while Larry's marks show

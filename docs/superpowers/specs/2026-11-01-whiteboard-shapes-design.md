@@ -184,6 +184,13 @@ suggest changes the board until Igor keeps it.
   that reaches a mark chooses that mark (and lets the selection go), and a tap off both the marks and the selection
   lets the selection go and puts Keep and Dismiss away, as before. The session log's tap line says whether the tap was
   inside the selection and whether the selection was kept.
+  - **What the tap lands on inside it doesn't matter** (context-grabber-nkh; Igor, 2026-11-22: "Igor's own selection
+    always wins a tap"). A lasso round several things (a group of Larry's, one of his things, a kept text, his own
+    ink) is one selection: a finger tap inside it on any of them keeps the whole selection and brings up its menu. It
+    does not select that group or thing alone, and it does not open the text's words. Only when the selection is
+    exactly the one thing tapped (a group or thing of Larry's picked up by an earlier tap, or one text) does the tap go
+    on to it: a second tap on a selected text opens its words, as before. A tap outside the selection does what it did
+    before. The session log says when a tap was kept by the selection and what it landed on.
 - **A tap on the selection's menu is the menu's, marks showing or not** (context-grabber-tcy0; Igor, 2026-11-22: "I'm
   gonna select this text, then hit delete... when I delete nothing happens"). With something selected (his ink, a text,
   a shape) and Larry's marks on the board, the small menu that floats beside the selection (Delete among it) does what
