@@ -60,7 +60,7 @@ final class WhiteboardDropRoomUITests: XCTestCase {
     let send = app.buttons["whiteboard-send"]
     waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 1 strokes"), send, timeout: 10)
     try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
-    app.buttons["whiteboard-larry"].tap()
+    send.tap()
     XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try post("/fake/larry-draws", #"{"count": 3}"#, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
