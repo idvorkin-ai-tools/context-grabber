@@ -94,17 +94,22 @@ final class WhiteboardDropRoomUITests: XCTestCase {
     PaperScreen.tap(app, CGPoint(x: kept.minX + 0.003, y: kept.center.y))
     XCTAssertTrue(app.buttons["whiteboard-to-text"].appears(within: 5), "the tap selected it: \(app.debugDescription)")
     sleep(2)
-    let dy = mine.center.y - kept.center.y
+    // PaperKit holds a drag about 20 points before the group starts to move (bead context-grabber-o1x8: 213 points of
+    // finger moved it 193 to 196). Aimed centre on centre it landed about 20 points high and only grazed the line, 2
+    // points either side of opening no room. Aim that much further so it lands across the line.
+    let slop = 20 / app.frame.height
+    let dy = mine.center.y - kept.center.y + slop
     let from = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y))
     let to = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y + dy))
     from.press(forDuration: 0.3, thenDragTo: to, withVelocity: 200, thenHoldForDuration: 0.5)
 
     let dropped = PaperScreen.showing(app, within: 10, { $0.larryKept }, { abs($0.center.y - mine.center.y) < 0.03 })
     let pushed = PaperScreen.showing(
-      app, within: 10, lower(below: 0.58), { box in dropped.map { box.minY > $0.maxY } ?? false })
+      app, within: 10, lower(below: 0.58),
+      { box in box.minY > mine.minY + 0.01 && (dropped.map { box.minY > $0.maxY } ?? false) })
     shot(app, "dropped on my line")
     let group = try XCTUnwrap(dropped, "the group stays where I let go")
-    let line = try XCTUnwrap(pushed, "my second line is still on screen")
+    let line = try XCTUnwrap(pushed, "my second line went down clear of the group (a drop that missed opens no room)")
     XCTAssertGreaterThan(line.minY, group.maxY, "my line moved down clear of the group: \(line) under \(group)")
     XCTAssertEqual(line.maxX, mine.maxX, accuracy: 0.01, "straight down")
     let above = PaperScreen(app).ink(in: PaperScreen.Box(minX: 0, minY: 0, maxX: 1, maxY: 0.58))
