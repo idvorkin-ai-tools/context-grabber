@@ -1433,3 +1433,63 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the stand-in Cockpit with a recorded session chosen
 - **When:** the board posts its strokes and each turn of that session, in order
 - **Then:** each strokes post is answered with the counts the Cockpit gave that day, each turn gets Larry's next recorded reply (words, marks or a batch of changes) and the receipts recorded for it, and the hint the stand-in would wake Larry with is the Cockpit's recorded one
+
+---
+
+### User Story 1217:
+
+- **Summary:** I try every pen and shape PaperKit has on a scratch page before the board takes any of them
+- **Status:** implemented in [8a891f0a](https://github.com/idvorkin/context-grabber/commit/8a891f0a). Lint and host tests passed (`just native-test`) and the Mac build compiled the page (`just native-build-mac`). Opening the page and using its picker await live verification on iPad.
+- **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
+- **Issues:** bead context-grabber-0xrz
+
+#### Use Case:
+- **As someone** who wants the fountain pen, callouts and arrows on the board
+- **I want to** draw with everything PaperKit offers on a page of its own
+- **so that** I can feel what the board would gain before it changes
+
+#### Acceptance Criteria:
+- **Scenario:** The scratch page
+- **Given:** the iPad, Settings open on the Home screen
+- **When:** I tap *PaperKit board* under *About and diagnostics*
+- **Then:** a blank page opens with the fountain pen in hand, the tool picker offers all eight pens, and its **+** offers every shape (the speech bubble among them), a text box, and lines with and without arrowheads
+
+---
+
+### User Story 1218:
+
+- **Summary:** Closing the PaperKit scratch page throws it away
+- **Status:** implemented in [8a891f0a](https://github.com/idvorkin/context-grabber/commit/8a891f0a), with the same lint, host and build checks as [story 1217](#user-story-1217). Discarding the scratch page awaits live verification on iPad.
+- **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
+- **Issues:** bead context-grabber-0xrz
+
+#### Use Case:
+- **As someone** trying PaperKit's pens and shapes
+- **I want to** have the scratch page forget what I drew on it
+- **so that** trying things out can never touch a real board
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing is kept
+- **Given:** a scratch page I've drawn on
+- **When:** I close it
+- **Then:** nothing is saved and no board changes
+
+---
+
+### User Story 1219:
+
+- **Summary:** The PaperKit scratch page is only on the iPad
+- **Status:** the iPad-only restriction was implemented in [f9fdc347](https://github.com/idvorkin/context-grabber/commit/f9fdc347). Lint passed for the changed Swift files (rung 0). Platform visibility awaits live verification.
+- **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
+- **Issues:** bead context-grabber-0xrz
+
+#### Use Case:
+- **As someone** who draws boards only on the iPad
+- **I want to** see the *PaperKit board* row only there
+- **so that** the iPhone, which only looks at boards, and the Mac don't offer a page made for the Pencil
+
+#### Acceptance Criteria:
+- **Scenario:** Not on the iPhone or the Mac
+- **Given:** the iPhone or the Mac
+- **When:** I open Settings on the Home screen
+- **Then:** there is no *PaperKit board* row

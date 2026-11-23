@@ -11,6 +11,11 @@ to that event's own bullet; never join two events on one line.
 
 - `board_lab` action: session with name (the recorded session asked for), status (the fake Cockpit's HTTP answer, 0 when the request failed) and error (the request's error, empty when it was sent): whether the fake Cockpit accepted the lab's request to play a recorded session on the first board message's thread, once per launch that asks for one
 
+## The PaperKit board
+
+- `paperkit_board` with `action` set to `opened` as the scratch page is about to appear. `inks` lists the picker’s configured PencilKit ink identifiers, `shapes` and `features` count the enabled shapes and features, and `tool` holds the page’s drawing ink identifier or `other` for a non-inking tool.
+- `paperkit_board` with `action` set to `closed` as the scratch page is about to disappear. `elements` counts the markup elements on the page at that point.
+
 ## Whiteboard playback (stories 954–958, bead context-grabber-3tdv)
 
 - `whiteboard` action:

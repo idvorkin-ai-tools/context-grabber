@@ -464,6 +464,15 @@ private struct HomeSettingsView: View {
           }
           .tint(.primary)
           .accessibilityIdentifier("home-settings-whats-new")
+          // Stories 1217–1219: every pen and shape PaperKit has, on a scratch page, on the iPad alone.
+          if UIDevice.current.userInterfaceIdiom == .pad && !ProcessInfo.processInfo.isMacCatalystApp {
+            NavigationLink {
+              PaperKitBoardView(log: model.log)
+            } label: {
+              Label("PaperKit board", systemImage: "pencil.tip.crop.circle")
+            }
+            .accessibilityIdentifier("home-paperkit-board")
+          }
           Button {
             showLinks = true
           } label: {
