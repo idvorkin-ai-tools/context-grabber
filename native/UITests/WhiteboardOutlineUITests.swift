@@ -1,7 +1,7 @@
-//  Stories 853, 855, 858, 900, 901 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
-//  starts it): a paste's Delete, a margin tap that makes a header and folds it, a fold's lines beside it, Larry's
-//  picture of a folded section (#1013), the hold menu, and a header made or unmade as one Undo (bead
-//  context-grabber-ssl).
+//  Stories 853, 855, 858, 900, 901, 1179 on the simulator, against the fake Cockpit
+//  (scripts/native/test-whiteboard-ui.sh starts it): a paste's Delete, a margin tap that makes a header and folds it,
+//  a fold's lines beside it, Larry's picture of a folded section (#1013), the hold menu, and a header made or unmade
+//  as one Undo (bead context-grabber-ssl).
 //  Where things land, how a section ends and what a fold moves are `BoardRoomTests` and `BoardOutlineTests` on the
 //  host; these check the gestures reach them on paper.
 
@@ -95,7 +95,7 @@ final class WhiteboardOutlineUITests: XCTestCase {
     XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "unfolded again")
   }
 
-  /// Story 855 (bead context-grabber-ssl): a margin tap's header is one Undo, named for it, that takes back the header
+  /// Story 1179 (bead context-grabber-ssl): a margin tap's header is one Undo, named for it, that takes back the header
   /// and no stroke; Redo makes it again.
   func testAMarginTapsHeaderIsOneUndoThatLeavesTheInk() throws {
     let app = try openBoard()
@@ -118,7 +118,7 @@ final class WhiteboardOutlineUITests: XCTestCase {
     wait(send(app), label: strokes(2))
   }
 
-  /// Story 855 (bead context-grabber-ssl): *Not a header* on a folded header opens its lines and unmakes it, one Undo
+  /// Story 1179 (bead context-grabber-ssl): *Not a header* on a folded header opens its lines and unmakes it, one Undo
   /// that puts the header back folded, never the lines hidden with no header to open them.
   func testNotAHeaderOnAFoldIsOneUndoThatPutsTheFoldBack() throws {
     let app = try openBoard()

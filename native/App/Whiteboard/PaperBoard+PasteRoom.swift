@@ -166,7 +166,7 @@ extension PaperBoardController {
       model.inkReset(Self.allHashes(held))
     }
     model.outlineChanged(outline)
-    if headerUndo { registerHeaderStep(back: kept, named: label) }
+    if headerUndo { registerHeaderStep(back: kept, named: label, withInk: plan.changesBoard) }
     group?.endUndoGrouping()
     let stepped = plan.changesBoard || headerUndo
     showMarks()

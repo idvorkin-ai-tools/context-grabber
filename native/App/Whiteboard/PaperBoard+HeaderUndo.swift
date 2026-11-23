@@ -1,4 +1,4 @@
-//  Bead context-grabber-ssl (story 855; spec 2026-11-16-whiteboard-board-ops-design.md, *Headers fold their
+//  Bead context-grabber-ssl (story 1179; spec 2026-11-16-whiteboard-board-ops-design.md, *Headers fold their
 //  sections*): a header made or unmade alone, by a margin tap or the hold menu, changes no ink, so the markup's Undo
 //  can't take it back. It is its own step: the board's headers and declined lines as they were, and Redo as they are.
 
@@ -28,25 +28,26 @@ extension WhiteboardModel {
 }
 
 extension PaperBoardController {
-  /// One Undo named `name` back to `state`; its Redo comes back to the headers as they are now.
-  func registerHeaderStep(back state: BoardHeaderState, named name: String) {
+  /// One Undo named `name` back to `state`; its Redo comes back to the headers as they are now. `withInk` is a step
+  /// grouped with the ink's own, which tells Larry of the Undo, so this one doesn't say it again.
+  func registerHeaderStep(back state: BoardHeaderState, named name: String, withInk: Bool) {
     guard let undo = paper.undoManager else { return }
     stepsOn = undo
     undo.registerUndo(withTarget: self) { controller in
-      MainActor.assumeIsolated { controller.stepHeaders(to: state, named: name) }
+      MainActor.assumeIsolated { controller.stepHeaders(to: state, named: name, withInk: withInk) }
     }
     undo.setActionName(name)
   }
 
-  private func stepHeaders(to state: BoardHeaderState, named name: String) {
+  private func stepHeaders(to state: BoardHeaderState, named name: String, withInk: Bool) {
     // #966: the board's take-back of PaperKit's step reached this one; its Redo puts it straight back, unsaid.
     let probed = probe.reached(name)
     let undoing = paper.undoManager?.isUndoing == true
-    registerHeaderStep(back: model.headerState, named: name)
+    registerHeaderStep(back: model.headerState, named: name, withInk: withInk)
     model.restoreHeaders(state)
     showMarks()
     guard !probed else { return }
-    if undoing { model.undid(name) }
+    if undoing && !withInk { model.undid(name) }
     log.event(
       "board_outline",
       [
