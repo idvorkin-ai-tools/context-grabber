@@ -151,7 +151,9 @@ run() {  # <env assignments...> -- <ladder arguments...>
 }
 
 chat_all="ChatArchiveUITests ChatAskSearchUITests ChatDecisionUITests ChatFileUITests ChatImageUITests ChatMoveUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
-board_all="WhiteboardConnectUITests WhiteboardDropRoomUITests WhiteboardEraserUITests WhiteboardGroupTapUITests WhiteboardHelpFeedbackUITests WhiteboardLarryWaitUITests WhiteboardLetteringUITests WhiteboardLinkChipUITests WhiteboardListeningUITests WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPanelScrollUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardPlaybackUITests WhiteboardQuestionUITests WhiteboardRewordUITests WhiteboardRowDeleteUITests WhiteboardScratchOutUITests WhiteboardTheirsTapUITests WhiteboardTitleRenameUITests WhiteboardToTextUITests WhiteboardTurnUITests"
+# Every whiteboard UI test file's class, in name order (story 1502): the ladder's list, read from the suite's script, has to
+# name them all.
+board_all=$(cd native/UITests && ls Whiteboard*UITests.swift | sed 's/\.swift$//' | LC_ALL=C sort | paste -sd ' ' -)
 
 dry --changed native/App/Chat/ChatViews.swift
 says "chat code: lint names the file" "rung 0 Lint: swift-format over 1 touched Swift file(s), SwiftLint over the tree"

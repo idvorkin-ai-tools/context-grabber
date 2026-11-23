@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The whiteboard turn, paste and boards-list UI tests on the simulator (stories 344, 345, 349, 354, 357, 360, 371, 378, 380, 382, 383, 386, 388, 390, 391, 392, 393, 396, 399, 402, 403, 435–439, 524–534, 590–626, 637–641, 643–646, 650, 652–657, 880–885, 926, 954, 956–958, 1098, 1127, 1171), with a fake Cockpit:
-# scripts/native/fake-cockpit.py on a local port.
+# The whiteboard UI tests on the simulator, with a fake Cockpit (their stories are in docs/TESTING.md, under The
+# whiteboard suite's classes): scripts/native/fake-cockpit.py on a local port.
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
 # Usage: test-whiteboard-ui.sh <simulator udid or name>   — an iPad simulator's: an iPhone only looks at boards (story 746)   — run it in the build lane:
 #   scripts/native/build-lane.sh run ~/gits/mac-driver/bin/time-limit 40 caffeinate -i \
@@ -23,6 +23,36 @@ sleep 1
 kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $port" >&2; exit 1; }
 # Story 1501: the classes under BoardLabUITests launch the Board Lab, a small app that opens on the boards list; the
 # GrabberNative scheme builds and runs both bundles.
+# The classes, one a line in name order, so PRs that add classes touch different lines (story 1502). The ladder reads
+# this list for its whiteboard area, and scripts/native/test-testing-lists.sh holds it to docs/TESTING.md and the
+# native/UITests/Whiteboard*UITests.swift files.
+classes=(
+  -only-testing:GrabberNativeUITests/WhiteboardConnectUITests
+  -only-testing:GrabberNativeUITests/WhiteboardDropRoomUITests
+  -only-testing:BoardLabUITests/WhiteboardEraserUITests
+  -only-testing:GrabberNativeUITests/WhiteboardGroupTapUITests
+  -only-testing:GrabberNativeUITests/WhiteboardHelpFeedbackUITests
+  -only-testing:GrabberNativeUITests/WhiteboardLarryWaitUITests
+  -only-testing:GrabberNativeUITests/WhiteboardLetteringUITests
+  -only-testing:GrabberNativeUITests/WhiteboardLinkChipUITests
+  -only-testing:GrabberNativeUITests/WhiteboardListeningUITests
+  -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests
+  -only-testing:GrabberNativeUITests/WhiteboardOutlineUITests
+  -only-testing:GrabberNativeUITests/WhiteboardPanelScrollUITests
+  -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests
+  -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests
+  -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests
+  -only-testing:GrabberNativeUITests/WhiteboardPasteUITests
+  -only-testing:GrabberNativeUITests/WhiteboardPlaybackUITests
+  -only-testing:GrabberNativeUITests/WhiteboardQuestionUITests
+  -only-testing:GrabberNativeUITests/WhiteboardRewordUITests
+  -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests
+  -only-testing:GrabberNativeUITests/WhiteboardScratchOutUITests
+  -only-testing:GrabberNativeUITests/WhiteboardTheirsTapUITests
+  -only-testing:BoardLabUITests/WhiteboardTitleRenameUITests
+  -only-testing:GrabberNativeUITests/WhiteboardToTextUITests
+  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests
+)
 # SUITE_PREBUILT=1 (the ladder's --full, after its own build-for-testing): run what was built rather than build again.
 action=test done="TEST SUCCEEDED"
 [ "${SUITE_PREBUILT:-}" = 1 ] && action=test-without-building done="TEST EXECUTE SUCCEEDED"
@@ -30,7 +60,7 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebu
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardPlaybackUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:BoardLabUITests/WhiteboardTitleRenameUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests -only-testing:GrabberNativeUITests/WhiteboardQuestionUITests -only-testing:GrabberNativeUITests/WhiteboardOutlineUITests -only-testing:GrabberNativeUITests/WhiteboardToTextUITests -only-testing:GrabberNativeUITests/WhiteboardConnectUITests -only-testing:GrabberNativeUITests/WhiteboardHelpFeedbackUITests -only-testing:GrabberNativeUITests/WhiteboardRewordUITests -only-testing:GrabberNativeUITests/WhiteboardScratchOutUITests -only-testing:GrabberNativeUITests/WhiteboardLetteringUITests -only-testing:BoardLabUITests/WhiteboardEraserUITests -only-testing:GrabberNativeUITests/WhiteboardLinkChipUITests -only-testing:GrabberNativeUITests/WhiteboardListeningUITests -only-testing:GrabberNativeUITests/WhiteboardLarryWaitUITests -only-testing:GrabberNativeUITests/WhiteboardPanelScrollUITests -only-testing:GrabberNativeUITests/WhiteboardGroupTapUITests -only-testing:GrabberNativeUITests/WhiteboardDropRoomUITests -only-testing:GrabberNativeUITests/WhiteboardTheirsTapUITests "$action"
+  "${classes[@]}" "$action"
 status=$?
 grep -q 'Igor just said: draw a circle' "$report" || { echo "the spoken words never reached the fake Cockpit"; status=1; }
 echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep "\"body\"" "$report" | grep -c "\"picture_id\"") board pictures to Larry"
