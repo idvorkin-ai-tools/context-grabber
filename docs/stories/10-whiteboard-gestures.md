@@ -882,6 +882,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1148:
+
+- **Summary:** One rule for making room: Larry's ink never covers writing he didn't see, and mine moves down in whole lines from a cut between lines
+- **Status:** the rule decided 2026-11-22; already what a paste (stories 852, 869), a dropped selection (973), the margin handle (858, 930), Keep and Keep all (1004–1006, 1149; Keep group became Keep all in #1224) and Larry's text from a change (992) do, each verified on its own story; and since 2026-11-22 Larry's own make-room too (stories 1195, 1198 and 1199, bead context-grabber-2gu)
+- **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
+- **Issues:** Igor's pick on the design board, 2026-11-22: "One rule everywhere: his ink never covers writing he didn't see; my newer writing moves down in whole lines; every cut lands between lines; Keep all behaves like Keep group. A fold is erased only by its words or its marker."
+
+#### Use Case:
+- **As someone** whose ink is moved by Larry, by a paste and by my own hand
+- **I want to** have one rule for whatever moves my writing
+- **so that** I can tell what will move, and how far, before it does
+
+#### Acceptance Criteria:
+- **Scenario:** Something lands on writing Larry didn't see
+- **Given:** writing of mine that wasn't in the picture Larry answered, and something about to land on it: a mark of his I keep, however I keep it, a text of his, or a paste
+- **When:** it lands
+- **Then:** it sits where it was meant to, my writing from the nearest clear line between rows moves down by whole lines until it is clear of it, no row of mine is split or covered, writing he saw doesn't move, and one Undo puts it all back
+
+---
+
 ### User Story 969:
 
 - **Summary:** A word slid along its own line moves nothing else

@@ -54,7 +54,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 432:
 
 - **Summary:** A mark past the page edge widens the board
-- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** retired 2026-11-22: Igor decided marks stay inside the page (stories 624, 635); it was never implemented, and #636 is closed
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -539,7 +539,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 536:
 
 - **Summary:** A mark is on the page that holds it
-- **Status:** the page of a point implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); the corner's page number on a real board since [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) (story 603); nothing shows Larry a page yet
+- **Status:** the page of a point implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); the corner's page number on a real board since [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) (story 603); Larry is shown the pages on screen since story 433
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -792,7 +792,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The top bar
 - **Given:** a board on paper
 - **When:** I look at its bar
-- **Then:** *Ask at my pauses*, the mic, *Send to Larry* and the paste button are there
+- **Then:** *Ask at my pauses*, the mic, *Send to Larry* and, with text on the clipboard (story 1054), the paste button are there
 
 ---
 
@@ -1012,7 +1012,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** In dark mode
 - **Given:** a board on paper, and the device in dark mode
 - **When:** I draw
-- **Then:** the ink shows dark on the colour's pale shade, as dark mode's deep shades aren't on paper yet
+- **Then:** the ink shows dark on the colour's pale shade: paper stays light in both modes (decided 2026-11-22)
 
 ---
 
@@ -1032,7 +1032,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Larry
 - **Given:** a board on paper with ink
 - **When:** I tap *Send to Larry*
-- **Then:** the whole drawing goes, his reply shows in Chat, and marks he draws in answer come to the board (story 621)
+- **Then:** a picture of the pages on screen goes (story 433), his reply shows in Chat, and marks he draws in answer come to the board (story 621)
 
 ---
 
@@ -1092,7 +1092,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A pause
 - **Given:** a board on paper with *Ask at my pauses* on
 - **When:** I draw a stroke and pause
-- **Then:** a faint orange shape appears, and the bar says *1 suggestion: tap one to keep it*
+- **Then:** a faint orange shape appears, and the board's note counts it as *1 to keep* (a tap on it offers Keep and Dismiss, story 825)
 
 ---
 
@@ -1131,7 +1131,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** On a ghost
 - **Given:** a ghost on a board on paper
-- **When:** I tap it
+- **When:** I tap it, then *Keep* beside it (story 825)
 - **Then:** it becomes ink in its author's colour, in the same place, and the stroke count goes up by its strokes
 
 ---
@@ -1144,7 +1144,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
-- **As someone** drawing with a finger, on a phone or an iPad with no Pencil
+- **As someone** drawing with a finger, on an iPad with no Pencil (an iPhone only looks since story 746)
 - **I want to** keep or dismiss a ghost with the finger I draw with
 - **so that** a tap doesn't leave a dot or select my ink
 
@@ -1152,7 +1152,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A tap off them
 - **Given:** a finger draws here, and ghosts show
 - **When:** I tap away from them
-- **Then:** they're dismissed (Larry's only once Claude's are gone, stories 663, 664), no dot is drawn and nothing is selected, and my finger draws again
+- **Then:** nothing is dismissed and any Keep and Dismiss showing are put away (stories 810, 825), no dot is drawn and nothing is selected; my finger draws again once no ghost is left (story 354)
 
 ---
 
@@ -1252,7 +1252,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** His turn
 - **Given:** a board on paper with ink
 - **When:** I tap *Send to Larry*
-- **Then:** his marks arrive by themselves in purple, kept by a tap like Claude's, and his words show in the bar
+- **Then:** his marks arrive by themselves in purple, kept with the *Keep* beside a tapped mark like Claude's (story 825), and his words show in the bar
 
 ---
 
@@ -1298,15 +1298,15 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 624:
 
-- **Summary:** A mark past the page's side, for now
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the telling verified by host tests (`BoardPagesTests`); the case not driven on the simulator. The log's `paper_ghosts` says `past_side`. A later step widens the board for these
+- **Summary:** A mark past the page's side shows only as far as the page
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the telling verified by host tests (`BoardPagesTests`); the case not driven on the simulator. The log's `paper_ghosts` says `past_side`. Decided 2026-11-22: marks stay inside the page, and no later step widens the board
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** whose suggestion lands past the page's edge
 - **I want to** know nothing is lost
-- **so that** the board's later widening has all of it
+- **so that** what the page can't show is still kept
 
 #### Acceptance Criteria:
 - **Scenario:** Past the side
@@ -1391,7 +1391,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** During a stroke
 - **Given:** a ghost, and the Pencil drawing
-- **When:** I tap the ghost with a finger
+- **When:** I tap the ghost with a finger, then *Keep* beside it (story 825)
 - **Then:** it's kept, and the stroke under way goes on
 
 ---
@@ -1520,14 +1520,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 635:
 
 - **Summary:** A kept mark past the page's side is saved and sent
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the case not driven on the simulator. A later step widens the board for these
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the case not driven on the simulator. Decided 2026-11-22: marks stay inside the page, and no later step widens the board
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** keeping a suggestion that runs past the page's edge
 - **I want to** have all of it kept, not just what shows
-- **so that** the board's later widening has all of it
+- **so that** what the page can't show is still kept
 
 #### Acceptance Criteria:
 - **Scenario:** Kept past the side
@@ -1573,7 +1573,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The bar
 - **Given:** a board on paper and text on the clipboard
 - **When:** I tap Paste
-- **Then:** the letters land as ink in the middle of the paper on screen, and the stroke count goes up
+- **Then:** the letters land as ink in the clear paper nearest the middle of the paper on screen (story 852; with no clear paper there, room opens, story 869), and the stroke count goes up
 
 ---
 
@@ -1653,7 +1653,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Copied strokes
 - **Given:** strokes on the clipboard and no text
 - **When:** I press ⌘V
-- **Then:** they land as ink at their own size, in the middle of the paper on screen unless PaperKit places them itself
+- **Then:** they land as ink at their own size, in the clear paper nearest the middle of the paper on screen (story 852) unless PaperKit places them itself
 
 ---
 
@@ -1720,7 +1720,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 645:
 
 - **Summary:** A phone's one page takes a paste
-- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`testAPasteLandsInTheMiddleOfThePaperOnScreen`: the letters read from the screen's pixels, across the middle). The test doesn't measure up and down, so `paper_keep`'s `ink`, `visible` and `sheet` are what say where they landed
+- **Status:** superseded by story 746 (an iPhone only looks, so nothing is pasted on a phone; where a paste lands is stories 852 and 642); was implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`testAPasteLandsInTheMiddleOfThePaperOnScreen`: the letters read from the screen's pixels, across the middle). The test doesn't measure up and down, so `paper_keep`'s `ink`, `visible` and `sheet` are what say where they landed
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
