@@ -635,12 +635,38 @@ is the phone being offline. Other failures (the Cockpit answering with an error)
 
 **A Cockpit that blinks is not a bug report** (#1245–#1253, #1259, #1268). The Cockpit sits behind a proxy that
 sometimes answers 502, 503 or 504 for a moment; on 2026-11-22 one poll in a hundred did, for hours, and each blip,
-healed by the next poll, filed an automatic report. Now a read of the list or a thread that fails that way, or times
-out, can't connect or loses its connection, still shows its copyable error at once, and the open thread keeps polling; the list, while it
-shows such an error on screen, reads again every 15 seconds. The error files an automatic report only when the
+healed by the next poll, filed an automatic report. Now a read of the list or a thread that fails that way (any 5xx),
+or times out, can't connect or loses its connection, says so as the next paragraph describes, and the open thread
+keeps polling; the list, while the Cockpit is down, reads again every 15 seconds. The error files an automatic report only when the
 failures have gone on, with no read getting through, for 2 minutes, and then once for that outage (with how long and
 how many reads failed). A read failing because the device's own connection is down never files. The full rule is in
 the spec *An error on screen files a report by itself*.
+
+**Saying plainly when the Cockpit is down** (bead `context-grabber-3kgu`; #1352 and #1353 on the Mac 08:28–09:15,
+#1361 on the iPhone, a thread answering 502: the list and the thread looked empty, or retried in silence). The Cockpit
+is *down* when a read of the list or a thread is answered with any 5xx, times out, can't connect, can't find the host
+or loses its connection, while the device itself is online. A 4xx, or an answer the app can't read, is not down: it
+keeps its plain reason and files at once. The device being offline keeps its own *No network* line.
+
+- The list, and an open thread, show a banner at the top that begins **Cockpit not answering**, the whiteboard's
+  words for the same thing. Whatever the screen last loaded stays under it: the rows of the list, the messages of the
+  thread. Nothing is blanked.
+- The banner is a copyable problem that says what failed and how, since when, and when the last good read was: for
+  example *Cockpit not answering — reading this chat answered HTTP 502 since 12:39; last good read 12:31. Your
+  messages are kept and go when it answers.* A timeout or refused connection names its reason in place of the
+  status, and a screen that never read since launch says *no good read since the app opened*. The words stay the
+  same through one outage, so a poll failing the same way again changes nothing on screen or in the log.
+- **When it shows:** at the first failed read when the screen has nothing loaded yet (an empty list must never pass
+  for *no chats*), otherwise at the second failed read in a row, so one blip healed by the next poll shows nothing.
+  A failed read more than five minutes after the screen's last one starts a new spell (longer than a read's timeout
+  and the list's retry, so a Cockpit that times out every read stays one spell): a thread closed mid-outage and
+  opened again later counts from one, and its words name the new spell's start and status.
+- **When it goes:** by itself, at the first read that gets through, with the fresh content in place; no pull is
+  needed. The open thread's poll and the list's 15-second retry keep reading while the Cockpit is down.
+- Filing is unchanged: an outage files one report after two minutes, as below.
+- Other places that read the Cockpit keep their own copyable error and are not part of this banner: the open
+  decisions (read with the list, shown under its banner), searching the asks (a search Igor starts, its error at
+  once), and a message waiting to send (*Not sent yet · the Cockpit isn't answering*).
 
 **A read that was stopped, or overtaken, says nothing** (bead `context-grabber-exg6`, the codex review of 2026-11-21:
 the Mac's log held `refresh_failed: cancelled` each time the list was left while it was still reading). Leaving the

@@ -144,6 +144,15 @@ try:
         check(False, "a fold without its lines and strokes is refused")
     except urllib.error.HTTPError as e:
         check(e.code == 400, "a fold without its lines and strokes is refused")
+    # Stories 1604-1606: POST /fake/down, which ChatCockpitDownUITests relies on.
+    call("/fake/down", {"status": 502})
+    try:
+        call("/chat")
+        check(False, "a down Cockpit's list is a 502")
+    except urllib.error.HTTPError as e:
+        check(e.code == 502, "a down Cockpit's list is a 502")
+    call("/fake/down", {})
+    check("threads" in call("/chat"), "the list reads again once it is up")
     # Story 1132: GET /asks/search, which ChatAskSearchUITests relies on.
     call("/fake/asks", {"open": True})
     found = call("/asks/search?q=RAMEN")

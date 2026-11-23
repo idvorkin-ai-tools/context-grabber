@@ -3332,11 +3332,11 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** A Cockpit that blinks files no report
-- **Given:** a chat thread is open, the device is online, and the Cockpit just answered HTTP 502 (or 503, 504, or the read timed
+- **Given:** a chat thread is open, the device is online, and the Cockpit just answered HTTP 502 (or any 5xx, or the read timed
   out, could not connect or lost its connection)
 - **When:** the next poll reads the thread
-- **Then:** the error showed with Copy error, no automatic report was saved, and the log has `bug_report_auto_skipped` with
-  `auto_file: false`, then `chat` `cockpit_outage` `ended` with `filed: false`
+- **Then:** no automatic report was saved (a thread that had loaded shows no banner for one blip, story 1606), and the log
+  has `chat` `cockpit_outage` `ended` with `filed: false`
 
 ---
 
@@ -3415,6 +3415,66 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** The chat list keeps trying while the Cockpit is away
-- **Given:** the chat list is on screen and shows a Cockpit error of the kind story 1136 names
+- **Given:** the chat list is on screen and its last read failed the way story 1136 names, whether or not the banner of story 1604 shows yet
 - **When:** 15 seconds pass
 - **Then:** the list is read again, and again every 15 seconds until it reads or leaves the screen
+
+---
+
+### User Story 1604:
+
+- **Summary:** The chat list says plainly when the Cockpit is down
+- **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
+- **Status:** implemented in [51a53eab](https://github.com/idvorkin/context-grabber/commit/51a53eab); verified by the host rung (`just native-test`, `CockpitDownTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests` against the fake Cockpit answering 502, with the other chat classes); the devices are not yet verified
+- **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor reading his chats
+- **I want to** see *Cockpit not answering* at the top of the chat list when the Cockpit can't be reached or answers 5xx, with the chats it last read still under it
+- **so that** an empty or stale list never passes for *no chats* or *nothing new*
+
+#### Acceptance Criteria:
+- **Scenario:** The chat list says plainly when the Cockpit is down
+- **Given:** the device is online and the Cockpit answers the list's reads with HTTP 502 (or any 5xx, a timeout, or a refused connection)
+- **When:** the list's reads fail enough to count as down: the first failure while it holds no rows, the second in a row once it has read
+- **Then:** a banner beginning *Cockpit not answering* shows at the top with Copy error, with the rows it last read still under it
+
+---
+
+### User Story 1605:
+
+- **Summary:** The down banner says what failed, since when, and the last good read
+- **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
+- **Status:** implemented in [51a53eab](https://github.com/idvorkin/context-grabber/commit/51a53eab); verified by the host rung (`just native-test`, `CockpitDownTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests` against the fake Cockpit answering 502, with the other chat classes); the devices are not yet verified
+- **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor reading his chats
+- **I want to** copy the banner and get what failed, its HTTP status or reason, when it started failing and when the last good read was
+- **so that** a report or a message to Larry carries the evidence (#1361 was a 502 on one thread at 12:39)
+
+#### Acceptance Criteria:
+- **Scenario:** The down banner says what failed, since when, and the last good read
+- **Given:** a thread read at 12:31 and its reads have answered HTTP 502 since 12:39
+- **When:** Igor copies the banner
+- **Then:** the copy reads *Cockpit not answering — reading this chat answered HTTP 502 since 12:39; last good read 12:31*, a screen with no read since launch says *no good read since the app opened*, and the words stay the same while the outage lasts
+
+---
+
+### User Story 1606:
+
+- **Summary:** The down banner waits for a second failure and clears itself
+- **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
+- **Status:** implemented in [51a53eab](https://github.com/idvorkin/context-grabber/commit/51a53eab); verified by the host rung (`just native-test`, `CockpitDownTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests` against the fake Cockpit answering 502, with the other chat classes); the devices are not yet verified
+- **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor reading his chats
+- **I want to** see no banner for one blip the next poll heals, and see the banner go by itself when the Cockpit answers
+- **so that** the banner means the Cockpit is really down, and I never have to pull to get rid of it
+
+#### Acceptance Criteria:
+- **Scenario:** The down banner waits for a second failure and clears itself
+- **Given:** a thread is open with its messages loaded, and its reads have failed with HTTP 502, once (no banner) or long enough for the banner to show
+- **When:** the next read gets through
+- **Then:** no banner is on screen and the fresh messages are in place, and a later failure counts from one again, as does one more than five minutes after the thread's last failed read
