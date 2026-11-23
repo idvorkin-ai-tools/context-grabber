@@ -230,11 +230,6 @@ public struct BoardOpLedger: @unchecked Sendable {
     return BoardOpApplier(rev: saved.rev, handled: saved.handled, lastResult: saved.lastResult)
   }
 
-  public func save(_ applier: BoardOpApplier, board: String) {
-    let saved = Saved(rev: applier.rev, handled: applier.handled, lastResult: applier.lastResult)
-    if let data = try? JSONEncoder().encode(saved) { defaults.set(data, forKey: key(board)) }
-  }
-
   private func idsKey(_ board: String) -> String { "whiteboard_stroke_ids_\(board)" }
   private func metaKey(_ board: String) -> String { "whiteboard_stroke_meta_\(board)" }
   private func headersKey(_ board: String) -> String { "whiteboard_headers_\(board)" }
@@ -271,18 +266,10 @@ public struct BoardOpLedger: @unchecked Sendable {
     defaults.data(forKey: headersKey(board)).flatMap { try? JSONDecoder().decode([BoardHeader].self, from: $0) } ?? []
   }
 
-  public func setHeaders(_ headers: [BoardHeader], board: String) {
-    if let data = try? JSONEncoder().encode(headers) { defaults.set(data, forKey: headersKey(board)) }
-  }
-
   /// Larry's notes on the board's strokes (`BoardStrokeMeta`).
   public func strokeMeta(board: String) -> BoardStrokeMeta {
     defaults.data(forKey: metaKey(board)).flatMap { try? JSONDecoder().decode(BoardStrokeMeta.self, from: $0) }
       ?? BoardStrokeMeta()
-  }
-
-  public func setStrokeMeta(_ meta: BoardStrokeMeta, board: String) {
-    if let data = try? JSONEncoder().encode(meta) { defaults.set(data, forKey: metaKey(board)) }
   }
 
   /// The names moved strokes keep (`BoardStrokeIDs`).
@@ -291,17 +278,7 @@ public struct BoardOpLedger: @unchecked Sendable {
       ?? BoardStrokeIDs()
   }
 
-  public func setStrokeIDs(_ ids: BoardStrokeIDs, board: String) {
-    if let data = try? JSONEncoder().encode(ids) { defaults.set(data, forKey: idsKey(board)) }
-  }
-
   public func texts(board: String) -> [BoardText] {
     defaults.data(forKey: textsKey(board)).flatMap { try? JSONDecoder().decode([BoardText].self, from: $0) } ?? []
-  }
-
-  public func setTexts(_ texts: [BoardText], board: String) {
-    if let data = try? JSONEncoder().encode(Array(texts.suffix(Self.mostTexts))) {
-      defaults.set(data, forKey: textsKey(board))
-    }
   }
 }
