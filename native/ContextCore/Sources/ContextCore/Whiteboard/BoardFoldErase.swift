@@ -16,13 +16,16 @@ extension BoardOutline {
   /// strokes that go by name (their rows and all they hide), and the header's top, where what was below closes up to.
   public struct FoldHit: Equatable, Sendable {
     public var header: String
+    /// The path crossed its "▸ N lines folded", not only the header's words.
+    public var byMarker = false
     public var headers: Set<String>
     public var names: Set<String>
     public var top: CGFloat
   }
 
-  /// The shown folds `path` (board points) crosses: by their marker, and with `onHeader` by the header's own ink too.
-  /// Worked out on the board as it was when the path began, so ink the eraser took on its way still counts.
+  /// The shown folds `path` (board points) crosses: by their marker, and with `onHeader` by the header's words too
+  /// (its underline or # is no part of them: context-grabber-bov). Worked out on the board as it was when the path
+  /// began, so ink the eraser took on its way still counts.
   public func foldHits(along path: [CGPoint], reach r: CGFloat = eraseReach, onHeader: Bool) -> [FoldHit] {
     guard let first = path.first else { return [] }
     let p = path.count > 1 ? path : [first, first]
@@ -38,7 +41,7 @@ extension BoardOutline {
     let at = index
     let crossed = { (box: CGRect) in dots.contains { box.insetBy(dx: -r, dy: -r).contains($0) } }
     let inked = { (header: BoardHeader) in
-      header.ids.compactMap { at[$0] }.contains { m in
+      header.words.compactMap { at[$0] }.contains { m in
         let s = self.strokes[m]
         let pad = r + (s.pen > 0 ? s.pen : 3) / 2
         guard !s.hidden, s.bounds.insetBy(dx: -pad, dy: -pad).intersects(Self.bounds(of: dots)) else { return false }
@@ -48,10 +51,12 @@ extension BoardOutline {
     }
     let markers = Dictionary(uniqueKeysWithValues: self.markers.map { ($0.header, $0.box) })
     return bottomUp().compactMap { id in
-      guard let header = header(id), let box = markers[id], let hb = self.box(header),
-        crossed(box) || (onHeader && inked(header))
-      else { return nil }
-      return hit(header, top: hb.minY)
+      guard let header = header(id), let box = markers[id], let hb = self.box(header) else { return nil }
+      let byMarker = crossed(box)
+      guard byMarker || (onHeader && inked(header)) else { return nil }
+      var found = hit(header, top: hb.minY)
+      found.byMarker = byMarker
+      return found
     }
   }
 
@@ -76,13 +81,34 @@ extension BoardOutline {
   }
 
   /// The folds an eraser stroke the system called off (a palm, a system gesture taking the touch) takes, of the `hits`
-  /// it crossed. It takes none by its marker; across the header's own ink it takes the fold only if
-  /// that ink is gone from the board (`live`, the stroke names on it now), so folded lines are never left hidden under
+  /// it crossed. It takes none by its marker; across the header's words it takes the fold only if
+  /// they are gone from the board (`live`, the stroke names on it now), so folded lines are never left hidden under
   /// no header (context-grabber-0m2d).
   public func foldsTakenByCancelledStroke(_ hits: [FoldHit], live: Set<String>) -> [FoldHit] {
+    foldsTaken(hits, by: .cancelled, live: live)
+  }
+
+  /// How an eraser stroke ended, for which folds it takes.
+  public enum EraserStroke: Sendable {
+    /// The eraser lifted: it took whole strokes.
+    case lifted
+    /// The pixel eraser lifted: it rubbed out what it touched, and a rubbed stroke comes back under new names.
+    case rubbed
+    /// The system called it off (a palm, a system gesture).
+    case cancelled
+  }
+
+  /// The folds an eraser stroke takes, of the `hits` it crossed, once PaperKit's own erase is on the board (`live`,
+  /// the stroke names on it now; nil when the board can't be read, so no header's words are seen gone). By the marker
+  /// as ever, unless called off. By the header's words only where the eraser took them, not where it passed near them
+  /// (an underline sits just under its words: context-grabber-bov): the eraser some of them, the pixel eraser all of
+  /// them (a rub on the corner of one letter leaves the section folded), a called-off stroke all of them.
+  public func foldsTaken(_ hits: [FoldHit], by stroke: EraserStroke, live: Set<String>?) -> [FoldHit] {
     hits.filter { hit in
-      guard let ink = header(hit.header)?.ids, !ink.isEmpty else { return false }
-      return !ink.contains(where: live.contains)
+      if hit.byMarker && stroke != .cancelled { return true }
+      guard let live, let words = header(hit.header)?.words, !words.isEmpty else { return false }
+      let left = words.filter(live.contains).count
+      return stroke == .lifted ? left < words.count : left == 0
     }
   }
 

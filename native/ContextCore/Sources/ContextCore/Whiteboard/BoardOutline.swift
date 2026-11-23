@@ -56,6 +56,13 @@ public struct BoardHeader: Codable, Equatable, Sendable {
     (deeper ?? []).prefix { !$0.isEmpty && $0.allSatisfy(live.contains) }
   }
 
+  /// Its words: its ink but the underline or #s that made it a header (context-grabber-bov). Only these, or its fold's
+  /// marker, take a folded section with the eraser; the mark's strokes are ink like any other.
+  public var words: [String] {
+    let marks = Set((mark ?? []) + (deeper ?? []).flatMap { $0 })
+    return ids.filter { !marks.contains($0) }
+  }
+
   /// Made by ink with a stroke gone, and open: no header while its mark is away (#967). A folded one keeps
   /// its fold, so erasing its underline never loses what it hides.
   public func markGone(_ live: Set<String>) -> Bool {

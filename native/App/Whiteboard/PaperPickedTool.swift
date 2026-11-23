@@ -44,6 +44,12 @@ enum PickedTool {
     return false
   }
 
+  /// The pixel eraser: it rubs out what it touches rather than taking whole strokes (context-grabber-bov).
+  var rubs: Bool {
+    if case .eraser(let tool) = self { return tool.eraserType != .vector }
+    return false
+  }
+
   /// The tool to hand the board back, when it is one PaperKit draws with.
   var tool: (any PKTool)? {
     switch self {

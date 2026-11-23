@@ -2,7 +2,7 @@
 //  erases the whole section and closes up, one Undo named *Erase* (spec 2026-11-16-whiteboard-board-ops-design.md,
 //  *Headers fold their sections*; the Cockpit's `erase` with `foldHits`). PaperKit's eraser takes the ink it touches as
 //  ever; the fold goes when the touch lifts, worked out on the board as it was when the touch went down. A scratch-out
-//  over the marker or the folded header line takes the fold the same way, one Undo.
+//  over the marker, or one taking some of the folded header's words, takes the fold the same way, one Undo.
 
 import ContextCore
 import PaperKit
@@ -14,6 +14,8 @@ struct FoldErasing {
   var touch: ObjectIdentifier
   var outline: BoardOutline
   var path: [CGPoint]
+  /// The pixel eraser: across the header's words it takes the fold only once they are rubbed through.
+  var rub = false
 }
 
 extension PaperBoardController {
@@ -25,7 +27,8 @@ extension PaperBoardController {
     let outline = model.outline(of: model.opStrokes(markup.inkDrawing.strokes).strokes)
     guard !outline.markers.isEmpty else { return }
     foldErasing = FoldErasing(
-      touch: ObjectIdentifier(touch), outline: outline, path: [lines.columnPoint(of: touch.location(in: lines))])
+      touch: ObjectIdentifier(touch), outline: outline, path: [lines.columnPoint(of: touch.location(in: lines))],
+      rub: touchTool.rubs)
   }
 
   func foldEraserMoved(_ touch: UITouch) {
@@ -34,7 +37,8 @@ extension PaperBoardController {
   }
 
   /// The eraser touch coming up, or called off (context-grabber-0m2d): a called-off stroke takes a fold only where
-  /// PaperKit's eraser took the header's ink anyway.
+  /// PaperKit's eraser took the header's words anyway. The pixel eraser takes one by its marker, and by the header's
+  /// words only once it has rubbed through every stroke of them (context-grabber-bov).
   func foldEraserLifted(_ touch: UITouch) {
     let cancelled = touch.phase == .cancelled
     if !cancelled { foldEraserMoved(touch) }
@@ -45,36 +49,38 @@ extension PaperBoardController {
     // A turn later: PaperKit's own erase of the header's ink is on the markup by then.
     Task { @MainActor [weak self] in
       guard let self else { return }
-      guard cancelled else {
-        self.eraseFolds(hits, via: "eraser", path: erasing.path.count)
-        return
-      }
       let live = self.paper.markup.map { self.model.outline(of: self.model.opStrokes($0.inkDrawing.strokes).strokes) }
-      // No markup to read: the header's ink can't be seen gone, so nothing is taken.
-      let taken = live.map { erasing.outline.foldsTakenByCancelledStroke(hits, live: $0.liveNames) } ?? []
-      // What a called-off eraser stroke did to the header's ink, so the iPad's log says whether PaperKit keeps it.
+      // No markup to read: the header's words can't be seen gone, so none is taken by them.
+      let how: BoardOutline.EraserStroke = cancelled ? .cancelled : erasing.rub ? .rubbed : .lifted
+      let taken = erasing.outline.foldsTaken(hits, by: how, live: live?.liveNames)
+      // What the eraser stroke did to the header's words, so the iPad's log says why a fold went or stayed.
+      let via = cancelled ? "eraser_cancelled" : erasing.rub ? "eraser_rub" : "eraser"
       self.log.event(
         "board_outline",
         [
-          "action": "erase_fold_cancelled", "board": self.model.board.id, "folds": hits.count, "taken": taken.count,
-          "path": erasing.path.count, "markup": live != nil,
+          "action": cancelled ? "erase_fold_cancelled" : "erase_fold_check", "board": self.model.board.id, "via": via,
+          "folds": hits.count,
+          "taken": taken.count, "by_marker": hits.filter(\.byMarker).count, "path": erasing.path.count,
+          "markup": live != nil,
         ])
-      if !taken.isEmpty { self.eraseFolds(taken, via: "eraser_cancelled", path: erasing.path.count) }
+      if !taken.isEmpty { self.eraseFolds(taken, via: via, path: erasing.path.count) }
     }
   }
 
-  /// Story 905: a scratch-out over a fold's marker or its folded header line takes the whole fold, and the other ink it
-  /// covered goes with it, one Undo back to before the zigzag (the web board's `scratchOut` with `foldHits`). False,
-  /// and scratch-out goes on as ever, when the zigzag crosses no fold.
+  /// Story 905: a scratch-out over a fold's marker, or one that takes some of its folded header's words (not only its
+  /// underline or #: context-grabber-bov), takes the whole fold, and the other ink it covered goes with it, one Undo
+  /// back to before the zigzag (the web board's `scratchOut` with `foldHits`). False, and scratch-out goes on as ever,
+  /// when the zigzag takes no fold.
   func scratchTakesFolds(_ scratch: PaperMarkup.Scratch, zigzag key: String) -> Bool {
     guard model.editable, model.headers.contains(where: { $0.fold != nil }),
       WhiteboardScratchOut.isZigzag(scratch.points, ms: scratch.ms)
     else { return false }
     let outline = model.outline(of: model.opStrokes(scratch.before.inkDrawing.strokes).strokes)
-    let hits = outline.foldHits(along: scratch.points, reach: 4, onHeader: true)
-    guard !hits.isEmpty else { return false }
-    // The zigzag's other ink, as scratch-out takes it; the header's own goes with its fold either way.
     let gone = Set(scratch.outcome.ok ? scratch.outcome.gone : [])
+    let live = model.outline(of: model.opStrokes(scratch.before.without(gone).inkDrawing.strokes).strokes).liveNames
+    let hits = outline.foldsTaken(
+      outline.foldHits(along: scratch.points, reach: 4, onHeader: true), by: .lifted, live: live)
+    guard !hits.isEmpty else { return false }
     Task { @MainActor [weak self] in
       guard let self else { return }
       // PaperKit's own step for the zigzag goes first, as for an ordinary scratch-out, so one Undo is the lot.
