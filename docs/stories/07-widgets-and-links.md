@@ -1482,7 +1482,7 @@ apart."*
 ### User Story 586:
 
 - **Summary:** With no iCloud a Mac build's boards stay on the Mac
-- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac, ad hoc: the boards list says iCloud is out of reach, a board opens, a problem report saves on the Mac, and nothing crashes. A signed Mac build, which would have iCloud, has not been built.
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac, ad hoc: the boards list says iCloud is out of reach, a board opens, a problem report saves on the Mac, and nothing crashes. A signed Mac build, which would have iCloud, has not been built. #1254: a link to another device's board in a build with no iCloud says why and files no automatic report, in [863c99ee](https://github.com/idvorkin/context-grabber/commit/863c99ee); verified on the host (`BoardIndexTests`, `just native-test`) and the Mac build (`just native-build-mac`); the Mac app itself not yet.
 - **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638), [#1254](https://github.com/idvorkin/context-grabber/issues/1254)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
