@@ -97,6 +97,11 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// `GRABBER_WHITEBOARD_KEPT_INK_LABEL=1`: each look at kept ink's verdict and the heals it asked for, as an element a UI
   /// test reads (story 650, bead context-grabber-qko5).
   public var keptInkLabel: Bool
+  /// `GRABBER_WHITEBOARD_UNDO_LOOK=label`: each look after an Undo or Redo, its verdict and the heals it asked for, as an
+  /// element a UI test reads; `=miss` too, and the first look takes every piece it checks as missing, so the heal runs on
+  /// the simulator, which misses only now and then (story 1203, bead context-grabber-9bll).
+  public var undoLookLabel: Bool
+  public var undoLookMiss: Bool
   /// `GRABBER_WHITEBOARD_FAKE_OFFER=1`: a beat after a finger tap selects a group, the board shows a stand-in for the
   /// iPad's handwriting popover at the paper and empties the selection without a callback, as the iPad did, for the
   /// simulator, which never offers it (stories 945, 946).
@@ -131,6 +136,8 @@ public struct WhiteboardHooks: Equatable, Sendable {
     pencilSeen = env["GRABBER_WHITEBOARD_PENCIL"] == "seen"
     fingerLabel = env["GRABBER_WHITEBOARD_FINGER_LABEL"] == "1"
     keptInkLabel = env["GRABBER_WHITEBOARD_KEPT_INK_LABEL"] == "1"
+    undoLookMiss = env["GRABBER_WHITEBOARD_UNDO_LOOK"] == "miss"
+    undoLookLabel = undoLookMiss || env["GRABBER_WHITEBOARD_UNDO_LOOK"] == "label"
     fakeHandwritingOffer = env["GRABBER_WHITEBOARD_FAKE_OFFER"] == "1"
   }
 }

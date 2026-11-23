@@ -52,6 +52,7 @@ classes=(
   -only-testing:BoardLabUITests/WhiteboardTitleRenameUITests
   -only-testing:GrabberNativeUITests/WhiteboardToTextUITests
   -only-testing:GrabberNativeUITests/WhiteboardTurnUITests
+  -only-testing:GrabberNativeUITests/WhiteboardUndoRedrawUITests
 )
 # SUITE_PREBUILT=1 (the ladder's --full, after its own build-for-testing): run what was built rather than build again.
 action=test done="TEST SUCCEEDED"

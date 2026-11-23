@@ -179,6 +179,9 @@ for f in ${changed[@]+"${changed[@]}"}; do
     # the note, its chevron and the panel (Turn), Keep all (Turn, Connect), the problem's Copy error (OnPaper). The
     # iPhone's tap to Chat is the smoke's whiteboard section.
     # Stories 954, 956–958: playback draws on a canvas of its own, opened only by Play.
+    # Story 1203: the look after an Undo or Redo, and its heal.
+    native/App/Whiteboard/PaperBoard+UndoRedraw.swift | native/ContextCore/Sources/ContextCore/Whiteboard/BoardUndoRedraw.swift)
+      add_classes WhiteboardUndoRedrawUITests WhiteboardDropRoomUITests ;;
     native/App/Whiteboard/WhiteboardPlayback*.swift | native/ContextCore/Sources/ContextCore/Whiteboard/BoardPlayback.swift)
       add_classes WhiteboardPlaybackUITests ;;
     native/App/Whiteboard/WhiteboardConversationStrip.swift)

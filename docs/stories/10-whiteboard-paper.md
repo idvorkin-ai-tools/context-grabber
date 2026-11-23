@@ -1850,6 +1850,67 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I undo it, delete it or clear the board within a second
 - **Then:** the board doesn't count the empty spot as ink missing: it neither redraws nor moves the view for it
 
+
+---
+
+### User Story 1203:
+
+- **Summary:** Ink an Undo or Redo leaves in place shows whole
+- **Status:** implemented in [bcd8d128](https://github.com/idvorkin/context-grabber/commit/bcd8d128), every heal logged in [aaaef69f](https://github.com/idvorkin/context-grabber/commit/aaaef69f); verified by host tests (`just native-test`, `BoardUndoRedrawTests`, from the 9bll numbers) and the iPad simulator (rung 2, 2026-11-22, the Mac locked with the lock probe overridden on Igor's word: `WhiteboardUndoRedrawUITests` and `WhiteboardDropRoomUITests` pass, with the PaperKit contract tests); not yet seen on the iPad. The bug it answers was seen only on the iPad simulator, never on the iPad: after a group dropped just above my line was undone, the line showed only up to a 256-point tile edge (o1x8's failing try, 2026-11-22, main 89998b9c)
+- **Issues:** bead context-grabber-9bll
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Ink an Undo or Redo leaves in place is on the screen too*
+
+#### Use Case:
+- **As someone** undoing a move on a board on paper
+- **I want to** see all my ink afterwards, including ink the Undo never touched
+- **so that** nothing the board holds looks erased
+
+#### Acceptance Criteria:
+- **Scenario:** A line left half drawn by an Undo
+- **Given:** a board on paper, a group of Larry's dropped just above my line, and the drop undone
+- **When:** a second later part of my line near the change isn't on the screen
+- **Then:** the board draws it again on its own within a few seconds; the line may blink once, and if that's not enough the view moves a screen away and back once, ending where it was
+
+---
+
+### User Story 1227:
+
+- **Summary:** An Undo that leaves everything drawn is left alone
+- **Status:** implemented in [bcd8d128](https://github.com/idvorkin/context-grabber/commit/bcd8d128); verified by host tests (`BoardUndoRedrawTests`, rung 1); not yet seen on the iPad
+- **Issues:** bead context-grabber-9bll
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Ink an Undo or Redo leaves in place is on the screen too*
+
+#### Use Case:
+- **As someone** undoing and redoing on a board on paper
+- **I want to** have the board stay still when all my ink already shows
+- **so that** a redraw never blinks or moves the view for nothing
+
+#### Acceptance Criteria:
+- **Scenario:** An Undo that leaves everything drawn
+- **Given:** a board on paper
+- **When:** I undo or redo a step and every stroke near it shows
+- **Then:** nothing blinks and the view doesn't move
+
+---
+
+### User Story 1228:
+
+- **Summary:** Undo and Redo stay single steps after the board draws ink again
+- **Status:** implemented in [bcd8d128](https://github.com/idvorkin/context-grabber/commit/bcd8d128); verified by the iPad simulator (rung 2, 2026-11-22, `WhiteboardUndoRedrawUITests`); not yet seen on the iPad
+- **Issues:** bead context-grabber-9bll
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Ink an Undo or Redo leaves in place is on the screen too*
+
+#### Use Case:
+- **As someone** stepping back and forth on a board on paper
+- **I want to** have each Undo and Redo take one step, whatever the board redrew
+- **so that** what I undo is what I meant to
+
+#### Acceptance Criteria:
+- **Scenario:** Undo and Redo stay single steps
+- **Given:** an Undo after which the board drew ink again
+- **When:** I tap Redo, then Undo
+- **Then:** each takes exactly one step, as it would have without the redraw
+
 ---
 
 ### User Story 651:
