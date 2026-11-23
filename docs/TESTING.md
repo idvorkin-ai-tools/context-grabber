@@ -648,6 +648,19 @@ the iPad simulator, the lab saves about 1.2 s a case for about 4 s more build; t
 `GRABBER_LAB_SESSION=<name>`, with `GRABBER_CHAT_URL` set to the fake Cockpit, has the fake play that recorded session
 (story 1174) on the lab's first board message.
 
+## The board's rules as WebAssembly: `just wasm`, `just wasm-test` (story 1503)
+
+The Cockpit's web board runs BoardCore compiled for WASI (spec
+`docs/superpowers/specs/2026-11-22-board-rules-on-the-web-design.md`, which holds the interface the Cockpit codes
+against). `just wasm` builds the `BoardWasm` reactor release and stripped to `native/Build/wasm/BoardWasm.wasm` and
+prints its size and sha256; `just wasm-test` builds it and replays the recorded board sessions through it under node,
+with the checks `BoardSessionReplayTests` makes natively, plus a board loaded whole against the same board loaded in two
+halves. Both need a Swift toolchain with its wasm SDK (`scripts/native/build-wasm.sh` lists the settings; a box
+whose `wasm-ld` needs extra libraries passes `LINUX_LIB_DIR` as for `just test-linux`), and `wasm-test` says it
+skipped without one. Neither is on a rung: a release build of the board for WASI takes minutes. Run them when a
+change touches BoardCore's imports, the module's exports or the board's replay. BoardCore must keep building for
+WASI: no `URLRequest` (FoundationNetworking) and no atomic file writes in it; the HTTP requests live in ContextCore.
+
 ## Larry's board changes on a copy of a board: `just board-ops`
 
 Larry checks what a batch of his changes will do to Igor's board before he sends it, and an agent reproduces a
