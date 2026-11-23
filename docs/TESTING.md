@@ -26,7 +26,7 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-ladder-map.sh`: the ladder's own map, which rungs and UI test classes a change gets, from the real script's dry run (story 683)
 - `scripts/native/test-build-lane.sh`: the build lanes, their locks and simulators, sim-boot and the xcodebuild wait per lane (story 785, #954)
 - `scripts/native/test-time-limit.sh`: the repo's own rung time limit, a hang and everything it started stopped (exit 124), a finished command's status kept, the lane count past it unchanged (stories 1505, 1506)
-- `scripts/native/test-sim-lane.sh` checks simulator lane selection and refusals, including UUID case and the default lane for Health access and smoke (stories 1508–1510, bead context-grabber-w7nl).
+- `scripts/native/test-sim-lane.sh` checks simulator lane selection and refusals, including UUID case and the default lane for Health access and smoke (stories 1508, 1514 and 1515, bead context-grabber-w7nl).
 - `scripts/native/test-host-lane.sh`: the host slots, six jobs on four, the wait, a killed holder (stories 795, 797, 798)
 - `scripts/native/test-ui-timings.sh`: the UI test timing digest against a real run's log
 - `scripts/native/test-device-build-check.sh`: the build each device last reported against the last install in the deploys ledger (match, mismatch, no session yet, over the air, unknown), and `just deploy` recording each installed device and checking its next session, with fakes (story 1511)

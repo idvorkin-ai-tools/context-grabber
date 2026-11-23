@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Simulator lane selection and guards (stories 1508–1510, bead context-grabber-w7nl).
+# Simulator lane selection and guards (stories 1508, 1514 and 1515, bead context-grabber-w7nl).
 # Sourced by sim-smoke.sh, sim-boot.sh, xcodebuild-log.sh, test-chat-ui.sh and test-whiteboard-ui.sh.
 #   take_lane <script> <args…>  outside any lane, runs the script again in the first free one (build-lane.sh run),
 #                               marked SIM_LANE_TAKEN, so a simulator udid it was given means that model in the lane's

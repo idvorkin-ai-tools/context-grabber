@@ -103,7 +103,7 @@ xlog() {
     xcodebuild -scheme X -destination "platform=iOS Simulator,id=$udid" "${XACT:-test}" >"$out" 2>&1
 }
 
-# Story 1509 requires both commands to refuse the same owned simulator regardless of UUID case.
+# Story 1514 requires both commands to refuse the same owned simulator regardless of UUID case.
 hold_lane_one=(lockf -k -t 0 "$tmp/locks/build.lock")
 for udid in "$PAD" "$PAD_LOWER"; do
   : >"$MARKS/xcrun"

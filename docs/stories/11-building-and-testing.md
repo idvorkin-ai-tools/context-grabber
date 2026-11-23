@@ -1753,7 +1753,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
-### User Story 1509:
+### User Story 1514:
 
 - **Summary:** Booting or testing on a build lane's simulator requires its lane
 - **Status:** implemented in [b23c6b82](https://github.com/idvorkin/context-grabber/commit/b23c6b825e5df2c51f706a0e29ae6d2d1683fc6b), with case-insensitive UUID matching in [59f3150f](https://github.com/idvorkin/context-grabber/commit/59f3150f32187b88e2c7b5ddf435517df9ddd110). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64. Both UUID spellings were verified with lane 1's lock held.
@@ -1772,7 +1772,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
-### User Story 1510:
+### User Story 1515:
 
 - **Summary:** Simulator operations that require no build lane still run
 - **Status:** implemented in [b23c6b82](https://github.com/idvorkin/context-grabber/commit/b23c6b825e5df2c51f706a0e29ae6d2d1683fc6b). Verified on the host by `scripts/native/test-sim-lane.sh` with a simulator build command and an unowned simulator accepted by the guard.
