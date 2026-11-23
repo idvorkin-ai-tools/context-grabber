@@ -254,17 +254,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board on paper on the iPad
 - **When:** PaperKit's reflow of handwriting shows, moves, changes or goes
 - **Then:** the log has one line saying what it is, where it sits, how many pictures it holds and how many have a place or size that is not a number, endless or empty, with what was selected, whether the system's popover was up and the last touch
+- **And:** a touch beginning on a reflow view writes that line at once, before the touch ends, even while the reflow holds no picture yet
+- **And:** a board with no reflow showing, or one that hasn't changed, writes no such line
 - **And:** nothing I see changes
-
-- **Scenario:** A touch on the reflow
-- **Given:** PaperKit's reflow showing on a board
-- **When:** a touch begins on it
-- **Then:** the log has that line at once, before the touch ends
-
-- **Scenario:** Quiet otherwise
-- **Given:** a board with no reflow showing, or one that hasn't changed
-- **When:** time passes
-- **Then:** no such line is written
 
 ---
 

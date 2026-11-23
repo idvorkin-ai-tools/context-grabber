@@ -640,7 +640,8 @@ never shows the reflow. What put the reflow into that state, the log can't say. 
 - **The line says what was going on around it**: how many strokes were selected, whether the system's handwriting popover
   was over the paper, how long since a touch began and what that touch began on.
 - **A touch that begins on the reflow is a line at once**, with the same look, so a crash a moment after the touch still
-  leaves the reflow's state behind it.
+  leaves the reflow's state behind it. That line says every reflow view, the empty one PaperKit keeps over every board
+  included, since the reflow may not yet hold a picture when the touch goes down.
 - **The log stays quiet otherwise**: a reflow that hasn't changed writes nothing more, and a board with no reflow showing
   writes nothing.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.

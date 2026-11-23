@@ -37,14 +37,15 @@ extension PaperBoardController {
   }
 
   private func lookAtReflow(why: String, always: Bool = false) {
-    let shown = PaperProbe.reflowShown(reflowViews())
-    guard always ? !shown.isEmpty : shown != reflowWatch.last else { return }
+    let all = reflowViews()
+    let shown = PaperProbe.reflowShown(all)
+    guard always || shown != reflowWatch.last else { return }
     reflowWatch.last = shown
     let watch = reflowWatch
     log.event(
       "whiteboard",
       [
-        "action": "paper_reflow", "board": model.board.id, "why": why, "views": shown.map(\.fields),
+        "action": "paper_reflow", "board": model.board.id, "why": why, "views": (always ? all : shown).map(\.fields),
         "selected": paper.selection.count, "popover": popoverAtPaper(),
         "touch_ms_ago": watch.touchAt.map { Int((CACurrentMediaTime() - $0) * 1_000) } ?? -1, "touch_on": watch.touchOn,
       ])
