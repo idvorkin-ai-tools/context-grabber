@@ -63,6 +63,14 @@ POST /ink/to-text {name, png} reads handwriting as the Cockpit's ink_text.py ans
 or a 400 with its reason, then {ok, text, too_long, advice, model, via} with the text "hello"; POST /fake/to-text
 {"text": ..., "status": ..., "error": ...} sets what every later one answers ({} back to "hello"). GET /fake/to-text
 lists the pictures' sizes so far.
+Recorded board sessions (story 1174): POST /fake/session {"name": "ops-move"} (one of the Cockpit's recordings, scrubbed,
+under native/ContextCore/Tests/ContextCoreTests/Fixtures/board-sessions; "thread": a key to play it on instead of its own,
+which is made titled as the Cockpit's host titles it) plays that session back: each strokes post is answered with its
+count, new and erased against the board's send before, and the n-th of Igor's messages on that thread gets, a moment
+later, Larry's replies and the receipts recorded after the n-th turn (his rows on the message's own board and picture,
+his batch's base revision as far behind the message's rev as it was behind the recorded one). GET /fake/session says the
+hint the Cockpit would wake Larry with for each message, the strokes answers, and how many answers are still to come;
+{"name": null} stops it.
 """
 
 import base64
@@ -448,6 +456,113 @@ def ops_batch(source, armed):
                       "text": "room here", "font": "plain", "size": 28}]}
 
 
+SESSIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
+                            "native/ContextCore/Tests/ContextCoreTests/Fixtures/board-sessions")
+SESSION = None  # story 1174: the recorded board session being played back, as POST /fake/session chose it
+RECEIPT_RANK = {"sent": 0, "received": 1, "seen": 2, "done": 3}
+
+
+def load_session(name, thread=None):
+    """A recorded session (the Cockpit's, scrubbed: scripts/native/board-sessions.py) ready to play on `thread` (its
+    own recorded thread by default, made here as the Cockpit's host titles it): after the n-th of Igor's messages there,
+    Larry's replies and the receipts recorded after the n-th turn, in order."""
+    with open(os.path.join(SESSIONS_DIR, os.path.basename(name) + ".jsonl"), encoding="utf-8") as f:
+        steps = [json.loads(line) for line in f if line.strip()]
+    header, groups, turns = steps[0], [], []
+    for step in steps[1:]:
+        if step["step"] == "post" and step["route"].startswith("/chat/"):
+            turns.append({"id": step["body"]["id"], "rev": step["body"].get("rev")})
+            groups.append([])
+        elif step["step"] in ("reply", "receipt") and groups:
+            groups[-1].append(step)
+    key = thread or header["thread"]
+    THREADS.setdefault(key, {"title": "Board, " + key, "messages": [], "seen": ""})
+    return {"name": header["name"], "thread": key, "groups": groups, "turns": turns, "next": 0, "ids": {},
+            "strokes": {}, "answers": {}, "hints": {}, "pending": 0}
+
+
+def strokes_answer(data):
+    """Story 1174: count, new and erased against the board's send before, as the Cockpit answers."""
+    ids = {s.get("id") for s in data.get("strokes") or []}
+    before = SESSION["strokes"].get(data.get("board"))
+    SESSION["strokes"][data.get("board")] = ids
+    answer = {"count": len(ids), "new": len(ids - before) if before is not None else len(ids),
+              "erased": len(before - ids) if before is not None else 0}
+    SESSION["answers"][data.get("picture_id")] = answer
+    return answer
+
+
+def session_hint(key, data):
+    """The hint the Cockpit wakes Larry with for this message (board contract, *What wakes the agent*)."""
+    hint = "cockpit · chat · %s · #thread/%s" % (THREADS[key]["title"], key)
+    board = data.get("board")
+    if not board:
+        return hint
+    hint += " · board %s · draw back: chat.py reply --shapes" % board
+    rev = data.get("rev")
+    if isinstance(rev, int):
+        hint += " · rev %d (move it: chat.py reply --ops, base_rev %d)" % (rev, rev)
+    result = data.get("op_result")
+    if isinstance(result, dict):
+        state = "ok" if result.get("ok") else "refused (%s)" % result.get("reason")
+        hint += " · op_result %s for %r at rev %s" % (state, result.get("label"), result.get("rev"))
+        if result.get("missing_ids"):
+            hint += ", %d ids missing" % len(result["missing_ids"])
+    if data.get("events"):
+        hint += " · %d events: whiteboard_events.py show %s --thread %s" % (len(data["events"]), board, key)
+    answer = SESSION["answers"].get(data.get("picture_id"))
+    if answer:
+        hint += " · strokes %d (%d new): whiteboard_strokes.py render %s %s --thread %s --out <png>" % (
+            answer["count"], answer["new"], board, data["picture_id"], key)
+    return hint
+
+
+def play_session_later(key, m, data):
+    """Larry's recorded answer to this turn, a moment later: his rows (on this message's board and picture, his batch's
+    base revision as far behind this message's as it was behind the recorded one) and the recorded receipts."""
+    session = SESSION  # a session chosen again meanwhile doesn't take this answer's place
+    n = session["next"]
+    session["next"] += 1
+    if n >= len(session["turns"]):
+        return
+    turn, group = session["turns"][n], session["groups"][n]
+    session["ids"][turn["id"]] = m["id"]
+    session["pending"] += 1
+
+    def go():
+        time.sleep(LARRY_DELAY)
+        with LOCK:
+            for step in group:
+                if step["step"] == "reply":
+                    r = row(key, "larry", step["text"])
+                    recorded = step["expect"]["row"]
+                    for name in ("frame", "shapes", "ops", "board", "picture_id"):
+                        if name in recorded:
+                            r[name] = json.loads(json.dumps(recorded[name]))
+                    if "board" in r and data.get("board"):
+                        r["board"] = data["board"]
+                    if "picture_id" in r and data.get("picture_id"):
+                        r["picture_id"] = data["picture_id"]
+                    if "ops" in r:
+                        r["ops"]["board"] = data.get("board") or r["ops"]["board"]
+                        if isinstance(data.get("rev"), int) and isinstance(turn["rev"], int):
+                            r["ops"]["base_rev"] += data["rev"] - turn["rev"]
+                    THREADS[key]["messages"].append(r)
+                    continue
+                for target in step["targets"]:
+                    mine = next((x for x in THREADS[key]["messages"] if x["id"] == session["ids"].get(target)), None)
+                    if mine is None:
+                        continue
+                    receipt = mine.setdefault("receipt", {"state": "received"})
+                    if step["state"] == "waiting":
+                        receipt["waiting"] = {"ts": now(), **({"label": step["label"]} if "label" in step else {})}
+                    elif RECEIPT_RANK.get(step["state"], -1) > RECEIPT_RANK.get(receipt.get("state"), 0):
+                        receipt["state"] = step["state"]
+                        receipt[step["state"] + "_ts"] = now()
+            session["pending"] -= 1
+    threading.Thread(target=go, daemon=True).start()
+
+
 def answer_board_later(key):
     def go():
         global LARRY_OPS
@@ -558,6 +673,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, {"ok": True, "answers": ANSWERS})
             if path == "/fake/turns":
                 return self._json(200, {"ok": True, "turns": SUGGESTS})
+            if path == "/fake/session":
+                return self._json(200, {"ok": True, "session": SESSION and {
+                    k: SESSION[k] for k in ("name", "thread", "next", "pending", "hints", "answers")}})
             if path == "/fake/strokes":
                 return self._json(200, {"ok": True, "sends": STROKE_SENDS, "folds": FOLD_SENDS})
             if path == "/fake/to-text":
@@ -584,6 +702,7 @@ class Handler(BaseHTTPRequestHandler):
         self._json(404, {"ok": False, "error": "not found"})
 
     def do_POST(self):
+        global SESSION
         path = urllib.parse.unquote(self.path.split("?")[0])
         raw = self.rfile.read(int(self.headers.get("Content-Length", "0") or 0))
         if path == "/attachments":
@@ -635,8 +754,9 @@ class Handler(BaseHTTPRequestHandler):
                 FOLD_SENDS.append(folds or [])
             self._report({"strokes": len(strokes), "board": data.get("board"), "picture_id": data.get("picture_id"),
                           "frame": data.get("frame"), "origin": self.headers.get("Origin")})
-            return self._json(200, {"ok": True, "board": data["board"], "picture_id": data["picture_id"],
-                                    "count": len(strokes), "new": len(strokes), "erased": 0})
+            with LOCK:
+                answer = strokes_answer(data) if SESSION else {"count": len(strokes), "new": len(strokes), "erased": 0}
+            return self._json(200, {"ok": True, "board": data["board"], "picture_id": data["picture_id"], **answer})
         if path.endswith("/whiteboard/responder"):
             # Story 659: the board's knob. A Larry board's suggest still draws here: the fake has one answerer.
             self._report({"body": data})
@@ -656,6 +776,13 @@ class Handler(BaseHTTPRequestHandler):
             self._report({"body": data, "origin": self.headers.get("Origin")})
             with LOCK:
                 return self._json(*decide(path, data))
+        if path == "/fake/session":
+            name = data.get("name")
+            if name and not os.path.exists(os.path.join(SESSIONS_DIR, os.path.basename(name) + ".jsonl")):
+                return self._json(404, {"ok": False, "error": "no recorded session %s" % name})
+            with LOCK:
+                SESSION = load_session(name, data.get("thread")) if name else None
+            return self._json(200, {"ok": True, "thread": SESSION and SESSION["thread"]})
         if path == "/fake/larry-draws":
             return self._draws(data)
         if path == "/fake/larry-asks":
@@ -758,6 +885,11 @@ class Handler(BaseHTTPRequestHandler):
                 OP_REPORTS.append({"rev": data.get("rev"), "op_result": data.get("op_result"),
                                    "events": len(data.get("events") or []),
                                    "event_types": [e.get("type") for e in data.get("events") or []]})
+        if SESSION and key == SESSION["thread"]:
+            with LOCK:
+                SESSION["hints"][m["id"]] = session_hint(key, data)
+                play_session_later(key, m, data)
+            return self._json(200, {"ok": True, "thread": key, "message": m, "title": t["title"]})
         if t.get("skill"):
             skill_reply_later(key, data.get("text"))
             return self._json(200, {"ok": True, "thread": key, "message": m, "marker": None, "skill": t["skill"]})

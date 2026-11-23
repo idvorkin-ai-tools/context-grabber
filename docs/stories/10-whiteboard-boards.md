@@ -1333,3 +1333,83 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board I drew on while talking (with the mic open for the words, or recording for the sound)
 - **When:** I play it back and tap a stroke I drew as I talked
 - **Then:** playback jumps there and shows the line I was saying then, or plays the sound from that moment
+
+---
+
+### User Story 1173:
+
+- **Summary:** Only a scrubbed copy of the Cockpit's recorded board sessions is kept in this public repo
+- **Status:** implemented on branch `native/board-sessions-09tx`; verified on the host (`test-board-sessions.py`, and the copy's own check against the source words when it was made from cockpit 9ca45fe)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A recorded board session replays too*
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As Igor,** whose real board conversations the Cockpit records
+- **I want to** have only a copy with nothing readable in it kept in the public repo
+- **so that** what I wrote and what Larry answered me stays private while the app's tests still replay it
+
+#### Acceptance Criteria:
+- **Scenario:** Making the copy
+- **Given:** the Cockpit's recorded sessions at a named commit
+- **When:** the copy is made
+- **Then:** every id, count, revision, frame, event, change and receipt is as recorded, every letter of any script is an x and every digit a 0, every stroke is a straight line across its own box, snapped out to a 40-point grid, and a field the copy doesn't know or a word of four letters or more from the writing left readable stops it with nothing written
+
+---
+
+### User Story 1182:
+
+- **Summary:** Larry's recorded batches get, on the Mac, the answers the iPad gave them
+- **Status:** implemented on branch `native/board-sessions-09tx`; verified on the host (`BoardSessionReplayTests`, `just board-ops --session ops-move`), `just native-test` and the Mac build
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A recorded board session replays too*
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As an agent** changing the board's rules for Larry's changes
+- **I want to** replay real recorded conversations with the board's own rules, the same ones the Cockpit replays
+- **so that** a change that would answer Larry differently than the iPad did shows in seconds, named, not on Igor's iPad
+
+#### Acceptance Criteria:
+- **Scenario:** The four recorded sessions replayed
+- **Given:** Larry's delete that came while Igor kept writing, and his room-making batch that came after Igor drew one more stroke
+- **When:** the sessions replay on the Mac (`just board-ops --session <name>`, or the host tests)
+- **Then:** the delete applies, rebased from his look, at the revision the iPad reported on its next turn, and the room-making batch, which the iPad of that night refused as stale, now applies rebased (story 961), the replay naming that difference instead of hiding it
+
+---
+
+### User Story 1183:
+
+- **Summary:** Each of my recorded board turns carries what the Cockpit told Larry about it
+- **Status:** implemented on branch `native/board-sessions-09tx`; verified on the host (`BoardSessionReplayTests` against the four sessions' recorded hints)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A recorded board session replays too*
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As an agent** changing what the board sends with a turn
+- **I want to** check each recorded turn's board fields against the hint the Cockpit woke Larry with
+- **so that** a field the app drops or renames shows before Larry is told less than he was
+
+#### Acceptance Criteria:
+- **Scenario:** Every turn of the four sessions
+- **Given:** each of Igor's recorded turns and the Cockpit's recorded hint for it
+- **When:** the session replays
+- **Then:** its revision, its last batch's answer, its number of events and its strokes count (new among them) are what the hint says, and a words-only message on the board's thread has no board hint
+
+---
+
+### User Story 1174:
+
+- **Summary:** The simulator's stand-in Cockpit plays a recorded board session back
+- **Status:** implemented on branch `native/board-sessions-09tx`; verified on the host (`test-fake-cockpit-session.py`: all four sessions' strokes answers, hints, Larry's rows and receipts); not yet driven by a UI test on the iPad simulator (the Board Lab, slice 4)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A recorded board session replays too*
+- **Issues:** bead context-grabber-09tx
+
+#### Use Case:
+- **As an agent** testing the board on the simulator
+- **I want to** have the stand-in Cockpit answer the board as the real one did in a recorded session
+- **so that** a UI test sees Larry's real replies, marks and changes in their real order instead of made-up ones
+
+#### Acceptance Criteria:
+- **Scenario:** A session chosen
+- **Given:** the stand-in Cockpit with a recorded session chosen
+- **When:** the board posts its strokes and each turn of that session, in order
+- **Then:** each strokes post is answered with the counts the Cockpit gave that day, each turn gets Larry's next recorded reply (words, marks or a batch of changes) and the receipts recorded for it, and the hint the stand-in would wake Larry with is the Cockpit's recorded one

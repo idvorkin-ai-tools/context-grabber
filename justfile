@@ -90,6 +90,9 @@ native-test-host:
     scripts/native/test-smoke-lock.sh
     # Stories 814-818: the fake Cockpit's board ops, which the whiteboard UI tests rely on.
     scripts/native/test-fake-cockpit-ops.py
+    # Stories 1173, 1174: the Cockpit's recorded board sessions are vendored scrubbed, and the fake Cockpit plays them back.
+    scripts/native/test-board-sessions.py
+    scripts/native/test-fake-cockpit-session.py
     # Stories 1012, 1013 (#1012): what just testflight refuses before it builds, from its dry run.
     scripts/native/test-testflight.sh
     # Stories 1027-1029 (bead context-grabber-omes): just ota's arguments and dry run; ota-watch's batch rule and post.
