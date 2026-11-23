@@ -184,7 +184,8 @@ final class WhiteboardTurnUITests: XCTestCase {
       (panel.value as? String ?? "").contains(WhiteboardTurnUITests.boardTurnNote), "no row for a wordless picture")
     let chip = app.staticTexts["whiteboard-conversation-live-chip"]
     XCTAssertTrue(chip.appears(within: 5), app.debugDescription)
-    XCTAssertTrue(chip.label.hasPrefix("Your board · "), chip.label)
+    // Bead context-grabber-l9u: his reply came, so the chip says Answered, never Sent (the fake Cockpit marks nothing).
+    waitUntil(NSPredicate(format: "label == %@", "Your board · Answered"), chip, timeout: 8)
     // Story 1048 (#1003): the panel pushes the paper down; the paper's top corner (its ? button) is below the panel.
     let help = app.buttons["whiteboard-help"]
     XCTAssertTrue(help.appears(within: 5), app.debugDescription)

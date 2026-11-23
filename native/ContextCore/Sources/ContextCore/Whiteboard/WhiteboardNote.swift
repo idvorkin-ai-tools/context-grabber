@@ -228,10 +228,15 @@ public enum WhiteboardNote {
     }
   }
 
-  /// Where a picture of Igor's got to, in the chip's words, with no turn out (#1003, story 1047).
-  static func chipWord(_ receipt: ChatMessage.Receipt) -> String {
+  /// Where a picture of Igor's got to, in the chip's words, with no turn out (#1003, story 1047). `answered`: a row of
+  /// Larry's follows it, which is his answer whatever the mark says; `marks`: the Cockpit marks Igor's messages, so a
+  /// missing mark means something. On one that marks nothing the picture on the thread is with Larry, never *Sent*
+  /// (stories 1161, 1162, bead context-grabber-l9u).
+  static func chipWord(_ receipt: ChatMessage.Receipt, answered: Bool = false, marks: Bool = true) -> String {
+    if answered { return "Answered" }
     switch receipt {
-    case .sent, .received: return "Sent"
+    case .sent: return marks ? "Sent" : "Larry has it"
+    case .received: return "Sent"
     case .seen: return "Larry has it"
     case .done: return "Answered"
     }
@@ -252,8 +257,10 @@ public enum WhiteboardNote {
     }
     // Story 929: his hold, in his words, in place of *Larry has it*: one chip, one vocabulary.
     if let listening { return listening }
-    guard let picture = thread.last(where: { $0.fromIgor && !$0.attachments.isEmpty }) else { return nil }
-    return chipWord(picture.receipt)
+    guard let at = thread.lastIndex(where: { $0.fromIgor && !$0.attachments.isEmpty }) else { return nil }
+    let answered = thread[(at + 1)...].contains { !$0.fromIgor && !$0.isSystem }
+    let marks = thread.contains { $0.fromIgor && $0.receipt != .sent }
+    return chipWord(thread[at].receipt, answered: answered, marks: marks)
   }
 
   /// The panel's live rows, under its thread: the status chip, and what the mic is hearing.
