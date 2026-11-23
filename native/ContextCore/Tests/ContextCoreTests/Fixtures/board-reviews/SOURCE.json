@@ -1,0 +1,25 @@
+{
+  "spec": "docs/superpowers/specs/2026-11-23-board-interaction-review-design.md",
+  "ipad": {
+    "converter": "scripts/native/board-review-from-log.py",
+    "logs": "Igor's iPad session logs pulled 2026-11-23 (just pull-logs): grabber-20261122-225645.jsonl (build 5569178f) and grabber-20261123-045031.jsonl (build cf0ae3de)",
+    "sessions": {
+      "ipad-2026-11-22-4d71": "board 4d711296, log 1, t 630000..830000 ms",
+      "ipad-2026-11-23-6bae-a": "board 6bae4457, log 2, t 1418000..1530000 ms (the Keep, Make room, drop, 05:15 reflow and moves)",
+      "ipad-2026-11-23-6bae-b": "board 6bae4457, log 2, t 2200000..2300000 ms (the Keep and the 05:28 knob stretch), after a 12-minute idle gap"
+    },
+    "scrub": "board events only; no words are in them. Units are synthesized: the log has counts, boxes and move ranges, not stroke ids. Each stroke Igor wrote is a unit at its added_box; the board as first opened is one unit at its ink box; a kept reply is one unit (its group). An uneven move maps each unit from the move's from box onto its at box. Only observations are carried, never the log's verdicts (apart, verdict, pickup).",
+    "verdict": "~/tmp/agent/notes/ipad-writing-review-2026-11-23.md: no bug; the reflow as designed (story 1145); the knob stretch unclear; keeps clean; selections lost to the popover as designed"
+  },
+  "beads": {
+    "check1-fires": "new ink hidden in a fold as it lands",
+    "check3-vhae": "context-grabber-vhae: a drag from inside a selected text moved it from [245,472,41,24] to [211,472,67,24]",
+    "check4-eg7v": "context-grabber-eg7v before its fix: a reflow drag moved Larry's 52 strokes and two of Igor's together",
+    "check5-eysh": "context-grabber-eysh: ten strokes written under a folded 145-stroke header swallowed on refolding",
+    "check6-9bll": "context-grabber-9bll: an Undo after a drop put the ink back but the line drew cut",
+    "check7-4nnh": "context-grabber-4nnh before its fix: a tapped group's selection taken by the popover and never put back",
+    "check9-pbvt": "context-grabber-pbvt: a kept circle drawn black through every heal (dark_px 179, ink_px 0)",
+    "check9-dell": "context-grabber-dell: a kept group drawn cut through every heal (ink_span 19x23 of 66x25)"
+  },
+  "synthetic": "the other check<n>-* records: each check firing, clean, and the deliberate version of its move (a selection dragged, a room asked for, a fold asked for)"
+}

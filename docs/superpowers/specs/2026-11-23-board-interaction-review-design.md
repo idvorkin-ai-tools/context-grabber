@@ -144,9 +144,13 @@ session gives the same findings on both.
 - **Bug**: his strokes moved that the step wasn't aimed at and no rule moved; or a push moved them by a different
   amount or from a different line than the rules give; or a drag that started inside a selection changed its size
   (story 1201).
-- **Unclear**: the system moved or stretched them from a handle (a corner knob, a reflow handle) with no selection of
-  his own behind it. The review shows the before and after and asks whether he meant it. (The 12-point stretch of
-  2026-11-23 at 05:28 is this case.)
+- **Unclear**: the system moved or stretched his strokes from a handle (a reflow handle) with no selection of his own
+  behind it; or a selection, his or a kept mark of Larry's, changed size under a drag that began on its corner knob,
+  which stretches by design (story 1201) but may not be what he meant. The review shows the before and after and asks
+  whether he meant it. (The 13-point stretch of Larry's kept reply on 2026-11-23 at 05:28, a group tap's selection
+  dragged from its knob, is the second case.)
+- **Judged once the step settles**: a move and the owners-apart step that follows it are one step here, so strokes the
+  rules put back in place (the 05:15 reflow's 18) never read as moved.
 - **Evidence**: the step, who started it, the strokes moved, their move (smallest and largest dx and dy, and whether
   they moved alike or unevenly), what the rules predicted.
 

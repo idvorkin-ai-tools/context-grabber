@@ -1,0 +1,3 @@
+{"board": "b-check7-4nnh", "ink": [{"box": [60, 100, 300, 40], "id": "g", "n": 93, "owner": "larry"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check7-4nnh", "surface": "ipad"}
+{"aim": {"ids": ["g"]}, "by": "finger", "kind": "select", "t": 1000}
+{"aim": {"ids": ["g"]}, "by": "system", "kind": "selection_lost", "seen": {"held_after": false}, "t": 1500}

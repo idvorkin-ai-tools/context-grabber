@@ -62,9 +62,11 @@ App files, each its own `+Review` extension:
 - **Fixtures** under `native/ContextCore/Tests/ContextCoreTests/Fixtures/board-reviews/`, scrubbed as
   `board-sessions/SOURCE.json` describes (letters to x, stroke points onto a line across their box), each with a
   golden report:
-  - `ipad-2026-11-23-s1`, `ipad-2026-11-23-s2`: built from the logs in `~/tmp/agent/grabber-logs/ipad/logs/`
+  - `ipad-2026-11-22-4d71`, `ipad-2026-11-23-6bae-a`, `ipad-2026-11-23-6bae-b`: one record per board per session as
+    the spec defines a session (the 6bae board's afternoon has a 12-minute idle gap, so it is two), built from the logs in `~/tmp/agent/grabber-logs/ipad/logs/`
     (grabber-20261122-225645 and grabber-20261123-045031) by a one-off converter (`scripts/native/board-review-from-log.py`):
-    the log has each step's ids, boxes and moves; strokes come from the Cockpit's copy of those boards. Golden: no bug,
+    the log has each step's ids, boxes and moves; the log has no stroke ids, so the converter synthesizes units (each stroke Igor wrote, the board as
+    first opened, a kept reply's group) and carries only observations, never the log's own verdicts. Golden: no bug,
     05:15 reflow `asDesigned` (1145), 05:28 knob stretch `unclear`, keeps clean, popover selection losses `asDesigned`.
   - One per closed bead: eysh (from the Cockpit's .ink repro already behind `BoardFoldWrittenUnderTests`), 9bll,
     pbvt, dell, 4nnh, eg7v, vhae, each from its recorded numbers on the bead and story.
