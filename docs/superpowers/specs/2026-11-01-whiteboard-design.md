@@ -152,19 +152,18 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   the sparkle and hand icons do. There is a large empty gap between the palette and the mic in the right-hand group").
   - **Three groups.** The way back and *Undo*/*Redo* on the left; on the right the board's own things, the **Board**
     menu and **Paste**, in a group of their own like *Undo* and *Redo*; then the four that talk to Claude and Larry:
-    **Talk**, **Ask at my pauses** (once *Ghosts*), **Larry** and **Send**, evenly spaced, with no hole among them.
+    **Talk**, **Ask at my pauses**, **Larry** and **Send**, evenly spaced, with no hole among them.
   - **Paste shows only while the clipboard holds text.** The gap was the system's paste button with nothing to paste:
     iOS dims it to near nothing, so it read as an empty space. Looking whether the clipboard holds text never asks
     *Allow Paste?*. When it does, Paste appears beside the Board menu and the four on the far right don't move.
     It appears within about a second of text being copied, also from an app beside the board.
   - **A long press names the button.** A long press on Talk, Ask at my pauses, Larry or Send shows a small menu headed
     by the button's name (*Talk*, *Ask at my pauses*, *Larry*, *Send*) with one row saying what a tap does (*Talk to
-    Claude*, *Stop asking Larry at my pauses* (the board's responder by name, and *Ask … at my pauses* while it is off;
-    bead context-grabber-4ic), *Hand Larry the board*, *Send the board to Larry*); that row does it, and a tap anywhere
-    else closes the menu. A plain tap does what it always did. The Board menu already opens on a tap and is headed
-    by its sections. VoiceOver reads each button's name as before. Talk's menu also picks the microphone, under its
-    one row, whether the mic is open or closed ([Which microphone, and what it hears](2026-11-01-whiteboard-shapes-design.md),
-    story 926).
+    Claude*, *Stop asking Larry at my pauses* (substitute the board's responder by name, or use
+    *Ask … at my pauses* while the switch is off), *Hand Larry the board*, *Send the board to Larry*); that row does it,
+    and a tap anywhere else closes the menu. A plain tap does what it always did. The Board menu opens on a tap and
+    is headed by its sections. Talk's menu also picks the microphone, under its one row, whether the mic is open or
+    closed ([Which microphone, and what it hears](2026-11-01-whiteboard-shapes-design.md), story 926).
   - On a width as narrow as an iPhone's the Board menu stays at the bottom of the screen (below), and Paste with it in
     the top bar's right group.
   - **The board's name** sits in the middle of the bar. On a board that draws here a tap on it renames the board
@@ -341,11 +340,8 @@ drawing and why.
 (#636. The board's ghosts, Larry's turn and the mic, as *Whiteboard: Claude and Larry draw back* describes them, on a board on
 paper. That description is the requirement, and this lists only where paper needs saying.)
 
-- **The same bar.** A board on paper has the *Ask at my pauses* switch, the mic, *Larry's turn* and *Send to Larry*, as any board does,
-  and paste: see *Paste on paper*.
-- **The same turns.** A pause after a stroke asks Claude, the Pencil touching down holds that pause until it lifts, words go
-  the same way, and Larry's marks arrive on their own, in his colour, where his picture was. Nothing about the *Ask at my pauses* switch,
-  the fading, one turn at a time or the bar's words changes.
+- **The same bar and turns.** See *The top bar's groups and labels*, *Paste on paper* and
+  [Whiteboard: Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md).
 - **A ghost sits on the paper.** It moves and zooms with the board exactly as the ink does, because it lies on the same sheet:
   it can't drift off the ink or trail behind a scroll or a pinch.
 - **A ghost lies under the ink, as the page lines do.** Where one crosses ink, the ink is on top. On the old canvas it lay over
@@ -539,9 +535,8 @@ docks along the bottom and takes every tap there.
     or an ellipse.
   - *Larry's marks:* *Keep all* beside the count of marks keeps every one as ink, in order; *Tidy overlaps* in the Board
     menu moves kept labels off writing.
-  - *In the bar:* *Ask at my pauses* (the sparkles): on, each pause in writing or talking asks whoever answers the board,
-    Larry or Claude, for a look; off, nothing is asked and the mic stays closed, and marks already showing stay (bead
-    context-grabber-4ic).
+  - *In the bar:* *Ask at my pauses* (the sparkles) explains
+    [what the switch does](2026-11-01-whiteboard-shapes-design.md).
   - *Feedback (the ladybug):* a note, a picture of the screen and the recent log; shaking the iPad does the same.
   It closes with *Done*, or a tap outside it on the iPad. A look-only board (an iPhone, or another device drawing it)
   shows no **?**: its gestures don't apply there.

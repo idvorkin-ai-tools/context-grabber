@@ -32,14 +32,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 351:
 
-- **Summary:** Turn the ghosts off (the switch is *Ask at my pauses* since story 1171: it stops asking whoever answers the board, Larry included)
+- **Summary:** Turn off *Ask at my pauses*
 - **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on), which passed with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3). Since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`: a stroke with Ghosts off starts no pause, Claude's go and Larry's stay, an answer on its way lands stale, on again asks), and that UI test is gone. Renamed *Ask at my pauses* in [f77304bd](https://github.com/idvorkin/context-grabber/commit/f77304bd) (story 1171): off asks no one on a Larry board or a Haiku board, verified on the iPad simulator (`WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** who wants to draw undisturbed
-- **I want to** switch *Ask at my pauses* (once Ghosts) off in the board's bar
-- **so that** nothing is asked or offered, by Claude or by Larry, until I switch it back
+- **I want to** switch *Ask at my pauses* off in the board's bar
+- **so that** my pauses don't ask Larry or Claude for suggestions until I switch it back on
 
 #### Acceptance Criteria:
 - **Scenario:** Ask at my pauses off
@@ -51,40 +51,40 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 1114:
 
-- **Summary:** Writing with Ghosts off says no one is watching
+- **Summary:** Writing with *Ask at my pauses* off says no one is watching
 - **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified on the host (`WhiteboardGhostTurnsTests`: the first stroke with Ghosts off sets the line and it stays; `WhiteboardNoteTests`: the line holds the middle) and the Mac build. Not yet seen on the iPad. Worded for *Ask at my pauses* in [f77304bd](https://github.com/idvorkin/context-grabber/commit/f77304bd) (story 1171), read on the iPad simulator by `WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`
 - **Issues:** bead `context-grabber-bozm` (iPad, 2026-11-22: a tap meant for the mic landed on Ghosts at 13:31; 16 minutes of writing went to no one, with nothing on screen saying so)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
-- **As someone** who turned Ghosts off, maybe without meaning to
+- **As someone** who turned *Ask at my pauses* off, maybe without meaning to
 - **I want to** be told, as I write, that nobody is looking at the board
 - **so that** I don't write for minutes waiting for Larry or Claude to answer a board neither of them can see
 
 #### Acceptance Criteria:
-- **Scenario:** Writing with Ghosts off
-- **Given:** Ghosts are off on a board
+- **Scenario:** Writing with *Ask at my pauses* off
+- **Given:** *Ask at my pauses* is off on a board
 - **When:** I draw a stroke
-- **Then:** the bar's note says *Ask at my pauses is off, so no one is watching: turn it on for a look* (worded for the switch since story 1171), and it stays there while I keep writing, past the note's usual few seconds; nothing is asked, as before
+- **Then:** the bar's note says *Ask at my pauses is off, so no one is watching: turn it on for a look*, and it stays there while I keep writing, past the note's usual few seconds; nothing is asked, as before
 
 ---
 
 ### User Story 1113:
 
-- **Summary:** Turning Ghosts back on takes the no-one-is-watching line away
+- **Summary:** Turning *Ask at my pauses* back on takes the no-one-is-watching line away
 - **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified on the host (`WhiteboardGhostTurnsTests`: Ghosts on clears the line and the next stroke asks) and the Mac build. Not yet seen on the iPad
 - **Issues:** bead `context-grabber-bozm`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** who was told no one is watching the board
-- **I want to** see the line go once I turn Ghosts back on
+- **I want to** see the line go once I turn *Ask at my pauses* back on
 - **so that** the bar never says no one is watching when someone is
 
 #### Acceptance Criteria:
-- **Scenario:** Ghosts back on
+- **Scenario:** Ask at my pauses back on
 - **Given:** the bar says no one is watching
-- **When:** I turn Ghosts on
+- **When:** I turn *Ask at my pauses* on
 - **Then:** the line goes, and my next pause asks as usual
 
 ---
@@ -98,14 +98,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** reading a session log after a board went quiet
-- **I want to** find one line where writing with Ghosts off began
+- **I want to** find one line where writing with *Ask at my pauses* off began
 - **so that** I can tell when the board stopped being watched without wading through a line per stroke
 
 #### Acceptance Criteria:
 - **Scenario:** The log says when it began
-- **Given:** Ghosts are off, and a mic tap or Larry's words may have taken the bar's line since
-- **When:** I draw strokes after they went off
-- **Then:** the session log has one line, at the first of them, saying a pause was skipped because Ghosts are off, not one per stroke
+- **Given:** *Ask at my pauses* is off, and a mic tap or Larry's words may have taken the bar's line since
+- **When:** I draw strokes after the switch goes off
+- **Then:** the session log has one line, at the first of them, recording that the switch was off, not one per stroke
 
 ---
 
@@ -122,7 +122,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** The Cockpit is away
-- **Given:** Ghosts are on and the Cockpit can't be reached
+- **Given:** *Ask at my pauses* is on and the Cockpit can't be reached
 - **When:** I draw a stroke and lift the Pencil
 - **Then:** the stroke stays, and the bar says ghosts aren't answering, unless Larry's line is showing there
 
@@ -411,17 +411,17 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 356:
 
-- **Summary:** Larry's marks stay when the ghosts go off (the switch is *Ask at my pauses* since story 1171, and off it asks Larry nothing either)
+- **Summary:** Larry's marks stay when *Ask at my pauses* goes off
 - **Status:** app side implemented in [e2f693e](https://github.com/idvorkin/context-grabber/commit/e2f693e); verified on the simulator by the session log (`whiteboard` ghosts: Ghosts off drops Claude's one ghost, then Larry's turn shows his two); a UI test could not read it, as the Ghosts button's accessibility label does not refresh for XCUITest while Ghosts is off; on the iPad not yet. Renamed *Ask at my pauses* in [f77304bd](https://github.com/idvorkin/context-grabber/commit/f77304bd) (story 1171), Larry's two marks staying with it off read on the iPad simulator by `WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** who asked Larry for a turn and wants Claude to stop suggesting
-- **I want to** switch the ghosts off without losing what Larry drew
+- **I want to** turn off *Ask at my pauses* without losing what Larry drew
 - **so that** the switch only stops the asking, and Larry's answer already showing waits for me to keep it
 
 #### Acceptance Criteria:
-- **Scenario:** Ghosts off with Larry's marks showing
+- **Scenario:** Turning off Ask at my pauses with Larry's marks showing
 - **Given:** Larry's faint purple shapes are showing
 - **When:** I turn *Ask at my pauses* off in the board's bar
 - **Then:** his shapes stay and I can still keep them
@@ -479,7 +479,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Marks as he makes them
-- **Given:** Ghosts are on, I paused, and the Cockpit streams its answer
+- **Given:** *Ask at my pauses* is on, I paused, and the Cockpit streams its answer
 - **When:** the marks come
 - **Then:** each one draws itself in as it arrives and the count in the bar climbs
 
