@@ -1,0 +1,6 @@
+{"run_id":"r-ok","event":"start","at":"2026-11-21T09:00:00Z","sha":"cccc3333","base":"origin/main","fork":"f9","changed":["native/App/Chat/ChatView.swift"],"classes":{"chat":["ChatUITests"],"whiteboard":[],"places":[],"ipad":[],"other":[]},"smoke":"chat","destinations":{},"host_only":[],"unknown":[]}
+{"run_id":"r-ok","event":"rung","at":"2026-11-21T09:05:00Z","rung":"2","secs":120}
+{"run_id":"r-ok","event":"finish","at":"2026-11-21T09:06:00Z","outcome":"pass"}
+{"run_id":"r-orphan","event":"lane","at":"2026-11-21T09:10:00Z","rung":"2","lane":1,"lanes":2,"waited_s":15}
+{"run_id":"r-orphan","event":"rung","at":"2026-11-21T09:12:00Z","rung":"2","secs":90}
+{"run_id":"r-orphan","event":"finish","at":"2026-11-21T09:13:00Z","outcome":"fail","first_failure":{"rung":"2"}}
