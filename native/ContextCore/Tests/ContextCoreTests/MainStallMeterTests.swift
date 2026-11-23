@@ -19,9 +19,8 @@ final class MainStallMeterTests: XCTestCase {
     XCTAssertNil(meter.checked(at: 0.5))
     XCTAssertNil(meter.checked(at: 1.0))
     XCTAssertEqual(meter.checked(at: 1.25), .began(waited: 1.0))
-    // Still stuck: no second "began".
-    XCTAssertNil(meter.checked(at: 5))
-    XCTAssertNil(meter.checked(at: 14))
+    // Still stuck, the watch looking every quarter second: no second "began".
+    for tick in 6...56 { XCTAssertNil(meter.checked(at: Double(tick) * 0.25)) }
     XCTAssertEqual(meter.answered(at: 14.75), .ended(lasted: 14.5))
     // Answering again: back to quiet.
     XCTAssertNil(meter.checked(at: 15))
@@ -50,5 +49,53 @@ final class MainStallMeterTests: XCTestCase {
     XCTAssertNil(meter.stopped(at: 9.5))
     meter.restart(at: 30)
     XCTAssertNil(meter.answered(at: 30.1))
+  }
+
+  // Bead context-grabber-55vm: the iPad logged suspended time as stalls (waited_ms 281,422 to 921,354 in
+  // grabber-20261120-071137, 1,158,372 in 062630, 2,957,505 in 101810), each the app's time away while the watch's
+  // timer, which didn't stop, was asleep with the rest of the process.
+
+  func testAWatchThatWasAsleepWithTheAppSaysAwayNotAStall() {
+    var meter = MainStallMeter(threshold: 1, now: 0)
+    XCTAssertNil(meter.checked(at: 0.25))
+    XCTAssertNil(meter.answered(at: 0.25))
+    // Suspended for 921 s: the next look comes 921 s after the last one.
+    XCTAssertEqual(meter.checked(at: 921.604), .away(gap: 921.354, wasStalling: false))
+    // The pending answer arriving on resume is no stall either, and the watch carries on quietly.
+    XCTAssertNil(meter.answered(at: 921.62))
+    XCTAssertNil(meter.checked(at: 921.85))
+    XCTAssertNil(meter.answered(at: 921.86))
+  }
+
+  func testARealStallKeepsTheWatchLookingSoItIsStillAStall() {
+    // The 6.5 s stall at t=4953804 in 071137: the main thread stuck, the watch looking every quarter second.
+    var meter = MainStallMeter(threshold: 1, now: 0)
+    var began: MainStallMeter.Word?
+    var now = 0.0
+    while now < 6.5 {
+      now += 0.25
+      if let word = meter.checked(at: now) { began = began ?? word }
+    }
+    XCTAssertEqual(began, .began(waited: 1.0))
+    XCTAssertEqual(meter.answered(at: 6.5), .ended(lasted: 6.5))
+  }
+
+  func testSuspendedMidStallForgetsTheStallAndSaysSo() {
+    var meter = MainStallMeter(threshold: 1, now: 0)
+    XCTAssertNil(meter.checked(at: 0.75))
+    XCTAssertEqual(meter.checked(at: 1.25), .began(waited: 1.25))
+    XCTAssertEqual(meter.checked(at: 300), .away(gap: 298.75, wasStalling: true))
+    XCTAssertNil(meter.answered(at: 300.1))
+  }
+
+  func testAGapJustUnderTheAwayGapIsStillWatched() {
+    var meter = MainStallMeter(threshold: 1, now: 0, awayGap: 5)
+    XCTAssertEqual(meter.checked(at: 4.9), .began(waited: 4.9))
+  }
+
+  func testRestartingResetsTheLookClock() {
+    var meter = MainStallMeter(threshold: 1, now: 0)
+    meter.restart(at: 600)
+    XCTAssertNil(meter.checked(at: 600.25))
   }
 }

@@ -1,6 +1,8 @@
 //  #946: a watch off the main thread that says in the session log when the main thread stops answering (`main_stall`),
 //  so "I think I just hung" is a number rather than a guess. It runs only while the app is active: time away isn't a
-//  stall. What counts is ContextCore's MainStallMeter.
+//  stall. What counts is ContextCore's MainStallMeter. The app suspended without going inactive first (bead
+//  context-grabber-55vm) is caught by the meter too: the watch's own looks stop with the process, so a long gap between
+//  them is said as `away`, not a stall. Start and stop log the app's and its scenes' states, to show why a stop was missed.
 
 import ContextCore
 import Foundation
@@ -44,6 +46,7 @@ final class MainStallWatch: @unchecked Sendable {
       meter.restart(at: ProcessInfo.processInfo.systemUptime)
       asking = false
     }
+    log.event("main_stall", ["action": "watching", "app": Self.appState(), "scenes": Self.sceneStates()])
     let timer = DispatchSource.makeTimerSource(queue: queue)
     timer.schedule(deadline: .now() + Self.every, repeating: Self.every, leeway: .milliseconds(50))
     timer.setEventHandler { [weak self] in self?.look() }
@@ -56,6 +59,7 @@ final class MainStallWatch: @unchecked Sendable {
     timer = nil
     let word = lock.withLock { meter.stopped(at: ProcessInfo.processInfo.systemUptime) }
     say(word, why: "inactive")
+    log.event("main_stall", ["action": "stopped", "app": Self.appState(), "scenes": Self.sceneStates()])
   }
 
   /// Off the main thread.
@@ -87,8 +91,34 @@ final class MainStallWatch: @unchecked Sendable {
       var fields: [String: Any] = ["action": "ended", "ms": Int((lasted * 1000).rounded())]
       if let why { fields["why"] = why }
       log.event("main_stall", fields)
+    case .away(let gap, let wasStalling):
+      log.event(
+        "main_stall", ["action": "away", "gap_ms": Int((gap * 1000).rounded()), "was_stalling": wasStalling])
     case nil:
       break
+    }
+  }
+
+  /// From the main thread.
+  private static func appState() -> String {
+    switch UIApplication.shared.applicationState {
+    case .active: "active"
+    case .inactive: "inactive"
+    case .background: "background"
+    @unknown default: "unknown"
+    }
+  }
+
+  /// From the main thread: each connected scene's activation state.
+  private static func sceneStates() -> [String] {
+    UIApplication.shared.connectedScenes.map { scene in
+      switch scene.activationState {
+      case .foregroundActive: "foreground_active"
+      case .foregroundInactive: "foreground_inactive"
+      case .background: "background"
+      case .unattached: "unattached"
+      @unknown default: "unknown"
+      }
     }
   }
 }
