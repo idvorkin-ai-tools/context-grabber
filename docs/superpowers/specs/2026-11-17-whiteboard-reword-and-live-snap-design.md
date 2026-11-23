@@ -7,7 +7,7 @@ cockpit `assets/ink/`). Larry ranked them third and fifth of the board's missing
 
 ## The idea in one line
 
-Tap a kept text with a finger and type: its words change where they are. Hold the Pencil still at the end of a line, a
+Tap a kept text twice with a finger and type: its words change where they are. Hold the Pencil still at the end of a line, a
 box or a loop: the clean shape shows at once, and lands when you lift.
 
 ## Why
@@ -21,13 +21,17 @@ box or a loop: the clean shape shows at once, and lands when you lift.
 
 ### Rewording a kept text
 
-- A finger tap on a kept text (on its letters, or within a finger's width of them) on a board drawn on here opens it for
-  editing in place: a text field over the text, where the text is, its words in it, the keyboard up. A tap on one of
-  Larry's marks still chooses the mark; a tap in the margin is still the margin's; a look-only board opens nothing.
-  A text of Larry's, or one inside a group, is picked up by the first tap and opens at the second (#1171, #947; the
+- **The first finger tap on any kept text selects it; the second opens it** (context-grabber-awz; Igor, 2026-11-22:
+  "a second tap rewords a text"). A finger tap on a kept text (on its letters, or within a finger's width of them) on a
+  board drawn on here picks it up: the text alone is selected, ready to drag, and the selection's label says *Text · tap
+  to reword*. A second tap on it, while it is still selected, opens it for editing in place: a text field over the text,
+  where the text is, its words in it, the keyboard up. The same holds for every kept text: Igor's own typed or To text
+  text, a text of Larry's, and one inside a group (which the first tap picks up with its whole group, #1171, #947; the
   shapes spec, *A finger tap on anything of Larry's he kept*), whether or not one of his controls shows (bead
-  context-grabber-9d1); a text of Igor's own opens at the first. A tap on one of his controls is the control's, even
-  over a kept text: it opens no words.
+  context-grabber-9d1). A drag after the first tap moves the text and opens nothing. A tap on one of Larry's marks
+  still chooses the mark; a tap in the margin is still the margin's; a look-only board opens nothing. A tap on one of
+  his controls is the control's, even over a kept text: it neither selects it nor opens its words. Inside a bigger
+  selection of his own the tap is the selection's (the shapes spec, *What the tap lands on inside it doesn't matter*).
 - A tap on ink that isn't a kept text, or on blank paper, does what it did before. The Pencil writes as ever: a Pencil
   tap on a text is a dot, not an edit.
 - He edits the words. Return, or a tap anywhere off the field, is *done*.
@@ -60,7 +64,8 @@ box or a loop: the clean shape shows at once, and lands when you lift.
 
 ## Acceptance criteria
 
-- A finger tap on a kept text opens its words in place; Return or a tap off it applies them: re-wrapped at the same
+- A first finger tap on a kept text selects it (*Text · tap to reword*, ready to drag); a second opens its words in
+  place; Return or a tap off it applies them: re-wrapped at the same
   top-left, same id to Larry, one undo back to the old words. Empty words delete it; unchanged words change nothing.
 - A held stroke that is nearly a shape shows clean while the Pencil is still down; lifting keeps it, one undo back to
   the raw ink; moving on brings the raw stroke back.

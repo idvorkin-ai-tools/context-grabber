@@ -604,7 +604,12 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       }
       return
     }
-    // Story 940: with no marks to choose, a tap on a kept text opens its words (or, with them open, is done).
+    // Story 1197: the first tap on a kept text selects it, ready to drag; the second (below) opens its words.
+    if count == 0, !onControl, reword.editing == nil, let text = tappedText(at: at), !text.selected {
+      select(text, tappedAt: at, beganAt: beganAt)
+      return
+    }
+    // Story 940: with no marks to choose, a tap on a selected kept text opens its words (or, with them open, is done).
     if count == 0, !onControl || reword.editing != nil, rewordTapped(at: at) {
       noSelectionUntil = CACurrentMediaTime() + 0.8
       ghostTap = TapDot(at: at, beganAt: beganAt, within: PaperProbe.rewordDotSeconds)
