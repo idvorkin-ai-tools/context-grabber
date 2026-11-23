@@ -45,6 +45,27 @@ final class WhiteboardMarkChoiceTests: XCTestCase {
       "nothing selected")
   }
 
+  func testATapInsideHisSelectionOnOneThingInItKeepsTheSelection() {
+    // Story 1196: a lasso round a group and a text; a tap on either keeps the lasso's selection.
+    let box = CGRect(x: 100, y: 200, width: 300, height: 120)
+    let onText = CGPoint(x: 350, y: 300)
+    XCTAssertTrue(
+      WhiteboardMarkChoice.selectionKeeps(box, at: onText, reach: 22, onMark: false, tappedIsWholeSelection: false))
+    XCTAssertFalse(
+      WhiteboardMarkChoice.selectionKeeps(box, at: onText, reach: 22, onMark: false, tappedIsWholeSelection: true),
+      "the selection is that one text: the tap goes on to it, and a second tap rewords")
+    XCTAssertFalse(
+      WhiteboardMarkChoice.selectionKeeps(
+        box, at: CGPoint(x: 600, y: 300), reach: 22, onMark: false, tappedIsWholeSelection: false),
+      "a tap outside the selection behaves as before")
+    XCTAssertFalse(
+      WhiteboardMarkChoice.selectionKeeps(.null, at: onText, reach: 22, onMark: false, tappedIsWholeSelection: false),
+      "nothing selected")
+    XCTAssertFalse(
+      WhiteboardMarkChoice.selectionKeeps(box, at: onText, reach: 22, onMark: true, tappedIsWholeSelection: false),
+      "a mark of Larry's in reach still takes the tap (story 967)")
+  }
+
   // MARK: Which mark a tap chooses
 
   func testATapOnAMarkChoosesItAndChangesNothing() {
