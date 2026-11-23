@@ -373,7 +373,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1196:
 
 - **Summary:** A tap inside my own selection is always the selection's
-- **Status:** in progress on branch `native/selection-wins-tap-nkh`
+- **Status:** implemented in 9e1033f5; verified by host tests (`WhiteboardMarkChoiceTests.testATapInsideHisSelectionOnOneThingInItKeepsTheSelection`; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator (rung 2) and the iPad are owed
 - **Issues:** bead context-grabber-nkh (read from the code on main, 2026-11-22, in the stories coherence pass, bead context-grabber-2qb; not reproduced on a device). The bead named this story 1153, which another story took first.
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on his own selection is still his*, *What the tap lands on inside it doesn't matter*
 
