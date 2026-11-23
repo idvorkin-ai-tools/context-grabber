@@ -243,7 +243,7 @@ board differs, this says why.
   dropped ink stays exactly where he let go, and from the clear line nearest its top everything below slides down,
   whole things whole, by as many whole lines as it takes to leave half a line of air under what he dropped. Ink above
   that line doesn't move.
-- **However he picked it up** (story 929; Igor, 2026-11-22: "when I drop text onto existing text, I want it to move
+- **However he picked it up** (story 1172; Igor, 2026-11-22: "when I drop text onto existing text, I want it to move
   just like if I was to select text"): a lasso, a tap on a group or a kept text of Larry's, or a drag that starts
   straight on handwriting the system picked up by itself with nothing selected. Text or ink, his or a kept one of
   Larry's, a drop is a drop: everything he dragged moved together by the same amount while his finger or Pencil was

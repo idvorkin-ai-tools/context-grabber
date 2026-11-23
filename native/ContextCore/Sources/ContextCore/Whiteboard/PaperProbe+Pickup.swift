@@ -1,4 +1,4 @@
-//  Whether a move PaperKit reports was a drop by hand (story 929, bead context-grabber-9uj2): Igor's drag of a piece of
+//  Whether a move PaperKit reports was a drop by hand (story 1172, bead context-grabber-9uj2): Igor's drag of a piece of
 //  ink or text, however he picked it up, as against the system rearranging handwriting. On the iPad, 2026-11-22, a kept
 //  text of Larry's dragged from PaperKit's handwriting view onto Igor's writing arrived with nothing selected, and the
 //  board took it for no drop at all. Pure.
@@ -33,7 +33,7 @@ extension PaperProbe {
   /// drag that PaperKit also re-measured (it logged `resized` on a plain drag) shifts one edge by a point or so.
   public static let rigidTolerance: CGFloat = 2
 
-  /// Story 929: a drop by hand is a move of only selected strokes, or, with nothing selected holding them, a move of
+  /// Story 1172: a drop by hand is a move of only selected strokes, or, with nothing selected holding them, a move of
   /// strokes that all went the same way the same distance while a touch was down. `split`: the move carried both
   /// owners' ink (story 1145).
   public static func pickup(_ moved: [InkMove], selected: Set<String>, inTouch: Bool, split: Bool) -> Pickup {

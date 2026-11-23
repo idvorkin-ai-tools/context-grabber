@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// Story 929: a drop by hand, however it was picked up. The oracle is the iPad's log of 2026-11-22 (board ead78e80): a
+/// Story 1172: a drop by hand, however it was picked up. The oracle is the iPad's log of 2026-11-22 (board ead78e80): a
 /// kept text of Larry's, 29 strokes, dragged from PaperKit's handwriting view with nothing selected, every stroke moved
 /// 155, -153 (one of them -154, 16 of them re-measured), and the board took it for no drop.
 final class PaperProbePickupTests: XCTestCase {

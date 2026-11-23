@@ -1,4 +1,4 @@
-//  Story 929 (bead context-grabber-9uj2) on the iPad simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Story 1172 (bead context-grabber-9uj2) on the iPad simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a kept group of Larry's dragged onto Igor's writing pushes the writing down, and one Undo puts both back.
 //  Where things sit is read from the screen's pixels (`PaperScreen`, in WhiteboardPaperGhostsUITests.swift): Igor's line
 //  in black, Larry's kept marks in his purple. On the simulator a tap selects the group, so this is the selected path;

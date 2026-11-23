@@ -57,7 +57,7 @@ final class BoardRoomDropTests: XCTestCase {
     XCTAssertNil(BoardRoom.drop(block, from: from, among: [writing(100), neighbour, writing(300)]))
   }
 
-  /// Story 929, from the iPad's log of 2026-11-22 (board ead78e80): Larry's kept text, lifted from below, dropped on
+  /// Story 1172, from the iPad's log of 2026-11-22 (board ead78e80): Larry's kept text, lifted from below, dropped on
   /// Igor's first line. His two lines go down together, clear of it, by whole lines.
   func testAKeptTextDroppedOnHisWritingPushesItDown() {
     let from = CGRect(x: 34, y: 223, width: 248, height: 25)

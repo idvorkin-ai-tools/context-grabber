@@ -1,5 +1,5 @@
-//  A board on paper: ink dropped onto writing pushes it down (stories 973–975, 979, 969, 929). Moved from PaperBoard.swift
-//  and widened by story 929 (bead context-grabber-9uj2): a drop by hand is one however it was picked up, a lasso, a tap on
+//  A board on paper: ink dropped onto writing pushes it down (stories 973–975, 979, 969, 1172). Moved from PaperBoard.swift
+//  and widened by story 1172 (bead context-grabber-9uj2): a drop by hand is one however it was picked up, a lasso, a tap on
 //  a group, or a drag from PaperKit's handwriting view with nothing selected.
 
 import ContextCore
@@ -7,7 +7,7 @@ import PaperKit
 import UIKit
 
 extension PaperBoardController {
-  /// Stories 973–975, 929: ink dragged onto ink pushes what is below down clear of it, as a paste's room does, and the
+  /// Stories 973–975, 1172: ink dragged onto ink pushes what is below down clear of it, as a paste's room does, and the
   /// drag and the push are one Undo named *Move*. Only a drag by hand: an Undo or Redo never pushes, nor does the system
   /// rearranging handwriting, nor a move the owners-apart rule puts right (`split`, story 1145).
   func pushesOnMove(_ change: PaperProbe.InkChange, markup: PaperMarkup, undo: UndoManager?, split: Bool) {
@@ -29,7 +29,7 @@ extension PaperBoardController {
     }.reduce(CGRect.null) { $0.union($1) }
     event["from"] = rect(from)
     guard pickup.isDrop else {
-      // Story 929: every move by hand says why it opened no room; a move with no touch down is the system's, unlogged.
+      // Story 1172: every move by hand says why it opened no room; a move with no touch down is the system's, unlogged.
       if pickup != .notInTouch {
         event["room"] = false
         log.event("whiteboard", event)
@@ -53,14 +53,6 @@ extension PaperBoardController {
     // What he dropped stays where he let go of it.
     for index in dragged { plan.offsets[index] = nil }
     let pushedKeys = plan.offsets.keys.filter { elements.indices.contains($0) }.map { Self.key(elements[$0].elementID) }
-    // The board before the drag: the dragged strokes back where they were.
-    var before = markup
-    for element in elements {
-      guard let move = back[Self.key(element.elementID)] else { continue }
-      var stroke = element
-      stroke.applyTransform(CGAffineTransform(translationX: -move.dx, y: -move.dy))
-      _ = before.subelements.updateOrAppend(stroke)
-    }
     event.merge(["room": true, "cut": Double(push.cut), "dy": Double(push.dy), "moved": plan.moved]) { $1 }
     // Not from inside PaperKit's own callback: its step for the drag is taken back, and one step for both goes on.
     Task { @MainActor [weak self] in
@@ -74,6 +66,14 @@ extension PaperBoardController {
       event["waited_ms"] = waited * 50
       let now = self.paper.markup ?? markup
       event["now_is_drop"] = Self.close(now.strokeFrames, markup.strokeFrames)
+      // The board before the drag, as it is after the lift: the dragged strokes back where they were.
+      var before = now
+      for element in now.subelements.strokes {
+        guard let move = back[Self.key(element.elementID)] else { continue }
+        var stroke = element
+        stroke.applyTransform(CGAffineTransform(translationX: -move.dx, y: -move.dy))
+        _ = before.subelements.updateOrAppend(stroke)
+      }
       let tookBack = self.quietly { self.takeBackPaperKitsStep(why: "drop") }
       let undidDrag = self.paper.markup.map { Self.close($0.strokeFrames, before.strokeFrames) } ?? false
       event["took_back"] = tookBack
@@ -88,7 +88,9 @@ extension PaperBoardController {
       var start = now
       var onLive = plan
       event["on_live"] = false
-      if undidDrag, let live = self.paper.markup, live.subelements.strokes.count == elements.count {
+      if undidDrag, let live = self.paper.markup,
+        live.subelements.strokes.map({ Self.key($0.elementID) }) == elements.map({ Self.key($0.elementID) })
+      {
         start = live
         event["on_live"] = true
         for index in dragged {

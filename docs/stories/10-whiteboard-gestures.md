@@ -685,8 +685,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 973:
 
 - **Summary:** A selection dropped onto writing pushes the writing down
-- **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"; [#945](https://github.com/idvorkin/context-grabber/issues/945) (2026-11-18: a box PaperKit showed after a margin tap dragged 223 strokes onto writing, twice, and nothing was pushed: the move came with no selection, so it was never taken for a drop); bead context-grabber-9uj2 (2026-11-22, board ead78e80: a kept text of Larry's dragged onto Igor's writing from PaperKit's handwriting view, again with nothing selected, and again nothing pushed; story 929)
-- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso. Bead context-grabber-9uj2 (story 929): on the iPad simulator the push was logged but never reached the paper (a set built on PaperKit's strokes from before its step was taken back kept the drop and lost the push); fixed in [96573c96](https://github.com/idvorkin/context-grabber/commit/96573c96), the push going on after the lift on the strokes PaperKit holds; seen on the iPad simulator (`WhiteboardDropRoomUITests`, rung 2, 2026-11-22: a kept group tapped and dragged onto a line pushes the line down by a whole line, the line above stays)
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"; [#945](https://github.com/idvorkin/context-grabber/issues/945) (2026-11-18: a box PaperKit showed after a margin tap dragged 223 strokes onto writing, twice, and nothing was pushed: the move came with no selection, so it was never taken for a drop); bead context-grabber-9uj2 (2026-11-22, board ead78e80: a kept text of Larry's dragged onto Igor's writing from PaperKit's handwriting view, again with nothing selected, and again nothing pushed; story 1172)
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso. Bead context-grabber-9uj2 (story 1172): on the iPad simulator the push was logged but never reached the paper (a set built on PaperKit's strokes from before its step was taken back kept the drop and lost the push); fixed in [96573c96](https://github.com/idvorkin/context-grabber/commit/96573c96), the push going on after the lift on the strokes PaperKit holds; seen on the iPad simulator (`WhiteboardDropRoomUITests`, rung 2, 2026-11-22: a kept group tapped and dragged onto a line pushes the line down by a whole line, the line above stays)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
 #### Use Case:
@@ -705,7 +705,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 974:
 
 - **Summary:** The drag and the push are one Undo
-- **Issues:** Igor on the iPad, 2026-11-17, via Larry; bead context-grabber-9uj2 (a drop picked up with nothing selected is one Undo too, story 929)
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry; bead context-grabber-9uj2 (a drop picked up with nothing selected is one Undo too, story 1172)
 - **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso; one Undo putting back the drop and the push seen on the iPad simulator with [96573c96](https://github.com/idvorkin/context-grabber/commit/96573c96) (`WhiteboardDropRoomUITests`, rung 2, 2026-11-22)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
@@ -762,7 +762,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 929:
+### User Story 1172:
 
 - **Summary:** Text or ink dropped on writing makes room, however I picked it up
 - **Issues:** bead context-grabber-9uj2: Igor on the iPad, 2026-11-22 14:49, board ead78e80, via Larry: "OK when I drop text onto existing text, I want it to move just like if I was to select text". The log: he kept Larry's 20-letter reply (29 strokes), then dragged it twice onto his own first line (it landed at y 70, then 67, on the line at 54 to 95); each drag began on PaperKit's handwriting view with nothing selected (`selected: 0`, `held_at_start: 0`), every stroke moved the same way, and no `paper_drop` was logged: the board took a move nothing selected held for the system's, not a drop
