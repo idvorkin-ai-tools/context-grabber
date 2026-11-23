@@ -1359,6 +1359,48 @@ apart."*
 
 ---
 
+### User Story 233:
+
+- **Summary:** A window's name says what's open in it, as the Cockpit's tab does
+- **Status:** native app only: not yet implemented
+- **Issues:** bead context-grabber-ds8r (Igor, 2026-11-22, feedback via Larry: window titles follow the view, as the
+  Cockpit now does, its story 211)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md), *Its name says what's open in it*
+
+#### Use Case:
+- **As** Igor with the app in several windows on the iPad or the Mac
+- **I want to** see in each window's name what it shows, in the same words the Cockpit's browser tab uses
+- **so that** I can pick the right window from the Mac's window list or the iPad's switcher without opening each one
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit in a window
+- **Given:** the Cockpit is open in a window of its own (or in the home window)
+- **When:** I move to its Machines view, then open a thread
+- **Then:** the window is named *Cockpit · Machines*, then *Cockpit · <that thread's title>*: the Cockpit's own name
+  for the view
+
+- **Scenario:** The Cockpit before it names itself
+- **Given:** the Cockpit's page hasn't loaded, can't load, or a link took it to a page that isn't the Cockpit's
+- **When:** I look at the window's name
+- **Then:** it is plain *Cockpit*
+
+- **Scenario:** A thread open in Chat
+- **Given:** Chat is open in a window
+- **When:** I open a thread, then go back to the list
+- **Then:** the window is *Chat · <the thread's title>*, then *Chat* again
+
+- **Scenario:** A board open on the Whiteboard
+- **Given:** the Whiteboard is open in a window
+- **When:** I open a board, rename it, then go back to the list
+- **Then:** the window is *Whiteboard · <the board's name>*, follows the new name, then is *Whiteboard* again
+
+- **Scenario:** A long title
+- **Given:** a thread whose title is long or has markdown in it
+- **When:** it is open in the Chat window
+- **Then:** the name shows its plain words, cut to 40 characters with *…*
+
+---
+
 ### User Story 580:
 
 - **Summary:** One command opens the app on the Mac
