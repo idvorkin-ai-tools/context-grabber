@@ -62,8 +62,8 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     rev = try c.decodeIfPresent(Int.self, forKey: .rev) ?? 0
     handled = try c.decodeIfPresent([String].self, forKey: .handled) ?? []
     lastResult = try c.decodeIfPresent(BoardOps.Result.self, forKey: .lastResult)
-    touches = (try? c.decodeIfPresent([BoardOpApplier.Touch].self, forKey: .touches)) ?? []
-    since = try? c.decodeIfPresent(Int.self, forKey: .since)
+    touches = try c.decodeIfPresent([BoardOpApplier.Touch].self, forKey: .touches) ?? []
+    since = try c.decodeIfPresent(Int.self, forKey: .since)
     texts = try c.decodeIfPresent([BoardText].self, forKey: .texts) ?? []
     strokeIDs = try c.decodeIfPresent(BoardStrokeIDs.self, forKey: .strokeIDs) ?? BoardStrokeIDs()
     strokeMeta = try c.decodeIfPresent(BoardStrokeMeta.self, forKey: .strokeMeta) ?? BoardStrokeMeta()

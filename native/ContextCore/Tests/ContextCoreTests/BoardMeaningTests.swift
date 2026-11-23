@@ -213,30 +213,37 @@ final class BoardMeaningTests: XCTestCase {
     var told = 0
     ledger.onChange = { told += 1 }
     var applier = ledger.applier(board: "b1")
-    applier.closed()
+    _ = applier.receive(push(base: 0), board: "b1", editable: true, ready: false)
     ledger.save(applier, board: "b1")
-    XCTAssertEqual(told, 0, "the batch in flight lives only on this run")
+    XCTAssertEqual(told, 0, "the batch held for the Pencil lives only on this run")
+    XCTAssertEqual(ledger.meaning.handled, [], "offered again after a relaunch (story 1106)")
+    var reloaded = ledger.applier(board: "b1")
+    XCTAssertEqual(reloaded.receive(push(base: 0), board: "b1", editable: true, ready: true), .apply(push(base: 0)))
+    applier.changed()
+    ledger.save(applier, board: "b1")
+    XCTAssertEqual(told, 1)
     applier.touched(["a"])
     ledger.save(applier, board: "b1")
-    XCTAssertEqual(told, 1, "what changed since is kept with the board (bead fuw0)")
+    XCTAssertEqual(told, 2, "what changed since is kept with the board (bead fuw0)")
+    XCTAssertEqual(ledger.applier(board: "b1").touches, [BoardOpApplier.Touch(rev: 1, ids: ["a"], all: false)])
   }
 
   // MARK: Across a relaunch (story 1220, bead context-grabber-fuw0)
 
-  private func push(base: Int, key: String = "m1", ids: [String]? = nil) -> BoardOps.Batch {
+  private func push(base: Int, ids: [String]? = nil) -> BoardOps.Batch {
     let op: BoardOps.Op = ids.map { .translateIDs($0, dx: 0, dy: 40) } ?? .translateBelow(y: 300, dy: 120)
-    return BoardOps.Batch(key: key, source: "web", board: "b1", label: "room", baseRev: base, ops: [op])
+    return BoardOps.Batch(key: "m1", source: "web", board: "b1", label: "room", baseRev: base, ops: [op])
   }
 
   /// Larry looked at rev 10; Igor then made `changes` (each the names it moved or erased, nil for a new stroke); the
   /// board was saved, and the app relaunched: the applier comes back from the file.
-  private func relaunched(_ changes: [[String]?], from meaning: BoardMeaning? = nil) throws -> BoardOpApplier {
+  private func relaunched(_ changes: [[String]?]) throws -> BoardOpApplier {
     var applier = BoardOpApplier(rev: 10)
     for touched in changes {
       applier.changed()
       if let touched { applier.touched(touched) }
     }
-    var saved = meaning ?? BoardMeaning()
+    var saved = BoardMeaning()
     saved.take(applier)
     let back = try JSONDecoder().decode(BoardMeaning.self, from: JSONEncoder().encode(saved))
     return back.applier
@@ -280,6 +287,18 @@ final class BoardMeaningTests: XCTestCase {
       "a board saved before the memory was kept has no record of what changed")
   }
 
+  func testAPushHeldForThePencilIsRefusedWhenItsStrokeIsErasedBeforeTheLift() throws {
+    var applier = try relaunched([nil])
+    XCTAssertEqual(
+      applier.receive(push(base: 10, ids: ["s4"]), board: "b1", editable: true, ready: false), .held(replaced: nil))
+    applier.changed()
+    applier.touched(["s4"])
+    XCTAssertEqual(
+      applier.release(ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 12, reason: "stale", conflictIDs: ["s4"])))
+    XCTAssertNil(applier.applying, "nothing goes to the canvas")
+  }
+
   func testABatchNotYetOnTheBoardIsntSavedAsHandled() {
     let batch = BoardOps.Batch(
       key: "m1", source: "web", board: "b1", label: "push", baseRev: 0, ops: [])
@@ -289,8 +308,7 @@ final class BoardMeaningTests: XCTestCase {
     meaning.take(applier)
     XCTAssertEqual(applier.handled, ["m1"], "the board itself won't take it twice")
     XCTAssertEqual(meaning.handled, [], "held for the Pencil: offered again after a relaunch")
-    let released = applier.release(ready: true)
-    XCTAssertNotNil(released)
+    XCTAssertEqual(applier.release(ready: true), .apply(batch))
     meaning.take(applier)
     XCTAssertEqual(meaning.handled, [], "on its way to the canvas")
     _ = applier.report(batch, .applied(BoardOps.Plan(pagesBefore: 1, pagesAfter: 1)))

@@ -55,7 +55,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Larry's change from before the app restarted still applies when I only wrote new strokes since
 - **Issues:** bead context-grabber-fuw0 (found checking drop rule C, 2026-11-22: the board's memory of its changes lived only for one run, so after a relaunch a batch based on an earlier revision was refused as stale even when Igor had only added strokes)
-- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07); verified on the host (`BoardMeaningTests`: a push from before a relaunch applies over new strokes and says `rebased_from`, one naming a stroke moved before the relaunch is still stale with `conflict_ids`, Larry's own change before a relaunch still makes an older look stale, a file from before this remembers nothing older) and the Mac build (`just native-build-mac`). Not run on a simulator or the iPad: no app code changed, only what the board's file keeps
+- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07); verified on the host (`BoardMeaningTests`: a push from before a relaunch applies over new strokes and says `rebased_from`, one naming a stroke moved before the relaunch is still stale with `conflict_ids`, Larry's own change before a relaunch still makes an older look stale, a file from before this remembers nothing older) and the Mac build (`just native-build-mac`). The review round also re-checks a batch held for the Pencil on the lift, counts a fold or connectors following as moving everything, and forgets the memory when a save was cut off (host: `BoardMeaningTests`, `BoardOpsTests`, `BoardCanvasOutcomeTests`; Mac build). Not run on a simulator or the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
@@ -68,6 +68,16 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** Larry looked at the board, I wrote two new strokes, and the app was closed and opened again
 - **When:** his make room, from the look before the restart, arrives
 - **Then:** it applies to the board as it is now, my new strokes included, and his next turn says it applied on a newer board than the one he saw
+
+- **Scenario:** I moved what it names before the restart
+- **Given:** Larry looked at the board, I moved a stroke his change names, or folded a section, and the app was closed and opened again
+- **When:** his change, from the look before the restart, arrives
+- **Then:** it is refused as stale and nothing moves
+
+- **Scenario:** The app stopped while saving
+- **Given:** the board's drawing was saved but what it remembers of my changes was not
+- **When:** a change of Larry's from an earlier look arrives
+- **Then:** it is refused as stale
 
 ---
 
@@ -85,7 +95,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** He is too far behind
-- **Given:** Larry's change was made on a board older than the board remembers, or before the app restarted
+- **Given:** Larry's change was made on a board older than the board remembers (a board last saved by a build from before story 1220 remembers nothing older than the revision it was saved at)
 - **When:** it arrives
 - **Then:** it is refused as stale, as before
 

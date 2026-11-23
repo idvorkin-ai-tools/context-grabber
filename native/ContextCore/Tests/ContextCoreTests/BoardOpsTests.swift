@@ -320,7 +320,7 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertNil(applier.release(ready: false))
     // The stroke just drawn bumps the revision; the batch held on arrival still applies.
     applier.changed()
-    XCTAssertEqual(applier.release(ready: true), b)
+    XCTAssertEqual(applier.release(ready: true), .apply(b))
     XCTAssertNil(applier.held)
     XCTAssertNil(applier.release(ready: true))
   }
@@ -332,7 +332,7 @@ final class BoardOpsTests: XCTestCase {
     _ = applier.receive(first, board: "b1", editable: true, ready: false)
     XCTAssertEqual(applier.receive(second, board: "b1", editable: true, ready: false), .held(replaced: "one"))
     XCTAssertEqual(applier.lastResult?.reason, "superseded")
-    XCTAssertEqual(applier.release(ready: true), second)
+    XCTAssertEqual(applier.release(ready: true), .apply(second))
   }
 
   func testAHeldBatchDroppedWhenTheBoardCloses() {

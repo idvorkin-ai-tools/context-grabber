@@ -288,7 +288,23 @@ extension WhiteboardModel {
     case .onLift:
       return
     case .now:
-      if let batch = ops.release(ready: true) { apply(batch, held: true) }
+      guard let waiting = ops.held else { return }
+      switch ops.release(ready: true) {
+      case .apply(let batch):
+        apply(batch, held: true)
+      case .refused(let result):
+        var event = BoardOps.logFields(waiting)
+        event["board"] = board.id
+        event["rev"] = ops.rev
+        event["held"] = true
+        event["action"] = "refused"
+        event["reason"] = result.reason ?? ""
+        if let conflicts = result.conflictIDs { event["conflict_ids"] = conflicts }
+        log.event("board_ops", event)
+        showBlocked(waiting.label, result.reason ?? "")
+      case .ignored, .held, nil:
+        return
+      }
     case .after(let wait):
       heldTask?.cancel()
       heldTask = Task { [weak self] in
@@ -511,7 +527,9 @@ extension WhiteboardModel {
     opLedger.setStrokeIDs(strokeIDs, board: board.id)
   }
 
-  /// The canvas applied a batch of Larry's: saved and a new revision like any change, and no stroke for Claude to answer.
+  /// The canvas applied a plan (a batch of Larry's, a fold, connectors following their ends): saved and a new revision
+  /// like any change, and no stroke for Claude to answer. Its names aren't recorded one by one, so it counts as touching
+  /// everything: no batch from an earlier look applies over it (stories 961, 1220).
   /// `renamed`: for each moved stroke, the hashes of its stretches before and after, so it keeps its names.
   /// `drawn`: each stroke Larry drew, its hashes and his name for it.
   func opsApplied(
@@ -523,5 +541,6 @@ extension WhiteboardModel {
     if !renamed.isEmpty || !drawn.isEmpty { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
     drawing = new
     drawingMoved()
+    ops.touched([], all: true)
   }
 }

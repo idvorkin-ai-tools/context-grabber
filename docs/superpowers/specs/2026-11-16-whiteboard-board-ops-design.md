@@ -48,8 +48,12 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 - **It is refused as stale only on a real conflict**: it names a stroke Igor has since moved or erased, or it is older
   than the board remembers (the memory holds the last 200 changes). The memory is kept with the board, so a relaunch
   forgets nothing: a change Larry made from a look before the app restarted still applies when Igor only wrote new
-  strokes since (bead context-grabber-fuw0). A board saved by a build from before this has no memory of its changes,
-  so a look from before its first relaunch on this build is still refused as stale. Nothing moves then, Larry
+  strokes since (bead context-grabber-fuw0). A board saved by a build from before this remembers nothing older than
+  the revision it was saved at, so a look from before that is still refused as stale. A fold, an unfold, or connectors
+  following their ends count as moving everything, so a look from before one is stale. If the app stopped part-way
+  through saving the board, the board forgets its memory of the changes, and every older look is stale. A change
+  held for the Pencil is checked again when the Pencil lifts, so Igor moving or erasing what it names while it waits
+  still refuses it. Nothing moves then, Larry
   is told why and which of his names conflicted, and he looks again and sends a fresh one. Igor never sees a
   half-applied change.
 
