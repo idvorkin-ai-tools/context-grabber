@@ -43,7 +43,8 @@ let boardTests = [
   "WhiteboardPasteTests.swift",
   "WhiteboardQuestionsTests.swift", "WhiteboardResponderTests.swift", "WhiteboardScratchOutTests.swift",
   "WhiteboardSpeechTests.swift", "WhiteboardStreamTests.swift", "WhiteboardStrokesFileTests.swift",
-  "WhiteboardTidyGroupTests.swift", "WhiteboardTidyTests.swift", "WhiteboardTurnTests.swift", "WhiteboardWordsOnlyTests.swift",
+  "WhiteboardTidyGroupTests.swift", "WhiteboardTidyTests.swift", "WhiteboardTurnTests.swift",
+  "WhiteboardWordsOnlyTests.swift",
   "WhiteboardWritingVadTests.swift",
 ]
 
