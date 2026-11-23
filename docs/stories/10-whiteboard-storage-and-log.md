@@ -219,7 +219,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1168:
 
 - **Summary:** The log names the parts of a slow change to the ink
-- **Status:** implemented (the logging alone) in [e5ea9b9f](https://github.com/idvorkin/context-grabber/commit/e5ea9b9f); verified by host tests (`StepLapsTests`: the iPad's 1,475 ms stroke named by part, a quick change silent, the threshold; `just native-test`) and the Mac build (`just native-build-mac`); the simulator was not run (the line needs a slow change, which only a full board on the iPad has shown), and the iPad's own `paper_ink_slow` is still owed
+- **Status:** implemented (the logging alone) in [c0fc7c3b](https://github.com/idvorkin/context-grabber/commit/c0fc7c3b); verified by host tests (`StepLapsTests`: the iPad's 1,475 ms stroke named by part, a quick change silent, the threshold; `just native-test`) and the Mac build (`just native-build-mac`); the simulator was not run (the line needs a slow change, which only a full board on the iPad has shown), and the iPad's own `paper_ink_slow` is still owed
 - **Issues:** bead context-grabber-uktm (#946's "I think I just hung": still not reproduced; the iPad, 2026-11-22, build 565acfe0, board 8f986938 of about 1,000 strokes: `main_stall` began at t=3360294, 4244301 and 4250044, each just after a stroke whose `paper_ink` took 963, 1,475 and 1,348 ms against about 50 for the strokes either side; none followed a `scratch`, `hold_stroke` or `board_word` line; a fourth, at t=4261015, came mid-stroke with that stroke's `paper_ink` at 50 ms)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The log says what held the board up while Igor wrote*
 
@@ -234,11 +234,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** the change has been handled
 - **Then:** the log has one line with the whole time and each part's time by name, the stroke count, how many strokes the change added, moved and removed, and the time since the ink last changed
 - **And:** nothing I see changes
-
-- **Scenario:** A quick change to the ink
-- **Given:** a board whose handling of a change takes less than a quarter of a second
-- **When:** the change has been handled
-- **Then:** no such line is written
+- **And:** a change handled in less than a quarter of a second writes no such line
 
 ---
 
