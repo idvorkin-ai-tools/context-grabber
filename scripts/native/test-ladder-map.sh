@@ -442,7 +442,9 @@ run FAKE_JUST_FAILS=native-test-host -- --changed native/App/Chat/ChatViews.swif
 status=$?
 if [ "$status" -eq 7 ]; then ok "a host failure: the rung's exit"; else bad "a host failure: exit $status"; fi
 says "a host failure: names the rung" "stopped on rung 1 Host (exit 7)"
-if [ -e "$MARKS/lockf" ]; then bad "a host failure: nothing climbs past it"; else ok "a host failure: nothing climbs past it"; fi
+# A build lane's lock: rung 0's swift-format takes a host slot's (stories 795, 797, 798), not a lane's.
+if grep -qE "build(-[0-9]+)?\.lock" "$MARKS/lockf" 2>/dev/null; then bad "a host failure: nothing climbs past it"; else ok "a host failure: nothing climbs past it"; fi
+if grep -qE "/host-[0-9]+\.lock$" "$MARKS/lockf" 2>/dev/null; then ok "rung 0's swift-format takes a host slot"; else bad "rung 0's swift-format takes a host slot"; fi
 if grep -qF "rung 0 Lint: ok," "$out"; then ok "a host failure: lint's seconds"; else bad "a host failure: lint's seconds"; fi
 
 run FAKE_JUST_FAILS=native-build-mac -- --changed native/App/Chat/ChatViews.swift
@@ -451,7 +453,7 @@ if [ -e "$MARKS/xcodebuild" ]; then bad "a Mac failure: the simulator never star
 
 run -- --changed docs/TESTING.md
 status=$?
-if [ "$status" -eq 0 ] && [ ! -e "$MARKS/lockf" ]; then ok "docs: climbs without the lane"; else bad "docs: climbs without the lane"; fi
+if [ "$status" -eq 0 ] && ! grep -qE "build(-[0-9]+)?\.lock" "$MARKS/lockf" 2>/dev/null; then ok "docs: climbs without the lane"; else bad "docs: climbs without the lane"; fi
 says "docs: the Mac skipped in the seconds" "  rung 1.5 Mac: skipped"
 says "docs: the end names the phone" "every rung passed; rung 3, the phone, is yours: just native-run-device"
 

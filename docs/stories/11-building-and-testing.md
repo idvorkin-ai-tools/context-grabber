@@ -639,6 +639,63 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 795:
+
+- **Summary:** At most four host builds and tests at once, machine-wide
+- **Status:** implemented in 1cb4e8c2; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`) and by `just test` and `just native-build-mac` passing through the slots: six jobs on four slots, never more than four running, all six run; the slot count from the cores and from `HOST_LANES`
+- **Issues:** context-grabber-mkd0 (2026-11-22: about twenty agents ran `swift build` and `swift test` at once, 27 swift-frontend processes, load 281 on the 18-core Mac, from Larry's five-minute check; the Xcode builds queued in build lanes, the host builds didn't)
+
+#### Use Case:
+- **As Igor,** with many agents running `just test` and Mac builds on one Mac at the same time
+- **I want to** have the host builds and tests (the lint, ContextCore's tests, the Mac build) take one of a few slots and the rest queue
+- **so that** the Mac stays usable and each run finishes sooner than when all of them fight for the cores
+
+#### Acceptance Criteria:
+- **Scenario:** Six host jobs on four slots
+- **Given:** an 18-core Mac with no `HOST_LANES` set, so four host slots (a quarter of the cores, at most four, at least one; `HOST_LANES` names any other number)
+- **When:** six agents start `just test` at once
+- **Then:** four run their host build and tests, the other two wait, and never more than four run at the same moment; all six finish
+
+---
+
+### User Story 797:
+
+- **Summary:** A host job waiting for a slot says so, and gives up after an hour
+- **Status:** implemented in 1cb4e8c2; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`) and by `just test` and `just native-build-mac` passing through the slots: the queued jobs say they are waiting for a host slot; every slot held past the wait is exit 75 with nothing run; the command's own exit 75 is its own
+- **Issues:** context-grabber-mkd0 (2026-11-22: about twenty agents ran `swift build` and `swift test` at once, 27 swift-frontend processes, load 281 on the 18-core Mac, from Larry's five-minute check; the Xcode builds queued in build lanes, the host builds didn't)
+
+#### Use Case:
+- **As** an agent whose `just test` is queued behind others
+- **I want to** see that it is waiting for a host slot rather than hung
+- **so that** I wait for it instead of killing it or debugging a slow test
+
+#### Acceptance Criteria:
+- **Scenario:** Every slot busy
+- **Given:** every host slot is held by another job
+- **When:** I run `just test`
+- **Then:** it prints once that every host slot is busy and it is waiting for a host slot, runs as soon as one frees, and after an hour (`HOST_LANE_WAIT` seconds) exits 75 having run nothing
+
+---
+
+### User Story 798:
+
+- **Summary:** A host slot whose holder died is free at once
+- **Status:** implemented in 1cb4e8c2; verified on the host by `scripts/native/test-host-lane.sh` (part of `just test`) and by `just test` and `just native-build-mac` passing through the slots: a holder killed with `kill -9` frees its slot, and the next job runs in it without waiting though its lock file is still there
+- **Issues:** context-grabber-mkd0 (2026-11-22: about twenty agents ran `swift build` and `swift test` at once, 27 swift-frontend processes, load 281 on the 18-core Mac, from Larry's five-minute check; the Xcode builds queued in build lanes, the host builds didn't)
+
+#### Use Case:
+- **As** an agent starting a host build after another agent's run was killed or crashed
+- **I want to** take the slot that run held without anyone cleaning up after it
+- **so that** a dead run never leaves the Mac with fewer slots than it has
+
+#### Acceptance Criteria:
+- **Scenario:** A killed holder
+- **Given:** a host job holding a slot was killed with `kill -9`, leaving its lock file behind
+- **When:** the next host job starts
+- **Then:** it takes that slot at once, without waiting
+
+---
+
 ### User Story 786:
 
 - **Summary:** A lane's simulator copies can be made again from lane 1's, after lane 1 gains Health access or new data
