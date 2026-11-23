@@ -3279,7 +3279,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A Cockpit that blinks files no report; one that stays away files one
 - **Issues:** [#1245](https://github.com/idvorkin/context-grabber/issues/1245), [#1246](https://github.com/idvorkin/context-grabber/issues/1246), [#1247](https://github.com/idvorkin/context-grabber/issues/1247), [#1248](https://github.com/idvorkin/context-grabber/issues/1248), [#1249](https://github.com/idvorkin/context-grabber/issues/1249), [#1250](https://github.com/idvorkin/context-grabber/issues/1250), [#1251](https://github.com/idvorkin/context-grabber/issues/1251), [#1252](https://github.com/idvorkin/context-grabber/issues/1252), [#1253](https://github.com/idvorkin/context-grabber/issues/1253), [#1259](https://github.com/idvorkin/context-grabber/issues/1259), [#1268](https://github.com/idvorkin/context-grabber/issues/1268), [#1269](https://github.com/idvorkin/context-grabber/issues/1269)
-- **Status:** in progress
+- **Status:** implemented in [011dd8cc](https://github.com/idvorkin/context-grabber/commit/011dd8cc); verified by the host rung (`just native-test`, `CockpitOutageTests`: a blip that heals files nothing, two minutes of failures file once, a pause starts the count again, the device offline never files, other failures file at once) and the Mac build (`just native-build-mac`); the simulator and the devices are not yet verified (no iPhone runs while the whiteboard work is in progress)
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md), [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
