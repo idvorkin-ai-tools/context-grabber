@@ -205,7 +205,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     // #1005 (story 1054): Paste shows only while the clipboard holds text.
     UIPasteboard.general.string = "HI"
     let app = try openBoard()
-    for id in ["whiteboard-ghosts", "whiteboard-mic", "whiteboard-larry", "whiteboard-send"] {
+    for id in ["whiteboard-ghosts", "whiteboard-mic", "whiteboard-send"] {
       XCTAssertTrue(app.buttons[id].exists, id)
     }
     XCTAssertTrue(app.buttons["whiteboard-paste"].exists, "and paste")
@@ -369,7 +369,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     keep(app)
     wait(send(app), label: strokes(2))
     let before = try sends(cockpit).count
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let first = try strokeIDs(cockpit, after: before)
     XCTAssertEqual(first.count, 2, "\(first)")
     // Larry's marks, ghosts nobody kept, on the board as it's saved.
@@ -386,7 +386,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertTrue(card.appears(within: 20), app.debugDescription)
     card.tap()
     wait(send(app), label: strokes(2))
-    let larry = app.buttons["whiteboard-larry"]
+    let larry = app.buttons["whiteboard-send"]
     expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: larry)
     waitForExpectations(timeout: 10)
     let middle = try sends(cockpit).count
@@ -514,7 +514,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let before = try inkAboveAndBelow(app)
     shot(app, "ink above and below")
     try larryOps(cockpit)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     // His text lands as the push does.
     XCTAssertTrue(toKeep(app, 1).appears(within: 15), app.debugDescription)
     let pushed = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "the ink, settled after the push")
@@ -543,7 +543,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     stroke(app)
     wait(send(app), label: strokes(1))
     try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
@@ -598,7 +598,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     shot(app, "his stroke back by Redo")
 
     try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
@@ -623,7 +623,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     stroke(app, atHeight: 0.3)
     wait(send(app), label: strokes(1))
     try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
@@ -669,7 +669,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     _ = try inkAboveAndBelow(app)
     try larryOps(cockpit)
     let reported = try opReports(cockpit).count
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(toKeep(app, 1).appears(within: 15), app.debugDescription)
     let ghost = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his text, faint, in his purple")
     shot(app, "his text as a ghost")
@@ -691,7 +691,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.03, "where the ghost was")
 
     let sent = try sends(cockpit).count
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let ids = try strokeIDs(cockpit, after: sent)
     XCTAssertTrue(ids.contains("fake-text-1"), "his text goes back under his id: \(ids)")
     XCTAssertEqual(ids.count, 3, "his text is one, beside the two strokes: \(ids)")
@@ -828,7 +828,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     _ = try inkAboveAndBelow(app)
     try larryInkAndButton(cockpit)
     let posted = try eventPosts(cockpit).count
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     wait(send(app), label: strokes(3), timeout: 15)
     let line = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his line, as ink in his purple")
     let button = try XCTUnwrap(PaperScreen.settled(app) { $0.green }, "his button, in its green")
@@ -850,7 +850,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(send(app).label, strokes(3), "a tap on his button draws nothing")
 
     let sent = try sends(cockpit).count
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let ids = try strokeIDs(cockpit, after: sent)
     XCTAssertTrue(ids.contains("fake-line-1"), "his line goes back under his name: \(ids)")
     XCTAssertEqual(ids.count, 3, "and his button is no stroke: \(ids)")
@@ -898,7 +898,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let before = try inkAboveAndBelow(app)
     try larryOps(cockpit, behind: true)
     let reported = try opReports(cockpit).count
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(toKeep(app, 1).appears(within: 15), app.debugDescription)
     let pushed = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "the ink, settled after the push")
     shot(app, "a push from an older look")
@@ -908,7 +908,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     PaperScreen.tap(app, ghost.center)
     keep(app)
     waitUntil(NSPredicate(format: "label != %@", strokes(2)), send(app), timeout: 10)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let result = try XCTUnwrap(opResult(cockpit, after: reported + 1), "the next turn says what came of it")
     XCTAssertEqual(result["ok"] as? Bool, true, "\(result)")
     XCTAssertNotNil(result["rebased_from"] as? Int, "applied on a newer board than he saw: \(result)")
@@ -923,7 +923,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let before = try inkAboveAndBelow(app)
     try larryOps(cockpit, stale: true)
     let reported = try opReports(cockpit).count
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(
       app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Larry: made room")).firstMatch
         .appears(within: 15), app.debugDescription)
@@ -935,7 +935,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
 
     stroke(app, atHeight: 0.42)
     wait(send(app), label: strokes(3))
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     let result = try XCTUnwrap(opResult(cockpit, after: reported + 1), "the next turn says what came of it")
     XCTAssertEqual(result["ok"] as? Bool, false, "\(result)")
     XCTAssertEqual(result["reason"] as? String, "stale")
@@ -950,7 +950,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let retry = app.buttons["whiteboard-blocked-retry"]
     XCTAssertFalse(retry.exists, "no chip before anything is refused")
     try larryOps(cockpit, stale: true)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(retry.waitForExistence(timeout: 15), app.debugDescription)
     XCTAssertTrue(retry.label.contains("Larry's edit blocked"), retry.label)
     shot(app, "the blocked chip")
@@ -961,7 +961,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(try opReports(cockpit).count, dismissed, "and asks Larry nothing")
 
     try larryOps(cockpit, stale: true)
-    app.buttons["whiteboard-larry"].tap()
+    app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(retry.waitForExistence(timeout: 15), "a second refusal brings it back")
     let reported = try opReports(cockpit).count
     retry.tap()
@@ -985,7 +985,6 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     sleep(1)
     shot(app, "page 2, blank")
     XCTAssertFalse(send(app).isEnabled, "page 1's ink is off screen: nothing to send")
-    XCTAssertFalse(app.buttons["whiteboard-larry"].isEnabled, "nor a turn to hand him")
 
     stroke(app, atHeight: 0.6)
     wait(send(app), label: strokes(2))
