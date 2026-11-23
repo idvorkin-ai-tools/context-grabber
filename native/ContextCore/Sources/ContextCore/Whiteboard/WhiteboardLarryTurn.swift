@@ -148,10 +148,12 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
   }
 
   /// Story 1176: a board opened while its *Send* still waits in the outbox, the board at `version`: the turn is out on
-  /// it, waiting. Nothing if a turn is already out.
-  public mutating func reopenedWaiting(version: Int, now: ContinuousClock.Instant) {
+  /// it, waiting. Nothing if a turn is already out. `sent`: the board's version when the waiting picture was taken
+  /// (bead context-grabber-kocz), so ink drawn after it is still new; nil for a picture that doesn't say, taken as the
+  /// board now.
+  public mutating func reopenedWaiting(sent: Int? = nil, version: Int, now: ContinuousClock.Instant) {
     guard state == .idle else { return }
-    state = .awaiting(since: now, sent: version)
+    state = .awaiting(since: now, sent: min(sent ?? version, version))
     waitingToSend = true
   }
 

@@ -36,7 +36,7 @@ to that event's own bullet; never join two events on one line.
   - close with board, strokes and saved — false when that last write failed, which also puts the problem on the list — logged only when leaving had unsaved strokes to write
   - send with board, strokes, bytes, pixels and frame: the picture's rect on the board, x, y, w, h — the pages on screen
   - send on a board drawn here (story 1176) also has picture, new_thread, said_chars, folds and turn: true — the picture went into the outbox as Larry's turn
-  - send_waiting with board and picture — the board opened while its Send still waits in the outbox (story 1176); the note says *Waiting to send*
+  - send_waiting with board and picture — the board opened while its Send still waits in the outbox (story 1176); the note says *Waiting to send*; board_rev, picture_rev (the board's revision when the picture was taken, when its report says) and folds (how many the picture drew open) — what a repeat tap once it has gone is judged against (story 1192)
   - send_went with board, picture and clock (true: his clock started then) — the outbox sent the board's Send (story 1176)
   - send_ended with board, picture and why: refused or deleted — the waiting Send can't go; the turn is free and its words wait (story 1176)
   - rename with board and from: list — the row's swipe or long press — or title — a tap on the name in the board's own bar (story 1160)

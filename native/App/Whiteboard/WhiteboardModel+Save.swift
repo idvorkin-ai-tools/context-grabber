@@ -85,10 +85,11 @@ extension WhiteboardModel {
     guard sent == nil, !larrySending, let (rect, scale) = pictureFrame() else { return }
     // Story 662: a Send is Larry's turn too, out now whatever was held; words that waited go with it. Story 765: not
     // while he is looking at the board as it is.
-    guard case .send(let words) = larry.tapped(version: ops.rev, moved: rect != larryFrame, now: .now) else {
+    guard case .send(let words) = larry.tapped(version: ops.rev, moved: larryFrame?.moved(to: rect) ?? true, now: .now)
+    else {
       return alreadyHas(from: "send")
     }
-    larryFrame = rect
+    larryFrame = .rect(rect)
     let turn = larry.state
     checkLarryWait()
     let shot = shot(rect: rect, scale: scale)

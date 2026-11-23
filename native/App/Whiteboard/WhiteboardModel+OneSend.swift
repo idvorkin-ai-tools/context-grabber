@@ -18,7 +18,7 @@ extension WhiteboardModel {
   func sendToLarry() {
     guard editable else { return send() }
     guard !larrySending, !sendWaiting(in: inbox.items) else { return }
-    let moved = pictureFrame().map { $0.rect != larryFrame } ?? false
+    let moved = pictureFrame().map { larryFrame?.moved(to: $0.rect) ?? true } ?? false
     guard case .send(let words) = larry.tapped(version: ops.rev, moved: moved, now: .now) else {
       return alreadyHas(from: "send")
     }
@@ -81,7 +81,10 @@ extension WhiteboardModel {
       sendListed = true
       // Its first Send starts the thread: whatever the first look finds is his answer (story 662).
       if threadKey == nil { marks.threadStarted() }
-      larry.reopenedWaiting(version: ops.rev, now: .now)
+      // What the waiting picture showed, as if the board had never closed (bead context-grabber-kocz): a repeat tap once
+      // it has gone sends no second copy, and ink drawn after it is still new.
+      larry.reopenedWaiting(sent: picture.report?.rev, version: ops.rev, now: .now)
+      larryFrame = .picture(picture)
       // The Send as it waits: its words come back if it never goes, and Interrupt is offered once it has.
       if larryOut == nil {
         let frame = picture.frame
@@ -93,7 +96,12 @@ extension WhiteboardModel {
         out.attempt = larryHandOffs.begin()
         larryOut = out
       }
-      log.event("whiteboard", ["action": "send_waiting", "board": board.id, "picture": waiting.id])
+      var event: [String: Any] = [
+        "action": "send_waiting", "board": board.id, "picture": waiting.id, "board_rev": ops.rev,
+        "folds": picture.folds?.steps.count ?? 0,
+      ]
+      if let rev = picture.report?.rev { event["picture_rev"] = rev }
+      log.event("whiteboard", event)
     }
     sendWatch = inbox.$items.sink { [weak self] items in
       MainActor.assumeIsolated { self?.followSend(items) }

@@ -689,7 +689,7 @@ extension WhiteboardModel {
   /// The picture of the board on screen for Larry, its strokes and its id; nil with nothing on screen to show him.
   func larryPicture(said: String?) -> LarryOut? {
     guard let (rect, scale) = pictureFrame() else { return nil }
-    larryFrame = rect
+    larryFrame = .rect(rect)
     // ponytail: rendered and encoded on the main thread, as the ghost turn is.
     let rendering = ContinuousClock.now
     let shot = shot(rect: rect, scale: scale)

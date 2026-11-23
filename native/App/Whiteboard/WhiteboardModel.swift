@@ -196,8 +196,9 @@ final class WhiteboardModel: ObservableObject {
   /// On paper: each stroke's box, for what's on screen (story 433), and the frame the last Send showed.
   var inkBoxes: [CGRect] = []
   var sentFrame: CGRect?
-  /// The part of the board in the picture Larry's turn last took: a tap with another part on screen sends (story 765).
-  var larryFrame: CGRect?
+  /// The part of the board in the picture Larry's turn last took: a tap with another part on screen sends (story 765). On
+  /// a board opened while its Send waits, the waiting picture's (story 1192).
+  var larryFrame: WhiteboardLarryFrame?
   var watchTask: Task<Void, Never>?
   var lookFailures = 0
 
