@@ -197,9 +197,13 @@ def main(argv=None):
         stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         # #1038: the ladder's climb this run was part of, so the report can join its cases to the climb.
         run_id = {"run_id": os.environ["LADDER_RUN_ID"]} if os.environ.get("LADDER_RUN_ID") else {}
-        with open(args.jsonl, "a") as f:
-            for c in cases:
-                f.write(json.dumps({"t": stamp, "run": args.run, **run_id, **c}) + "\n")
+        try:
+            with open(args.jsonl, "a") as f:
+                for c in cases:
+                    f.write(json.dumps({"t": stamp, "run": args.run, **run_id, **c}) + "\n")
+        except OSError as error:
+            print(f"ui-timings could not write timing records: {error}", file=sys.stderr)
+            return os.EX_IOERR
     return 0
 
 

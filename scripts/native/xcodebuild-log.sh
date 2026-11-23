@@ -269,10 +269,34 @@ for w in "$watchdog" ${start_watchdog:+"$start_watchdog"} ${lock_watch:+"$lock_w
 done
 if [ -e "$lock_stopped" ]; then
   left=$(cat "$lock_stopped")
-  rm -f "$lock_stopped" "$lock_seen"
   end_sim_apps  # the watcher may have been ended before its second go
+elif [ -e "$stopped" ] && [ ! -e "$unstarted" ]; then
+  echo "xcodebuild hung after the tests finished, so it was stopped; the log has the result: $log" >&2
+  if [ -e "$unfinished" ]; then
+    echo "its result bundle wasn't written in full $bundle_limit s after the tests finished, so it can't be opened: $bundle" >&2
+  fi
+fi
+# Where a test run's time went, per case, on screen and as JSON lines to compare runs (ui-timings.py), and the cases that
+# passed only on their retry and aren't quarantined (story 1017).
+flaky=$(mktemp "${TMPDIR:-/tmp}/ui-flaky.XXXXXX")
+trap 'rm -f "$flaky" "$locked_at" "$lock_seen" "$lock_stopped" "$unstarted" "$stopped" "$unfinished"' EXIT
+flakes_checked=
+if grep -q "^Test Case '" "$log"; then
+  [ -n "$flaky" ] && "$(dirname "$0")/ui-timings.py" "$log" --run "$name" \
+    --jsonl "${UI_TIMINGS_JSONL:-${log%/*}/ui-timings.jsonl}" --flaky-out "$flaky"
+  case $? in
+    0|74) flakes_checked=1 ;;
+    *) echo "ui-timings could not read $log" >&2 ;;
+  esac
+fi
+if [ -z "$flakes_checked" ] && grep -qE "^Test Case '.+' failed" "$log"; then
+  [ -s "$locked_at" ] && echo "the Mac's screen locked during the run (first seen locked at $(cut -d' ' -f1 "$locked_at"))" >&2
+  echo "a try failed and the flakes weren't checked. Whole log $log" >&2
+  [ -n "$bundle" ] && bundle_written && echo "the failed tries' screenshots: $bundle" >&2
+  exit 65
+fi
+if [ -e "$lock_stopped" ]; then
   read -r at before <"$locked_at"
-  rm -f "$locked_at" "$unstarted"
   if [ "${before:-0}" -gt 0 ]; then
     echo "the Mac's screen locked at $at, so the simulator test run was stopped there, but $before case(s) had already" \
       "failed before that, so it counts as a failure; the whole log: $log" >&2
@@ -284,16 +308,11 @@ if [ -e "$lock_stopped" ]; then
   exit 75
 fi
 if [ -e "$unstarted" ]; then
-  rm -f "$unstarted" "$locked_at"
   if mac_locked; then now="it is locked now"; else now="it isn't locked now, so look for a display that was asleep"; fi
   echo "no test started within $start_limit s, so xcodebuild was stopped: UI tests don't start while the Mac's display is" \
     "asleep or its screen is locked ($now); wake and unlock it, then rerun. The whole log: $log" >&2
   exit 75
 fi
-# Where a test run's time went, per case, on screen and as JSON lines to compare runs (ui-timings.py), and the cases that
-# passed only on their retry and aren't quarantined (story 1017).
-flaky=$(mktemp "${TMPDIR:-/tmp}/ui-flaky.XXXXXX")
-trap 'rm -f "$flaky" "$locked_at" "$lock_seen"' EXIT
 # Story 1018: a test that failed after the screen was seen locked isn't a test's failure: the run could not run as it
 # should. Only when every failed case failed after the lock was first seen; a build that failed, or a case that failed
 # while the screen was still unlocked, fails as before, with the lock named.
@@ -313,23 +332,9 @@ locked_failure() {
     "run, not failed; unlock the Mac and rerun. The whole log: $log" >&2
   exit 75
 }
-timed=
-if grep -q "^Test Case '" "$log"; then
-  "$(dirname "$0")/ui-timings.py" "$log" --run "$name" --jsonl "${UI_TIMINGS_JSONL:-${log%/*}/ui-timings.jsonl}" \
-    --flaky-out "$flaky" && timed=1 || echo "ui-timings could not read $log" >&2
-fi
 # Story 1017: a run that would pass, with a case that passed only on its retry, fails: a flake is a failure to fix, not a
 # pass to forget. A known one, chased under its bead, goes in the quarantine file instead.
 pass() {
-  # Bead context-grabber-z8p7: without ui-timings' flake list a retried-only pass can't be told from a clean one, so a run
-  # in which any try failed fails closed; a run where no try failed has nothing a flake list could change.
-  if [ -z "$timed" ] && grep -qE "^Test Case '.+' failed \(" "$log"; then
-    locked_failure
-    echo "a try failed and ui-timings couldn't read the run, so whether it passed only on its retry (a flake, story" \
-      "1017) wasn't checked: the run fails rather than pass unchecked; the whole log: $log" >&2
-    [ -n "$bundle" ] && bundle_written && echo "the failed tries' screenshots: $bundle" >&2
-    exit 65
-  fi
   if [ -s "$flaky" ]; then
     locked_failure
     echo "passed only on its retry, so the run fails (a flake: fix the race, or quarantine it with its bead in" \
@@ -361,18 +366,11 @@ retried_to_pass() {
       exit n ? 0 : 1 }'
 }
 if [ -e "$stopped" ]; then
-  rm -f "$stopped"
-  echo "xcodebuild hung after the tests finished, so it was stopped; the log has the result: $log" >&2
-  if [ -e "$unfinished" ]; then
-    rm -f "$unfinished"
-    echo "its result bundle wasn't written in full $bundle_limit s after the tests finished, so it can't be opened: $bundle" >&2
-  fi
   last=$(grep -E "^Test Suite '(All|Selected) tests' (passed|failed)" "$log" | tail -1)
   # Bead context-grabber-36f: the suite line says failed when any try of a case failed, even one its retry then passed,
   # where xcodebuild's own end would have called the run a success. So a failed suite whose failures were all retried
   # to a pass is judged as passed here, and pass() then fails it for the flake unless it is quarantined (story 1017).
-  # Only when ui-timings read the log: without its flake list, pass() would let the flake through.
-  if [ -n "$timed" ] && [ "${last##* failed}" != "$last" ] && retried_to_pass; then last=" passed"; fi
+  if [ "${last##* failed}" != "$last" ] && retried_to_pass; then last=" passed"; fi
   case $last in
     *" passed"*) pass ;;
     *)

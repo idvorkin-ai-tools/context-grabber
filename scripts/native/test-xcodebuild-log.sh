@@ -53,6 +53,10 @@ if [ -n "${FAKE_FLAKY:-}" ]; then  # Class.test: fails, then passes on its retry
   c="Test Case '-[GrabberNativeUITests.${FAKE_FLAKY%.*} ${FAKE_FLAKY#*.}]'"
   printf '%s\n' "$c started." "$c failed (1.000 seconds)." "$c started." "$c passed (1.000 seconds)."
 fi
+if [ -n "${FAKE_PASS:-}" ]; then
+  c="Test Case '-[GrabberNativeUITests.SynthUITests testClean]'"
+  printf '%s\n' "$c started." "$c passed (1.000 seconds)."
+fi
 echo "Test Suite 'Selected tests' ${FAKE_RESULT:-passed} at now."
 if [ -n "${FAKE_SECOND_TARGET:-}" ]; then  # a second test target, as the contract tests run (bead i5x4)
   if [ -n "${FAKE_LOCK_BETWEEN:-}" ]; then  # the screen locks between the two targets, long enough to be seen
@@ -142,21 +146,34 @@ out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1)
 [ $? -eq 0 ] && ok "and a quarantined one passes there" || bad "a quarantined retried pass in a failed suite after a hang: $out"
 out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed FAKE_EARLY_FAIL=1 XCODEBUILD_IDLE_SECONDS=1)
 [ $? -eq 65 ] && ok "but a case whose last try failed still fails it" || bad "a failed case beside a quarantined flake passed: $out"
+out=$(flake env UI_TIMINGS_JSONL="$dir/logs")
+status=$?
+case "$status $out" in "0 "*"ui-timings could not write timing records"*) ok "a timing write error leaves a quarantined retry's pass standing";;
+  *) bad "a quarantined retry with a timing write error exited $status: $out";; esac
+out=$(flake env UI_TIMINGS_JSONL="$dir/logs" FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1)
+status=$?
+case "$status $out" in "0 "*"ui-timings could not write timing records"*) ok "a checked and quarantined retry passes after a hang despite a timing write error";;
+  *) bad "a quarantined retry after a hang with a timing write error exited $status: $out";; esac
 printf '\377\376\n' >"$dir/quarantine"
 out=$(flake env FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1)
 status=$?
-case "$status $out" in "65 "*"ui-timings could not read"*) ok "and when ui-timings can't read the run, the failed suite stays a failed run";;
+case "$status $out" in "65 "*"flakes weren't checked"*) ok "an unchecked failed try after a hang fails with the unchecked-flakes message";;
   *) bad "a failed suite after a hang, with ui-timings failing, exited $status: $out";; esac
 # Bead context-grabber-z8p7: with ui-timings failing, a passing run whose case failed a try fails closed, unchecked.
 out=$(flake env)
 status=$?
-case "$status $out" in "65 "*"ui-timings couldn't read the run, so whether it passed only on its retry"*)
+case "$status $out" in "65 "*"flakes weren't checked"*)
   ok "a retried pass that ui-timings couldn't check fails the run, not passes it";;
   *) bad "a retried pass with ui-timings failing exited $status: $out";; esac
-out=$(PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
+out=$(flake env FAKE_EARLY_FAIL=1 FAKE_RESULT=failed FAKE_EXIT=1)
+status=$?
+case "$status $out" in "65 "*"flakes weren't checked"*) ok "an unchecked failed try takes precedence over xcodebuild's failure status";;
+  *) bad "an ordinary failed run with ui-timings failing exited $status: $out";; esac
+out=$(FAKE_PASS=1 PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
   UI_QUARANTINE="$dir/quarantine" scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" xcodebuild -scheme X test 2>&1 >/dev/null)
-[ $? -eq 0 ] && ok "but a run where no try failed still passes when ui-timings fails" ||
-  bad "a clean run with ui-timings failing failed: $out"
+status=$?
+case "$status $out" in "0 "*"ui-timings could not read"*) ok "a clean run still passes when ui-timings fails";;
+  *) bad "a clean run with broken quarantine exited $status: $out";; esac
 echo "SynthUITests.testFlaky because it is flaky" >"$dir/quarantine"
 flake env >/dev/null
 [ $? -eq 65 ] && ok "a quarantine without the bead that tracks it quarantines nothing" || bad "an untracked quarantine let it pass"
@@ -236,6 +253,12 @@ status=$?
 [ "$status" -eq 65 ] && ok "a case that failed before the screen locked fails the run as before" || bad "an early failure exited $status: $out"
 out=$(locked env FAKE_FLAKY=SynthUITests.testFlaky UI_QUARANTINE="$dir/none")
 [ $? -eq 75 ] && ok "and one that passed a case only on its retry" || bad "a locked retried-only pass: $out"
+printf '\377\376\n' >"$dir/broken-quarantine"
+out=$(locked env FAKE_FLAKY=SynthUITests.testFlaky UI_QUARANTINE="$dir/broken-quarantine")
+status=$?
+case "$status $out" in "65 "*"screen locked during the run"*"flakes weren't checked"*)
+  ok "an unchecked failed try exits 65 even after the screen locked";;
+  *) bad "a locked unchecked retry exited $status: $out";; esac
 out=$(locked env)
 status=$?
 [ "$status" -eq 0 ] && ok "a passed run during which the screen locked stands" || bad "a passed locked run exited $status: $out"
@@ -312,6 +335,14 @@ out=$(simrun FAKE_LOCK="$dir/lock" FAKE_LOCK_HOLD=30 FAKE_EARLY_FAIL=1 -- xcodeb
 status=$?
 [ "$status" -eq 65 ] && ok "stopped by a lock after a case had failed, the run fails (65)" || bad "an early failure then a lock: $status $out"
 case $out in *"1 case(s) had already failed before that"*) ok "and says a case failed first";; *) bad "an early failure then a lock said: $out";; esac
+: >"$dir/lock"
+out=$(simrun FAKE_LOCK="$dir/lock" FAKE_LOCK_HOLD=30 FAKE_EARLY_FAIL=1 UI_QUARANTINE="$dir/broken-quarantine" \
+  -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+case "$status $out" in "65 "*"flakes weren't checked"*) ok "a failed try in a run stopped by a lock is checked or reported";;
+  *) bad "a lock stop with an unchecked failed try exited $status: $out";; esac
+grep -qxF "simctl terminate SIM-UDID-1022 com.idvorkin.grabbernative" "$dir/xcrun" &&
+  ok "and the app is still ended when the flake check fails" || bad "a lock stop with an unchecked failed try left the app running"
 : >"$dir/lock"
 out=$(simrun FAKE_LOCK_AFTER="$dir/lock" -- xcodebuild -scheme X "${sim[@]}" test-without-building)
 status=$?
