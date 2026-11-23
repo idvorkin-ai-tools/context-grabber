@@ -18,9 +18,9 @@ final class ChatDecisionUITests: XCTestCase {
     ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"].flatMap { $0.isEmpty ? nil : $0 }
   }
 
-  private func fakeCockpit(other: Bool = false) throws -> String {
+  private func fakeCockpit(other: Bool = false, long: Bool = false) throws -> String {
     guard let cockpit else { throw XCTSkip("needs the fake Cockpit: run scripts/native/test-chat-ui.sh") }
-    try post(cockpit, "/fake/asks", ["open": true, "other": other])
+    try post(cockpit, "/fake/asks", ["open": true, "other": other, "long": long])
     return cockpit
   }
 
@@ -274,6 +274,52 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertTrue(app.otherElements["decision-card-igor2-88g.881"].appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.buttons["decision-option-ramen"].exists, "whole again")
     XCTAssertEqual(try answers(cockpit).count, before, "folding told the Cockpit nothing")
+  }
+
+  /// Story 1603 (bead context-grabber-o2i2): a context longer than the screen, opened, leaves the card at about 60% of
+  /// the thread with its heading on top; the rest scrolls inside the card down to its last option, the message bar stays
+  /// on screen, and a tap on the context closes it again.
+  func testALongCardInItsThreadScrollsInsideAndLeavesTheChatOnScreen() throws {
+    let cockpit = try fakeCockpit(long: true)
+    let app = launch(cockpit, ["GRABBER_LINK": "grabbernative://chat?thread=igor2-88g.878"])
+    let card = app.otherElements["decision-card-igor2-88g.881"]
+    XCTAssertTrue(card.appears(within: 20), app.debugDescription)
+    let context = card.staticTexts["decision-context"]
+    XCTAssertTrue(context.appears(within: 5), app.debugDescription)
+    // The context opening is measured on the context itself: on a tall device the closed card's options alone can
+    // already reach the cap (the iPad, 2026-11-23: 604.5 of 1210 before the tap), so the card itself needn't grow.
+    let closedContext = context.frame.height
+    let window = app.windows.firstMatch.frame
+
+    context.tap()
+    let start = Date()
+    while context.frame.height <= closedContext + 100, Date().timeIntervalSince(start) < 5 { usleep(100_000) }
+    XCTAssertGreaterThan(
+      context.frame.height, closedContext + 100,
+      "the context opened: context \(context.frame) was \(closedContext) high, card \(card.frame), window \(window)")
+    let opened = card.frame.height
+    XCTAssertLessThanOrEqual(opened, window.height * 0.65, "bounded: \(opened) of \(window.height)")
+    XCTAssertTrue(card.buttons["decision-fold"].isHittable, "the fold stays on top: \(app.debugDescription)")
+    let compose = app.descendants(matching: .any)["chat-compose"]
+    XCTAssertTrue(compose.exists, app.debugDescription)
+    XCTAssertLessThanOrEqual(compose.frame.maxY, window.maxY, "the message bar is on screen")
+    XCTAssertGreaterThan(compose.frame.minY, card.frame.maxY, "the bar is under the card, not covered by it")
+
+    let body = card.scrollViews["decision-card-body"]
+    XCTAssertTrue(body.exists, app.debugDescription)
+    let ramen = card.buttons["decision-option-ramen"]
+    XCTAssertFalse(ramen.isHittable, "the last option is past the cap until scrolled to")
+    for _ in 0..<12 where !ramen.isHittable { body.swipeUp() }
+    XCTAssertTrue(ramen.isHittable, "scrolled inside the card to its last option: \(app.debugDescription)")
+    XCTAssertTrue(card.buttons["decision-fold"].isHittable, "the heading never scrolls away")
+    XCTAssertEqual(card.frame.height, opened, accuracy: 2, "scrolling inside leaves the card's height")
+
+    for _ in 0..<12 { body.swipeDown() }
+    context.tap()
+    let shrunk = NSPredicate { _, _ in context.frame.height < closedContext + 100 }
+    wait(for: [expectation(for: shrunk, evaluatedWith: context)], timeout: 5)
+    XCTAssertLessThanOrEqual(card.frame.height, opened + 2, "closing never grows the card")
+    XCTAssertTrue(try answers(cockpit).isEmpty, "reading and scrolling sends nothing")
   }
 
   /// Story 830: a refused answer leaves the card, buttons live, with a copyable problem.
