@@ -5,7 +5,7 @@ the over-the-air build and the watcher that makes one after each merge batch, si
 device, and what would make it faster. The test ladder that comes before any of this is [TESTING.md](TESTING.md);
 TestFlight, the lane beside these, is its "TestFlight" section. Device ids never go in the repository (it is public):
 they live in the gitignored `scripts/native/phone-udid.local` and `scripts/native/ipad-udid.local`, or `DEVICE` / `IPAD`
-in the environment.
+in the environment for the cable install and `pull-logs` (`just ota` reads only the file).
 
 While the whiteboard work is in progress (Igor, 2026-11-22), nothing is deployed to the iPhone: the iPad only.
 
