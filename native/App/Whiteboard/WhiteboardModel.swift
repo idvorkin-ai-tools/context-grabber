@@ -246,7 +246,7 @@ final class WhiteboardModel: ObservableObject {
     oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
     sendable = BoardIndex.sendable(board)
     lookOnlyNote = held ? "Couldn't be read: look only" : store.lookOnlyNote(board)
-    ops = opLedger.applier(board: board.id)
+    ops = opLedger.meaning.applier(drawing: store.drawingPrint(board.id))
     texts = opLedger.texts(board: board.id)
     strokeIDs = opLedger.strokeIDs(board: board.id)
     strokeMeta = opLedger.strokeMeta(board: board.id)
@@ -273,12 +273,9 @@ final class WhiteboardModel: ObservableObject {
   }
 
   /// The meaning was saved with a drawing of another size: a save was cut off between the two files, so a batch of
-  /// Larry's in that drawing may come again, and what the meaning remembers of the changes before it may miss one: it is
-  /// forgotten, so a batch from an earlier look is stale (story 1220). The log line settles whether it ever happens
-  /// (story 1106).
+  /// Larry's in that drawing may come again. The log line settles whether it ever happens (story 1106).
   private func checkMeaningBehind() {
     guard let saved = opLedger.meaning.inkBytes, let read = store.drawingBytes(board.id), saved != read else { return }
-    ops = BoardOpApplier(rev: ops.rev, handled: ops.handled, lastResult: ops.lastResult)
     log.event(
       "whiteboard", ["action": "meaning_behind", "board": board.id, "meaning_ink_bytes": saved, "ink_bytes": read])
   }

@@ -125,6 +125,8 @@ public struct BoardKeeping {
   private var heldBoards: Set<String> = []
   /// The size of each drawing as last read, to check against what its meaning was saved with.
   private var readBytes: [String: Int] = [:]
+  /// The fingerprint of each drawing as last read (`BoardMeaning.fingerprint`).
+  private var readPrints: [String: String] = [:]
 
   public init(dir: URL?, disk: any BoardDisk = FileBoardDisk()) {
     self.dir = dir
@@ -173,6 +175,7 @@ public struct BoardKeeping {
       let drawing = try decode(data)
       heldBoards.remove(id)
       readBytes[id] = data.count
+      readPrints[id] = BoardMeaning.fingerprint(data)
       return drawing
     } catch {
       switch setAside(url) {
@@ -189,6 +192,9 @@ public struct BoardKeeping {
   /// The size in bytes of the board's drawing as `drawing` last read it; nil when it hasn't, or there was none.
   public func drawingBytes(_ id: String) -> Int? { readBytes[id] }
 
+  /// The fingerprint of the board's drawing as `drawing` last read it; nil when it hasn't, or there was none.
+  public func drawingPrint(_ id: String) -> String? { readPrints[id] }
+
   /// Whether this board's unreadable drawing is still where it was, so nothing may be saved over it (#1042).
   public func held(_ id: String) -> Bool { heldBoards.contains(id) }
 
@@ -198,7 +204,8 @@ public struct BoardKeeping {
   ///
   /// With `meaning`, the board's meaning is written after the drawing, in the same save (story 1106): a save cut off
   /// between the two leaves the meaning a step behind the ink, never ahead of it, so a batch of Larry's is never
-  /// remembered as handled with its ink lost. `meaning` is written as given; the caller sets its `inkBytes`.
+  /// remembered as handled with its ink lost. `meaning` is written as given; the caller sets its `inkBytes` and
+  /// `inkPrint`.
   public mutating func save(_ drawing: Data, meaning: BoardMeaning? = nil, board id: String) throws -> Bool {
     guard let url = drawingURL(id) else { throw CocoaError(.fileNoSuchFile) }
     guard !heldBoards.contains(id) else { throw BoardHeld(board: id) }
@@ -255,6 +262,7 @@ public struct BoardKeeping {
   public mutating func removeFiles(_ id: String) {
     heldBoards.remove(id)
     readBytes[id] = nil
+    readPrints[id] = nil
     for url in [drawingURL(id), pictureURL(id), meaningURL(id)].compactMap({ $0 }) { try? disk.remove(url) }
   }
 

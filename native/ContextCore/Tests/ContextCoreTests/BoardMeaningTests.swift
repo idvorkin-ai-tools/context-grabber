@@ -236,17 +236,24 @@ final class BoardMeaningTests: XCTestCase {
   }
 
   /// Larry looked at rev 10; Igor then made `changes` (each the names it moved or erased, nil for a new stroke); the
-  /// board was saved, and the app relaunched: the applier comes back from the file.
-  private func relaunched(_ changes: [[String]?]) throws -> BoardOpApplier {
+  /// board was saved, drawing and meaning, as the store saves it, and the app relaunched: the applier comes back from
+  /// the files. `cutOff`: a later drawing written alone, the save stopped before its meaning.
+  private func relaunched(_ changes: [[String]?], cutOff: Data? = nil) throws -> BoardOpApplier {
     var applier = BoardOpApplier(rev: 10)
     for touched in changes {
       applier.changed()
       if let touched { applier.touched(touched) }
     }
+    let drawing = Data("ink s4 at 100,200".utf8)
     var saved = BoardMeaning()
     saved.take(applier)
-    let back = try JSONDecoder().decode(BoardMeaning.self, from: JSONEncoder().encode(saved))
-    return back.applier
+    saved.inkPrint = BoardMeaning.fingerprint(drawing)
+    var keeping = keeping()
+    _ = try keeping.save(drawing, meaning: saved, board: "b1")
+    if let cutOff { _ = try keeping.save(cutOff, board: "b1") }
+    _ = try keeping.drawing("b1") { $0 }
+    let back = try XCTUnwrap(try keeping.meaning("b1"))
+    return back.applier(drawing: keeping.drawingPrint("b1"))
   }
 
   func testAPushFromBeforeARelaunchAppliesOverNewStrokes() throws {
@@ -277,9 +284,30 @@ final class BoardMeaningTests: XCTestCase {
       .refused(BoardOps.Result(label: "room", ok: false, rev: 11, reason: "stale")))
   }
 
+  func testAPushFromBeforeARelaunchNamingOnlyUntouchedStrokesApplies() throws {
+    var applier = try relaunched([nil, ["s4"]])
+    let untouched = push(base: 10, ids: ["s5"])
+    guard case .apply(let through) = applier.receive(untouched, board: "b1", editable: true, ready: true) else {
+      return XCTFail("the drawing is the one the memory was saved with: s5 never moved")
+    }
+    XCTAssertEqual(through.rebasedFrom, 10)
+  }
+
+  func testASaveCutOffAfterAMoveForgetsTheMemory() throws {
+    let moved = Data("ink s4 at 100,260".utf8)
+    XCTAssertEqual(moved.count, Data("ink s4 at 100,200".utf8).count, "the move kept the drawing's size")
+    var applier = try relaunched([nil], cutOff: moved)
+    XCTAssertEqual(applier.since, 11)
+    XCTAssertEqual(
+      applier.receive(push(base: 10, ids: ["s4"]), board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 11, reason: "stale")),
+      "the move of s4 never reached the meaning, so nothing before it is trusted")
+  }
+
   func testAFileFromBeforeThisRemembersNothingOlder() throws {
-    let back = try JSONDecoder().decode(BoardMeaning.self, from: Data(#"{"rev": 12, "handled": []}"#.utf8))
-    var applier = back.applier
+    let old = #"{"rev": 12, "handled": [], "since": 10, "touches": []}"#
+    let back = try JSONDecoder().decode(BoardMeaning.self, from: Data(old.utf8))
+    var applier = back.applier(drawing: BoardMeaning.fingerprint(Data("ink".utf8)))
     XCTAssertEqual(applier.since, 12)
     XCTAssertEqual(
       applier.receive(push(base: 10), board: "b1", editable: true, ready: true),

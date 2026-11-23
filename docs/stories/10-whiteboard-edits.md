@@ -55,7 +55,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Larry's change from before the app restarted still applies when I only wrote new strokes since
 - **Issues:** bead context-grabber-fuw0 (found checking drop rule C, 2026-11-22: the board's memory of its changes lived only for one run, so after a relaunch a batch based on an earlier revision was refused as stale even when Igor had only added strokes)
-- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07) and [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891); verified on the host (`BoardMeaningTests`: a push from before a relaunch applies over new strokes and says `rebased_from`, one naming a stroke moved before the relaunch is still stale with `conflict_ids`, Larry's own change before a relaunch still makes an older look stale, a file from before this remembers nothing older) and the Mac build (`just native-build-mac`). The review round also re-checks a batch held for the Pencil on the lift (host: `BoardMeaningTests` refuses one whose stroke was erased while it waited; `BoardOpsTests` and `BoardCanvasOutcomeTests` still let one through when nothing it names moved), counts a fold or connectors following as moving everything, and forgets the memory when a save was cut off. Those last two, and the app's handling of a refusal on the lift, are compiled (Mac build) but not host-tested. Not run on a simulator or the iPad
+- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07) and [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891), the drawing's fingerprint in the review round's last commit; verified on the host (`BoardMeaningTests`: a push from before a relaunch applies over new strokes and says `rebased_from`, and one naming only strokes that never moved applies too) and the Mac build (`just native-build-mac`). The review round also re-checks a batch held for the Pencil on the lift (host: `BoardMeaningTests` refuses one whose stroke was erased while it waited; `BoardOpsTests` and `BoardCanvasOutcomeTests` still let one through when nothing it names moved); that the app shows a refusal on the lift is compiled (Mac build) but not host-tested. Not run on a simulator or the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
@@ -69,15 +69,45 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** his make room, from the look before the restart, arrives
 - **Then:** it applies to the board as it is now, my new strokes included, and his next turn says it applied on a newer board than the one he saw
 
+---
+
+### User Story 1229:
+
+- **Summary:** Larry's change from before the app restarted is still refused when I moved what it names
+- **Issues:** bead context-grabber-fuw0 (split from story 1220 in its review)
+- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07) and [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891); verified on the host (`BoardMeaningTests`: one naming a stroke moved before the relaunch is still stale with `conflict_ids`, Larry's own change before a relaunch still makes an older look stale, a file from before this remembers nothing older than its saved revision). That a fold or connectors following count as moving everything is compiled (Mac build) but not host-tested. Not run on a simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** who moves my strokes around while Larry thinks
+- **I want to** have his change refused when it names a stroke I moved, even across a restart
+- **so that** his change never lands on ink that is no longer where he saw it
+
+#### Acceptance Criteria:
 - **Scenario:** I moved what it names before the restart
 - **Given:** Larry looked at the board, I moved a stroke his change names, or folded a section, and the app was closed and opened again
 - **When:** his change, from the look before the restart, arrives
 - **Then:** it is refused as stale and nothing moves
 
+---
+
+### User Story 1230:
+
+- **Summary:** A save the app didn't finish leaves the board remembering none of my earlier changes
+- **Issues:** bead context-grabber-fuw0 (split from story 1220 in its review: a cut-off save after a move that kept the drawing's size went unnoticed)
+- **Status:** implemented in the review round's last commit for bead context-grabber-fuw0 (the drawing's fingerprint saved with the board's memory); verified on the host (`BoardMeaningTests`: a save cut off after a move that kept the drawing's size forgets the memory and refuses an older look naming the moved stroke, a clean relaunch keeps it, a file without the fingerprint forgets it) and the Mac build (`just native-build-mac`). Not run on a simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** whose app can stop at any moment
+- **I want to** have the board forget what it remembered of my changes when its last save was cut off
+- **so that** a change of Larry's never lands on a stroke I moved that the board lost track of
+
+#### Acceptance Criteria:
 - **Scenario:** The app stopped while saving
-- **Given:** the board's drawing was saved but what it remembers of my changes was not, and the drawing's size changed (a save cut off after a change that kept the size, such as a moved stroke, isn't noticed yet: follow-up to bead context-grabber-fuw0)
-- **When:** a change of Larry's from an earlier look arrives
-- **Then:** it is refused as stale
+- **Given:** I moved a stroke, the board's drawing was saved, and the app stopped before what it remembers of my changes was
+- **When:** a change of Larry's from an earlier look arrives after the app opens again
+- **Then:** it is refused as stale, even though the move left the drawing's size the same
 
 ---
 

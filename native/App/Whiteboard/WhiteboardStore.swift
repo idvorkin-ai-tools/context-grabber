@@ -265,6 +265,9 @@ final class WhiteboardStore: ObservableObject {
   /// The size of the board's drawing as it opened, to check against its meaning's.
   func drawingBytes(_ id: String) -> Int? { keeping.drawingBytes(id) }
 
+  /// The fingerprint of the board's drawing as it opened, to check against its meaning's (story 1220).
+  func drawingPrint(_ id: String) -> String? { keeping.drawingPrint(id) }
+
   /// A board's meaning written when its ink didn't change (`BoardKeeping.saveMeaning`).
   func saveMeaning(_ meaning: BoardMeaning, board id: String) throws {
     // A change arriving after the board was deleted (a card from a late read) leaves nothing behind.
@@ -296,6 +299,7 @@ final class WhiteboardStore: ObservableObject {
     let data = timing.time("encode") { saving.dataRepresentation() }
     var meaning = meaning
     meaning?.inkBytes = data.count
+    meaning?.inkPrint = BoardMeaning.fingerprint(data)
     if try timing.time("write", { try keeping.save(data, meaning: meaning, board: id) }),
       problem?.context == "WhiteboardView.save"
     {

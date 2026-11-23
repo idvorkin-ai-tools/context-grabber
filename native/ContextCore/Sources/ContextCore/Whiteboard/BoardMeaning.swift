@@ -46,13 +46,16 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   /// The size in bytes of the drawing file this was last written with; nil before the first save with ink. Read on
   /// open against the drawing on disk: a difference means a save was cut off between the two files.
   public var inkBytes: Int?
+  /// The fingerprint (`fingerprint`) of the drawing file this was last written with; nil in a file from before it was
+  /// kept. What it remembers of the changes (`touches`, `since`) is trusted only beside that very drawing (story 1220).
+  public var inkPrint: String?
 
   public init() {}
 
   enum CodingKeys: String, CodingKey {
     case version, rev, handled, lastResult, touches, since, texts, strokeIDs, strokeMeta, headers, declined, questions,
       labels, theirs
-    case inkBytes
+    case inkBytes, inkPrint
   }
 
   /// Every part optional, so a file from an older or newer build still reads.
@@ -73,6 +76,31 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     labels = try c.decodeIfPresent([Int64].self, forKey: .labels) ?? []
     theirs = try c.decodeIfPresent([Int64].self, forKey: .theirs) ?? []
     inkBytes = try c.decodeIfPresent(Int.self, forKey: .inkBytes)
+    inkPrint = try c.decodeIfPresent(String.self, forKey: .inkPrint)
+  }
+
+  /// A drawing file's fingerprint: FNV-1a over its bytes, 16 hex characters. A moved stroke changes it even when the
+  /// file's size stays the same.
+  public static func fingerprint(_ drawing: Data) -> String {
+    var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+    drawing.withUnsafeBytes { bytes in
+      for b in bytes {
+        hash ^= UInt64(b)
+        hash = hash &* 0x0000_0100_0000_01b3
+      }
+    }
+    return String(format: "%016llx", hash)
+  }
+
+  /// The applier for the board as it opened, with the drawing read (`drawing`, its fingerprint; nil with none). What
+  /// it remembers of the changes before `rev` is kept only when this was written with that very drawing: a save cut off
+  /// between the drawing and its meaning, or a file from before the fingerprint was kept, remembers nothing before
+  /// `rev`, so a batch from an earlier look is stale (story 1220).
+  public func applier(drawing: String?) -> BoardOpApplier {
+    guard let inkPrint, inkPrint == drawing else {
+      return BoardOpApplier(rev: rev, handled: handled, lastResult: lastResult)
+    }
+    return applier
   }
 
   /// The applier as this was saved, with what it remembered of the changes since (stories 961, 1220).
@@ -126,6 +154,7 @@ public final class BoardMeaningLedger: @unchecked Sendable {
   /// The file now holds `saved`: the meaning as it was handed to the save, with the drawing's size it went with.
   public func wrote(_ saved: BoardMeaning) {
     meaning.inkBytes = saved.inkBytes
+    meaning.inkPrint = saved.inkPrint
     written = saved
   }
 

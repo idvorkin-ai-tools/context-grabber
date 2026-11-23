@@ -50,10 +50,10 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   forgets nothing: a change Larry made from a look before the app restarted still applies when Igor only wrote new
   strokes since (bead context-grabber-fuw0). A board saved by a build from before this remembers nothing older than
   the revision it was saved at, so a look from before that is still refused as stale. A fold, an unfold, or connectors
-  following their ends count as moving everything, so a look from before one is stale. If the app stopped part-way
-  through saving the board and the drawing's size changed, the board forgets its memory of the changes, and every
-  older look is stale. A save cut off after a change that left the size the same (a moved stroke) isn't noticed yet
-  (follow-up to bead context-grabber-fuw0). A change
+  following their ends count as moving everything, so a look from before one is stale. The memory is saved with
+  a fingerprint of the drawing it goes with, so a save cut off part-way (the drawing written, its memory not) is
+  always noticed when the board opens, a moved stroke that left the drawing's size the same included: the board then
+  forgets its memory of the changes, and every older look is stale. A change
   held for the Pencil is checked again when the Pencil lifts, so Igor moving or erasing what it names while it waits
   still refuses it. Nothing moves then, Larry
   is told why and which of his names conflicted, and he looks again and sends a fresh one. Igor never sees a
