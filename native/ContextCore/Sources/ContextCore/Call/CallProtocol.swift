@@ -168,6 +168,15 @@ public enum CallProtocol {
     return "ws://\(host):8780"
   }
 
+  /// The bridge a launch's calls dial. `GRABBER_CALL` wins (it also places a call), then `GRABBER_CALL_BRIDGE`
+  /// (only the address, no call: every UI test sets it, so no test dials the real bridge), then the Cockpit's own.
+  public static func bridgeURL(environment: [String: String], cockpit: String) -> String? {
+    for key in ["GRABBER_CALL", "GRABBER_CALL_BRIDGE"] {
+      if let url = environment[key], !url.isEmpty { return url }
+    }
+    return bridgeURL(cockpit: cockpit)
+  }
+
   // MARK: - outbound
 
   private static func json(_ object: [String: Any]) -> String {

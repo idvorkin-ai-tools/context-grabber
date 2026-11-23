@@ -777,7 +777,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 200:
 
 - **Summary:** In Grabber Native the Cockpit is a full-screen page from the home screen, and Done keeps it
-- **Status:** implemented in [63a012a](https://github.com/idvorkin/context-grabber/commit/63a012a) (native), the ☎ staying in the app in [d061129](https://github.com/idvorkin/context-grabber/commit/d061129) (`CockpitCallUITests` on the simulator: one call on the page's backend, the fallback link caught as a duplicate); verified by `CockpitBridgeTests` (host), the `cockpit:` checks in `sim-smoke.sh` and a simulator screenshot of the tailnet page, the bridge test page and the unreachable panel; on the phone: not yet. Back and Cockpit in the footer (#234): [c1c6e53](https://github.com/idvorkin/context-grabber/commit/c1c6e53); verified by `CockpitBackUITests` on the simulator (a page the stand-in Cockpit opened in place shows Back, Back returns and the button goes, Cockpit returns from two pages deep, Done leaves) and `CockpitCallUITests` still passing; since [105485e7](https://github.com/idvorkin/context-grabber/commit/105485e7) (#905) the ☎ check is the last step of `CockpitBackUITests`' launch, passing on the simulator. The panel no longer outlives a failed page (Back or Cockpit after a 404 loads, then shows the page with no panel), and which buttons show is `CockpitPageStateTests`: [a3436a9](https://github.com/idvorkin/context-grabber/commit/a3436a9); verified on the Linux rung (host tests); the train's simulator pass on native/larry-train-1110 (iPhone 17, 2026-11-10: the Mac build and the UI tests green); the phone pending. A first open's link tap that went nowhere (`CockpitBackUITests`' first try): the session log has each navigation as WebKit asks for it and starts it, and the bridge test page shows what it saw of the tap (context-grabber-ybo3); verified on the Mac build and the host rung
+- **Status:** implemented in [63a012a](https://github.com/idvorkin/context-grabber/commit/63a012a) (native), the ☎ staying in the app in [d061129](https://github.com/idvorkin/context-grabber/commit/d061129) (`CockpitCallUITests` on the simulator: one call on the page's backend, the fallback link caught as a duplicate); verified by `CockpitBridgeTests` (host), the `cockpit:` checks in `sim-smoke.sh` and a simulator screenshot of the tailnet page, the bridge test page and the unreachable panel; on the phone: not yet. Back and Cockpit in the footer (#234): [c1c6e53](https://github.com/idvorkin/context-grabber/commit/c1c6e53); verified by `CockpitBackUITests` on the simulator (a page the stand-in Cockpit opened in place shows Back, Back returns and the button goes, Cockpit returns from two pages deep, Done leaves) and `CockpitCallUITests` still passing; since [105485e7](https://github.com/idvorkin/context-grabber/commit/105485e7) (#905) the ☎ check is the last step of `CockpitBackUITests`' launch, passing on the simulator. The panel no longer outlives a failed page (Back or Cockpit after a 404 loads, then shows the page with no panel), and which buttons show is `CockpitPageStateTests`: [a3436a9](https://github.com/idvorkin/context-grabber/commit/a3436a9); verified on the Linux rung (host tests); the train's simulator pass on native/larry-train-1110 (iPhone 17, 2026-11-10: the Mac build and the UI tests green); the phone pending. A first open's link tap that went nowhere (`CockpitBackUITests`' first try): the session log has each navigation as WebKit asks for it and starts it, and the bridge test page shows what it saw of the tap (context-grabber-ybo3); verified on the Mac build and the host rung. A UI test's ☎ dials no real bridge: story 1072.
 - **Issues:** [#234](https://github.com/idvorkin/context-grabber/issues/234), context-grabber-ybo3 (open: the cause waits on an instrumented miss)
 - **Spec:** [native Cockpit](../superpowers/specs/2026-10-05-native-cockpit-design.md)
 
@@ -1385,3 +1385,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a call with Larry is live and he can hear me
 - **When:** I open Box breathing with Voice and Begin
 - **Then:** the session runs on screen in silence with *Sounds are off during the call*, the devices line does not change, and Larry still hears me and I still hear him
+
+---
+
+### User Story 1072:
+
+- **Summary:** A UI test's call never reaches Larry's real voice bridge
+- **Status:** implemented in [40183c4c](https://github.com/idvorkin/context-grabber/commit/40183c4c), the hang-up in the Cockpit's ☎ check in [6bd23ac8](https://github.com/idvorkin/context-grabber/commit/6bd23ac8); which bridge a launch gets is `CallProtocolTests` (host); `CockpitBackUITests` on the iPad simulator (2026-11-22): the ☎'s drill call dialled `ws://192.0.2.1:8780`, was hung up while it rang and ended `stopped`, and no automatic report was filed; the Mac build green. Spec: [native Cockpit](../superpowers/specs/2026-10-05-native-cockpit-design.md)
+- **Issues:** context-grabber-0mn (the ☎ check placed a real drill call on Igor's bridge on every run: no UI test named a bridge, so a call dialled the Cockpit's own; the app was ended a moment after the call started, and the bridge logged a drill session that ended at once)
+
+#### Use Case:
+- **As a** Larry's client whose drills, recordings and transcripts are Larry's picture of me
+- **I want to** have the app's automated UI checks never place a call on my real voice bridge
+- **so that** my drill and call records hold only the calls I made
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit's ☎ in a UI test
+- **Given:** a UI test launched the app the usual way for tests and named no bridge of its own
+- **When:** it taps the stand-in Cockpit page's ☎, which asks for a drill call, and hangs the call up while it still rings
+- **Then:** the call dialled an address that never answers, nothing reached Igor's voice bridge or his drill and call records, and the call ended cleanly with no automatic report
