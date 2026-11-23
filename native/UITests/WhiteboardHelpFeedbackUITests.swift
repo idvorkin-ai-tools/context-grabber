@@ -52,9 +52,7 @@ final class WhiteboardHelpFeedbackUITests: XCTestCase {
       XCTAssertTrue(row.appears(within: 3), "\(gesture) is listed: \(app.debugDescription)")
     }
     app.buttons["whiteboard-help-done"].tap()
-    // `waitUntil` reads a missing element as "not yet", so the close is waited on with an expectation.
-    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.navigationBars["How this board works"])
-    waitForExpectations(timeout: 5)
+    XCTAssertTrue(app.navigationBars["How this board works"].disappears(within: 5), "Done closes the cheat sheet")
     XCTAssertTrue(app.buttons["whiteboard-board"].isHittable, "back on the board")
   }
 
