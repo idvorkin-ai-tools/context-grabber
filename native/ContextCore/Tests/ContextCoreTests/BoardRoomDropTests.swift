@@ -2,8 +2,8 @@ import XCTest
 
 @testable import ContextCore
 
-/// The oracle is the board ops spec's *A dragged selection makes room* (stories 973–975): dropped ink stays where it
-/// lands, and what is below it slides down by whole lines, as a paste's room does.
+/// The oracle is the board ops spec's *Dropping ink onto writing makes room* (stories 973–975): dropped ink stays
+/// where it lands, and what is below it slides down by whole lines, as a paste's room does.
 final class BoardRoomDropTests: XCTestCase {
   private let line = BoardRoom.line
   private let air = BoardRoom.air
