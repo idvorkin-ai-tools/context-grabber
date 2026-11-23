@@ -193,7 +193,10 @@ check "a journey named by a word from its row" "$(reserve "$tmp/ledger2.json" se
 check "an open PR's unchanged and removed story lines take no ID" "$(reserve "$tmp/ledger2.json" second 2)" "12
 13"
 out=$(reserve "$tmp/ledger.json" 01-a.md 2)
-check "a journey with too few free IDs hands out none and says to add a block" "$out|$?|$(grep -c 'next unused block of twenty' "$tmp/reserve.err")" "|1|1"
+check "a journey with too few free IDs hands out none and says to add a block" "$out|$?|$(grep -c 'next unused block, 100–199' "$tmp/reserve.err")" "|1|1"
+check "a full journey's message names the journey as its row does (bead context-grabber-0e04)" \
+  "$(grep -c "the journey 'A' (01-a.md) has 1 free ID(s) of the 2 asked for in its IDs (1–9, 20)" "$tmp/reserve.err")" "1"
+check "a full journey's message gives every journey's free IDs" "$(grep -c 'Free IDs per journey: A 1, B 9$' "$tmp/reserve.err")" "1"
 out=$(reserve "$tmp/ledger3.json" the)
 check "a word that names two journeys fails" "$out|$?|$(grep -c 'names 2 journeys' "$tmp/reserve.err")" "|1|1"
 out=$(FAKE_GH_FAIL=1 reserve "$tmp/ledger3.json" second)

@@ -42,10 +42,11 @@ def fmt(spans):
 
 
 def table(root, problems):
-    """The journey table: (journey -> spans, file -> journey, journey -> its row but the IDs column)."""
+    """The journey table: (journey -> spans, file -> journey, journey -> its row but the IDs column, journey -> its name)."""
     ranges = {}  # journey (its first file) -> spans
     journey = {}  # file -> its journey
     titles = {}  # journey -> its row but the IDs column, for reserve's journey words
+    labels = {}  # journey -> its name as its row gives it ("The whiteboard"), for reserve's messages
     with open(os.path.join(root, "README.md"), encoding="utf-8") as fh:
         for n, line in enumerate(fh, 1):
             line = line.rstrip("\n").strip()
@@ -57,6 +58,7 @@ def table(root, problems):
                 continue
             name, column = files[0], cells[-1]
             titles[name] = " ".join(cells[:-1])
+            labels[name] = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", cells[0]).split(":")[0].strip()
             spans = []
             for part in column.split(","):
                 s = SPAN.match(part.strip())
@@ -77,7 +79,7 @@ def table(root, problems):
                 journey.setdefault(f, name)
                 if not os.path.isfile(os.path.join(root, f)):
                     problems.append(f"README.md:{n}: {f} is listed but not there")
-    return ranges, journey, titles
+    return ranges, journey, titles, labels
 
 
 def main(root):
@@ -86,7 +88,7 @@ def main(root):
     if not os.path.isfile(readme):
         print(f"FAIL no {readme}")
         return 1
-    ranges, journey, _ = table(root, problems)
+    ranges, journey, _, _ = table(root, problems)
 
     names = sorted(ranges)
     for i, x in enumerate(names):
@@ -187,9 +189,21 @@ def find_journey(query, ranges, journey, titles):
     raise RuntimeError(f"{query!r} names {len(hits)} journeys{': ' + ', '.join(hits) if hits else ''}; give one of its story files")
 
 
+def full(root, name, n, have, ranges, labels, busy):
+    """Why a journey can't give n IDs, and how to extend it (bead context-grabber-0e04)."""
+    top = max(b for spans in ranges.values() for _, b in spans)
+    start = (top // 100 + 1) * 100 if top % 100 else top + 1
+    free = ", ".join(f"{labels[j]} {sum(1 for a, b in ranges[j] for i in range(a, b + 1) if i not in busy)}"
+                     for j in sorted(ranges, key=lambda j: min(a for a, _ in ranges[j])))
+    return (f"the journey {labels[name]!r} ({name}) has {have} free ID(s) of the {n} asked for in its IDs "
+            f"({fmt(ranges[name])}). To extend it, add the next unused block, {start}–{start + 99} (above every journey's "
+            f"IDs; a quiet journey can take twenty), to the end of its row's IDs column in {os.path.join(root, 'README.md')}, "
+            f"then reserve again. Free IDs per journey: {free}")
+
+
 def reserve(root, query, n):
     problems = []
-    ranges, journey, titles = table(root, problems)
+    ranges, journey, titles, labels = table(root, problems)
     name = find_journey(query, ranges, journey, titles)
     on_main = main_ids(root)
     in_prs, n_prs = pr_ids()
@@ -219,9 +233,7 @@ def reserve(root, query, n):
                 if len(got) < n and i not in busy:
                     got.append(i)
         if len(got) < n:
-            raise RuntimeError(
-                f"{name} has {len(got)} free ID(s) of the {n} asked for ({fmt(ranges[name])}); add the next unused block of "
-                "twenty to its row in the journey table")
+            raise RuntimeError(full(root, name, n, len(got), ranges, labels, busy))
         live += [{"id": i, "journey": name, "branch": branch, "at": now,
                   "until": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now + DAY))} for i in got]
         tmp = f"{ledger}.{os.getpid()}.tmp"

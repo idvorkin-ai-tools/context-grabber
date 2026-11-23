@@ -718,8 +718,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 791:
 
 - **Summary:** A new story's ID is reserved, never picked from the branch alone
-- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations held open at once inside the ledger's lock get six different IDs, and a journey is found by a word from its row. This story's own ID, and 792 to 794, came from the command
-- **Issues:** bead context-grabber-jg3w (parallel PRs each took "the next free ID" from their own branch; each passed story 789's check alone, and main took duplicates four times on 2026-11-22: 955, 1101, 1155, 1113–1115)
+- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations held open at once inside the ledger's lock get six different IDs, and a journey is found by a word from its row. This story's own ID, and 792 to 794, came from the command. A full journey's message (bead context-grabber-0e04): implemented on branch `native/story-ids-range-0e04`, verified on the host rung by `scripts/native/test-story-ids.sh`: a full journey hands out nothing and its message names the journey, the next unused block and every journey's free IDs; the whiteboard took 1160–1499
+- **Issues:** bead context-grabber-jg3w, bead context-grabber-0e04 (the whiteboard ran out of IDs on 2026-11-22; agents went back to picking by hand) (parallel PRs each took "the next free ID" from their own branch; each passed story 789's check alone, and main took duplicates four times on 2026-11-22: 955, 1101, 1155, 1113–1115)
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 
 #### Use Case:
@@ -732,6 +732,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** main, the branch's own stories, the story headings open PRs add, and IDs another agent on this Mac reserved in the last day
 - **When:** each runs `scripts/native/story-ids.py reserve <journey> [n]`, at the same moment
 - **Then:** each gets the lowest free IDs of that journey's ranges, one per line, none of them taken by any of those or by the other
+
+- **Scenario:** A journey runs out of IDs (bead context-grabber-0e04)
+- **Given:** a journey whose IDs column has fewer free IDs than asked for
+- **When:** an agent reserves IDs in it
+- **Then:** no ID is handed out, and the message names the journey as its row does, its IDs, the next unused block above every journey's IDs to add to the end of its row, and how many free IDs every journey has left
 
 ---
 
