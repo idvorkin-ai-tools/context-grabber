@@ -54,4 +54,29 @@ final class PaperProbePickupTests: XCTestCase {
     let apart = [move("a", 155, -153), move("b", 158, -153)]
     XCTAssertEqual(PaperProbe.pickup(apart, selected: [], inTouch: true, split: false), .notRigid)
   }
+
+  /// Story 1201, bead context-grabber-vhae: the simulator's drag down on a selected "hello" began on a resize handle
+  /// inside the selection, and PaperKit stretched all six strokes (dx -34 to -8, dy 0 to 3). That is a move.
+  func testAStretchFromAHandleInsideTheSelectionIsAMove() {
+    let keys = (0..<6).map { "t\($0)" }
+    let stretched = keys.enumerated().map { move($1, -34 + CGFloat($0) * 5, $0 < 3 ? 0 : 3, resized: true) }
+    XCTAssertTrue(PaperProbe.resizeIsMove(stretched, selected: Set(keys), onHandleInside: true))
+    // Begun on the handle outside the box: a stretch he meant.
+    XCTAssertFalse(PaperProbe.resizeIsMove(stretched, selected: Set(keys), onHandleInside: false))
+    // A corner stroke that kept its place and size (absent from moved, a full stop) still leaves it a move.
+    XCTAssertTrue(PaperProbe.resizeIsMove(Array(stretched.dropLast()), selected: Set(keys), onHandleInside: true))
+    // A move PaperKit made as a move is its own.
+    let carried = keys.map { move($0, 0, 105) }
+    XCTAssertFalse(PaperProbe.resizeIsMove(carried, selected: Set(keys), onHandleInside: true))
+    // Something beside the selection changed with it.
+    XCTAssertFalse(PaperProbe.resizeIsMove(stretched, selected: Set(keys.dropLast()), onHandleInside: true))
+    let resizedOne = keys.enumerated().map { move($1, $0 == 0 ? -34 : 0, 0, resized: $0 == 0) }
+    XCTAssertTrue(PaperProbe.resizeIsMove(resizedOne, selected: Set(keys), onHandleInside: true))
+    XCTAssertFalse(PaperProbe.resizeIsMove([], selected: [], onHandleInside: true))
+  }
+
+  func testAResizeHandleIsKnownByItsClass() {
+    XCTAssertTrue(PaperProbe.isResizeHandle("CanvasElementResizeHandle"))
+    XCTAssertFalse(PaperProbe.isResizeHandle("CanvasElementResizeView"))
+  }
 }

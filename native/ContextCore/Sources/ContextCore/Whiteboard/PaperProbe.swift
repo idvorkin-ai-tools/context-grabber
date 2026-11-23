@@ -121,6 +121,20 @@ public enum PaperProbe {
     viewClass.contains("MiniMenu")
   }
 
+  /// Story 1201: one of PaperKit's handles that stretch a selection, by its view's class.
+  public static func isResizeHandle(_ viewClass: String) -> Bool {
+    viewClass.contains("ResizeHandle")
+  }
+
+  /// Story 1201: whether a change PaperKit made is a drag meant as a move that its resize handle took: the touch began on a
+  /// handle's reach inside the selection's box, off the handle's own knob (`onHandleInside`), and the change stretched
+  /// the selection (at least one of its strokes resized) and moved nothing outside it. A drag begun on the knob or
+  /// outside the box, or one that moved without stretching, is PaperKit's to keep.
+  public static func resizeIsMove(_ moved: [InkMove], selected: Set<String>, onHandleInside: Bool) -> Bool {
+    onHandleInside && !moved.isEmpty && moved.contains(where: \.resized)
+      && moved.allSatisfy { selected.contains($0.id) }
+  }
+
   /// Stories 616, 825 (#883): the dot PaperKit draws where a finger tapped, even with a finger set not to draw, a few
   /// tenths of a second after the lift. One stroke, a few screen points across, at the tap (in board points, `zoom`
   /// screen points to one), within `tapDotSeconds` of it; anything bigger, elsewhere or later is drawing.

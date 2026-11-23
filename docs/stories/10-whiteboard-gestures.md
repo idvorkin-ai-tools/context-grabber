@@ -945,7 +945,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1197:
 
 - **Summary:** The first tap on any kept text selects it; the second rewords it
-- **Status:** implemented in [d7ddf7d7](https://github.com/idvorkin/context-grabber/commit/d7ddf7d7); verified by host tests and lint (`just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2: `WhiteboardRewordUITests`, all three, among them `testAFirstTapPicksUpATextToDrag`: the first tap selects with *Text · tap to reword* and opens no field, the second opens it, a drag after the first tap moves it; `WhiteboardGroupTapUITests` and `WhiteboardTheirsTapUITests` pass too); on the simulator the drag moved the text sideways rather than down (bead context-grabber-vhae); not yet seen on the iPad
+- **Status:** implemented in [d7ddf7d7](https://github.com/idvorkin/context-grabber/commit/d7ddf7d7); verified by host tests and lint (`just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2: `WhiteboardRewordUITests`, all three, among them `testAFirstTapPicksUpATextToDrag`: the first tap selects with *Text · tap to reword* and opens no field, the second opens it, a drag after the first tap moves it; `WhiteboardGroupTapUITests` and `WhiteboardTheirsTapUITests` pass too); the drag moved the text sideways rather than down on the simulator until story 1201 (bead context-grabber-vhae), which now asserts the move is down by the finger's travel; not yet seen on the iPad
 - **Issues:** bead context-grabber-awz (Igor, design board, 2026-11-22: "a second tap rewords a text"). The bead named this story 1154; 1197 was reserved for it.
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *The first finger tap on any kept text selects it; the second opens it*
 
@@ -959,6 +959,66 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a kept text of my own on a board drawn on here, nothing selected and no marks of Larry's showing
 - **When:** I tap it with a finger
 - **Then:** the text alone is selected, its label says *Text · tap to reword* and no field opens, so a drag now moves it (a second tap opens the field, story 940)
+
+---
+
+### User Story 1201:
+
+- **Summary:** A drag that begins inside a small selection moves it, even where its stretch handles cover it
+- **Status:** implemented in [22e3929a](https://github.com/idvorkin/context-grabber/commit/22e3929a) and [bbfcf1ed](https://github.com/idvorkin/context-grabber/commit/bbfcf1ed); verified by host tests and lint (`just native-test`, `PaperProbePickupTests`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2, build fd53b985, the pre-rebase build of the same patches: `WhiteboardRewordUITests.testAFirstTapPicksUpATextToDrag` asserts the text lands 0.1 of the window lower with its left edge where it was and one Undo puts it back; `WhiteboardGroupTapUITests`, `WhiteboardDropRoomUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardToTextUITests` and `WhiteboardPaperGhostsUITests` pass too); not yet seen on the iPad. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-vhae (found on the simulator verifying story 1197: a drag 120 points down on a selected *hello* stretched it 34 points left, `paper_ink` resized 6, started on `CanvasElementResizeHandle`; maybe part of Igor's "when I select and want to move something, it's borked", 2026-11-22). Following the finger without the stretch: bead context-grabber-ppha
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *A drag that starts inside a selection moves it, however small it is*
+
+#### Use Case:
+- **As someone** who has just selected a word or a small mark on the board
+- **I want to** drag it with a finger from its middle and have it land where my finger went
+- **so that** moving a small thing doesn't stretch it sideways and need undoing
+
+#### Acceptance Criteria:
+- **Scenario:** A small selected text dragged straight down
+- **Given:** a kept text of one short word, selected, on a board drawn on here
+- **When:** I put a finger on the word and drag it straight down, then lift
+- **Then:** the word stretches under my finger while it is down (the system draws that), and on the lift it lands as far down as my finger went, not moved across and at its own size; one Undo, named *Move*, puts it back
+
+---
+
+### User Story 1150:
+
+- **Summary:** A drag from a corner handle's own knob, or from outside the box, still stretches the selection
+- **Status:** implemented in [bbfcf1ed](https://github.com/idvorkin/context-grabber/commit/bbfcf1ed); verified by host tests (`PaperProbePickupTests`; `just native-test`) and the iPad simulator (rung 2, build fd53b985, the pre-rebase build of the same patch: `WhiteboardRewordUITests.testAStretchFromACornerKnobStillStretches`); not yet seen on the iPad. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-vhae (the move of story 1201 must not take a stretch that was meant)
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *A drag that starts inside a selection moves it, however small it is*
+
+#### Use Case:
+- **As someone** who has selected something on the board
+- **I want to** stretch it by dragging a corner handle's knob
+- **so that** making a small selection move when dragged from inside (story 1201) doesn't take away resizing it
+
+#### Acceptance Criteria:
+- **Scenario:** A stretch I meant
+- **Given:** a selection
+- **When:** I drag one of its corner handles from the handle's knob, even the part of it inside the selected thing's box, or from outside the box
+- **Then:** it stretches, as before
+
+---
+
+### User Story 1151:
+
+- **Summary:** A small selection dragged from inside onto ink still makes room
+- **Status:** implemented in [22e3929a](https://github.com/idvorkin/context-grabber/commit/22e3929a); verified by the iPad simulator (rung 2, build fd53b985, the pre-rebase build of the same patch: `WhiteboardRewordUITests.testASmallTextDroppedOnALinePushesItDown`, the line goes down clear of it, `paper_resize_as_move` logged); not yet seen on the iPad. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-vhae (the move of story 1201 lands as a drop, so it must make room as story 973's drops do)
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *A drag that starts inside a selection moves it, however small it is*
+
+#### Use Case:
+- **As someone** moving a small selected text onto a line of ink
+- **I want to** the ink to move clear of it, as any drop onto ink does
+- **so that** a move from inside a small selection (story 1201) never leaves the text on top of my writing
+
+#### Acceptance Criteria:
+- **Scenario:** Dropped onto ink
+- **Given:** a small selected text and a line of ink below it
+- **When:** I drag the text from inside it down onto the line and lift
+- **Then:** the line moves down clear of it, as any drop onto ink does (story 973)
 
 ---
 
