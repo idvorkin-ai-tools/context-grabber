@@ -1,4 +1,4 @@
-//  Story 1135 (bead context-grabber-97s): the card at the top of a thread stops at about 60% of it and scrolls inside.
+//  Story 1603 (bead context-grabber-o2i2): the card at the top of a thread stops at about 60% of it and scrolls inside.
 
 import ContextCore
 import XCTest

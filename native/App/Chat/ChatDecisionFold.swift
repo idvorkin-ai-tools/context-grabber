@@ -13,7 +13,7 @@ struct ChatDecisionFoldable: View {
   let place: String
   let voice: ChatVoiceModel?
   let logger: BugLogger
-  /// Story 1135: in its thread, how tall the opened card may grow under its heading before it scrolls.
+  /// Story 1603: in its thread, how tall the opened card may grow under its heading before it scrolls.
   var bodyCap: CGFloat?
   @State private var draft = ChatDecisionCard.Draft()
 

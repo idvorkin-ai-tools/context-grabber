@@ -1,5 +1,5 @@
 //  A long card at the top of its thread (spec 2026-11-14-chat-decision-cards-design.md, *A long card at the top of its
-//  thread*; story 1135, bead context-grabber-97s): under its heading, the card scrolls inside a bounded height instead
+//  thread*; story 1603, bead context-grabber-o2i2): under its heading, the card scrolls inside a bounded height instead
 //  of growing past the screen. Its own file, so the card's own file grows by one wrapper.
 
 import SwiftUI

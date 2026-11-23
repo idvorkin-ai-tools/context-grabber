@@ -676,7 +676,7 @@ struct ChatThreadView: View {
   @State private var boardProblem: BugProblem?
   /// Bead context-grabber-dbku: the board slid in over this thread by *Board* or a picture's *Jump to board*.
   @State private var boardJump: BoardJump?
-  /// Story 1135: the thread's height, which bounds its decision card.
+  /// Story 1603: the thread's height, which bounds its decision card.
   @State private var threadHeight: CGFloat = 0
   @Environment(\.dismiss) private var dismiss
   /// Story 1207: the board this thread was slid in over, so *Board* on it goes back rather than opening a second copy.

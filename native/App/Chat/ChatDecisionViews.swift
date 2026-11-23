@@ -11,7 +11,7 @@ struct ChatDecisionSlot: View {
   let key: String
   let voice: ChatVoiceModel
   let logger: BugLogger
-  /// Story 1135: the card's cap under its heading, from the thread's height.
+  /// Story 1603: the card's cap under its heading, from the thread's height.
   var bodyCap: CGFloat?
 
   var body: some View {
@@ -60,7 +60,7 @@ struct ChatDecisionCard: View {
   /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
   let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
   let fold: () -> Void
-  /// Story 1135: how tall the card under its heading may grow before it scrolls; nil draws it whole.
+  /// Story 1603: how tall the card under its heading may grow before it scrolls; nil draws it whole.
   let bodyCap: CGFloat?
   @Binding private var draft: Draft
   @State private var closing = false
@@ -102,7 +102,7 @@ struct ChatDecisionCard: View {
         menu
           .disabled(state.sending)
       }
-      // Story 1135: at the top of its thread, everything under the heading scrolls inside a bounded height.
+      // Story 1603: at the top of its thread, everything under the heading scrolls inside a bounded height.
       ChatDecisionCappedBody(cap: bodyCap) {
         VStack(alignment: .leading, spacing: 8) {
           if !ask.context.isEmpty {

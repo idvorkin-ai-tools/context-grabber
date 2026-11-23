@@ -11,7 +11,7 @@ accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that 
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n, "separate": bool} is a test's way to have him draw
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-says {"count": n,
-"from": k} adds n replies of Larry's words, "Reply k: …" onwards, on the newest board thread (bead context-grabber-97s). POST /fake/larry-ops {"stale": false, "dy": 120}
+"from": k} adds n replies of Larry's words, "Reply k: …" onwards, on the newest board thread (bead context-grabber-o2i2). POST /fake/larry-ops {"stale": false, "dy": 120}
 is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
 below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
 on the message's own rev (one behind it with "behind", which the board still applies, story 961; before anything the
@@ -49,7 +49,7 @@ Decision cards (#878): POST /fake/asks {"open": true} adds (and resets, with wha
 Cockpit's normalize_ask with its `thread` (cockpit-7fr): igor2-88g.881 filed from chat igor2-88g.878 (thread names its
 parent's chat), igor2-88g.879 on no chat (thread null), and igor2-88g.880 on a chat of its own bead, whose answer is always
 refused (502, as bd failing); with "other": true too, igor2-88g.879 also has Larry's own option keyed "other", labelled "Something else" (stories 1129, 1130);
-with "long": true too, igor2-88g.881's context runs to 80 lines, longer than any screen (story 1135);
+with "long": true too, igor2-88g.881's context runs to 80 lines, longer than any screen (story 1603);
 {"open": false} removes them and their chats, so no other test sees an extra row. POST /act
 answers one (409 already closed, or changed with the fresh ask when base_updated_at is stale), POST /close closes or
 abandons, POST /snooze snoozes; GET /fake/answers lists every one of those posted. With "post_to_chat": true, a decided
@@ -811,7 +811,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/fake/larry-draws":
             return self._draws(data)
         if path == "/fake/larry-says":
-            # Bead context-grabber-97s: more of Larry's words on the newest board thread than the panel holds.
+            # Bead context-grabber-o2i2: more of Larry's words on the newest board thread than the panel holds.
             with LOCK:
                 if not BOARD_MESSAGES:
                     return self._json(404, {"ok": False, "error": "no board thread"})

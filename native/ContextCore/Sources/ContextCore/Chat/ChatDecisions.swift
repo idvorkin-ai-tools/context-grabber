@@ -296,7 +296,7 @@ public enum ChatDecisions {
     return hours < 48 ? "\(hours) h" : "\(hours / 24) d"
   }
 
-  /// Story 1135 (bead context-grabber-97s): how tall the part of a card under its heading may grow at the top of its
+  /// Story 1603 (bead context-grabber-o2i2): how tall the part of a card under its heading may grow at the top of its
   /// thread, which stays put while the chat scrolls under it, so the card with its heading comes to about 60% of the
   /// thread. Never under a few lines' worth. Nil until the thread has been measured: the card is drawn unbounded.
   public static func threadCardBodyCap(threadHeight: Double) -> Double? {

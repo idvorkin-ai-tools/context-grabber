@@ -277,7 +277,7 @@ final class ChatDecisionUITests: XCTestCase {
   }
 
   /// Story 830: a refused answer leaves the card, buttons live, with a copyable problem.
-  /// Story 1135 (bead context-grabber-97s): a context longer than the screen, opened, leaves the card at about 60% of
+  /// Story 1603 (bead context-grabber-o2i2): a context longer than the screen, opened, leaves the card at about 60% of
   /// the thread with its heading on top; the rest scrolls inside the card down to its last option, the message bar stays
   /// on screen, and a tap on the context closes it again.
   func testALongCardInItsThreadScrollsInsideAndLeavesTheChatOnScreen() throws {
