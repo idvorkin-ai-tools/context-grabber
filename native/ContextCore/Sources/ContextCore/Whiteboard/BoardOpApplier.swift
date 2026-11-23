@@ -37,7 +37,7 @@ public struct BoardOpApplier: Equatable, Sendable {
   public private(set) var lastResult: BoardOps.Result?
 
   /// Story 961: what each change since `since` moved or erased, oldest first, so a batch from an older look can still
-  /// apply when it names none of it. Only on this run: a relaunch starts remembering afresh.
+  /// apply when it names none of it. Kept with the board (`BoardMeaning`), so a relaunch forgets nothing (story 1220).
   public private(set) var touches: [Touch] = []
   /// The oldest revision `touches` covers every change after; a batch based before it is stale.
   public private(set) var since: Int
@@ -48,7 +48,7 @@ public struct BoardOpApplier: Equatable, Sendable {
   /// The most changes remembered: far more than Igor writes while Larry thinks.
   public static let rememberedChanges = 200
 
-  public struct Touch: Equatable, Sendable {
+  public struct Touch: Codable, Equatable, Sendable {
     /// The revision the change made.
     public var rev: Int
     /// The names it moved, erased or dissolved.
@@ -57,11 +57,20 @@ public struct BoardOpApplier: Equatable, Sendable {
     public var all: Bool
   }
 
-  public init(rev: Int = 0, handled: [String] = [], lastResult: BoardOps.Result? = nil) {
+  /// `touches` and `since`: what the board remembers of the changes before `rev` (story 1220). With none, it remembers
+  /// nothing before `rev`, as a fresh board does. A `since` past `rev`, or touches outside `since...rev`, can't come from
+  /// this applier: they are taken as remembering nothing.
+  public init(
+    rev: Int = 0, handled: [String] = [], lastResult: BoardOps.Result? = nil, touches: [Touch] = [],
+    since: Int? = nil
+  ) {
     self.rev = rev
     self.handled = handled
     self.lastResult = lastResult
-    since = rev
+    let since = since ?? rev
+    let fits = since <= rev && touches.allSatisfy { $0.rev > since && $0.rev <= rev }
+    self.since = fits ? since : rev
+    self.touches = fits ? touches : []
   }
 
   public enum Decision: Equatable, Sendable {
@@ -109,21 +118,15 @@ public struct BoardOpApplier: Equatable, Sendable {
   }
 
   /// A batch arrived. `ready`: the Pencil lets ink move now (`BoardOps.readiness`). The revision is checked here, on
-  /// arrival: a batch held for the Pencil applies on the lift to the board as it is then, the stroke just drawn included.
+  /// arrival, and again on the lift for a batch held for the Pencil: it applies to the board as it is then, the stroke
+  /// just drawn included, unless a change since moved or erased what it names.
   public mutating func receive(_ batch: BoardOps.Batch, board: String, editable: Bool, ready: Bool) -> Decision {
     guard !handled.contains(batch.key) else { return .ignored(why: "handled") }
     remember(batch.key)
     if let refusal = batch.refusal { return refuse(batch, refusal) }
     guard batch.board == board else { return .ignored(why: "other_board") }
     guard editable else { return refuse(batch, BoardOps.Reason.lookOnly) }
-    if let (reason, conflicts) = conflict(batch) {
-      var result = refusal(batch, reason)
-      if !conflicts.isEmpty {
-        result.conflictIDs = conflicts
-        lastResult = result
-      }
-      return .refused(result)
-    }
+    if let result = stale(batch) { return .refused(result) }
     var batch = batch
     if batch.baseRev != rev { batch.rebasedFrom = batch.baseRev }
     if ready {
@@ -136,12 +139,25 @@ public struct BoardOpApplier: Equatable, Sendable {
     return .held(replaced: replaced)
   }
 
-  /// The held batch, once the Pencil lets it apply.
-  public mutating func release(ready: Bool) -> BoardOps.Batch? {
+  /// The held batch, once the Pencil lets it apply: `.apply`, or `.refused` when a change made while it was held moved
+  /// or erased what it names.
+  public mutating func release(ready: Bool) -> Decision? {
     guard ready, let batch = held else { return nil }
     held = nil
+    if let result = stale(batch) { return .refused(result) }
     applying = batch.key
-    return batch
+    return .apply(batch)
+  }
+
+  /// `batch` refused, recorded with the names that conflicted, when it can't apply to the board as it is now.
+  private mutating func stale(_ batch: BoardOps.Batch) -> BoardOps.Result? {
+    guard let (reason, conflicts) = conflict(batch) else { return nil }
+    var result = refusal(batch, reason)
+    if !conflicts.isEmpty {
+      result.conflictIDs = conflicts
+      lastResult = result
+    }
+    return result
   }
 
   /// The board went away with a batch still held: it never applies, and Larry is told.

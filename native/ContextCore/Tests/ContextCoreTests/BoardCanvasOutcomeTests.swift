@@ -116,10 +116,9 @@ final class BoardCanvasOutcomeTests: XCTestCase {
     var applier = BoardOpApplier()
     XCTAssertEqual(applier.receive(batch(), board: "b1", editable: true, ready: false), .held(replaced: nil))
     XCTAssertEqual(applier.report(batch(), .applied(moving)), .late, "not let through yet")
-    let released = applier.release(ready: true)
-    XCTAssertNotNil(released)
+    guard case .apply(let released) = applier.release(ready: true) else { return XCTFail("the lift lets it through") }
     XCTAssertEqual(
-      applier.report(released!, .applied(moving)), .applied(BoardOps.Result(label: "room", ok: true, rev: 0)))
+      applier.report(released, .applied(moving)), .applied(BoardOps.Result(label: "room", ok: true, rev: 0)))
   }
 
   func testAPlanThatLeavesTheInkAloneIsAppliedWithoutTouchingIt() {

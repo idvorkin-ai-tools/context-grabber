@@ -35,7 +35,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Larry's change from an older look is refused when it names what I moved or erased
 - **Issues:** Larry, 2026-11-17: his make-room ops came back stale (rev 257 on 11/16, rev 111 today) because Igor wrote a stroke or two before they arrived
-- **Status:** implemented in [905337c](https://github.com/idvorkin/context-grabber/commit/905337c); verified on the host (`BoardOpsTests`: a named stroke Igor moved is stale with `conflict_ids`, a named group or kept text whose stroke Igor moved is stale too, every name an op uses is checked) and the Mac build; on the iPad simulator, merged with main at 2510b8c6 (`WhiteboardPaperGhostsUITests` rung 2: `testAStalePushMovesNothingAndLarryIsTold` passes)
+- **Status:** implemented in [905337c](https://github.com/idvorkin/context-grabber/commit/905337c); verified on the host (`BoardOpsTests`: a named stroke Igor moved is stale with `conflict_ids`, a named group or kept text whose stroke Igor moved is stale too, every name an op uses is checked) and the Mac build; on the iPad simulator, merged with main at 2510b8c6 (`WhiteboardPaperGhostsUITests` rung 2: `testAStalePushMovesNothingAndLarryIsTold` passes); since [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891) a fold, an unfold or connectors following their ends count as moving everything, so any look from before one is stale (story 1229; compiled in the Mac build, not host-tested)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
@@ -48,6 +48,66 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** Larry looked, and I since moved one of the strokes his change names, or a stroke of a group or kept text it names
 - **When:** it arrives
 - **Then:** nothing moves, and his next turn says it was stale and which of his names I had moved or erased
+
+---
+
+### User Story 1220:
+
+- **Summary:** Larry's change from before the app restarted still applies when I only wrote new strokes since
+- **Issues:** bead context-grabber-fuw0 (found checking drop rule C, 2026-11-22: the board's memory of its changes lived only for one run, so after a relaunch a batch based on an earlier revision was refused as stale even when Igor had only added strokes)
+- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07) and [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891), the drawing's fingerprint in [15779696](https://github.com/idvorkin/context-grabber/commit/15779696); verified on the host (`BoardMeaningTests`: a push from before a relaunch applies over new strokes and says `rebased_from`, and one naming only strokes that never moved applies too) and the Mac build (`just native-build-mac`). The review round also re-checks a batch held for the Pencil on the lift (host: `BoardMeaningTests` refuses one whose stroke was erased while it waited; `BoardOpsTests` and `BoardCanvasOutcomeTests` still let one through when nothing it names moved); that the app shows a refusal on the lift is compiled (Mac build) but not host-tested. Not run on a simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** who closes and reopens the app while Larry thinks
+- **I want to** have his make-room still land when all I did since he looked was write new strokes
+- **so that** a relaunch doesn't silently cost me his change
+
+#### Acceptance Criteria:
+- **Scenario:** The app restarted after he looked
+- **Given:** Larry looked at the board, I wrote two new strokes, and the app was closed and opened again
+- **When:** his make room, from the look before the restart, arrives
+- **Then:** it applies to the board as it is now, my new strokes included, and his next turn says it applied on a newer board than the one he saw
+
+---
+
+### User Story 1229:
+
+- **Summary:** Larry's change from before the app restarted is still refused when I moved what it names
+- **Issues:** bead context-grabber-fuw0 (split from story 1220 in its review)
+- **Status:** implemented in [5df4ac07](https://github.com/idvorkin/context-grabber/commit/5df4ac07) and [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891); verified on the host (`BoardMeaningTests`: one naming a stroke moved before the relaunch is still stale with `conflict_ids`, Larry's own change before a relaunch still makes an older look stale, a file from before this remembers nothing older than its saved revision). That a fold or connectors following count as moving everything is compiled (Mac build) but not host-tested. Not run on a simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** who moves my strokes around while Larry thinks
+- **I want to** have his change refused when it names a stroke I moved, even across a restart
+- **so that** his change never lands on ink that is no longer where he saw it
+
+#### Acceptance Criteria:
+- **Scenario:** I moved what it names before the restart
+- **Given:** Larry looked at the board, I moved a stroke his change names, or folded a section, and the app was closed and opened again
+- **When:** his change, from the look before the restart, arrives
+- **Then:** it is refused as stale and nothing moves
+
+---
+
+### User Story 1230:
+
+- **Summary:** A save the app didn't finish leaves the board remembering none of my earlier changes
+- **Issues:** bead context-grabber-fuw0 (split from story 1220 in its review: a cut-off save after a move that kept the drawing's size went unnoticed)
+- **Status:** implemented in [15779696](https://github.com/idvorkin/context-grabber/commit/15779696) (the drawing's fingerprint saved with the board's memory); verified on the host (`BoardMeaningTests`: a save cut off after a move that kept the drawing's size forgets the memory and refuses an older look naming the moved stroke, a clean relaunch keeps it, a file without the fingerprint forgets it) and the Mac build (`just native-build-mac`). Not run on a simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** whose app can stop at any moment
+- **I want to** have the board forget what it remembered of my changes when its last save was cut off
+- **so that** a change of Larry's never lands on a stroke I moved that the board lost track of
+
+#### Acceptance Criteria:
+- **Scenario:** The app stopped while saving
+- **Given:** I moved a stroke, the board's drawing was saved, and the app stopped before what it remembers of my changes was
+- **When:** a change of Larry's from an earlier look arrives after the app opens again
+- **Then:** it is refused as stale, even though the move left the drawing's size the same
 
 ---
 
@@ -65,7 +125,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** He is too far behind
-- **Given:** Larry's change was made on a board older than the board remembers, or before the app restarted
+- **Given:** Larry's change was made on a board older than the board remembers (a board last saved by a build from before story 1220 remembers nothing older than the revision it was saved at)
 - **When:** it arrives
 - **Then:** it is refused as stale, as before
 
@@ -210,7 +270,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 816:
 
 - **Summary:** A push never moves ink under my Pencil or on a board that changed
-- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, and a change held for the Pencil is checked again when the Pencil lifts, so one naming what Igor moved or erased while it waited is refused (story 1220, [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891)); the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
 
 #### Use Case:
@@ -229,7 +289,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 864:
 
 - **Summary:** A push on a board that changed since he looked is refused
-- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, and a change held for the Pencil is checked again when the Pencil lifts, so one naming what Igor moved or erased while it waited is refused (story 1220, [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891)); the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
 
 #### Use Case:
@@ -248,7 +308,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 865:
 
 - **Summary:** A change the board can't take applies none of it
-- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry; context-grabber-4nes, a revision no board can have refused whole instead of stopping the app, in [d2e8a11](https://github.com/idvorkin/context-grabber/commit/d2e8a11): `BoardOpsTests.testARevisionNoBoardCanHaveRefusesTheBatchAndNeverTraps` (host, Larry's reply read end to end; it trapped before the fix)
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, and a change held for the Pencil is checked again when the Pencil lifts, so one naming what Igor moved or erased while it waited is refused (story 1220, [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891)); the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry; context-grabber-4nes, a revision no board can have refused whole instead of stopping the app, in [d2e8a11](https://github.com/idvorkin/context-grabber/commit/d2e8a11): `BoardOpsTests.testARevisionNoBoardCanHaveRefusesTheBatchAndNeverTraps` (host, Larry's reply read end to end; it trapped before the fix)
 - **Issues:** context-grabber-4nes (a revision too large for a whole number stopped the app while it read Larry's reply)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
 
@@ -268,7 +328,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 866:
 
 - **Summary:** An answer of Larry's applies once
-- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, and a change held for the Pencil is checked again when the Pencil lifts, so one naming what Igor moved or erased while it waited is refused (story 1220, [f2f70891](https://github.com/idvorkin/context-grabber/commit/f2f70891)); the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
 
 #### Use Case:

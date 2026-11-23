@@ -16,6 +16,11 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   public var rev = 0
   public var handled: [String] = []
   public var lastResult: BoardOps.Result?
+  /// `BoardOpApplier`'s memory of what each change since `since` moved or erased (story 961), kept so a relaunch
+  /// forgets nothing (story 1220). `since` is nil in a file from before this: the applier then remembers nothing
+  /// before `rev`.
+  public var touches: [BoardOpApplier.Touch] = []
+  public var since: Int?
   /// Larry's texts Igor kept, known by their glyphs' time (story 817).
   public var texts: [BoardText] = []
   /// The names moved strokes keep (stories 814, 815, 840).
@@ -41,12 +46,16 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   /// The size in bytes of the drawing file this was last written with; nil before the first save with ink. Read on
   /// open against the drawing on disk: a difference means a save was cut off between the two files.
   public var inkBytes: Int?
+  /// The fingerprint (`fingerprint`) of the drawing file this was last written with; nil in a file from before it was
+  /// kept. What it remembers of the changes (`touches`, `since`) is trusted only beside that very drawing (story 1220).
+  public var inkPrint: String?
 
   public init() {}
 
   enum CodingKeys: String, CodingKey {
-    case version, rev, handled, lastResult, texts, strokeIDs, strokeMeta, headers, declined, questions, labels, theirs
-    case inkBytes
+    case version, rev, handled, lastResult, touches, since, texts, strokeIDs, strokeMeta, headers, declined, questions,
+      labels, theirs
+    case inkBytes, inkPrint
   }
 
   /// Every part optional, so a file from an older or newer build still reads.
@@ -56,6 +65,8 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     rev = try c.decodeIfPresent(Int.self, forKey: .rev) ?? 0
     handled = try c.decodeIfPresent([String].self, forKey: .handled) ?? []
     lastResult = try c.decodeIfPresent(BoardOps.Result.self, forKey: .lastResult)
+    touches = try c.decodeIfPresent([BoardOpApplier.Touch].self, forKey: .touches) ?? []
+    since = try c.decodeIfPresent(Int.self, forKey: .since)
     texts = try c.decodeIfPresent([BoardText].self, forKey: .texts) ?? []
     strokeIDs = try c.decodeIfPresent(BoardStrokeIDs.self, forKey: .strokeIDs) ?? BoardStrokeIDs()
     strokeMeta = try c.decodeIfPresent(BoardStrokeMeta.self, forKey: .strokeMeta) ?? BoardStrokeMeta()
@@ -65,10 +76,37 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     labels = try c.decodeIfPresent([Int64].self, forKey: .labels) ?? []
     theirs = try c.decodeIfPresent([Int64].self, forKey: .theirs) ?? []
     inkBytes = try c.decodeIfPresent(Int.self, forKey: .inkBytes)
+    inkPrint = try c.decodeIfPresent(String.self, forKey: .inkPrint)
   }
 
-  /// The applier as this was saved: a relaunch starts remembering touches afresh (story 961).
-  public var applier: BoardOpApplier { BoardOpApplier(rev: rev, handled: handled, lastResult: lastResult) }
+  /// A drawing file's fingerprint: FNV-1a over its bytes, 16 hex characters. A moved stroke changes it even when the
+  /// file's size stays the same.
+  public static func fingerprint(_ drawing: Data) -> String {
+    var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+    drawing.withUnsafeBytes { bytes in
+      for b in bytes {
+        hash ^= UInt64(b)
+        hash = hash &* 0x0000_0100_0000_01b3
+      }
+    }
+    return String(format: "%016llx", hash)
+  }
+
+  /// The applier for the board as it opened, with the drawing read (`drawing`, its fingerprint; nil with none). What
+  /// it remembers of the changes before `rev` is kept only when this was written with that very drawing: a save cut off
+  /// between the drawing and its meaning, or a file from before the fingerprint was kept, remembers nothing before
+  /// `rev`, so a batch from an earlier look is stale (story 1220).
+  public func applier(drawing: String?) -> BoardOpApplier {
+    guard let inkPrint, inkPrint == drawing else {
+      return BoardOpApplier(rev: rev, handled: handled, lastResult: lastResult)
+    }
+    return applier
+  }
+
+  /// The applier as this was saved, with what it remembered of the changes since (stories 961, 1220).
+  public var applier: BoardOpApplier {
+    BoardOpApplier(rev: rev, handled: handled, lastResult: lastResult, touches: touches, since: since)
+  }
 
   /// The applier as it is to be saved. A batch held for the Pencil or still on its way to the canvas isn't saved as
   /// handled yet: its ink isn't on the board, so a relaunch offers it again (story 1106). Once the canvas has answered,
@@ -78,6 +116,10 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     let pending = Set([applier.held?.key, applier.applying].compactMap { $0 })
     handled = applier.handled.filter { !pending.contains($0) }
     lastResult = applier.lastResult
+    touches = applier.touches
+    // Remembering nothing before `rev` is what a file without `since` means: written so, a board with no changes to
+    // remember saves as it did before.
+    since = applier.since == applier.rev ? nil : applier.since
   }
 
   /// What the migration's log line says it moved.
@@ -112,6 +154,7 @@ public final class BoardMeaningLedger: @unchecked Sendable {
   /// The file now holds `saved`: the meaning as it was handed to the save, with the drawing's size it went with.
   public func wrote(_ saved: BoardMeaning) {
     meaning.inkBytes = saved.inkBytes
+    meaning.inkPrint = saved.inkPrint
     written = saved
   }
 

@@ -54,9 +54,8 @@ final class BoardMeaningTests: XCTestCase {
 
   private func sample() throws -> BoardMeaning {
     var meaning = BoardMeaning()
-    var applier = BoardOpApplier(rev: 7)
-    applier.changed()
-    meaning.take(applier)
+    // At rev 8 with nothing remembered before it: the old keys it is migrated from never held a memory of changes.
+    meaning.take(BoardOpApplier(rev: 8))
     meaning.handled = ["m1", "m2"]
     meaning.texts = [BoardText(id: "t1", t: 99, text: "Plan", font: .plain, size: 18, color: "#ba39e6")]
     meaning.strokeIDs.moved(from: ["old"], to: ["new"])
@@ -214,10 +213,118 @@ final class BoardMeaningTests: XCTestCase {
     var told = 0
     ledger.onChange = { told += 1 }
     var applier = ledger.applier(board: "b1")
-    applier.touched(["a"])
-    applier.closed()
+    _ = applier.receive(push(base: 0), board: "b1", editable: true, ready: false)
     ledger.save(applier, board: "b1")
-    XCTAssertEqual(told, 0, "touches and the batch in flight live only on this run")
+    XCTAssertEqual(told, 0, "the batch held for the Pencil lives only on this run")
+    XCTAssertEqual(ledger.meaning.handled, [], "offered again after a relaunch (story 1106)")
+    var reloaded = ledger.applier(board: "b1")
+    XCTAssertEqual(reloaded.receive(push(base: 0), board: "b1", editable: true, ready: true), .apply(push(base: 0)))
+    applier.changed()
+    ledger.save(applier, board: "b1")
+    XCTAssertEqual(told, 1)
+    applier.touched(["a"])
+    ledger.save(applier, board: "b1")
+    XCTAssertEqual(told, 2, "what changed since is kept with the board (bead fuw0)")
+    XCTAssertEqual(ledger.applier(board: "b1").touches, [BoardOpApplier.Touch(rev: 1, ids: ["a"], all: false)])
+  }
+
+  // MARK: Across a relaunch (story 1220, bead context-grabber-fuw0)
+
+  private func push(base: Int, ids: [String]? = nil) -> BoardOps.Batch {
+    let op: BoardOps.Op = ids.map { .translateIDs($0, dx: 0, dy: 40) } ?? .translateBelow(y: 300, dy: 120)
+    return BoardOps.Batch(key: "m1", source: "web", board: "b1", label: "room", baseRev: base, ops: [op])
+  }
+
+  /// Larry looked at rev 10; Igor then made `changes` (each the names it moved or erased, nil for a new stroke); the
+  /// board was saved, drawing and meaning, as the store saves it, and the app relaunched: the applier comes back from
+  /// the files. `cutOff`: a later drawing written alone, the save stopped before its meaning.
+  private func relaunched(_ changes: [[String]?], cutOff: Data? = nil) throws -> BoardOpApplier {
+    var applier = BoardOpApplier(rev: 10)
+    for touched in changes {
+      applier.changed()
+      if let touched { applier.touched(touched) }
+    }
+    let drawing = Data("ink s4 at 100,200".utf8)
+    var saved = BoardMeaning()
+    saved.take(applier)
+    saved.inkPrint = BoardMeaning.fingerprint(drawing)
+    var keeping = keeping()
+    _ = try keeping.save(drawing, meaning: saved, board: "b1")
+    if let cutOff { _ = try keeping.save(cutOff, board: "b1") }
+    _ = try keeping.drawing("b1") { $0 }
+    let back = try XCTUnwrap(try keeping.meaning("b1"))
+    return back.applier(drawing: keeping.drawingPrint("b1"))
+  }
+
+  func testAPushFromBeforeARelaunchAppliesOverNewStrokes() throws {
+    var applier = try relaunched([nil, nil])
+    XCTAssertEqual(applier.rev, 12)
+    guard case .apply(let through) = applier.receive(push(base: 10), board: "b1", editable: true, ready: true) else {
+      return XCTFail("two new strokes before the relaunch are no conflict")
+    }
+    XCTAssertEqual(through.rebasedFrom, 10)
+  }
+
+  func testAPushFromBeforeARelaunchNamingAMovedStrokeIsStillStale() throws {
+    var applier = try relaunched([nil, ["s4"]])
+    XCTAssertEqual(
+      applier.receive(push(base: 10, ids: ["s4"]), board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 12, reason: "stale", conflictIDs: ["s4"])))
+  }
+
+  func testLarrysOwnChangeBeforeARelaunchStillMakesAnOlderLookStale() throws {
+    var before = BoardOpApplier(rev: 10)
+    before.changed()
+    before.touched([], all: true)
+    var saved = BoardMeaning()
+    saved.take(before)
+    var applier = try JSONDecoder().decode(BoardMeaning.self, from: JSONEncoder().encode(saved)).applier
+    XCTAssertEqual(
+      applier.receive(push(base: 10), board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 11, reason: "stale")))
+  }
+
+  func testAPushFromBeforeARelaunchNamingOnlyUntouchedStrokesApplies() throws {
+    var applier = try relaunched([nil, ["s4"]])
+    let untouched = push(base: 10, ids: ["s5"])
+    guard case .apply(let through) = applier.receive(untouched, board: "b1", editable: true, ready: true) else {
+      return XCTFail("the drawing is the one the memory was saved with: s5 never moved")
+    }
+    XCTAssertEqual(through.rebasedFrom, 10)
+  }
+
+  func testASaveCutOffAfterAMoveForgetsTheMemory() throws {
+    let moved = Data("ink s4 at 100,260".utf8)
+    XCTAssertEqual(moved.count, Data("ink s4 at 100,200".utf8).count, "the move kept the drawing's size")
+    var applier = try relaunched([nil], cutOff: moved)
+    XCTAssertEqual(applier.since, 11)
+    XCTAssertEqual(
+      applier.receive(push(base: 10, ids: ["s4"]), board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 11, reason: "stale")),
+      "the move of s4 never reached the meaning, so nothing before it is trusted")
+  }
+
+  func testAFileFromBeforeThisRemembersNothingOlder() throws {
+    let old = #"{"rev": 12, "handled": [], "since": 10, "touches": []}"#
+    let back = try JSONDecoder().decode(BoardMeaning.self, from: Data(old.utf8))
+    var applier = back.applier(drawing: BoardMeaning.fingerprint(Data("ink".utf8)))
+    XCTAssertEqual(applier.since, 12)
+    XCTAssertEqual(
+      applier.receive(push(base: 10), board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 12, reason: "stale")),
+      "a board saved before the memory was kept has no record of what changed")
+  }
+
+  func testAPushHeldForThePencilIsRefusedWhenItsStrokeIsErasedBeforeTheLift() throws {
+    var applier = try relaunched([nil])
+    XCTAssertEqual(
+      applier.receive(push(base: 10, ids: ["s4"]), board: "b1", editable: true, ready: false), .held(replaced: nil))
+    applier.changed()
+    applier.touched(["s4"])
+    XCTAssertEqual(
+      applier.release(ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 12, reason: "stale", conflictIDs: ["s4"])))
+    XCTAssertNil(applier.applying, "nothing goes to the canvas")
   }
 
   func testABatchNotYetOnTheBoardIsntSavedAsHandled() {
@@ -229,8 +336,7 @@ final class BoardMeaningTests: XCTestCase {
     meaning.take(applier)
     XCTAssertEqual(applier.handled, ["m1"], "the board itself won't take it twice")
     XCTAssertEqual(meaning.handled, [], "held for the Pencil: offered again after a relaunch")
-    let released = applier.release(ready: true)
-    XCTAssertNotNil(released)
+    XCTAssertEqual(applier.release(ready: true), .apply(batch))
     meaning.take(applier)
     XCTAssertEqual(meaning.handled, [], "on its way to the canvas")
     _ = applier.report(batch, .applied(BoardOps.Plan(pagesBefore: 1, pagesAfter: 1)))

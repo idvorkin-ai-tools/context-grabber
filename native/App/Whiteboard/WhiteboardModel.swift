@@ -252,7 +252,7 @@ final class WhiteboardModel: ObservableObject {
     oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
     sendable = BoardIndex.sendable(board)
     lookOnlyNote = held ? "Couldn't be read: look only" : store.lookOnlyNote(board)
-    ops = opLedger.applier(board: board.id)
+    ops = opLedger.meaning.applier(drawing: store.drawingPrint(board.id))
     texts = opLedger.texts(board: board.id)
     strokeIDs = opLedger.strokeIDs(board: board.id)
     strokeMeta = opLedger.strokeMeta(board: board.id)
