@@ -1456,6 +1456,28 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1222:
+
+- **Summary:** The PaperKit scratch page shows its tool picker at once, and a finger draws on it
+- **Status:** in progress on branch `native/paperkit-picker-wvpv`
+- **Spec:** [The PaperKit board (a spike)](../superpowers/specs/2026-11-22-paperkit-board-spike-design.md)
+- **Issues:** bead context-grabber-wvpv (Igor, 2026-11-22 23:09, build 5569178f: "Nothing there?"; the page opened twice with
+  no picker, a finger tap drew nothing, Back after 2 s; iPad log grabber-20261122-225645.jsonl); bead context-grabber-yfsz
+  (a merged feature Igor can't reach fails the gate)
+
+#### Use Case:
+- **As someone** trying PaperKit's shapes, with or without the Pencil to hand
+- **I want to** see the tool picker and its **+** the moment the scratch page opens, and draw with a finger too
+- **so that** the shapes are where I look, not behind a tap I can't guess
+
+#### Acceptance Criteria:
+- **Scenario:** The picker is there at once
+- **Given:** the iPad, Settings open on the Home screen
+- **When:** I tap *PaperKit board* and touch nothing else
+- **Then:** the tool picker shows with its **+**; the **+** opens the shapes, and a finger stroke on the page draws
+
+---
+
 ### User Story 1218:
 
 - **Summary:** Closing the PaperKit scratch page throws it away
