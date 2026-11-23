@@ -33,7 +33,7 @@ take_lane_one() {
 
 sim_name() {  # <udid|name>: the simulator's name, or nothing for a udid this Mac doesn't have
   if [[ $1 =~ ^[0-9A-Fa-f-]{36}$ ]]; then
-    xcrun simctl list devices available 2>/dev/null | sed -nE "s/^ +(.+) \\($1\\) \\(.*$/\\1/p" | head -1
+    xcrun simctl list devices available 2>/dev/null | sed -nE "s/^ +(.+) \\($1\\) \\(.*$/\\1/Ip" | head -1
   else
     echo "$1"
   fi

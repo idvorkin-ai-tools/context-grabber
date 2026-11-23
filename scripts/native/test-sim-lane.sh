@@ -18,7 +18,8 @@ bad() { echo "FAIL $1"; sed 's/^/     /' "$out" 2>/dev/null; fail=1; }
 is() { if [ "$2" = "$3" ]; then ok "$1"; else echo "     wanted: $3"; echo "     got:    $2"; bad "$1"; fi; }
 has() { if grep -qF -- "$3" "$2" 2>/dev/null; then ok "$1"; else echo "     wanted in ${2##*/}: $3"; bad "$1"; fi; }
 
-PAD=00000000-0000-0000-0000-000000000001 L2PAD=00000000-0000-0000-0000-000000000002
+PAD=00000000-0000-0000-0000-00000000000A PAD_LOWER=00000000-0000-0000-0000-00000000000a
+L2PAD=00000000-0000-0000-0000-000000000002
 PHONE=00000000-0000-0000-0000-000000000003 OTHER=00000000-0000-0000-0000-000000000004
 GONE=00000000-0000-0000-0000-000000000009
 fakes=$tmp/bin
@@ -49,7 +50,7 @@ F
 printf '#!/usr/bin/env bash\nexit 0\n' >"$fakes/xcodegen"
 printf '#!/usr/bin/env bash\nexit 1\n' >"$fakes/pgrep"
 chmod +x "$fakes"/*
-with() { env PATH="$fakes:$PATH" BUILD_LOCK_DIR="$tmp/locks" SMOKE_LOCK_PROBE="echo unlocked" "$@"; }
+with() { env PATH="$fakes:$PATH" BUILD_LOCK_DIR="$tmp/locks" SIM_DEVICES_DIR="$tmp/devices" SMOKE_LOCK_PROBE="echo unlocked" "$@"; }
 lib() { with bash -c '. scripts/native/sim-lane.sh; "$@"' _ "$@"; }
 
 # Who owns a simulator.
@@ -95,29 +96,41 @@ has "and says so" "$out" "not in a build lane, so taking one"
 with BUILD_LANE=3 bash "$tmp/job.sh" hello >"$out" 2>&1
 has "inside a lane: it runs as it is" "$out" "lane=3 taken=no arg=hello"
 
-# sim-boot.sh: refused before it boots or shuts down anything.
-: >"$MARKS/xcrun"
-with BUILD_LANES=4 scripts/native/sim-boot.sh "$PAD" >"$out" 2>&1
-is "sim-boot outside a lane on lane 1's iPad: exit 64" "$?" 64
-if grep -qE 'bootstatus|shutdown' "$MARKS/xcrun"; then bad "sim-boot refused: nothing booted or shut down"; else ok "sim-boot refused: nothing booted or shut down"; fi
+xlog() {
+  local udid=$1
+  shift
+  with NATIVE_LOG_DIR="$tmp/logs" "$@" scripts/native/xcodebuild-log.sh lane-test "BUILD SUCCEEDED" \
+    xcodebuild -scheme X -destination "platform=iOS Simulator,id=$udid" "${XACT:-test}" >"$out" 2>&1
+}
+
+# Story 1509 requires both commands to refuse the same owned simulator regardless of UUID case.
+hold_lane_one=(lockf -k -t 0 "$tmp/locks/build.lock")
+for udid in "$PAD" "$PAD_LOWER"; do
+  : >"$MARKS/xcrun"
+  with BUILD_LANES=4 "${hold_lane_one[@]}" scripts/native/sim-boot.sh "$udid" >"$out" 2>&1
+  is "sim-boot outside a lane on $udid: exit 64" "$?" 64
+  if grep -qE 'bootstatus|shutdown' "$MARKS/xcrun"; then
+    bad "sim-boot on $udid reached boot or shutdown"
+  fi
+
+  rm -f "$MARKS/xcodebuild"
+  xlog "$udid" "${hold_lane_one[@]}"
+  is "a test run outside a lane on $udid: exit 64" "$?" 64
+  [ ! -e "$MARKS/xcodebuild" ] && ok "xcodebuild never ran on $udid" || bad "xcodebuild ran on $udid"
+  has "and says which simulator" "$out" "xcodebuild-log.sh lane-test: refused: the simulator '$udid' is build lane 1's"
+done
 
 # xcodebuild-log.sh: a test run on another lane's simulator is refused before xcodebuild runs; a build isn't.
-xlog() { with NATIVE_LOG_DIR="$tmp/logs" "$@" scripts/native/xcodebuild-log.sh lane-test "BUILD SUCCEEDED" xcodebuild -scheme X -destination "platform=iOS Simulator,id=$PAD" "${XACT:-test}" >"$out" 2>&1; }
 rm -f "$MARKS/xcodebuild"
-xlog
-is "a test run outside a lane on lane 1's iPad: exit 64" "$?" 64
-[ ! -e "$MARKS/xcodebuild" ] && ok "and xcodebuild never ran" || bad "and xcodebuild never ran"
-has "and says which simulator" "$out" "xcodebuild-log.sh lane-test: refused: the simulator '$PAD' is build lane 1's"
-rm -f "$MARKS/xcodebuild"
-XACT=test-without-building xlog BUILD_LANE=2
+XACT=test-without-building xlog "$PAD" BUILD_LANE=2
 is "a run of built tests in lane 2 on lane 1's iPad: exit 64" "$?" 64
 rm -f "$MARKS/xcodebuild"
-XACT=build xlog
+XACT=build xlog "$PAD"
 [ -e "$MARKS/xcodebuild" ] && ok "a build for the simulator, outside a lane: it runs" || bad "a build for the simulator, outside a lane: it runs"
 
 recipe() {
   with SIM="iPad Pro 11-inch (M5)" BUILD_LANES=2 BUILD_LANE_WAIT=0 SMOKE_ONLY=mirror \
-    NATIVE_LOG_DIR="$tmp/logs" SIM_DEVICES_DIR="$tmp/devices" "$@" >"$out" 2>&1
+    NATIVE_LOG_DIR="$tmp/logs" "$@" >"$out" 2>&1
 }
 : >"$MARKS/xcodebuild"
 : >"$MARKS/xcrun"

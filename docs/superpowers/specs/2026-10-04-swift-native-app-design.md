@@ -504,6 +504,9 @@ under the number of lanes. The device is then booted only if it isn't already up
 before: one job at a time, one booted simulator, every other one shut down. A climb that needs both the iPhone and the iPad switches between them at most once, starting
 with whichever is already booted. A dry run prints the rungs and classes without running any of them.
 
+A boot or test command outside a simulator's owning lane is refused whether it identifies the simulator by name
+or by UUID in any letter case.
+
 Every climb that runs keeps a record a report can follow from selection to the phone: which source and change it
 measured, what it chose and why (mapped, host only, unmapped), on which simulators, how long it waited for a lane,
 whether its build was warm, each step's time and result, and how it ended — passed, failed, could not start,

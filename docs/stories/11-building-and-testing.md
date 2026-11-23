@@ -1756,7 +1756,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1509:
 
 - **Summary:** Booting or testing on a build lane's simulator requires its lane
-- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64.
+- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64. Both UUID spellings were verified with lane 1's lock held.
 - **Issues:** bead context-grabber-w7nl
 
 #### Use Case:
@@ -1767,7 +1767,7 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** Another lane's simulator
 - **Given:** a command holds build lane 2 or holds no lane
-- **When:** it targets lane 1's simulator for booting or testing
+- **When:** it targets lane 1's simulator for booting or testing, by name or by UUID in any letter case
 - **Then:** it exits 64 before booting or running Xcode, and the message names the simulator and its lane and explains how to run the command
 
 ---
