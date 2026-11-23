@@ -46,6 +46,16 @@ suggest changes the board until Igor keeps it.
     held on any of it picks up all of it, and Larry hears it as one group (its strokes carry the same group note, named
     for his reply) that he can move or erase by that one name. Tidy overlaps leaves it as it is. A mark of the reply
     Igor already kept or dismissed is not in it; Claude's marks, and Larry's text from a change of his, never are.
+    - **A drag that picks up part of a group brings the rest along** (bead context-grabber-1xdh; Igor, 2026-11-22: "when
+      I select and want to move something, it's borked"). On the iPad a finger drag on Larry's kept text, with nothing
+      selected, is taken by the system's handwriting view, which picks up only the paragraph under the finger: it moved
+      102 of a kept reply's 120 strokes and left the rest of the reply where it was. When a drag by hand, with nothing
+      selected, moves part of a group and all of what it moved went the same way the same distance, the rest of the
+      group moves that same way too, so the whole group lands where he let go. If the drop opens room, the whole
+      group is what makes it, nothing of the group is pushed, and the drag, the rest of the group and the push are one
+      Undo named *Move*. It doesn't apply to a lasso of part of a group (he chose that part), to handwriting the system
+      rewrapped (its strokes moved by different amounts), to a move the owners-apart rule puts right, or to Undo and
+      Redo. The session log says, for each drop, how many strokes it brought along and from which groups.
   - **A finger tap on any stroke of a group selects the whole group, ready to drag** (#947; Igor, 2026-11-18: "when I
     click select-all, I want some notion of fixed object on finger-click to move"). A group is a reply kept with
     *Keep group*, or one of Larry's own groups. The tap must land on one of the group's strokes, within a finger's

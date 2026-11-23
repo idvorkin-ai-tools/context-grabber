@@ -1207,7 +1207,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** A reply of Larry's kept as a group moves as one
 - **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
-- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942)
+- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942); bead context-grabber-1xdh (the iPad, 2026-11-22, log grabber-20261122-151404: a finger drag on the handwriting view moved 102 of a kept reply's 120 strokes and left the rest)
 
 #### Use Case:
 - **As someone** who kept Larry's drawing as a group
@@ -1219,6 +1219,17 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a reply I kept as a group
 - **When:** Larry moves it by the group's name, or a push opens room through it
 - **Then:** all of it moves together, and Larry hears its strokes under that one group
+
+- **Scenario:** A drag on part of it brings the rest
+- **Given:** a reply of Larry's I kept as a group, with nothing selected
+- **When:** I drag one paragraph of it with a finger and the system's handwriting view picks up only that paragraph
+- **Then:** the rest of the group comes along by the same amount, so the whole group lands where I let go, and one Undo
+  puts all of it back
+
+- **Scenario:** A lasso of part of it moves only that part
+- **Given:** a reply kept as a group
+- **When:** I lasso part of it and drag that
+- **Then:** only what I lassoed moves
 
 ---
 
