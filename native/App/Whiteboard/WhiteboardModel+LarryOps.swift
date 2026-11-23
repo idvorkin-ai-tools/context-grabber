@@ -193,9 +193,15 @@ extension WhiteboardModel {
   /// Retry: Larry gets the board again, as *Send to Larry* sends it, with what happened to his change in the turn.
   func retryBlocked() {
     let label = blocked.label ?? ""
-    guard blocked.retry() else { return }
+    guard blocked.showing else { return }
     log.event("board_blocked", ["action": "retry", "board": board.id, "label": label])
-    sendToLarry()
+    // Retry always hands Larry the board, even when he has this picture (stories 970–972, bead context-grabber-ts8a);
+    // the chip stays until a picture goes (bead context-grabber-kxzk).
+    if sendToLarry(handOver: true) {
+      blocked.retry()
+    } else {
+      log.event("board_blocked", ["action": "retry_waits", "board": board.id, "label": label])
+    }
   }
 
   /// Where the chip is on screen, window points, once per place it takes: what says whether a tap on it can land.

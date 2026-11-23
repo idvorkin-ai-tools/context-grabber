@@ -244,7 +244,8 @@ to that event's own bullet; never join two events on one line.
 - `board_blocked`, the chip for a refused change of Larry's (stories 970–972, 976–978):
   - **shown** with board, label and reason
   - **laid** with board and frame ([x, y, w, h] in window points, once per place the chip takes in each showing)
-  - **retry** or **dismissed** with board and label
+  - **retry** or **dismissed** with board and label (retry is logged when Retry is tapped, before the board is sent)
+  - **retry_waits** with board and label: Retry sent no picture (one still on its way or waiting in the outbox, or the picture could not be made), so the chip stays
   - **cleared** with board and why: applied (a later change of his applied)
 - `whiteboard` action **paper_drop** for moves of ink with no strokes added or removed, outside Undo and Redo (stories 969, 973–975, 979, 1172, 1177, 1178). `board`, `strokes`, `at` (landing box), `from` (starting box), `selected` (the current selection count), and `pickup`:
   - `selected` means every moved stroke was selected at the time of the move or held at the start of the touch. `dragged` means the strokes moved together during a touch sequence without a selection holding all of them.
