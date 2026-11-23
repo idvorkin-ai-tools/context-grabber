@@ -44,7 +44,10 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   its commit and where it was verified; a changed behaviour edits the story's acceptance criteria and adds its
   commit to the `Status:` line. Status lives only on the stories. **No story, not done.** A new story's ID comes
   from `scripts/native/story-ids.py reserve <journey> [n]` (story 791), never from "the next free ID" on your own
-  branch: parallel PRs that each picked one put duplicates on main four times on 2026-11-22.
+  branch: parallel PRs that each picked one put duplicates on main four times on 2026-11-22. That holds for a story
+  the pipeline's review or document step adds or splits off too. Never add a journey's block to
+  `docs/stories/README.md` by hand: when reserve says a journey is full, stop and say so (bead context-grabber-1vvb:
+  the review step added block 1600–1619 itself, and took 232 by hand, on 2026-11-22).
 - **Instrument before theorizing.** For any phone-only symptom add the session-log event that would settle it (or a
   copyable error carrying the state), ship it, reproduce, pull the logs, read the evidence, then fix. Never ship a
   second guessed fix ([DEBUGGING.md](docs/DEBUGGING.md)).
