@@ -433,6 +433,7 @@ private struct HomeSettingsView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var showLinks = false
   @State private var showWhatsNew = false
+  @State private var showInkSideBySide = false
   /// Story 304: the Archive section, re-read on open and whenever an archive run ends while it is up.
   @State private var archiveLines: [ArchiveStatus.Line] = []
   @State private var loggedArchiveStatus = false
@@ -484,6 +485,20 @@ private struct HomeSettingsView: View {
           }
           .tint(.primary)
           .accessibilityIdentifier("home-links")
+          // Story 1209: the iPad's PencilKit ink beside the web board's, an A/B tool. The iPhone only looks at boards.
+          if UIDevice.current.userInterfaceIdiom != .phone {
+            Button {
+              showInkSideBySide = true
+            } label: {
+              HStack {
+                Text("Ink side by side").foregroundStyle(.primary)
+                Spacer()
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+              }
+            }
+            .tint(.primary)
+            .accessibilityIdentifier("home-ink-side-by-side")
+          }
           // Story 149: when the phone's sound is stuck after a call, a workout or breathing.
           Button("Reset audio") { model.resetAudio() }
             .disabled(model.call.snapshot.isActive)
@@ -541,7 +556,13 @@ private struct HomeSettingsView: View {
           "archive_status", ["lines": archiveLines.map(\.text), "trouble": archiveLines.contains(where: \.trouble)])
       }
       .onReceive(model.archive.$lastRunEnded.dropFirst()) { _ in archiveLines = model.archive.statusLines() }
+      .onAppear {
+        guard model.inkSideBySideOnOpen else { return }
+        model.inkSideBySideOnOpen = false
+        showInkSideBySide = UIDevice.current.userInterfaceIdiom != .phone
+      }
       .navigationDestination(isPresented: $showLinks) { LinksView(log: model.log) }
+      .navigationDestination(isPresented: $showInkSideBySide) { InkSideBySideView(log: model.log) }
       .navigationDestination(isPresented: $showWhatsNew) {
         WhatsNewView(feed: model.whatsNew, reports: model.bugReports, logger: model.bugLogger, from: "home_settings")
       }

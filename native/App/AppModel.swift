@@ -477,6 +477,14 @@ final class AppModel: ObservableObject {
 
   func closeHomeSettings() { close(.homeSettings) }
 
+  /// Story 1209's launch hook: Settings opens with Ink side by side pushed on it, once.
+  var inkSideBySideOnOpen = false
+
+  func openInkSideBySide() {
+    inkSideBySideOnOpen = true
+    openHomeSettings()
+  }
+
   func setHomeRow(_ id: String, shown: Bool) {
     homeLayout.setShown(id, shown)
     saveHomeLayout(change: shown ? "show" : "hide")
