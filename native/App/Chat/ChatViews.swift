@@ -852,9 +852,11 @@ struct ChatThreadView: View {
     // card's `decision-card-<id>` read as `chat-thread` (#878, on the simulator).
     .onAppear {
       under.appeared(screenID)
+      if fixedKey == nil { chat.newChatScreen(shown: true, landed: key) }
       if let key { chat.open(key) }
     }
     .onDisappear {
+      if fixedKey == nil { chat.newChatScreen(shown: false, landed: key) }
       if let key { chat.close(key) }
       chat.viewGone()
       under.left(screenID)

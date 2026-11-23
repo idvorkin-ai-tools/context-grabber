@@ -422,7 +422,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** Start a new chat with the keyboard or dictation
 - **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet. #637: the + no longer floats, it sits in a bar below the list beside the voice button, in [dd6c94d](https://github.com/idvorkin/context-grabber/commit/dd6c94d); verified by `ChatArchiveUITests` (simulator); on the phone not yet. #685: the + floats over the list again, beside the voice button, in [dd5d9ef8](https://github.com/idvorkin/context-grabber/commit/dd5d9ef8); verified by `ChatArchiveUITests` (simulator: chat suite 34 passed; one swipe test failed on the suite's slow first launch, then passed 3 of 3 alone); on the phone not yet.; the + opening the ordinary bar with the keyboard up is now checked at the end of `ChatNewThreadUITests`' voice-button test, the focus rule in `ChatNewThreadScreenTests` (host), bead `context-grabber-t8i`
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536), [#637](https://github.com/idvorkin/context-grabber/issues/637), [#685](https://github.com/idvorkin/context-grabber/issues/685)
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536), [#637](https://github.com/idvorkin/context-grabber/issues/637), [#685](https://github.com/idvorkin/context-grabber/issues/685), [#1365](https://github.com/idvorkin/context-grabber/issues/1365)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
@@ -440,6 +440,11 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I tapped + and wrote nothing, or wrote and did not send
 - **When:** I go back to the list
 - **Then:** no thread was started
+
+- **Scenario:** The + opens a new chat again (#1365)
+- **Given:** my last new chat landed in its thread, and I left it by Back, by going Home and coming back to Chat, or by opening another thread from the list
+- **When:** I tap the + again, with the Cockpit up or down
+- **Then:** an empty *New chat* opens each time; the session log has `chat` new_chat_shown for it, and a + whose new chat never comes on screen leaves `chat` new_chat_not_shown with was_open, flag, list and thread
 ---
 
 ### User Story 263:
