@@ -12,7 +12,7 @@ packages:
   # at a tag: a change there reaches this app when the tag here moves.
   ThinkACard:
     url: https://github.com/idvorkin/think-a-card-trainer
-    exactVersion: 0.3.8
+    exactVersion: 0.3.9
   # The report dialog, shake, dictation, What's new and iCloud delivery, shared with the other apps. Pinned to a
   # release tag exactly: every app and the Mac's reader must speak the same delivery format (bug-kit's rollout trains).
   BugKit:
@@ -70,6 +70,11 @@ targets:
           - iCloud.com.idvorkin.BugKitReports
         # The daily strip on every device signed into Igor's iCloud (#376, story 153).
         com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
+        # Story 238: the phone's pairing with Larry's box, one Keychain item every app of Igor's shares (BugKit's
+        # PairedDeviceStore). The app's own group stays first, so the pasted ledger key stays this app's.
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.idvorkin.grabbernative
+          - $(AppIdentifierPrefix)com.idvorkin.paired-device
     dependencies:
       - package: ContextCore
       - package: ThinkACard

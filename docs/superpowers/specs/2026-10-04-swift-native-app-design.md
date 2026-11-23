@@ -205,6 +205,14 @@ covers the screen with the trainer's own drill, the same one as in the trainer a
   carries them, and the trainer app keeps its own copy.
   A Stats load that fails shows as a copyable error in the sheet, with the days asked for and the answers waiting
   (#563).
+- **Pairing** (story 238, the trainer's stories 070, 071 and 074): the phone's pairing with Larry's box is one
+  Keychain item shared by Grabber Native and the trainer, so pairing in either app pairs both. While paired, the drill
+  sends with the phone's own key to the ledger the pairing names and the pasted URL and key wait under *Advanced*.
+  *Stats* says *Paired as … until* the day, or, when unpaired, expired or refused, *Ask Larry to pair again* with a
+  *Pair with code* field: paste Larry's pairing link or type its 26-character code, press *Pair*, and the phone
+  redeems it with the keyring on Larry's box (never a host named in what was pasted); the sheet then shows the
+  pairing and the stats, or the failure as a copyable error that never carries the code. The 4-letter Cockpit
+  approval code is turned away with a message.
 - The log says what was pressed and what each send did, never a card beside its position, and never the key.
 - **Done** returns to the card.
 
