@@ -72,6 +72,10 @@ final class ChatAskSearchUITests: XCTestCase {
     XCTAssertTrue(line.appears(within: 5), "the option's line: \(app.debugDescription)")
     let count = app.staticTexts["ask-search-count"]
     label(count, is: "1 open · 0 answered")
+    let shot = XCTAttachment(screenshot: app.screenshot())
+    shot.name = "ask-search-ramen"
+    shot.lifetime = .keepAlways
+    add(shot)
 
     // Only an answered ask matches: none shown, the count says what the tick would show; ticked, it shows.
     search(field, "passport")
