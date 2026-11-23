@@ -4,7 +4,7 @@
 # And scripts/native/fake-bridge.py for a live call the voice button must stand down for (GRABBER_FAKE_BRIDGE).
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
 # Usage: test-chat-ui.sh <simulator udid or name>   — run it in the build lane:
-#   scripts/native/build-lane.sh run ~/gits/mac-driver/bin/time-limit 30 caffeinate -i \
+#   scripts/native/build-lane.sh run scripts/native/time-limit.sh 30 caffeinate -i \
 #     scripts/native/test-chat-ui.sh "iPhone 17"   (a name is the lane's own device: story 785)
 set -uo pipefail
 udid=$("$(dirname "$0")/sim-udid.sh" "${1:?simulator udid or name}") || exit 1

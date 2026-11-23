@@ -631,19 +631,21 @@ if [ "$in_lane" -eq 1 ]; then
     [ -z "${LADDER_WAITED:-}" ] || echo $(($(date +%s) - LADDER_ASKED)) >"$LADDER_WAITED"
     note lane --arg rung "$only" --argjson lane "${BUILD_LANE:-1}" --argjson lanes "$lanes" \
       --argjson waited_s $(($(date +%s) - ${LADDER_ASKED:-$(date +%s)}))
-    tl=${LADDER_TIME_LIMIT:-$HOME/gits/mac-driver/bin/time-limit} limit=()
-    if [ -x "$tl" ]; then
-      limit=("$tl" "${LADDER_MINUTES:?}")
-    else
-      echo "no $tl: rung $only runs with no time limit, and a hang holds the build lock" >&2
+    # Story 1505 (context-grabber-xmwp): the repo's own time limit, so a Mac without mac-driver still times the rung.
+    # One that can't be found stops the rung, rather than letting it run with none and hold the lane.
+    tl=${LADDER_TIME_LIMIT:-scripts/native/time-limit.sh}
+    if [ ! -x "$tl" ]; then
+      echo "no time limit at $tl: rung $only not started, as a hang would hold build lane ${BUILD_LANE:-1}" >&2
+      exit 2
     fi
+    limit=("$tl" "${LADDER_MINUTES:?}")
     # Story 782: the simulator rung holds the display on too (-d), as UI tests stall on a dark screen; -i alone keeps
     # the Mac awake but lets the display sleep, and with the lock set to "immediately" that locks it.
     keep=(-i)
     [ "$only" = 2 ] && keep=(-d -i)
-    # The lane's settings go past the time limit by hand (context-grabber-jacw): it is a zsh script, so zsh reads
-    # ~/.zshenv, and a BUILD_LANES there would replace the count this lane ran with.
-    LADDER_TIMED=1 exec ${limit[@]+"${limit[@]}"} env BUILD_LANES="$lanes" caffeinate "${keep[@]}" "$self" "${orig[@]}"
+    # The lane's settings go past the time limit by hand (context-grabber-jacw): a time limit given in LADDER_TIME_LIMIT
+    # may be mac-driver's zsh one, which reads ~/.zshenv, and a BUILD_LANES there would replace this lane's count.
+    LADDER_TIMED=1 exec "${limit[@]}" env BUILD_LANES="$lanes" caffeinate "${keep[@]}" "$self" "${orig[@]}"
   fi
   case $only in
     1.5) rung_mac ;;
