@@ -30,9 +30,9 @@ he sees, he does not have time to report, so they are never fixed.
   - a board link that can't open because this build has no iCloud (the Mac's own build): the board lives on the device
     that drew it, which no fix in the app can change (#1254).
 - **The Cockpit away for a moment files nothing; away for minutes files once.** A read of the chat list or a thread
-  that fails because the Cockpit can't be reached (it answered a server error, 502, 503 or 504, from the proxy in front
-  of it; or the request timed out, could not connect, or lost its connection midway) shows its error with Copy error as always, and the app keeps
-  reading again. It files no automatic report unless such failures go on, with no read getting through, for 2 minutes;
+  that fails because the Cockpit can't be reached (it answered a server error, any 5xx, most often 502, 503 or 504 from
+  the proxy in front of it; or the request timed out, could not connect, or lost its connection midway) shows the
+  chat spec's *Cockpit not answering* banner with Copy error, and the app keeps reading again. It files no automatic report unless such failures go on, with no read getting through, for 2 minutes;
   then it files one report for that outage, saying how long it has lasted and how many reads failed, and no more until
   a read gets through. Any read that gets through ends the outage. A pause of over a minute with no read (the thread
   closed, the app in the background) starts the count again. Why: on 2026-11-22 the Cockpit answered 502 to one poll

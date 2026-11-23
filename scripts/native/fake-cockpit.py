@@ -72,6 +72,8 @@ POST /ink/to-text {name, png} reads handwriting as the Cockpit's ink_text.py ans
 or a 400 with its reason, then {ok, text, too_long, advice, model, via} with the text "hello"; POST /fake/to-text
 {"text": ..., "status": ..., "error": ...} sets what every later one answers ({} back to "hello"). GET /fake/to-text
 lists the pictures' sizes so far.
+The Cockpit down (stories 1604-1606): POST /fake/down {"status": 502} makes GET /chat and /chat/<key> answer that
+status until a POST /fake/down {} brings them back.
 Recorded board sessions (story 1174): POST /fake/session {"name": "ops-move"} (one of the Cockpit's recordings, scrubbed,
 under native/ContextCore/Tests/ContextCoreTests/Fixtures/board-sessions; "thread": a key to play it on instead of its own,
 which is made titled as the Cockpit's host titles it, or "first" for the thread of the first board message after it, as
@@ -229,6 +231,7 @@ THREADS["igor2-88g.817"] = {"title": "Laptops", "seen": "", "messages": [  # sto
 ]}
 
 
+DOWN = 0  # stories 1604-1606: the status GET /chat and /chat/<key> answer while a test has the Cockpit down; 0 is up
 ASKS = {}  # #878: id -> the open ask, as GET /asks lists it
 ANSWERS = []  # every POST /act, /close and /snooze, as posted
 DECIDED = {}  # id -> {title, label, note, action}: what GET /ink/answers gives for an ask decided here
@@ -710,6 +713,8 @@ class Handler(BaseHTTPRequestHandler):
             if path.endswith("/whiteboard/responder"):
                 query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
                 return self._json(200, responder_answer((query.get("board") or [""])[0]))
+            if DOWN and (path == "/chat" or path.startswith("/chat/")):
+                return self._json(DOWN, {"ok": False, "error": "Bad Gateway"})
             if path == "/chat":
                 rows = [summary(k, t) for k, t in THREADS.items() if t["messages"] or t.get("pinned")]
                 return self._json(200, {"ok": True, "threads": rows})
@@ -742,6 +747,11 @@ class Handler(BaseHTTPRequestHandler):
         data = json.loads(raw or b"{}")
         if path == "/ink/to-text":
             return self._to_text(data)
+        if path == "/fake/down":
+            global DOWN
+            with LOCK:
+                DOWN = int(data.get("status") or 0)
+            return self._json(200, {"ok": True, "down": DOWN})
         if path == "/fake/to-text":
             global TO_TEXT
             with LOCK:

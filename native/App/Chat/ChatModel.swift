@@ -45,6 +45,9 @@ final class ChatModel: ObservableObject {
   /// Story 1136: while the list shows an outage's problem on screen, it reads again this often.
   static let listRetrySeconds = 15.0
   private var listRetry: Task<Void, Never>?
+  /// Stories 1604–1606: the Cockpit down, as the list and each thread see it, for their *Cockpit not answering* banner.
+  private var listDown = CockpitDown()
+  private var threadDown: [String: CockpitDown] = [:]
   /// #603, set by the app: why a board can't be opened (nil when it can), given the board and where it was asked from.
   var findBoard: @MainActor (String, String) async -> BugProblem? = { _, _ in nil }
   /// #603, set by the app: leaves the thread for that board.
@@ -251,11 +254,15 @@ final class ChatModel: ObservableObject {
         return log.event("chat", ["action": "refresh_stale", "why": reason])
       }
       guard let rows = read else {
+        if CockpitDown.isDown(status: status) {
+          return listDownFailed(CockpitDown.how(status: status), why: "HTTP \(status)", reason: reason)
+        }
         return listFailed(
           "the Cockpit answered HTTP \(status)", reason: reason, kind: CockpitOutage.kind(status: status))
       }
       threads = shown(rows)
       readGotThrough()
+      listDown.answered(now: Self.nowMs)
       listQuiet = false
       listProblem = nil
       if reason == "pull" { archiveProblem = nil }
@@ -275,6 +282,9 @@ final class ChatModel: ObservableObject {
     } catch {
       guard listOrder.mayShow(ticket) else {
         return log.event("chat", ["action": "refresh_stale", "why": reason])
+      }
+      if CockpitDown.isDown(error) {
+        return listDownFailed(CockpitDown.how(error), why: error.localizedDescription, reason: reason)
       }
       listFailed(
         error.localizedDescription, reason: reason, kind: CockpitOutage.kind(error),
@@ -301,12 +311,37 @@ final class ChatModel: ObservableObject {
     listQuiet = readFailed(kind, problem: shown, context: "ChatListView.refresh", extra: ["cockpit": .string(cockpit)])
     listProblem = shown
     log.event("chat", ["action": "refresh_failed", "why": reason, "reason": why])
-    // Story 1602: an outage's problem on the list keeps reading until it reads or the list leaves the screen.
-    guard kind != .other, listOnScreen else { return }
+    if kind != .other { retryList() }
+  }
+
+  /// Stories 1604–1606: the list's read found the Cockpit down. The banner, with the rows last read kept under it,
+  /// shows at once on an empty list, else at the second failure in a row; the list keeps reading meanwhile.
+  private func listDownFailed(_ how: String, why: String, reason: String) {
+    let shows = listDown.failed(how, loaded: !threads.isEmpty, now: Self.nowMs)
+    let problem = listDown.problem(what: "reading the chats", timeZone: .current)
+    let quiet = readFailed(
+      .away, problem: problem, context: "ChatListView.refresh", extra: ["cockpit": .string(cockpit)])
+    if shows {
+      listQuiet = quiet
+      listProblem = problem
+    }
+    log.event(
+      "chat",
+      [
+        "action": "refresh_failed", "why": reason, "reason": why, "down": true, "shown": shows,
+        "failures": listDown.failures,
+      ])
+    retryList()
+  }
+
+  /// Story 1602: while the Cockpit is away the list reads again until it reads or the list leaves the screen.
+  private func retryList() {
+    guard listOnScreen else { return }
     listRetry?.cancel()
     listRetry = Task { [weak self] in
       try? await Task.sleep(for: .seconds(Self.listRetrySeconds))
-      guard let self, !Task.isCancelled, self.listOnScreen, self.listProblem != nil else { return }
+      guard let self, !Task.isCancelled, self.listOnScreen, self.listProblem != nil || self.listDown.since != nil
+      else { return }
       await self.refreshList(reason: "retry")
     }
   }
@@ -441,6 +476,10 @@ final class ChatModel: ObservableObject {
       }
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
       guard status == 200, let rows = ChatWire.messages(data) else {
+        if CockpitDown.isDown(status: status) {
+          threadDownFailed(key, CockpitDown.how(status: status), why: "HTTP \(status)")
+          return false
+        }
         threadFailed(
           key, "\(Self.threadFailure): HTTP \(status)", why: "HTTP \(status)", kind: CockpitOutage.kind(status: status))
         return false
@@ -449,6 +488,7 @@ final class ChatModel: ObservableObject {
       messages[key] = rows
       rowLinks[key] = ChatLinks.inThread(rows)
       readGotThrough()
+      threadDown[key, default: CockpitDown()].answered(now: Self.nowMs)
       threadQuiet.remove(key)
       threadProblem[key] = nil
       if let last = rows.last, last.isError, last.id != before {
@@ -476,6 +516,10 @@ final class ChatModel: ObservableObject {
         log.event("chat", ["action": "thread_read_dropped", "thread": key, "reason": "stale"])
         return false
       }
+      if CockpitDown.isDown(error) {
+        threadDownFailed(key, CockpitDown.how(error), why: error.localizedDescription)
+        return false
+      }
       threadFailed(
         key, CockpitReach.problem(error, otherwise: Self.threadFailure), why: error.localizedDescription,
         kind: CockpitOutage.kind(error))
@@ -500,6 +544,19 @@ final class ChatModel: ObservableObject {
     if quiet { threadQuiet.insert(key) } else { threadQuiet.remove(key) }
     if threadProblem[key] != problem { log.event("error", ["where": "chat_thread", "thread": key, "message": why]) }
     threadProblem[key] = problem
+  }
+
+  /// Stories 1604–1606: the thread's read found the Cockpit down. Its banner, the messages last read kept under it,
+  /// shows at once on a thread never read, else at the second failed poll in a row; the poll goes on reading.
+  private func threadDownFailed(_ key: String, _ how: String, why: String) {
+    let shows = threadDown[key, default: CockpitDown()].failed(how, loaded: messages[key] != nil, now: Self.nowMs)
+    let problem = threadDown[key, default: CockpitDown()].problem(what: "reading this chat", timeZone: .current)
+    guard shows else {
+      _ = readFailed(.away, problem: problem, context: "ChatThreadView.load", extra: ["thread": .string(key)])
+      return log.event(
+        "chat", ["action": "thread_read_failed", "thread": key, "reason": why, "down": true, "shown": false])
+    }
+    threadFailed(key, problem, why: why, kind: .away)
   }
 
   @discardableResult

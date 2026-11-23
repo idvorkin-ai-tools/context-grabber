@@ -3335,8 +3335,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a chat thread is open, the device is online, and the Cockpit just answered HTTP 502 (or 503, 504, or the read timed
   out, could not connect or lost its connection)
 - **When:** the next poll reads the thread
-- **Then:** the error showed with Copy error, no automatic report was saved, and the log has `bug_report_auto_skipped` with
-  `auto_file: false`, then `chat` `cockpit_outage` `ended` with `filed: false`
+- **Then:** no automatic report was saved (a thread that had loaded shows no banner for one blip, story 1606), and the log
+  has `chat` `cockpit_outage` `ended` with `filed: false`
 
 ---
 
@@ -3418,3 +3418,63 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the chat list is on screen and shows a Cockpit error of the kind story 1136 names
 - **When:** 15 seconds pass
 - **Then:** the list is read again, and again every 15 seconds until it reads or leaves the screen
+
+---
+
+### User Story 1604:
+
+- **Summary:** The chat list says plainly when the Cockpit is down
+- **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
+- **Status:** in progress (bead `context-grabber-3kgu`)
+- **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor reading his chats
+- **I want to** see *Cockpit not answering* at the top of the chat list when the Cockpit can't be reached or answers 5xx, with the chats it last read still under it
+- **so that** an empty or stale list never passes for *no chats* or *nothing new*
+
+#### Acceptance Criteria:
+- **Scenario:** The chat list says plainly when the Cockpit is down
+- **Given:** the device is online and the Cockpit answers the list's read with HTTP 502 (or any 5xx, a timeout, or a refused connection)
+- **When:** the chat list has never read since launch and opens, or it had read and a second read in a row fails
+- **Then:** a banner beginning *Cockpit not answering* shows at the top with Copy error, the rows it last read stay under it, and a 404 instead shows its plain reason
+
+---
+
+### User Story 1605:
+
+- **Summary:** The down banner says what failed, since when, and the last good read
+- **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
+- **Status:** in progress (bead `context-grabber-3kgu`)
+- **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor reading his chats
+- **I want to** copy the banner and get what failed, its HTTP status or reason, when it started failing and when the last good read was
+- **so that** a report or a message to Larry carries the evidence (#1361 was a 502 on one thread at 12:39)
+
+#### Acceptance Criteria:
+- **Scenario:** The down banner says what failed, since when, and the last good read
+- **Given:** a thread read at 12:31 and its reads have answered HTTP 502 since 12:39
+- **When:** Igor copies the banner
+- **Then:** the copy reads *Cockpit not answering — reading this chat answered HTTP 502 since 12:39; last good read 12:31*, a screen with no read since launch says *no good read since the app opened*, and the words stay the same while the outage lasts
+
+---
+
+### User Story 1606:
+
+- **Summary:** The down banner waits for a second failure and clears itself
+- **Issues:** bead `context-grabber-3kgu`, [#1352](https://github.com/idvorkin/context-grabber/issues/1352), [#1353](https://github.com/idvorkin/context-grabber/issues/1353), [#1361](https://github.com/idvorkin/context-grabber/issues/1361)
+- **Status:** in progress (bead `context-grabber-3kgu`)
+- **Spec:** [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor reading his chats
+- **I want to** see no banner for one blip the next poll heals, and see the banner go by itself when the Cockpit answers
+- **so that** the banner means the Cockpit is really down, and I never have to pull to get rid of it
+
+#### Acceptance Criteria:
+- **Scenario:** The down banner waits for a second failure and clears itself
+- **Given:** a thread is open with its messages loaded
+- **When:** one read fails with HTTP 502 and the next poll reads, or the banner is up and a read gets through
+- **Then:** the single blip shows no banner, and a banner that was up goes at the first read that gets through, with the fresh messages in place

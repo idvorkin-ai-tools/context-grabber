@@ -14,7 +14,7 @@ public struct CockpitOutage: Equatable, Sendable {
 
   /// What a failed read was.
   public enum Kind: Equatable, Sendable {
-    /// The Cockpit can't be reached for now: a 502, 503 or 504, a timeout, a refused or dropped connection, an unfound
+    /// The Cockpit can't be reached for now: any 5xx (story 1604), a timeout, a refused or dropped connection, an unfound
     /// host.
     case away
     /// The device's own connection is down, whether or not the app has noticed yet.
@@ -47,7 +47,7 @@ public struct CockpitOutage: Equatable, Sendable {
 
   public init() {}
 
-  static let awayStatuses: Set<Int> = [502, 503, 504]
+  static let awayStatuses = 500...599
   static let awayCodes: Set<URLError.Code> = [
     .timedOut, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed, .networkConnectionLost,
   ]

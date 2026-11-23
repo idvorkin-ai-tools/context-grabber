@@ -8,7 +8,7 @@ final class CockpitOutageTests: XCTestCase {
     XCTAssertEqual(CockpitOutage.kind(status: 503), .away)
     XCTAssertEqual(CockpitOutage.kind(status: 504), .away)
     XCTAssertEqual(CockpitOutage.kind(status: 404), .other)
-    XCTAssertEqual(CockpitOutage.kind(status: 500), .other)
+    XCTAssertEqual(CockpitOutage.kind(status: 500), .away, "any 5xx (story 1604)")
     XCTAssertEqual(CockpitOutage.kind(status: 200), .other, "a 200 the app could not read is a bug")
     XCTAssertEqual(CockpitOutage.kind(URLError(.timedOut)), .away)
     XCTAssertEqual(CockpitOutage.kind(URLError(.cannotConnectToHost)), .away)
