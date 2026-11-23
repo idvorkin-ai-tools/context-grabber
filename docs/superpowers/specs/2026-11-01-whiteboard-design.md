@@ -414,7 +414,7 @@ only where a page needs saying.)
 
 The log says what each ⌘V found on the clipboard and who took it, so the iPad can show what the simulator can't.
 
-### Scratch out (stories 890, 891, 898; Igor, 2026-11-16: "match Larry's web board")
+### Scratch out (stories 890, 891, 898, 1185; Igor, 2026-11-16: "match Larry's web board")
 
 As in Goodnotes and Notability, and as the Cockpit's web board (*/ink*) does it: a fast zigzag drawn over ink deletes the
 ink it covers, without picking up the eraser.

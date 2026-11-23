@@ -369,8 +369,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 890:
 
 - **Summary:** A fast zigzag over ink scratches it out
-- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4) (the Cockpit's web board's `scratchOut`, ported); verified on the host (`WhiteboardScratchOutTests`, the web board's own zigzags, humps and loops; `just native-test`). The Pencil's feel and the one undo are the iPad's to show. Staying gone when he writes on (#999) fixed in [19fa533e](https://github.com/idvorkin/context-grabber/commit/19fa533e); verified on the simulator (`WhiteboardScratchOutUITests`, failing before the fix: the word stayed on the sheet), the Pencil's zigzag on the iPad still to see. A scribble that drifts along the word (context-grabber-4kj) in [eb73c30](https://github.com/idvorkin/context-grabber/commit/eb73c30); verified on the Linux rung (`WhiteboardScratchOutTests`, Igor's real scribbles of 2026-11-21 replayed, failing before the fix on *short sweeps*), the iPad still to see. A scribble that drifts further than its sweeps are long (context-grabber-4kj, 2026-11-22) in [73ed9aa](https://github.com/idvorkin/context-grabber/commit/73ed9aa); verified on the host (`just native-test`: `WhiteboardScratchOutTests`, every scratch line and every fast pen path from Igor's iPad logs of 2026-11-21 and 22 replayed, the drifting one failing before the fix on *short sweeps*) and the Mac build (`just native-build-mac`), the iPad still to see
-- **Issues:** [#999](https://github.com/idvorkin/context-grabber/issues/999), context-grabber-4kj (a scribble that drifts along the word stayed ink, *short sweeps*, Igor 2026-11-21; again for one drifting 458 points, 2026-11-21 on a build with the first fix)
+- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4) (the Cockpit's web board's `scratchOut`, ported); verified on the host (`WhiteboardScratchOutTests`, the web board's own zigzags, humps and loops; `just native-test`). The Pencil's feel and the one undo are the iPad's to show. Staying gone when he writes on (#999) fixed in [19fa533e](https://github.com/idvorkin/context-grabber/commit/19fa533e); verified on the simulator (`WhiteboardScratchOutUITests`, failing before the fix: the word stayed on the sheet), the Pencil's zigzag on the iPad still to see. A scribble that drifts along the word (context-grabber-4kj) in [eb73c30](https://github.com/idvorkin/context-grabber/commit/eb73c30); verified on the Linux rung (`WhiteboardScratchOutTests`, Igor's real scribbles of 2026-11-21 replayed, failing before the fix on *short sweeps*), the iPad still to see. A scribble that drifts further than its sweeps are long is story 1185
+- **Issues:** [#999](https://github.com/idvorkin/context-grabber/issues/999), context-grabber-4kj (a scribble that drifts along the word stayed ink, *short sweeps*, Igor 2026-11-21)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
@@ -389,6 +389,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I scribble fast over the word, turning back five times or more, drifting along it so no sweep spans the whole scribble
 - **Then:** the word and the scribble are gone, as for a straight zigzag
 
+---
+
+### User Story 1185:
+
+- **Summary:** A long scribble that drifts further than its sweeps are long scratches out
+- **Status:** implemented in [770b0c36](https://github.com/idvorkin/context-grabber/commit/770b0c36); verified on the host (`just native-test`: `WhiteboardScratchOutTests`, every scratch line and every fast pen path from Igor's iPad logs of 2026-11-21 and 22 replayed, the drifting one failing before the fix on *short sweeps*) and the Mac build (`just native-build-mac`), the iPad still to see
+- **Issues:** context-grabber-4kj (a fast scribble drifting 458 points along a line stayed ink, *short sweeps*, Igor 2026-11-21, on a build with story 890's drifting-scribble fix)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** scratching out a long word or a phrase with the Pencil
+- **I want to** scribble along it the way a hand does, drifting as I go
+- **so that** it goes as a short word does, without a straighter zigzag
+
+#### Acceptance Criteria:
 - **Scenario:** A long scribble that drifts further than its sweeps are long
 - **Given:** a board on paper with a long word or a phrase written on it
 - **When:** I scribble fast along it, turning back five times or more, each sweep 40 points or longer but the whole scribble drifting well past any one sweep
