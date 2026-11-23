@@ -139,6 +139,30 @@ for (const name of names) {
   }
 }
 
+// A board built by hand, so each kind of box is there: a line of ink, a hidden stroke (left out), a kept text, and two
+// strokes Larry grouped (one box across the gap between them).
+const line = (id, y, extra = {}) => ({ id, points: [[0, y], [200, y]], width: 4, ...extra });
+const hand = {
+  board: 'hand',
+  strokes: [
+    line('ink', 100),
+    line('hidden', 300, { hidden: true }),
+    { id: 'text', kind: 'text', x: 0, y: 200, w: 100, h: 40, t: 1000 },
+    line('g1', 400, { width: 2, meta: { group: 'g' } }),
+    line('g2', 480, { width: 2, meta: { group: 'g' } }),
+  ],
+};
+check(call('bw_load', hand) === 3, `by hand: three boxes (ink, text, the group) ${error() ?? ''}`);
+const handCuts = { 99: 98, 210: 200, 230: 240, 300: 300, 350: 350, 430: 399, 470: 481 };
+for (const [y, cut] of Object.entries(handCuts)) {
+  check(x.bw_cut_y(Number(y)) === cut, `by hand: a cut at ${y} lands on ${cut}, not ${x.bw_cut_y(Number(y))}`);
+}
+// A kept text is told from another by its time, as on the iPad: two with their own t are two boxes; two without are
+// taken for one text's glyphs (spec, a kept text carries its t).
+const text = (id, y, t) => ({ id, kind: 'text', x: 0, y, w: 100, h: 40, ...(t ? { t } : {}) });
+check(call('bw_load', { board: 'texts', strokes: [text('a', 0, 1000), text('b', 100, 2000)] }) === 2, 'two kept texts with their own t: two boxes');
+check(call('bw_load', { board: 'texts', strokes: [text('a', 0), text('b', 100)] }) === 1, 'two kept texts with no t: one box');
+
 // A board it can't read: -1, why, and nothing loaded after.
 check(call('bw_load', 'not json') === -1 && /could not be read/.test(error() ?? ''), 'an unreadable board is refused, saying why');
 check(Number.isNaN(x.bw_cut_y(0)), 'and nothing is loaded after it');

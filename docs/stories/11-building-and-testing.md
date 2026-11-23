@@ -1552,7 +1552,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1503:
 
 - **Summary:** The Cockpit's web board runs the app's own board rules, built as WebAssembly
-- **Status:** implemented on branch `feat/board-wasm`; verified on the Linux rung only (no Mac here): ContextCore's tests under Linux Swift (the same count as before plus the two split cases), the board's rules built for WASI with the Swift 6.4.2 wasm SDK, and `just wasm-test` replaying the four recorded sessions through the module under node. The Mac's `just native-test` and build, and the Darwin cross-builds, are owed
+- **Status:** implemented on branch `feat/board-wasm`; verified on the Linux rung only (no Mac here): ContextCore's tests under Linux Swift, 2,405 passed and none failed (two more cases than main, from the two split tests); the package and its tests cross-built for iOS, the iOS simulator and macOS (macOS with a no-op `codesign` on PATH, which main needs too since its executables link there), and the app's sources compiled for iOS; the board's rules built for WASI with the Swift 6.4.2 wasm SDK and `just wasm-test` passing 84 checks under node. The Mac's `just native-test`, SwiftLint and the Mac build are owed
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md)
 
 #### Use Case:

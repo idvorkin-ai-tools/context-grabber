@@ -39,19 +39,28 @@ lands. The answers are the iPad's, computed by the same code, not a JavaScript c
   loading it again.
 - Asked where a cut at a height lands, it answers with the clear line the iPad would choose: the height itself when it
   is clear, else the nearer edge of the row of ink it falls in, the top only when it is within two lines.
-- Asked nothing has been loaded, it says so rather than answering.
+- With nothing loaded, it says so rather than answering.
 - Every failure can be read back as words.
 
 ## The interface, version 1
 
 The module is a WASI reactor (`wasm32-unknown-wasip1`): the host calls `_initialize` once, then the exports below.
-It imports only `wasi_snapshot_preview1` functions (clocks, random, environment, and file calls it never makes to a
-real file); a browser supplies them with a small stand-in. All numbers are wasm `i32` unless marked `f64`.
+It imports 34 `wasi_snapshot_preview1` functions and nothing else: `args_get`, `args_sizes_get`,
+`clock_res_get`, `clock_time_get`, `environ_get`, `environ_sizes_get`, `fd_close`, `fd_fdstat_get`,
+`fd_fdstat_set_flags`, `fd_filestat_get`, `fd_filestat_set_size`, `fd_filestat_set_times`, `fd_pread`,
+`fd_prestat_dir_name`, `fd_prestat_get`, `fd_read`, `fd_readdir`, `fd_seek`, `fd_sync`, `fd_tell`,
+`fd_write`, `path_create_directory`, `path_filestat_get`, `path_filestat_set_times`, `path_link`,
+`path_open`, `path_readlink`, `path_remove_directory`, `path_rename`, `path_symlink`, `path_unlink_file`,
+`poll_oneoff`, `proc_exit` and `random_get`. The rules use the clock, random numbers and the environment; the file
+calls are Foundation's and are never made, so a browser's stand-in can answer them with an error. All numbers are wasm
+`i32` unless marked `f64`.
 
 **Memory.** The host writes input into the module's `memory` through a buffer it asks for with `bw_alloc`, and
 frees it with `bw_free` once the call returns: the module never keeps an input buffer. Every pointer an export
 returns is a new *reply*: four bytes of length (unsigned, little-endian) and then that many bytes of UTF-8. The host
-reads it and frees the pointer with `bw_free`. Text is UTF-8 JSON unless said otherwise.
+reads it and frees the pointer with `bw_free`. Text is UTF-8 JSON unless said otherwise. Any call may grow the
+memory, which replaces `memory.buffer`: the host takes a fresh view of it after every call, never one kept from
+before.
 
 | Export | Arguments | Returns |
 |---|---|---|
@@ -70,7 +79,9 @@ reads it and frees the pointer with `bw_free`. Text is UTF-8 JSON unless said ot
   looks for a clear one, in board points.
 - A board is the body of the iPad's `POST /whiteboard/strokes`: `{"board": id, "strokes": [...]}`. A stroke is
   `{"id", "points": [[x, y], ...], "width"}` with optional `"hidden"`, `"t"`, `"color"`, `"tool"` and
-  `"meta"` (a `group` in it makes strokes one box); a kept text is `{"id", "kind": "text", "x", "y", "w", "h"}`.
+  `"meta"` (a `group` in it makes strokes one box); a kept text is `{"id", "kind": "text", "x", "y", "w", "h", "t"}`. A kept text is told from another by its
+`t` (milliseconds), as on the iPad, which posts it: texts with no `t`, or within a millisecond of each other, count
+as one box.
   A width left out is 3, as on the iPad; the web board's own format (`pts`, `w`, a default of 4) is the Cockpit's to
   convert. Other fields are ignored.
 - The boxes are what the iPad's rules cut around: each shown stroke's, each kept text's, a group's as one; hidden ones

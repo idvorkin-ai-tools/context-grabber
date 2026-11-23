@@ -24,8 +24,9 @@ WASI's Foundation has no FoundationNetworking, so no `URLRequest`, and no tempor
   files build it, so the guard is the smaller change; nothing in the module writes a board to disk.
 
 Source-compatible for iOS and the Mac: the same declarations, public as before, from the same `import ContextCore`.
-Only the Linux build was compiled here (no Mac); the Darwin cross-build in `just test-linux` and the Mac's
-`just native-test` are owed.
+Checked off the Mac with `just test-linux`: the package and its tests cross-built for iOS, the simulator and macOS,
+and the app's sources compiled for iOS. (Its macOS step needs a `codesign` on Linux once an executable links, as on
+main; a no-op one on PATH did here.) The Mac's `just native-test`, with SwiftLint, and its build are owed.
 
 ## Slice 2: the BoardWasm reactor
 
