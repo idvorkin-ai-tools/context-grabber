@@ -55,8 +55,11 @@ suggest changes the board until Igor keeps it.
     - For up to three seconds after the tap or until the next touch, a dot from that tap is taken back and the whole
       group stays selected, even when the iPad is slow to answer. A second tap gets its own window. New ink and ink
       restored by Undo or Redo are kept.
-    - Only on a board he can draw on, with no marks of Claude's or Larry's showing and none of Larry's controls (with
-      them showing a tap chooses a mark, as above), and never in the margin (the outline's).
+    - Only on a board he can draw on, with no marks of Claude's or Larry's showing (with them showing a tap chooses a
+      mark, as above), and never in the margin (the outline's). One of Larry's controls showing (a button, chip, band
+      or hint) changes nothing: a tap on the control is the control's and reaches Larry (it selects nothing and opens
+      no words), and a tap anywhere else picks up as here, the first tap selecting and the second rewording (bead
+      context-grabber-9d1; decided 2026-11-22, Igor away, reversible).
     - A tap off every group, on his own writing or blank paper, does what it did.
     - **A kept text inside a group** (decided 2026-11-22, Igor away, reversible): the first tap selects the group; a
       second tap on the text while its group is selected opens its words for rewording, as a tap on a text outside
@@ -71,8 +74,9 @@ suggest changes the board until Igor keeps it.
     group, selects all of that one thing and nothing else, not his own ink under or beside it, nor Larry's other
     marks; a finger drags it alone, and one Undo puts it back. A lasso still takes whatever it rings, his ink
     included, and can split a text of Larry's.
-    - Under the same conditions as a group's tap (a board he can draw on, no marks or Larry's controls showing,
-      never in the margin); a thing of Larry's in a group is the group's, as above.
+    - Under the same conditions as a group's tap (a board he can draw on, no marks showing, never in the margin; his
+      controls showing change nothing, except that a tap on one is the control's); a thing of Larry's in a group is
+      the group's, as above.
     - **A text of Larry's**: the first tap selects it (its label reads *Text · tap to reword*); a second tap on it
       while it is selected opens its words for rewording. A text of Igor's own (one he typed, or a To text result)
       still opens at the first tap.

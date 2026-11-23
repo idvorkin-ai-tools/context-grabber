@@ -1325,9 +1325,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 947:
 
 - **Summary:** A finger tap on any stroke of a group selects the whole group, ready to drag
-- **Status:** implemented in [3175c799](https://github.com/idvorkin/context-grabber/commit/3175c799); verified by host tests (`BoardOutlineTests`: `testAFingerTapOnAGroupsStrokeTakesTheWholeGroup`, `testATextInsideAGroupIsTheGroupsAndABareTextIsNot`; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardGroupTapUITests`, rung 2, 2026-11-22: the tap selects all three kept marks and they stay selected past the tap's dot, a finger drag moves them whole, one Undo puts them back, a tap beside them selects nothing); a second tap opening a grouped text's words, and the tap with the Pencil paired (fingers not drawing), not yet seen on the iPad. A busy moment after the tap (bead context-grabber-z93g): [05cf2db3](https://github.com/idvorkin/context-grabber/commit/05cf2db3); verified by a host test (`PaperProbeTests`: a dot 1.17 s late is a group tap's) and on four iPad simulator lanes at once (rung 2, 2026-11-22, 32 runs at a time, no retries: the tap's selection held in every run, 64 of 64, against 4 of 32 lost before; every drag that started inside the group moved it whole; the 4 failures left in each 32 are the kept ink drawn cut, bead context-grabber-dell)
+- **Status:** implemented in [3175c799](https://github.com/idvorkin/context-grabber/commit/3175c799); verified by host tests (`BoardOutlineTests`: `testAFingerTapOnAGroupsStrokeTakesTheWholeGroup`, `testATextInsideAGroupIsTheGroupsAndABareTextIsNot`; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardGroupTapUITests`, rung 2, 2026-11-22: the tap selects all three kept marks and they stay selected past the tap's dot, a finger drag moves them whole, one Undo puts them back, a tap beside them selects nothing); a second tap opening a grouped text's words, and the tap with the Pencil paired (fingers not drawing), not yet seen on the iPad. A busy moment after the tap (bead context-grabber-z93g): [05cf2db3](https://github.com/idvorkin/context-grabber/commit/05cf2db3); verified by a host test (`PaperProbeTests`: a dot 1.17 s late is a group tap's) and on four iPad simulator lanes at once (rung 2, 2026-11-22, 32 runs at a time, no retries: the tap's selection held in every run, 64 of 64, against 4 of 32 lost before; every drag that started inside the group moved it whole; the 4 failures left in each 32 are the kept ink drawn cut, bead context-grabber-dell). His controls showing (bead context-grabber-9d1): [7f7b832d](https://github.com/idvorkin/context-grabber/commit/7f7b832d); verified on the iPad simulator against the fake Cockpit (rung 2, 2026-11-22: `WhiteboardPaperGhostsUITests.testWithHisButtonShowingHisTextSelectsFirstAndRewordsSecond`, with his button showing the first tap on his kept text selects it, *Text · tap to reword*, and opens no words, the second opens them; it fails without the fix; the 846 button tap, 1140 and 940 tests pass beside it), the Mac build (`just native-build-mac`) and `just native-test`; the tap on a control over a kept text, and a group's text with controls showing, not yet seen on the simulator or the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on a group)
-- **Issues:** [#947](https://github.com/idvorkin/context-grabber/issues/947): Igor, 2026-11-18 about 05:42, via Larry: "when I click select-all, I want some notion of fixed object on finger-click to move"; bead context-grabber-z93g: `WhiteboardGroupTapUITests` passed only on its retry; under load the tap's dot landed 0.86 to 1.17 s after the tap, past the 0.6 s window, stayed as a stroke and took the group's selection with it
+- **Issues:** [#947](https://github.com/idvorkin/context-grabber/issues/947): Igor, 2026-11-18 about 05:42, via Larry: "when I click select-all, I want some notion of fixed object on finger-click to move"; bead context-grabber-z93g: `WhiteboardGroupTapUITests` passed only on its retry; under load the tap's dot landed 0.86 to 1.17 s after the tap, past the 0.6 s window, stayed as a stroke and took the group's selection with it; bead context-grabber-9d1 (read from the code 2026-11-22, not reproduced on a device): with one of Larry's controls showing, the first tap on a kept text of his or in a group opened its words
 
 #### Use Case:
 - **As someone** with a reply of Larry's kept as a group on the board
@@ -1355,6 +1355,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap the text once, and again with the group selected
 - **Then:** the first tap selects the group; the second opens the text's words for rewording (story 940)
 
+- **Scenario:** One of Larry's controls showing
+- **Given:** a group holding a kept text, and a button, chip, band or hint of Larry's on the board
+- **When:** I tap the text once, again with the group selected, and then tap his control
+- **Then:** the first tap selects the group, the second opens the text's words, and the tap on his control reaches him and neither selects nor opens anything
+
 ---
 
 ### User Story 1140:
@@ -1380,9 +1385,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1141:
 
 - **Summary:** A finger tap on a text of Larry's over my box takes his whole text and none of my box
-- **Status:** implemented in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5), [e1409a33](https://github.com/idvorkin/context-grabber/commit/e1409a33); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: his text alone over his box; `just native-test`) and the Mac build (`just native-build-mac`); the selection, its drag and the second tap's reword not yet seen on the iPad simulator or the iPad
+- **Status:** implemented in [38843ea5](https://github.com/idvorkin/context-grabber/commit/38843ea5), [e1409a33](https://github.com/idvorkin/context-grabber/commit/e1409a33); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: his text alone over his box; `just native-test`) and the Mac build (`just native-build-mac`); the selection, its drag and the second tap's reword not yet seen on the iPad simulator or the iPad. His controls showing (bead context-grabber-9d1): [7f7b832d](https://github.com/idvorkin/context-grabber/commit/7f7b832d); verified on the iPad simulator against the fake Cockpit (rung 2, 2026-11-22: `WhiteboardPaperGhostsUITests.testWithHisButtonShowingHisTextSelectsFirstAndRewordsSecond`, with his button showing the first tap on his kept text selects it, *Text · tap to reword*, and opens no words, the second opens them; it fails without the fix; the 846 button tap, 1140 and 940 tests pass beside it), the Mac build (`just native-build-mac`) and `just native-test`; the tap on a control over a kept text, and a group's text with controls showing, not yet seen on the simulator or the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on anything of Larry's he kept)
-- **Issues:** [#1171](https://github.com/idvorkin/context-grabber/issues/1171): Igor, 2026-11-22 17:21, on the iPad, Larry's steps written inside a box of his: "I want to be able to click what Larry wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"
+- **Issues:** [#1171](https://github.com/idvorkin/context-grabber/issues/1171): Igor, 2026-11-22 17:21, on the iPad, Larry's steps written inside a box of his: "I want to be able to click what Larry wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"; bead context-grabber-9d1 (read from the code 2026-11-22, not reproduced on a device): with one of Larry's controls showing, the first tap on a kept text of his or in a group opened its words
 
 #### Use Case:
 - **As someone** with a text of Larry's kept inside a box I drew
@@ -1394,6 +1399,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a text of Larry's kept over a box I drew
 - **When:** I tap one of its letters with a finger
 - **Then:** every letter of the text is selected and none of my box, and the label reads *Text · tap to reword*; a second tap on it opens its words
+
+- **Scenario:** His text with one of his controls showing
+- **Given:** a text of Larry's kept on the board, and a button of his showing
+- **When:** I tap one of its letters, and then tap it again
+- **Then:** the first tap selects every letter of it (*Text · tap to reword*) and opens no words; the second opens its words
 
 ---
 

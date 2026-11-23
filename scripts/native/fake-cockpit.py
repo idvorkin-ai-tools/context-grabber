@@ -20,7 +20,9 @@ the usual arrow and label with a reply that ends on a Lavish link on the Cockpit
 his usual words and no marks at all (story 1155); with "kind": "hold" (and "label", else none, as the Cockpit may send),
 no answer at all: the picture's receipt goes seen with "waiting" {label, ts}, Larry holding for more, which his next
 row (any of his) clears (story 929); with "kind": "ink_and_button", instead a purple line of his
-across the gap below the picture and a green button under it whose tap_event is {"type": "make_room"}. POST
+across the gap below the picture and a green button under it whose tap_event is {"type": "make_room"}; with "kind":
+"text_and_button", his text "room here" there instead of the line, the same button under it (bead
+context-grabber-9d1). POST
 /whiteboard/events takes the events a tap on one of his controls sends at once (stories 845, 846). GET /fake/ops says
 what each board message reported back (its rev and op_result) and every events post. Every request is a JSON line in
 REPORT.
@@ -358,6 +360,15 @@ def ops_batch(source, armed):
                              "width": 6, "meta": {"group": "g1", "kind": "underline"}}]},
                          {"op": "overlay", "id": "fake-button-1", "kind": "button", "label": "Make room",
                           "rect": {"x": frame["x"] + 40, "y": bottom + 70, "w": 200, "h": 60},
+                          "style": {"fill": "#00aa00", "color": "#ffffff"}, "tap_event": {"type": "make_room"}}]}
+    if armed.get("kind") == "text_and_button":
+        # Bead context-grabber-9d1: a text of his to keep while one of his controls shows.
+        bottom = frame["y"] + frame["h"]
+        return {"board": source["board"], "base_rev": rev, "label": "text and a button",
+                "list": [{"op": "add_text", "id": "fake-text-1", "x": frame["x"] + 40, "y": bottom + 30,
+                          "text": "room here", "font": "plain", "size": 28},
+                         {"op": "overlay", "id": "fake-button-1", "kind": "button", "label": "Make room",
+                          "rect": {"x": frame["x"] + 40, "y": bottom + 110, "w": 200, "h": 60},
                           "style": {"fill": "#00aa00", "color": "#ffffff"}, "tap_event": {"type": "make_room"}}]}
     below = frame["y"] + frame["h"] / 2
     dy = armed.get("dy", 120)
