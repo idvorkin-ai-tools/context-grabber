@@ -39,7 +39,7 @@ suggest changes the board until Igor keeps it.
   - **Keep all keeps every mark of Larry's showing, each reply as one thing** (#942; Igor, 2026-11-17, via Larry:
     "accept the group", after keeping his four named boxes one mark at a time; Igor, 2026-11-22, bead
     context-grabber-yqau: "Keep group and Keep all become one button, Keep all"). There is one such button, **Keep all**,
-    in the note's line beside the count of marks to keep (below); beside a chosen mark there are only Keep and Dismiss.
+    in the note's line beside the count of marks to keep (below); beside a chosen mark there are only Keep (its whole reply, below) and Dismiss.
     One tap keeps every mark of Larry's still showing, from every reply of his that shows, where each showed, as ink in
     his colours: nothing of Igor's moves, as with one Keep, unless the marks would land on what he wrote after Larry
     looked (below). It is **one keep**: one room made for all of them and **one undo takes them all back**, named
@@ -61,7 +61,14 @@ suggest changes the board until Igor keeps it.
       Undo named *Move*. It doesn't apply to a lasso of part of a group (he chose that part), to handwriting the system
       rewrapped (its strokes moved by different amounts), to a move the owners-apart rule puts right, or to Undo and
       Redo. The session log says, for each drop, how many strokes it brought along and from which groups.
-  - **Keep** on one chosen mark is unchanged: that piece alone, never grouped.
+  - **Keep beside any mark of a reply keeps the whole reply** (bead context-grabber-it0e; Igor, 2026-11-22, 21:34,
+    option A, after keeping one eye, both labels and the arrow of Larry's smiley face one at a time and finding the
+    face, the smile and the other eye left behind as marks to keep). Keep beside a chosen mark of one of Larry's
+    replies keeps every mark of that reply still showing, where each showed, as one group named for the reply, exactly
+    as *Keep all* keeps that reply; his other replies' marks stay showing. It is one keep: one room made, one undo
+    named *Keep* takes the whole reply back. A reply with only that mark left showing, his text from a change (which
+    belongs to no reply) and any mark of Claude's are kept alone, as before. **Dismiss** still takes only the chosen
+    mark, so dismissing a stray piece first and then keeping the rest keeps the rest as one group.
   - **A finger tap on any stroke of a group selects the whole group, ready to drag** (#947; Igor, 2026-11-18: "when I
     click select-all, I want some notion of fixed object on finger-click to move"). A group is a reply kept with
     *Keep all*, or one of Larry's own groups. The tap must land on one of the group's strokes, within a finger's
@@ -285,7 +292,8 @@ the first clear space, which the first Keep all did).
 
 - **Keep all**, in the note's line beside the count of marks to keep (as on the web board's ghost bar), keeps every mark
   of Larry's showing at once, as one keep: **one undo takes them all back**. It is there only while his marks show. It
-  is the only way to keep more than one mark at a time: there is no separate Keep group. Each mark becomes ink where it
+  keeps every reply showing; Keep beside a mark keeps only that mark's reply (bead context-grabber-it0e), and there is
+  no separate Keep group. Each mark becomes ink where it
   showed; each reply's marks are one group (*What was kept together moves together*, above); and what Igor wrote after
   a reply's picture, where that reply's marks land, moves down in whole lines under the lowest kept mark, in the same
   step (*A reply of Larry's makes room*, above). Ink that was in the picture never moves for it. Nothing of his comes

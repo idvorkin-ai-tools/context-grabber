@@ -1,5 +1,5 @@
 //  Story 1140 (#1171) on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): Larry's
-//  three circles kept one at a time with Keep, each its own thing; a finger tap on the first selects that circle alone (its Delete
+//  three circles, each its own reply, kept one at a time with Keep, each its own thing; a finger tap on the first selects that circle alone (its Delete
 //  takes it and leaves the other two), and one Undo puts it back. A finger drag of a selection is story 947's test. Where the circles sit is read from the screen's pixels (`PaperScreen`,
 //  in WhiteboardPaperGhostsUITests.swift); what is selected, from To text, which shows beside the selected ink. Which
 //  strokes a tap reaches is `BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`.
@@ -14,10 +14,11 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
   }
 
-  private func larryDraws(_ count: Int, _ cockpit: String) throws {
+  /// `separate`: each circle its own reply of his (story 1154: Keep beside a mark keeps its whole reply).
+  private func larryDraws(_ count: Int, _ cockpit: String, separate: Bool = false) throws {
     var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-draws")))
     request.httpMethod = "POST"
-    request.httpBody = Data(#"{"count": \#(count)}"#.utf8)
+    request.httpBody = Data(#"{"count": \#(count), "separate": \#(separate)}"#.utf8)
     let done = expectation(description: "the fake Cockpit took it")
     URLSession.shared.dataTask(with: request) { _, response, _ in
       XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
@@ -37,7 +38,8 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     add(picture)
   }
 
-  func testAFingerTapOnOneOfLarrysKeptMarksSelectsItAlone() throws {
+  /// A board with one stroke of mine sent to Larry, and his three circles in a row showing, faint, to keep.
+  private func boardWithHisCircles(separate: Bool) throws -> XCUIApplication {
     let cockpit = try cockpit()
     let app = XCUIApplication.forTests(animated: true)
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
@@ -59,10 +61,16 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
     app.buttons["whiteboard-send"].tap()
     XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
-    try larryDraws(3, cockpit)
+    try larryDraws(3, cockpit, separate: separate)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
-    // Three circles in a row, kept one at a time with Keep, each its own thing: Keep all would keep them as one group
-    // (story 995; bead context-grabber-yqau).
+    return app
+  }
+
+  func testAFingerTapOnOneOfLarrysKeptMarksSelectsItAlone() throws {
+    let app = try boardWithHisCircles(separate: true)
+    let send = app.buttons["whiteboard-send"]
+    // Three circles in a row, three replies of his, kept one at a time with Keep, each its own thing: three circles of one
+    // reply would be kept as one group by any Keep (story 1154) or Keep all (story 995; bead context-grabber-yqau).
     let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
     let keep = app.buttons["whiteboard-mark-keep"]
     for circle in 0..<3 {
@@ -107,5 +115,29 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     let back = PaperScreen.showing(app, { $0.larryKept }, { abs($0.width - kept.width) < 0.01 })
     shot(app, "after one undo")
     XCTAssertEqual(try XCTUnwrap(back).width, kept.width, accuracy: 0.01, "one Undo put it back")
+  }
+
+  /// Story 1154 (bead context-grabber-it0e): Keep beside one circle of a reply of three keeps all three, as one group, and
+  /// one Undo takes all three back.
+  func testKeepBesideOneMarkOfAReplyKeepsTheWholeReply() throws {
+    let app = try boardWithHisCircles(separate: false)
+    let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
+    PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.center.y))
+    let keep = app.buttons["whiteboard-mark-keep"]
+    XCTAssertTrue(keep.appears(within: 5), "the first circle chosen: \(app.debugDescription)")
+    keep.tap()
+    XCTAssertTrue(keep.waitForNonExistence(timeout: 5), "kept")
+    XCTAssertTrue(toKeep(app, 1).waitForNonExistence(timeout: 5), "none of his reply left to keep")
+    let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his circles in his purple")
+    shot(app, "one Keep kept the reply")
+    XCTAssertEqual(kept.width, marks.width, accuracy: marks.width / 6, "all three kept: \(marks) to \(kept)")
+    XCTAssertEqual(kept.minX, marks.minX, accuracy: 0.01, "where they showed")
+
+    let undo = app.buttons["whiteboard-undo"]
+    waitUntil(NSPredicate(format: "isEnabled == true"), undo, timeout: 5)
+    undo.tap()
+    let gone = PaperScreen.showing(app, within: 5, { $0.larryKept }, { _ in true })
+    shot(app, "after one undo")
+    XCTAssertNil(gone, "one Undo took all three back")
   }
 }
