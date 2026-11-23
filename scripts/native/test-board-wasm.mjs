@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 7, `bw_info abi is 7: ${JSON.stringify(info)}`);
+check(info.abi === 8, `bw_info abi is 8: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -401,6 +401,18 @@ check(showing.rooms[0].below_y === 620 && showing.inked[0].y === 500 && showing.
   same(showing.moves, { b: [0, 40] }),
   `the existing ghost uses its own measured height and the new text uses its own width: ${JSON.stringify(showing)}`);
 check(ask('bw_ops_plan', 'not json').error !== undefined, 'unreadable: says so');
+
+// Interface 8 (spec, a late reply's room): a line written at 2000 at y 100 (its box 98..102) and one at 500 at y 200.
+// A mark over the first, its picture taken at 1000, sits on ink newer than the picture: from that ink's top (98, the
+// top of its own line) everything goes down whole lines until it is 20 under the mark's bottom (130): 52 short, two
+// lines, 80. Taken at 3000, nothing is newer; a mark on clear paper covers nothing.
+const lateInk = { strokes: [{ ...seg('w', 100, 300, 100), t: 2000 }, { ...seg('o', 100, 300, 200), t: 500 }], boxes: [], groups: {}, headers: [] };
+check(call('bw_outline_load', lateInk) === 2, `the late outline ${error() ?? ''}`);
+const late = (marks, seen) => ask('bw_late', { marks, seen });
+check(same(late([[100, 90, 300, 130]], 1000), { covered: 1, push: { cut: 98, dy: 80 } }), `a mark over newer ink: room under it: ${JSON.stringify(late([[100, 90, 300, 130]], 1000))}`);
+check(same(late([[100, 90, 300, 130]], 3000), { covered: 0, push: null }), 'nothing newer than the picture: no room');
+check(same(late([[400, 400, 500, 440]], 1000), { covered: 0, push: null }), 'a mark on clear paper: no room');
+check(ask('bw_late', { marks: [] }).error === 'no marks and seen', 'no seen says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
