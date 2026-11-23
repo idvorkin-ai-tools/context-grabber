@@ -13,6 +13,7 @@ extension PaperBoardController {
     var time = CACurrentMediaTime()
     var within = PaperProbe.tapDotSeconds
     var selection: (until: Double, isGroup: Bool)?
+    var kept: Set<MarkupOrderedSet.ElementID>?
   }
 
   /// The ghosts on the sheet, and a finger that taps while they show.
@@ -118,6 +119,8 @@ extension PaperBoardController {
         ])
       // Story 947: the dot of a tap that selected a group took the selection with it.
       if let selection = tap.selection { self.reselectGroupTap(until: selection.until, why: "tap_dot") }
+      // Story 1196: and the dot of a tap inside his selection, his selection.
+      if let kept = tap.kept { self.putBackKeptSelection(kept) }
     }
     return true
   }

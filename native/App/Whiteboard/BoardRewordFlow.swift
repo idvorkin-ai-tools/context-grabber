@@ -116,14 +116,14 @@ extension PaperBoardController {
     }
   }
 
-  /// The whole kept text whose glyphs are at `point` (within a finger's width), the nearest if two are: its version, its
-  /// glyphs' keys and box, and their pen and colour. A text missing glyphs is plain ink by now (story 854).
   /// The strokes (by key) of the kept text a finger tap at `point` would open, or nil off every text (story 1196).
   func keptTextKeys(at point: CGPoint) -> Set<String>? {
     guard model.editable else { return nil }
     return keptTextGlyphs(at: point)?.keys
   }
 
+  /// The whole kept text whose glyphs are at `point` (within a finger's width), the nearest if two are: its version, its
+  /// glyphs' keys and box, and their pen and colour. A text missing glyphs is plain ink by now (story 854).
   private func keptTextGlyphs(at point: CGPoint)
     -> (text: BoardText, keys: Set<String>, box: CGRect, pen: CGFloat, color: UIColor)?
   {

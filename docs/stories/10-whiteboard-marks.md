@@ -387,17 +387,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** no marks of Larry's showing, and a lasso selection round a kept group and a kept text
 - **When:** I tap with a finger inside the selection, on the group's stroke or on the text
 - **Then:** the whole selection stays and its menu shows; the group is not selected alone and the text does not open
-- **And:** the session log says `selection_kept_tap` with what the tap landed on
-
-- **Scenario:** The selection is the one thing tapped
-- **Given:** a group, a thing of Larry's or a text selected alone by an earlier tap
-- **When:** I tap its text again
-- **Then:** its words open, as before (stories 947, 1141)
-
-- **Scenario:** A tap outside the selection
-- **Given:** a lasso selection
-- **When:** I tap a group or a text outside it
-- **Then:** it behaves as before: the group is selected, the text opens or is picked up
+- **And:** the session log says `selection_kept_tap` with what the tap landed on, and `selection_kept_held` a beat later
 
 ---
 
