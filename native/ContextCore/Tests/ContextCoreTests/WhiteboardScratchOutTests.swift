@@ -83,7 +83,8 @@ final class WhiteboardScratchOutTests: XCTestCase {
       "mmm": humps(3, 100, 100, 40, 30), "www": humps(3, 100, 100, 40, 30, down: false),
       "m": humps(1, 100, 100, 36, 30),
       "wide m": humps(1, 100, 100, 50, 30), "minimum": humps(7, 100, 100, 26, 22), "eee": loops(3, 100, 100, 14),
-      "ooo": loops(3, 100, 100, 20), "two sweeps": zigzag(2, 100, 100, 200, 20), "underline": underline,
+      "ooo": loops(3, 100, 100, 20), "big ooo": loops(5, 100, 100, 30), "two sweeps": zigzag(2, 100, 100, 200, 20),
+      "underline": underline,
     ]
     for (name, points) in cases {
       let shape = Scratch.shape(points)
@@ -149,7 +150,7 @@ final class WhiteboardScratchOutTests: XCTestCase {
 
   func testAWanderingScribbleNeedsFiveTurnsAndStaysInkOverNothing() {
     XCTAssertEqual(Scratch.shape(wandering(4, 95, 104, 130, 80)).why, "short sweeps", "four turns: writing or hatching")
-    XCTAssertEqual(Scratch.shape(wandering(8, 95, 104, 120, 160)).why, "short sweeps", "sweeps under half its length")
+    XCTAssertEqual(Scratch.shape(wandering(8, 95, 104, 35, 160)).why, "few turns", "letter-wide sweeps")
     let bare = Scratch.check(wandering(8, 95, 400, 130, 80), ms: 800, over: [line("word", 100, 100, 200)])
     XCTAssertEqual(bare.why, "wanders, no ink", "over bare paper it is hatching: it stays ink")
     XCTAssertFalse(bare.findsNothing)
@@ -291,5 +292,51 @@ final class WhiteboardScratchOutTests: XCTestCase {
     // Rubbed out entirely: nothing, and no ink.
     XCTAssertEqual(Scratch.runs(points, visible: [], at: at), [])
     XCTAssertTrue(Scratch.Ink(id: "a", runs: []).runs.isEmpty)
+  }
+
+  /// context-grabber-4kj, 2026-11-22: pen paths from Igor's iPad session logs. The scribble that drifted 458 points
+  /// along, sweeps 87 to 245, now reads as a wandering scribble; every other stroke's verdict is the one the app gave:
+  /// his fast handwriting and his near misses (*marches along*, *slow*, *short sweeps*) stay ink.
+  func testIgorsLoggedPenPathsKeepTheirVerdictAndTheDriftingScribbleCounts() throws {
+    let cases = try loggedPaths()
+    XCTAssertEqual(cases.count, 52)
+    for c in cases {
+      let ms = c.samples.last?.ms
+      XCTAssertEqual(Scratch.isZigzag(c.samples.map(\.point), ms: ms), c.zigzag, "\(c.name) at \(c.log)")
+    }
+  }
+
+  func testTheDriftingScribbleTakesTheInkUnderItAndStaysInkOverNothing() throws {
+    let scribble = try XCTUnwrap(try loggedPaths().first { $0.log == "grabber-20261121-190304.jsonl:307" })
+    let points = scribble.samples.map(\.point)
+    let ms = scribble.samples.last?.ms
+    let shape = Scratch.shape(points)
+    XCTAssertTrue(shape.ok, shape.why ?? "")
+    XCTAssertTrue(shape.wanders)
+    XCTAssertGreaterThanOrEqual(shape.reversals, Scratch.wanderingReversals)
+    // Synthetic ink: a phrase along the line it crossed (the log doesn't hold what was under it).
+    let words = stride(from: CGFloat(370), through: 760, by: 70).map { line("w\(Int($0))", 350, $0, 50) }
+    let outcome = Scratch.check(points, ms: ms, over: words + [line("below", 520, 360, 300)])
+    XCTAssertTrue(outcome.ok, outcome.why ?? "")
+    XCTAssertEqual(Set(outcome.gone), Set(words.map(\.id)))
+    XCTAssertEqual(Scratch.check(points, ms: ms, over: [line("below", 520, 360, 300)]).why, "wanders, no ink")
+  }
+
+  /// The same drift, with sweeps a letter wide, stays ink: handwriting's back-and-forth is narrower than 40 points.
+  func testADriftWithLetterWideSweepsStaysInk() {
+    XCTAssertFalse(Scratch.shape(wandering(12, 95, 104, 30, 400)).ok)
+    XCTAssertTrue(Scratch.shape(wandering(12, 95, 104, 90, 400)).ok)
+  }
+
+  private func loggedPaths() throws -> [(name: String, log: String, zigzag: Bool, samples: [BoardTouchPath.Sample])] {
+    let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+      .appendingPathComponent("Fixtures/scratch-out/igor-ipad-paths-2026-11-22.json")
+    let root = try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+    return try XCTUnwrap(root["cases"] as? [[String: Any]]).map {
+      (
+        $0["name"] as? String ?? "?", $0["log"] as? String ?? "?", $0["zigzag"] as? Bool ?? false,
+        BoardTouchPath.decode($0["path"] as? String ?? "") ?? []
+      )
+    }
   }
 }
