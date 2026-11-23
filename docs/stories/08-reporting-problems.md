@@ -288,8 +288,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 150:
 
 - **Summary:** Grabber Native on the iPad
-- **Issues:** [#202](https://github.com/idvorkin/context-grabber/issues/202), [#203](https://github.com/idvorkin/context-grabber/issues/203)
-- **Status:** implemented in [2c2a6ee](https://github.com/idvorkin/context-grabber/commit/2c2a6ee); verified by `IPadUITests` on an iPad Air 11-inch simulator (home spans the width in landscape; Call, Today, Gym Timer, Box breathing, Places and Cockpit open in landscape, screenshots checked) and a portrait screenshot; on Igor's iPad not yet (its id is not in the provisioning profile until Xcode is signed in)
+- **Issues:** [#202](https://github.com/idvorkin/context-grabber/issues/202), [#203](https://github.com/idvorkin/context-grabber/issues/203); bead `context-grabber-4j2p`
+- **Status:** implemented in [2c2a6ee](https://github.com/idvorkin/context-grabber/commit/2c2a6ee); verified by `IPadUITests` on an iPad Air 11-inch simulator (home spans the width in landscape; Call, Today, Gym Timer, Box breathing, Places and Cockpit open in landscape, screenshots checked) and a portrait screenshot; on Igor's iPad not yet (its id is not in the provisioning profile until Xcode is signed in); `IPadUITests` green on a lane's iPad simulator (bead `context-grabber-4j2p`: the turn to landscape right after launch had raced the launcher's tap, which landed on the tile below, and Places' location prompt sat over it on a simulator never asked; the test now launches each launcher already in landscape, taps once the tile is still, and answers the prompt): [1f81cc1e](https://github.com/idvorkin/context-grabber/commit/1f81cc1e), verified on the simulator (2026-11-22, lane 2's *iPad Pro 11-inch (M5)* with its location answer reset: the ladder's rung 2 and three iterations through the wrapper, 4 of 4 passed; each launch's session log shows the tap on its tile's centre, the screen it meant opened, and the prompt asked and answered)
 - **Spec:** [Swift-native app, "On the iPad"](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
 #### Use Case:

@@ -7,9 +7,13 @@ final class IPadUITests: XCTestCase {
   func testHomeFillsTheIPadAndEachLauncherOpensInLandscape() throws {
     try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "an iPad simulator only")
     let shots = ProcessInfo.processInfo.environment["GRABBER_SHOTS"]
+    addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
     for id in ["home", "call", "today", "gym_timer", "breathe", "places", "cockpit"] {
       let app = XCUIApplication.forTests()
       app.launch()
+      // Turned once, in the first step, and left turned: each launcher's step launches already in landscape. A turn
+      // right after launch raced the tap, which landed on the tile below as the window rotated (bead 4j2p: Call
+      // opened Places, Places opened Workout Supermix and left for the browser).
       XCUIDevice.shared.orientation = .landscapeLeft
       // Today is the card across the top (story 151); the launchers below it are half-width tiles and rows.
       let today = app.buttons["home-today-card"]
@@ -24,10 +28,13 @@ final class IPadUITests: XCTestCase {
       } else {
         let launcher = app.buttons[id == "today" ? "home-today-card" : "home-\(id)"]
         for _ in 0..<4 where !launcher.isHittable { app.swipeUp() }
-        launcher.tap()
+        launcher.tapWhenSettled()
         // The journey's own screen, not just an app still in front: a launcher that did nothing would pass that.
         let screen = destination(id, in: app)
         XCTAssertTrue(screen.appears(within: 15), "\(id) opened its screen: \(app.debugDescription)")
+        // Places on a simulator that was never asked (a lane's copy, say) asks for the location; answered here, as
+        // a person would, so it neither covers Places nor waits for the next tap to be dismissed (bead 4j2p).
+        if id == "places" { allowLocationIfAsked() }
         // On top, once its push or cover has finished arriving. Today's first visit on a fresh simulator puts the
         // system's Health Access sheet over it; that sheet is the screen working, and only a person can answer it.
         let onTop = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: screen)
@@ -40,9 +47,17 @@ final class IPadUITests: XCTestCase {
       if let shots {
         try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(shots)/\(id).png"))
       }
-      XCUIDevice.shared.orientation = .portrait
       app.terminate()
     }
+  }
+
+  /// The system's location prompt, if it comes: Allow While Using App, so this simulator is not asked again.
+  private func allowLocationIfAsked() {
+    let alert = XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.firstMatch
+    guard alert.appears(within: 3) else { return }
+    let allow = alert.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Allow'")).firstMatch
+    (allow.exists ? allow : alert.buttons.firstMatch).tap()
+    XCTAssertTrue(alert.waitForNonExistence(timeout: 5), "the location prompt went away: \(alert.debugDescription)")
   }
 
   /// What each journey shows once it has opened (#203).
