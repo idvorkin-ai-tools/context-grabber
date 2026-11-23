@@ -216,6 +216,32 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1221:
+
+- **Summary:** The log never calls the app's time away a stuck main thread
+- **Status:** implemented in (this commit); verified by host tests (`MainStallMeterTests`: the iPad's 921 s away said as away, the 6.5 s real stall still a stall, away mid-stall, the 5 s line) and the Mac build; not yet seen on the iPad
+- **Issues:** bead context-grabber-55vm (the iPad, 2026-11-20 and 11-21: `main_stall` waited_ms of 281,422 to 921,354 in grabber-20261120-071137, 1,158,372 in 062630, 297,938 and 361,127 in 20261121-075408, and 2,957,505 in 101810, each the app's time away; the watch hadn't stopped, so a real hang on the board would have been lost among them)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The log says what held the board up while Igor wrote*
+
+#### Use Case:
+- **As someone** who reads the session log to find out why the board froze
+- **I want to** have a stuck main thread mean the app was really stuck, never that it was away
+- **so that** a real hang stands out instead of hiding among minutes-long "stalls" that were the iPad asleep
+
+#### Acceptance Criteria:
+- **Scenario:** The app comes back after being suspended
+- **Given:** the app left in the background or the iPad asleep for minutes, however it got there
+- **When:** the app comes back
+- **Then:** the log has no `main_stall` began for the time away; it says `away` with how long, and the watch carries on
+- **And:** each start and stop of the watch names the app's state and its scenes' states
+
+- **Scenario:** A real stall still shows
+- **Given:** the main thread stuck for a second or more while the app is in front
+- **When:** it answers again
+- **Then:** the log has `main_stall` began and ended as before
+
+---
+
 ### User Story 1168:
 
 - **Summary:** The log names the parts of a slow change to the ink
