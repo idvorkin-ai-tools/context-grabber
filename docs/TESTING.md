@@ -161,7 +161,7 @@ command running unseen by the slots, as a killed build lane's does). The slot is
 never inside another slot, since a holder waiting for a second slot can deadlock; a build lane may take one inside
 it (the Mac rung's build does), never the reverse, and a slot wait inside the Mac rung counts in its time limit. The
 `swift` binary itself is not wrapped: a raw `swift test` takes no slot, so run a host test by hand as
-`scripts/native/host-lane.sh run swift test --filter <Tests>` from `native/ContextCore`. `test-linux` takes no slot
+`../../scripts/native/host-lane.sh run swift test --filter <Tests>` from `native/ContextCore`. `test-linux` takes no slot
 (Linux has no `lockf`, and it runs only there). `scripts/native/test-host-lane.sh` checks it with real locks in a
 temporary folder: six jobs on four slots, never more than four at once, the waiting line, the hour's exit 75, and a
 killed holder.

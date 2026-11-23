@@ -86,8 +86,9 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   spikes the CPU, and booted simulators past the RAM starve each other (about 10 GB each).
   Host builds and tests (swift-format, SwiftLint, ContextCore's `swift test`, the Mac build) take one of
   `HOST_LANES` host slots (a quarter of the cores, at most four) through `scripts/native/host-lane.sh run` inside the
-  recipes (stories 795, 797, 798): run a host test by hand as `scripts/native/host-lane.sh run swift test --filter …`,
-  never a raw `swift test`, and never take a slot inside another.
+  recipes (stories 795, 797, 798): run a host test by hand from `native/ContextCore` as
+  `../../scripts/native/host-lane.sh run swift test --filter …`, never a raw `swift test`, and never take a slot inside
+  another.
 - **Build in a pool slot, not a new worktree.** `slot=$(treehouse get --lease -b <branch>)`, work and build there,
   `treehouse return "$slot"` once the branch is pushed. A slot keeps its `native/Build` across returns, so disk stays
   bounded and the device ids are seeded; a new worktree leaves another build folder behind (the speed gain is ~30 s). Twelve slots (`treehouse.toml`), two per build lane on the M5 Pro's six;
