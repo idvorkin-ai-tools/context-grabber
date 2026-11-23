@@ -152,7 +152,7 @@ public enum BoardOps {
   }
 
   /// Story 961: every stroke, group or kept-text name the ops use; a batch from an older look conflicts only on these.
-  static func namesUsed(_ ops: [Op]) -> Set<String> {
+  public static func namesUsed(_ ops: [Op]) -> Set<String> {
     var out = Set<String>()
     for op in ops {
       switch op {

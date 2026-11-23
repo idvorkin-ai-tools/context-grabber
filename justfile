@@ -94,6 +94,21 @@ native-test-host:
     # Story 789 (#993): every story ID is used once and sits in its journey's ranges in docs/stories/README.md.
     # Stories 791-794: reserve hands out free IDs against main, open PRs and a locked ledger; pre-merge catches a collision.
     scripts/native/test-story-ids.sh
+    # Bead wq2j: every board test file is in BoardCoreTests or listed as staying in ContextCoreTests.
+    scripts/native/test-board-tests-listed.sh
+
+# The board's host tests alone (bead wq2j): builds ChatWireKit, BoardCore and BoardCoreTests, not the rest of ContextCore,
+# and runs that bundle. FILTER is a test class or class/test (`just board-test BoardRoomTests`). Mac only (xctest);
+# `just native-test` still runs every test, these included.
+board-test filter="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd native/ContextCore
+    swift build --target BoardCoreTests 2>&1 | grep -E "error|Build complete" | tail -20
+    bundle="$(swift build --show-bin-path)/BoardCoreTests.xctest"
+    filter=()
+    [ -n "{{filter}}" ] && filter=(-XCTest "BoardCoreTests.{{filter}}")
+    xcrun xctest ${filter[@]+"${filter[@]}"} "$bundle" 2>&1 | grep -E "error|failed|Executed [0-9]+ tests" | tail -20
 
 # Rung 1L, on a Linux box (scripts/native/test-linux.sh says what it needs): ContextCore's portable tests run on Linux,
 # the package and its tests cross-built for macOS, iOS and the simulator with a Darwin Swift SDK, the app's sources

@@ -52,7 +52,7 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
     case pictureID = "picture_id"
   }
 
-  var wire: [String: Any] {
+  public var wire: [String: Any] {
     var out: [String: Any] = [
       "board": board, "picture_id": pictureID,
       "frame": ["x": frame.x, "y": frame.y, "w": frame.w, "h": frame.h, "scale": frame.scale],
@@ -126,11 +126,6 @@ public struct WhiteboardThreads: @unchecked Sendable {
       if let thread = value as? String { out[String(name.dropFirst(prefix.count))] = thread }
     }
     return out
-  }
-
-  /// The board has no thread yet and a picture waiting in the outbox will start it.
-  public func firstSendWaiting(board: String, in items: [InboxItem]) -> Bool {
-    thread(board: board) == nil && items.contains { $0.whiteboard?.board == board && $0.status == .waiting }
   }
 }
 
@@ -264,6 +259,13 @@ public struct WhiteboardMarks: Sendable {
     /// He answered since the last look: a new row of his, marks or not (story 662). Never on the first look, whose rows
     /// were there before.
     public var replied = false
+
+    public init(marks: [Row] = [], say: String? = nil, unplaced: [String] = [], replied: Bool = false) {
+      self.marks = marks
+      self.say = say
+      self.unplaced = unplaced
+      self.replied = replied
+    }
   }
 
   private var seen: Set<String>?
@@ -347,7 +349,7 @@ public struct WhiteboardMarks: Sendable {
 
   /// A row's frame; nil for a number a picture of this board can't have, so a bad one can't send marks to infinity.
   /// `scale` is optional on the Cockpit: without one, a pixel is a point.
-  static func frame(_ json: [String: Any]) -> (rect: CGRect, scale: CGFloat)? {
+  public static func frame(_ json: [String: Any]) -> (rect: CGRect, scale: CGFloat)? {
     let field = { (key: String) in json[key].flatMap(WhiteboardTurn.number) }
     guard let x = field("x"), let y = field("y"), let w = field("w"), let h = field("h"), w >= 0, h >= 0 else {
       return nil

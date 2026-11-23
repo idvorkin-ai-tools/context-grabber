@@ -8,9 +8,8 @@ import Foundation
 
 public enum CallLogArchive {
   public static let stream = "call.log"
-  /// The archive takes 8 KB per record, measured as the record's JSON; a long caption, escaped or not ASCII, is cut
-  /// until its whole record fits (Codex on #443).
-  public static let maxRecordBytes = 8000
+  /// The archive's 8 KB a record.
+  public static let maxRecordBytes = ArchiveRecord.maxBytes
   /// What a guid may hold (the archive's rule); a session the bridge named outside it takes the start-time key.
   private static let guidCharacters = CharacterSet(
     charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.:+-")
@@ -61,24 +60,7 @@ public enum CallLogArchive {
 
   /// The record with as much of `text` in `field` as keeps the record's JSON within `maxRecordBytes`.
   static func fitted(_ record: [String: Any], field: String, text line: String) -> [String: Any] {
-    func size(_ text: Substring) -> Int {
-      var r = record
-      r[field] = String(text)
-      return (try? JSONSerialization.data(withJSONObject: r))?.count ?? Int.max
-    }
-    var out = record
-    guard size(line[...]) > maxRecordBytes else {
-      out[field] = line
-      return out
-    }
-    var low = 0
-    var high = line.count
-    while low < high {  // the longest prefix that fits
-      let mid = (low + high + 1) / 2
-      if size(line.prefix(mid)) <= maxRecordBytes { low = mid } else { high = mid - 1 }
-    }
-    if low > 0 { out[field] = String(line.prefix(low)) }  // no room at all: the field stays out
-    return out
+    ArchiveRecord.fitted(record, field: field, text: line)
   }
 
   private static func guid(_ key: String, _ seq: Int) -> String { "\(key):" + String(format: "%05d", seq) }

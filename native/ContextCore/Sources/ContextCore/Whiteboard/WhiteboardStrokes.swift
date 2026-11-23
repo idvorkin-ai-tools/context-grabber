@@ -134,7 +134,7 @@ public enum WhiteboardStrokes {
     request.httpMethod = "POST"
     request.timeoutInterval = timeout
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
     var body = picture.wire
     body["strokes"] = strokes
     if !folds.isEmpty { body["folds"] = folds }

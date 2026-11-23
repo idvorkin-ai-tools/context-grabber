@@ -56,7 +56,7 @@ public enum WhiteboardResponder: String, CaseIterable, Sendable {
     request.httpMethod = "POST"
     request.timeoutInterval = timeout
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
     request.httpBody = try JSONSerialization.data(withJSONObject: ["board": board, "responder": responder.rawValue])
     return request
   }
