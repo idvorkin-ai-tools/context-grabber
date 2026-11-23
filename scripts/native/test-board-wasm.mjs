@@ -55,7 +55,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 2, `bw_info abi is 2: ${JSON.stringify(info)}`);
+check(info.abi === 3, `bw_info abi is 3: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -211,6 +211,28 @@ check(call('bw_outline_load', { headers: 'nope' }) === -1 && /headers could not 
 check(reply(x.bw_row_at(100)).error === 'no outline is loaded', 'and nothing is loaded after it');
 // The outline is apart from the board: bw_load's board still answers cuts.
 check(call('bw_load', hand) === 3 && x.bw_cut_y(99) === 98, 'the board and the outline are held apart');
+
+// Interface 3, story 1511 (spec, paste and drop): where a paste lands and the room a drop opens, over the hand board
+// above (its boxes: the line at 98..102 across -2..202, the text at 200..240 across 0..100, the group at 399..481).
+// Worked by hand from the spec's rules: a clear patch with half a line of air round it nearest the view's middle, on a
+// 20-point grid from the margin's air (84); else room at the clear line nearest the view's middle.
+check(same(reply(x.bw_place(100, 40, 0, 0, 820, 1000)), { push: null, x: 364, y: 480 }),
+  `a paste in a clear view lands nearest its middle: ${read(x.bw_place(100, 40, 0, 0, 820, 1000))}`);
+// A view with no room for it, 90..130: the middle (110) is clear, the blank band runs from the line (102) to the text
+// (200), 98 points, and it lands a half line under the line, at the margin's air.
+check(same(reply(x.bw_place(100, 40, 0, 90, 820, 130)), { push: null, x: 84, y: 122 }),
+  `no clear patch, but blank paper enough: ${read(x.bw_place(100, 40, 0, 90, 820, 130))}`);
+// 100 tall needs 140 with its air, 42 more than the band holds: room opens in whole lines, ceil(42 / 40) = 2, 80 points.
+check(same(reply(x.bw_place(100, 100, 0, 90, 820, 130)), { push: { cut: 110, dy: 80 }, x: 84, y: 122 }),
+  `no blank paper enough: room opens at the view's middle: ${read(x.bw_place(100, 100, 0, 90, 820, 130))}`);
+// A drop on the line from far below: room from the clear line at its top (90) down until the line is a half line under
+// it (110 + 20 - 98 = 32, one whole line).
+check(same(reply(x.bw_drop(50, 90, 150, 110, 50, 600, 150, 620)), { push: { cut: 90, dy: 40 } }),
+  `a drop on the line pushes it down a line: ${read(x.bw_drop(50, 90, 150, 110, 50, 600, 150, 620))}`);
+check(same(reply(x.bw_drop(300, 300, 400, 320, 300, 600, 400, 620)), { push: null }), 'a drop on clear paper opens nothing');
+check(same(reply(x.bw_drop(50, 95, 150, 105, 50, 95, 150, 105)), { push: null }), 'a drop back on the line it was lifted from opens nothing');
+check(call('bw_load', 'not json') === -1 && reply(x.bw_place(10, 10, 0, 0, 820, 1000)).error === 'no board is loaded' &&
+  reply(x.bw_drop(0, 0, 1, 1, 0, 0, 1, 1)).error === 'no board is loaded', 'with nothing loaded, a paste and a drop say so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
