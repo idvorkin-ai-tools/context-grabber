@@ -1,4 +1,4 @@
-//  Stories 853, 855, 858, 900, 901, 1179 on the simulator, against the fake Cockpit
+//  Stories 853, 855, 858, 900, 901, 1179, 1186, 1187 on the simulator, against the fake Cockpit
 //  (scripts/native/test-whiteboard-ui.sh starts it): a paste's Delete, a margin tap that makes a header and folds it,
 //  a fold's lines beside it, Larry's picture of a folded section (#1013), the hold menu, and a header made or unmade
 //  as one Undo (bead context-grabber-ssl).
@@ -75,7 +75,9 @@ final class WhiteboardOutlineUITests: XCTestCase {
     XCTAssertFalse(delete.exists, "Delete goes with the paste")
   }
 
-  /// Story 855: a margin tap beside a line makes it a header; a tap on its mark folds the indented line under it.
+  /// Stories 855, 901: a margin tap beside a line makes it a header; a tap on its mark folds the indented line under
+  /// it, and the fold says beside the header's row how many lines it holds; another tap unfolds it and the words go.
+  /// (One launch for both, bead context-grabber-3k6: the counting and placing are `BoardFoldMarkerTests`.)
   func testAMarginTapMakesAHeaderAndAnotherFoldsIt() throws {
     let app = try openBoard()
     sleep(1)
@@ -88,15 +90,23 @@ final class WhiteboardOutlineUITests: XCTestCase {
     shot(app, "a header")
     point(app, margin, 0.305).tap()
     XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), app.debugDescription)
-    shot(app, "folded")
-    let folded = marks(app, "Folded header").firstMatch.value as? String ?? ""
-    XCTAssertTrue(folded.hasPrefix("▸ "), "its lines folded: \(folded)")
+    let mark = marks(app, "Folded header").firstMatch.value as? String ?? ""
+    XCTAssertTrue(mark.hasPrefix("▸ "), "its lines folded: \(mark)")
+    let folded = marks(app, "Lines folded").firstMatch
+    XCTAssertTrue(folded.appears(within: 5), "the words beside the folded header: \(app.debugDescription)")
+    let words = folded.value as? String ?? ""
+    XCTAssertTrue(words.hasPrefix("▸ ") && words.hasSuffix("folded"), "▸ N lines folded: \(words)")
+    XCTAssertGreaterThan(folded.frame.minX, app.frame.width * 0.3, "beside the header's row, not in the margin")
+    shot(app, "folded, its lines beside it")
     point(app, margin, 0.305).tap()
     XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "unfolded again")
+    XCTAssertFalse(marks(app, "Lines folded").firstMatch.exists, "the words go with the fold")
   }
 
   /// Story 1179 (bead context-grabber-ssl): a margin tap's header is one Undo, named for it, that takes back the header
-  /// and no stroke; Redo makes it again.
+  /// and no stroke; Redo makes it again. Then *Not a header* on that header, folded, opens its lines and unmakes it,
+  /// one Undo that puts the header back folded, never the lines hidden with no header to open them. (One launch for
+  /// both, bead context-grabber-3k6.)
   func testAMarginTapsHeaderIsOneUndoThatLeavesTheInk() throws {
     let app = try openBoard()
     sleep(1)
@@ -116,18 +126,7 @@ final class WhiteboardOutlineUITests: XCTestCase {
     redo.tap()
     XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "Redo makes it again")
     wait(send(app), label: strokes(2))
-  }
-
-  /// Story 1179 (bead context-grabber-ssl): *Not a header* on a folded header opens its lines and unmakes it, one Undo
-  /// that puts the header back folded, never the lines hidden with no header to open them.
-  func testNotAHeaderOnAFoldIsOneUndoThatPutsTheFoldBack() throws {
-    let app = try openBoard()
-    sleep(1)
-    write(app, x: 0.12, to: 0.4, y: 0.30)
-    write(app, x: 0.2, to: 0.5, y: 0.36)
-    wait(send(app), label: strokes(2))
-    point(app, margin, 0.305).tap()
-    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), app.debugDescription)
+    // *Not a header* on the header, folded.
     point(app, margin, 0.305).tap()
     XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), app.debugDescription)
     point(app, 0.7, 0.30).press(forDuration: 1.0)
@@ -136,7 +135,6 @@ final class WhiteboardOutlineUITests: XCTestCase {
     not.tap()
     waitUntil(NSPredicate(format: "count == 0"), marks(app, "Folded header"), timeout: 5)
     XCTAssertEqual(marks(app, "Header").count, 0, "no header left")
-    let undo = app.buttons["whiteboard-undo"]
     waitUntil(NSPredicate(format: "label CONTAINS %@", "Not a header"), undo, timeout: 5)
     undo.tap()
     XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), "folded again: \(app.debugDescription)")
@@ -261,39 +259,32 @@ final class WhiteboardOutlineUITests: XCTestCase {
     shot(app, "closing room: the band over the blank paper")
   }
 
-  /// Story 901: a folded header says beside its row how many lines it holds, and the words go when it unfolds.
-  func testAFoldShowsItsLinesBesideTheHeader() throws {
-    let app = try openBoard()
-    sleep(1)
-    write(app, x: 0.12, to: 0.4, y: 0.30)
-    write(app, x: 0.2, to: 0.5, y: 0.36)
-    write(app, x: 0.12, to: 0.4, y: 0.44)
-    wait(send(app), label: strokes(3))
-    point(app, margin, 0.305).tap()
-    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), app.debugDescription)
-    point(app, margin, 0.305).tap()
-    let folded = marks(app, "Lines folded").firstMatch
-    XCTAssertTrue(folded.appears(within: 5), "the words beside the folded header: \(app.debugDescription)")
-    let words = folded.value as? String ?? ""
-    XCTAssertTrue(words.hasPrefix("▸ ") && words.hasSuffix("folded"), "▸ N lines folded: \(words)")
-    XCTAssertGreaterThan(folded.frame.minX, app.frame.width * 0.3, "beside the header's row, not in the margin")
-    shot(app, "folded, its lines beside it")
-    point(app, margin, 0.305).tap()
-    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "unfolded again")
-    XCTAssertFalse(marks(app, "Lines folded").firstMatch.exists, "the words go with the fold")
-  }
-
-  /// Story 858: a finger held on the page brings up the menu; held in the margin and dragged it opens room.
+  /// Stories 858, 1186, 1187 (context-grabber-y4y): a finger held on ink offers Select and Delete for that thing first,
+  /// and Delete takes it, and only it; held on blank paper the menu has no Delete; held in the margin and dragged it
+  /// opens room. (One launch for both, bead context-grabber-3k6.)
   func testAHoldBringsTheMenuAndAMarginDragMakesRoom() throws {
     let app = try openBoard()
     sleep(1)
     write(app, x: 0.12, to: 0.4, y: 0.30)
     write(app, x: 0.12, to: 0.4, y: 0.40)
+    write(app, x: 0.12, to: 0.4, y: 0.55)
+    wait(send(app), label: strokes(3))
+    // On ink: Select and Delete for it, and the line's rows.
+    point(app, 0.26, 0.55).press(forDuration: 1.0)
+    let delete = app.buttons["whiteboard-hold-delete"]
+    XCTAssertTrue(delete.appears(within: 5), "on ink: \(app.debugDescription)")
+    XCTAssertTrue(app.buttons["whiteboard-hold-select"].exists)
+    XCTAssertTrue(app.buttons["whiteboard-hold-make-room"].exists, "the line's rows stay")
+    shot(app, "the hold menu on ink")
+    delete.tap()
     wait(send(app), label: strokes(2))
+    XCTAssertFalse(delete.exists, "the menu goes once chosen")
+    // On blank paper: no Delete.
     point(app, 0.7, 0.6).press(forDuration: 1.0)
     let makeRoom = app.buttons["whiteboard-hold-make-room"]
     XCTAssertTrue(makeRoom.appears(within: 5), "the hold menu: \(app.debugDescription)")
     XCTAssertTrue(app.buttons["whiteboard-hold-paste"].exists)
+    XCTAssertFalse(app.buttons["whiteboard-hold-delete"].exists, "off ink, nothing to delete")
     shot(app, "the hold menu")
     makeRoom.tap()
     XCTAssertFalse(makeRoom.appears(within: 2), "the menu goes once chosen")
@@ -304,28 +295,6 @@ final class WhiteboardOutlineUITests: XCTestCase {
     point(app, margin, 0.35).press(forDuration: 0.8, thenDragTo: point(app, margin, 0.45))
     shot(app, "room opened by the margin")
     XCTAssertFalse(app.buttons["whiteboard-hold-make-room"].exists, "a drag is room, not the menu")
-  }
-
-  /// Stories 1186, 1187 (context-grabber-y4y): a finger held on ink offers Select and Delete for that thing first;
-  /// Delete takes it, and only it.
-  func testAHoldOnInkOffersSelectAndDeleteForIt() throws {
-    let app = try openBoard()
-    sleep(1)
-    write(app, x: 0.12, to: 0.4, y: 0.30)
-    write(app, x: 0.12, to: 0.4, y: 0.45)
-    wait(send(app), label: strokes(2))
-    point(app, 0.26, 0.30).press(forDuration: 1.0)
-    let delete = app.buttons["whiteboard-hold-delete"]
-    XCTAssertTrue(delete.appears(within: 5), "on ink: \(app.debugDescription)")
-    XCTAssertTrue(app.buttons["whiteboard-hold-select"].exists)
-    XCTAssertTrue(app.buttons["whiteboard-hold-make-room"].exists, "the line's rows stay")
-    shot(app, "the hold menu on ink")
-    delete.tap()
-    wait(send(app), label: strokes(1))
-    XCTAssertFalse(delete.exists, "the menu goes once chosen")
-    point(app, 0.7, 0.60).press(forDuration: 1.0)
-    XCTAssertTrue(app.buttons["whiteboard-hold-paste"].appears(within: 5))
-    XCTAssertFalse(app.buttons["whiteboard-hold-delete"].exists, "off ink, nothing to delete")
   }
 
   /// Story 900 (#1013): Send on a folded board gives Larry the folded lines whole and shaded, the picture taller by
