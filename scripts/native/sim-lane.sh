@@ -1,7 +1,5 @@
 # shellcheck shell=bash
-# Story 1508 (bead context-grabber-w7nl): a simulator is driven only from the build lane that owns it. On 2026-11-22 a
-# timer smoke run outside any lane went to lane 1's named iPad while lane 1 ran the whiteboard suite on it: three smoke
-# failures, each different, one report showing the whiteboard, and the suite's own run spoiled.
+# Simulator lane selection and guards (stories 1508–1510, bead context-grabber-w7nl).
 # Sourced by sim-smoke.sh, sim-boot.sh, xcodebuild-log.sh, test-chat-ui.sh and test-whiteboard-ui.sh.
 #   take_lane <script> <args…>  outside any lane, runs the script again in the first free one (build-lane.sh run),
 #                               marked SIM_LANE_TAKEN, so a simulator udid it was given means that model in the lane's

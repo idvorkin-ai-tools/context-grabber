@@ -18,7 +18,7 @@
 set -uo pipefail
 name=$1 done=$2
 shift 2
-# Story 1508: a test run on a simulator only from the build lane that owns that simulator; refused with exit 64 when
+# Story 1509: a test run on a simulator only from the build lane that owns that simulator; refused with exit 64 when
 # this run holds no lane or another one, so a run started by hand can't drive another job's simulator.
 sim_dest= prev=
 for arg in "$@"; do

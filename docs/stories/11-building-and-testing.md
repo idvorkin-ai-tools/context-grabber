@@ -1748,15 +1748,15 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** A simulator script started by hand
 - **Given:** no build lane is held
-- **When:** I start the simulator smoke script or a UI suite script directly
-- **Then:** it announces that it is taking a lane and runs on the first free lane's simulator for that model, including when given another lane's simulator UDID
+- **When:** I start the smoke, chat UI or whiteboard UI script directly with a model name or a lane simulator's UUID
+- **Then:** it announces that it is taking a lane and runs on the first free lane's simulator for that model
 
 ---
 
 ### User Story 1509:
 
 - **Summary:** Booting or testing on a build lane's simulator requires its lane
-- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64. Both UUID spellings were verified with lane 1's lock held.
+- **Status:** implemented in [7a3bdc78](https://github.com/idvorkin/context-grabber/commit/7a3bdc784efd3fcce5f20585d02b483e2a8ee823), with case-insensitive UUID matching in [5a498715](https://github.com/idvorkin/context-grabber/commit/5a49871595100a56933165f0d8c789ac5af3bca9). Verified on the host by `scripts/native/test-sim-lane.sh` with simulated boot and test commands refused with exit 64. Both UUID spellings were verified with lane 1's lock held.
 - **Issues:** bead context-grabber-w7nl
 
 #### Use Case:

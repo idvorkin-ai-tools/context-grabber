@@ -2,7 +2,7 @@
 # The whiteboard UI tests on the simulator, with a fake Cockpit (their stories are in docs/TESTING.md, under The
 # whiteboard suite's classes): scripts/native/fake-cockpit.py on a local port.
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
-# Usage: test-whiteboard-ui.sh <simulator udid or name>   — an iPad simulator's: an iPhone only looks at boards (story 746)   — run it in the build lane:
+# Usage: test-whiteboard-ui.sh <iPad simulator udid or model name> (story 746). For a timed run that prevents idle sleep:
 #   scripts/native/build-lane.sh run scripts/native/time-limit.sh 40 caffeinate -i \
 #     scripts/native/test-whiteboard-ui.sh "iPad Pro 11-inch (M5)"   (a name is the lane's own device: story 785)
 set -uo pipefail

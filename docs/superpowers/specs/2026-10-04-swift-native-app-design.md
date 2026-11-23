@@ -488,14 +488,16 @@ skipped, and the output says why.
 
 The Mac and simulator rungs run in build lanes, one job per lane, and the number of lanes scales with the Mac's memory:
 one for every 12 GB, at most four, at least one (four on a 48 GB Mac, one on a 16 GB one), unless a setting names the
-number. A job takes the first free lane, waits only while every lane is busy, and says which lane it got. Each lane has
+number. A rung takes the first free lane, waits only while every lane is busy, and says which lane it got. Each lane has
 its own iPhone and iPad simulators: lane 1's are the named ones, as on a one-lane Mac, and another lane's are copies of
 them made once, so they keep Health access and the seeded data. A copy made before lane 1 had something new (its Health access granted, its data seeded) keeps the old state, so copies can be refreshed on request: lane by lane, each lane's copies are thrown away and copied again from lane 1's, only while that lane is idle (a busy lane is skipped and named, never interrupted) and only while lane 1 is idle (so the fresh copy is a true copy, never a blank simulator). A report lists each lane's copies, which exist and which are missing, and changes nothing. Jobs in different lanes never share a simulator or a
-fake server's port. The standalone smoke recipe waits for lane 1 when started outside a lane, so it uses the same
-simulator as the default Health access grant even when other lanes are free. A smoke run already in a lane uses that
-lane's own simulator. A simulator job also waits while as many other Xcode builds run as there are lanes (on a one-lane
-Mac: any other), because startup waits fail under that load, and it says so. If they are still running after half an
-hour, the rung refuses to start. A test that fails while more builds ran than there are lanes is reported as
+fake server's port. A boot or test command targeting a lane's simulator must run in that lane. When started outside
+a lane, the standalone smoke recipe uses the same simulator as the default Health access grant. See
+[simulator lane selection and Health setup](../../TESTING.md#climbing-just-test-ladder).
+
+A simulator job also waits while as many other Xcode builds run as there are lanes (on a one-lane Mac: any other),
+because startup waits fail under that load, and it says so. If they are still running after half an hour, the rung
+refuses to start. A test that fails while more builds ran than there are lanes is reported as
 contention: it counts as failed and is rerun, not debugged. Each lane's simulator is left booted afterwards for that
 lane's next run: every boot writes wallpaper snapshots the system never removes (about 300 MB on iOS 27) and heats the
 Mac. Before a step uses a device, the lane's other device and any simulator that belongs to no lane are shut down; a
@@ -503,9 +505,6 @@ simulator a busy lane is using is never shut down (one that belongs to no lane c
 under the number of lanes. The device is then booted only if it isn't already up. A one-lane Mac behaves exactly as
 before: one job at a time, one booted simulator, every other one shut down. A climb that needs both the iPhone and the iPad switches between them at most once, starting
 with whichever is already booted. A dry run prints the rungs and classes without running any of them.
-
-A boot or test command outside a simulator's owning lane is refused whether it identifies the simulator by name
-or by UUID in any letter case.
 
 Every climb that runs keeps a record a report can follow from selection to the phone: which source and change it
 measured, what it chose and why (mapped, host only, unmapped), on which simulators, how long it waited for a lane,

@@ -78,7 +78,7 @@ native-test-host:
     scripts/native/test-build-lane.sh
     # Stories 1505, 1506 (context-grabber-xmwp): the repo's own rung time limit stops a hang and all it started, exit 124.
     scripts/native/test-time-limit.sh
-    # Story 1508 (bead w7nl): a simulator driven only from the lane that owns it; a run outside a lane takes one.
+    # Simulator lane guards, standalone lane selection and Health access (bead context-grabber-w7nl).
     scripts/native/test-sim-lane.sh
     # Stories 795, 797, 798 (context-grabber-mkd0): the host slots, six jobs on four, the wait, a killed holder.
     scripts/native/test-host-lane.sh
@@ -164,18 +164,17 @@ native-build-sim: native-project
       CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build
     # Signed to run locally, not unsigned: HealthKit refuses an app without its entitlement, even on the simulator.
 
-# Once per simulator: grant Health access through Health's own sheet (a UI test taps it; nothing else can) and
-# grab the fixture week from the simulator's Health store. sim-smoke.sh then checks the exports.
+# Grant access through the Health sheet so the smoke can check the simulator's HealthKit exports.
 native-sim-health:
     #!/usr/bin/env bash
     set -uo pipefail
     . scripts/native/sim-lane.sh
-    export SIM="{{native_sim}}"
+    export SIM="{{ native_sim }}"
     take_lane_one bash "$0" || exit
     just native-project || exit
-    scripts/native/sim-boot.sh "{{native_sim}}" || exit  # the one booted simulator (story 980)
+    scripts/native/sim-boot.sh "{{ native_sim }}" || exit  # the one booted simulator (story 980)
     scripts/native/xcodebuild-log.sh sim-health "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
-      -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
+      -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{ native_sim }}")" \
       CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" \
       -only-testing:GrabberNativeUITests/HealthAccessUITests test
 
@@ -193,11 +192,11 @@ native-test-sim:
     #!/usr/bin/env bash
     set -euo pipefail
     . scripts/native/sim-lane.sh
-    export SIM="{{native_sim}}"
+    export SIM="{{ native_sim }}"
     take_lane_one bash "$0"
     just native-build-sim
     scripts/native/xcodebuild-idle.sh
-    SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{native_sim}}" {{native_bundle}} {{native_sim_app}}
+    SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{ native_sim }}" {{ native_bundle }} {{ native_sim_app }}
 
 # Story 1019 (bead 0u3k): the contract tests on real PaperKit and PencilKit (native/ContractTests), hosted in the app on
 # an iPad simulator in a build lane: what the whiteboard relies on the platform doing. Story 1020 (bead 8o93): with the
