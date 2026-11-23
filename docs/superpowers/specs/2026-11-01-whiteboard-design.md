@@ -236,8 +236,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     on a board drawn here the note says *Waiting to send* until it goes, and the button is dimmed meanwhile.
   - An empty board can't be sent; the button is disabled.
   - **The picture shows the page or pages on screen** (#636; Igor, 2026-11-03), so what he's looking at is what Larry
-    reads, with his writing at a size Larry can see. Scroll to another page and send again to show Larry that one. The
-    same goes for *Larry's turn*. An empty page on screen is left out of the picture; if everything on screen is empty,
+    reads, with his writing at a size Larry can see. Scroll to another page and send again to show Larry that one. An
+    empty page on screen is left out of the picture; if everything on screen is empty,
     there's nothing to send and the button says so by staying disabled. Claude's own turns keep looking at what they
     look at today. Larry's marks land by the picture's own place on the board, whichever page that is.
   - **The picture frames its ink at a readable size** (stories 420, 422, 425, 429; Igor, 2026-11-03: "maybe zoom into the pages").
@@ -330,7 +330,7 @@ so." New boards are on paper from now on, on every device, though the rest of th
   it: Larry's thread being looked at every few seconds, a save, a ghost coming or going. A row tapped at any moment is
   chosen and the menu closes, never a tap lost because the menu was put up again under the finger. Only a change to
   what the menu itself shows (its colour, lines, font or responder) may redraw it.
-- **What a board on paper can't do yet.** *Send to Larry*, *Larry's turn*, ghosts, the mic and paste work: see
+- **What a board on paper can't do yet.** *Send to Larry*, ghosts, the mic and paste work: see
   *Ghosts and Larry on paper* and *Paste on paper*. The picture is still the whole drawing.
 - **Undo and a new page.** Adding a page can count as a step of undo: one press may take back the page and not a stroke.
   The next stroke brings the page back. Whether this matters on the iPad is still to be seen.

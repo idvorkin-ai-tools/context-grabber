@@ -233,7 +233,7 @@ suggest changes the board until Igor keeps it.
   *Ghosts* and read as Claude's alone (bead context-grabber-4ic; Igor, design board: "the switch becomes 'Ask at my
   pauses' for whoever answers"). It is about whoever answers the board, Larry or Claude. Off, nothing is asked after a
   pause, whoever the responder is. Claude's ghosts go at once and any more from that turn are dropped. Larry's
-  marks already showing stay. *Larry's turn* and *Send to Larry* still go when tapped.
+  marks already showing stay. *Send to Larry* still goes when tapped.
   - VoiceOver reads *Ask at my pauses: on* or *Ask at my pauses: off*, followed by the number of marks showing if any.
     The icon is sparkles when on and a crossed-out eye when off. See [the whiteboard design](2026-11-01-whiteboard-design.md)
     for the long-press menu and help sheet.
@@ -410,7 +410,7 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
 - **Haiku and Sonnet** answer with orange ghosts, exactly as above: Haiku is the faster model, Sonnet the sharper one.
   Spoken words are answered by the board's responder too.
 - **Larry**: a pause brings no orange ghosts. The Cockpit says the board is Larry's, and the board goes to its chat
-  thread just as *Larry's turn* sends it, and his purple marks come when he has drawn them. Words spoken to the board go
+  thread just as *Send to Larry* sends it, and his purple marks come when he has drawn them. Words spoken to the board go
   with that picture as its message.
 - **One Larry turn at a time, the latest wins** (story 662; Igor, 2026-11-10: "can we avoid this, think about best
   design"). Real Larry takes a minute or more, so his thread never fills with pictures:
@@ -530,7 +530,7 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
   light mode, its width, its tool and a stable id, under the picture's own id. The picture then goes as before: it is
   what Chat shows, and what Larry reads when the strokes did not get through.
 - **A picture and its message are one id** (bead context-grabber-bozm). A *Send to Larry* gives its chat message the
-  picture's own id, as *Larry's turn* does, so whatever names the message (Larry's reply, the Cockpit's debug page)
+  picture's own id, so whatever names the message (Larry's reply, the Cockpit's debug page)
   finds the strokes stored under it, and his marks on it land where the picture was.
 - **Larry reads any part sharp and knows what is new.** The Cockpit keeps the strokes per picture, renders any region
   at any size for him, and tells him which strokes were added or erased since the picture before his last reply.
