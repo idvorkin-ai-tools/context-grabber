@@ -834,8 +834,8 @@ extension PaperBoardController: BoardCanvas {
     keep(strokes, making: push, why: why)
   }
 
-  func changeOutline(named label: String, _ change: (inout BoardOutline) -> Bool) -> Bool {
-    changeOutline(label, on: nil, undoTo: nil, change)
+  func changeOutline(named label: @autoclosure () -> String, _ change: (inout BoardOutline) -> Bool) -> Bool {
+    changeOutline(label(), on: nil, undoTo: nil, change)
   }
 
   func moveStrokes(_ moves: [Int: CGFloat]) -> Bool {

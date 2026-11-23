@@ -264,7 +264,7 @@ board differs, this says why.
 
 - **A finger tap in the left margin beside a line makes that line a header.** A small ▾ shows in the margin beside it.
   A tap beside a header folds it (the mark turns ▸ with the number of lines folded) and a tap again unfolds it.
-  A tap beside blank paper does nothing.
+  A tap beside blank paper adds no Undo step.
 - **A section ends where the ink comes back to the header's indent.** It runs from the line below the header to the
   first line that starts at or left of the header's own left edge (within half a line), or to the next header at the
   same indent or shallower. Blank paper never ends a section. When the line under a header isn't indented at all, the
@@ -275,6 +275,12 @@ board differs, this says why.
   the section rather than being drawn over.
 - A fold is one Undo, named *Fold* or *Unfold*. (The web board's folds are not undo steps; on paper every change is,
   and an Undo of an earlier step would otherwise spring a fold open.)
+- **Making or unmaking an open header is one Undo.** Undo is named *Make header* for a margin tap or that menu
+  choice, and *Not a header* for the opposite choice. Undo restores whether the line was a header and whether it
+  was declined as one, with every stroke left where it was. Redo reapplies the change.
+- ***Not a header* on a folded header opens its lines.** One Undo restores the header and folds the lines back
+  under it, with one Undo event for Larry. Redo removes the header and opens its lines again.
+- Drawing an underline or # gives the header the [same Undo as the stroke](2026-11-19-whiteboard-ink-headers-design.md#undoing-a-wrong-guess).
 - Folded ink is still on the board: it moves with its header, and a push never splits it from its header. Larry is
   told which strokes are folded under which header and how many lines, so folded ink is never taken for erased, nor
   for new when it unfolds.

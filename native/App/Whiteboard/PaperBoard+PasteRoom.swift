@@ -127,36 +127,54 @@ extension PaperBoardController {
   }
 
   /// Stories 855–860: an outline change on the markup, one undo named `label`: what folds hides, what is below slides,
-  /// and the headers are kept. A header made or unmade alone changes only the marks.
+  /// and the headers are kept. A header made or unmade alone changes only the marks, and is its own Undo step (bead
+  /// context-grabber-ssl) unless `headerStep` is false: a header an underline or # made goes with that stroke's Undo.
+  /// `label` is read once the change is made, so a margin tap is named for what it did.
   /// `base` is the markup the change starts from (the board's own by default) and `undoTo` where its Undo goes back to
   /// (`base`, by default): a scratch-out's fold erase starts without the zigzag's other ink and undoes to before it.
   func changeOutline(
-    _ label: String, on base: PaperMarkup? = nil, undoTo: PaperMarkup? = nil, _ change: (inout BoardOutline) -> Bool
+    _ label: @autoclosure () -> String, on base: PaperMarkup? = nil, undoTo: PaperMarkup? = nil,
+    headerStep: Bool = true, _ change: (inout BoardOutline) -> Bool
   ) -> Bool {
     guard let markup = base ?? paper.markup else { return false }
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
     var outline = model.outline(of: strokes)
     let before = Dictionary(uniqueKeysWithValues: outline.headers.map { ($0.id, outline.level($0)) })
+    let (headersBefore, declinedBefore) = (outline.headers, outline.declined)
+    let kept = BoardHeaderState(headers: model.headers, declined: model.declined)
     guard change(&outline) else { return false }
+    let label = label()
     var plan = outline.plan(from: strokes, pages: pages, board: board)
     // Stories 911, 915: a fold moves ink, and the connectors follow it.
     BoardConnectors.follow(
       &plan, strokes: strokes, texts: model.texts, metas: model.strokeMeta, folds: outline.tags)
+    // A header made or unmade (or a line declined) is its own step; with ink that moves too (Not a header on a folded
+    // header opens it), the two are one Undo, so the Undo that hides the lines again brings their header back.
+    let madeOrUnmade =
+      Set(outline.headers.map(\.id)) != Set(headersBefore.map(\.id)) || outline.declined != declinedBefore
+    let headersOnly = !plan.changesBoard && outline.headers != headersBefore
+    let headerUndo = headerStep && (madeOrUnmade || headersOnly)
+    let group = headerUndo && plan.changesBoard ? paper.undoManager : nil
+    group?.beginUndoGrouping()
     if plan.changesBoard {
       guard let (held, renamed, _) = put(plan, on: markup, hashes: hashes, named: label, undoTo: undoTo) else {
+        group?.endUndoGrouping()
         return false
       }
       model.opsApplied(held.inkDrawing, renamed: renamed)
       model.inkReset(Self.allHashes(held))
     }
     model.outlineChanged(outline)
+    if headerUndo { registerHeaderStep(back: kept, named: label, withInk: plan.changesBoard) }
+    group?.endUndoGrouping()
+    let stepped = plan.changesBoard || headerUndo
     showMarks()
     tintNew(outline, before: before)
     log.event(
       "board_outline",
       [
-        "action": "changed", "board": model.board.id, "label": label, "moved": plan.offsets.count,
+        "action": "changed", "board": model.board.id, "label": label, "undo_step": stepped, "moved": plan.offsets.count,
         "hidden": plan.hidden.values.filter { $0 }.count, "shown": plan.hidden.values.filter { !$0 }.count,
         "headers": outline.headers.count, "folded": outline.headers.filter(outline.isFolded).count,
         "declined": outline.declined.count,
