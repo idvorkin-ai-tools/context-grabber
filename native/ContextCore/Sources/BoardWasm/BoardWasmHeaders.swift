@@ -50,7 +50,7 @@ enum WebHeaders {
     let before = Set(copy.headers.filter { copy.isFolded($0) }.map(\.id))
     if let level { copy.collapse(to: level) } else { copy.foldAll() }
     let folds: [[String: Any]] = order.compactMap { id in
-      guard !before.contains(id), let f = copy.header(id)?.fold else { return nil }
+      guard !before.contains(id), let h = copy.header(id), copy.isFolded(h), let f = h.fold else { return nil }
       return [
         "id": id, "ids": f.ids, "own": f.own, "shift": Double(f.shift), "lines": f.lines, "bottom": Double(f.bottom),
       ]
@@ -76,7 +76,11 @@ enum WebHeaders {
   @_cdecl("bw_fold_plan")
   public func bwFoldPlan(_ pointer: UnsafeRawPointer?, _ length: Int32) -> UnsafeMutableRawPointer {
     guard let loaded = outline else { return reply(json: ["error": "no outline is loaded"]) }
-    let json = (try? JSONSerialization.jsonObject(with: input(pointer, length)) as? [String: Any]) ?? [:]
-    return reply(json: WebHeaders.plan(loaded, to: json["to"] as? Int))
+    guard let json = try? JSONSerialization.jsonObject(with: input(pointer, length)) as? [String: Any] else {
+      return reply(json: ["error": "no fold plan asked for"])
+    }
+    let to = json["to"].map { $0 as? Int }
+    if to == .some(nil) { return reply(json: ["error": "a level to collapse to is a whole number"]) }
+    return reply(json: WebHeaders.plan(loaded, to: to ?? nil))
   }
 #endif
