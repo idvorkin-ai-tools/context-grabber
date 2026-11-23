@@ -1567,7 +1567,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 887:
 
 - **Summary:** Another reply scrolls the full panel, not grows it
-- **Status:** implemented in [e403844](https://github.com/idvorkin/context-grabber/commit/e403844) (story 837, #917); verified by host tests (`WhiteboardNoteTests.testThePanelIsAFifthOfTheBoardAtMost`; `just test`); a reply landing in a full panel is for the iPad's eye; a reply while Igor reads an older message leaves the panel where he scrolled it: in progress on branch `native/chat-context-scroll-97s`
+- **Status:** implemented in [e403844](https://github.com/idvorkin/context-grabber/commit/e403844) (story 837, #917); verified by host tests (`WhiteboardNoteTests.testThePanelIsAFifthOfTheBoardAtMost`; `just test`); a reply landing in a full panel is for the iPad's eye; a reply while Igor reads an older message leaves the panel where he scrolled it, in [367e77e8](https://github.com/idvorkin/context-grabber/commit/367e77e8), verified by host tests (`WhiteboardNoteTests.testThePanelFollowsTheNewestOnlyFromTheBottom`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`WhiteboardPanelScrollUITests`: fifteen long replies, the panel and the paper under it never moving, a reply after a finger scrolled up leaving it on the older messages, and following again from the bottom; with `WhiteboardTurnUITests`, `WhiteboardListeningUITests` and `WhiteboardLinkChipUITests`, 10/10); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
 - **Issues:** [#917](https://github.com/idvorkin/context-grabber/issues/917); bead context-grabber-97s (a reply pulled the panel back down while Igor read an older message)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
 
@@ -1593,7 +1593,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1184:
 
 - **Summary:** What the mic hears never grows the conversation panel
-- **Status:** in progress on branch `native/chat-context-scroll-97s`
+- **Status:** implemented in [367e77e8](https://github.com/idvorkin/context-grabber/commit/367e77e8); verified by the Mac build (`just native-build-mac`) and the iPad simulator only as far as the status chip still drawing (`WhiteboardTurnUITests`, `WhiteboardListeningUITests`); the *Hearing* row itself isn't reached on any rung, as no simulator hook keeps the board's mic on, so a long sentence on the iPad is still to see
 - **Issues:** bead context-grabber-97s (Larry, 2026-11-22: *"an expanded chat message/card grows to its full height instead of scrolling within a bounded height"*; Igor on the board, 2026-11-16 05:38, *"when chat expands it needs to scroll not grow"*, first fixed for the messages by story 837)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
 
