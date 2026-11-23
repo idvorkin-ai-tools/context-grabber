@@ -432,7 +432,8 @@ final class BoardIndexTests: XCTestCase {
   /// why; one it has opens.
   func testABoardThatCantOpenSaysWhy() {
     var phone = BoardIndex()
-    let board = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad",
+    let board = BoardEntry(
+      id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad",
       onPages: true)
     _ = phone.merge(cloud: [board], device: "phone")
     XCTAssertEqual(
