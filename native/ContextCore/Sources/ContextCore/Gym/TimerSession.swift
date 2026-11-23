@@ -51,8 +51,6 @@ public final class TimerSession {
   public var profile: TimerProfile { engine.profile }
   /// The chips and the Custom sliders are inert from START until RESET or the finish.
   public var locked: Bool { engine.isEngaged }
-  /// The clock is looking (a workout is running).
-  public var isTicking: Bool { ticking }
 
   // MARK: - the workout
 
