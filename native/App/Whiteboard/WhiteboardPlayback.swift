@@ -79,11 +79,7 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
 
   init(model: WhiteboardModel, controller: PaperBoardController?) {
     let started = CACurrentMediaTime()
-    var drawing = model.drawing
-    if model.oldCanvas {
-      // As the board's load moves it (story 658): the old canvas's ink sits about 10,000 points from its corner.
-      drawing = drawing.transformed(using: BoardPages.placing(ink: drawing.bounds).transform)
-    }
+    let drawing = model.drawing
     strokes = drawing.strokes
     timeline = BoardPlayback(
       strokes.map {

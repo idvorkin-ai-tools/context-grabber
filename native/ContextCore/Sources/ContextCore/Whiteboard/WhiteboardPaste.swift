@@ -31,7 +31,7 @@ import Foundation
       }
     }
 
-    /// The old canvas's fixed square. A board on paper has its own: a page wide, with no end below.
+    /// A fixed square, the reach until a board on paper sets its own: a page wide, with no end below.
     public static let wholeBoard = CGRect(x: 0, y: 0, width: WhiteboardFrame.side, height: WhiteboardFrame.side)
 
     /// `text` as `height`-point letters written inside `visible` (board points), on `board`, in the board's

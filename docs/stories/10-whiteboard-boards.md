@@ -213,7 +213,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Then:** the board keeps its name (story 878)
 
 - **Scenario:** A look-only board
-- **Given:** a board another device draws, an old-canvas board, or any board on an iPhone, open
+- **Given:** a board another device draws, or any board on an iPhone, open
 - **When:** I tap its name in the bar
 - **Then:** nothing happens; the name is only the name (an iPhone renames its own boards from the list)
 
@@ -953,27 +953,57 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** an iPhone whose list holds a board it drew earlier and a board drawn on the iPad
 - **and Given:** the list has no *+ New board*
 - **When:** I open either board
-- **Then:** it opens to pan and pinch with no tool picker, no Board menu and no ghosts, *Send to Larry* still there to talk about it (not on a board from the old canvas: story 1200), and the bar says *Look only on iPhone: draw on the iPad*
+- **Then:** it opens to pan and pinch with no tool picker, no Board menu and no ghosts, *Send to Larry* still there to talk about it (story 1200), and the bar says *Look only on iPhone: draw on the iPad*
+
+---
+
+### User Story 1204:
+
+- **Summary:** Boards drawn on the old canvas are dropped
+- **Status:** implemented in [619247b9](https://github.com/idvorkin/context-grabber/commit/619247b9); verified by host tests (`BoardIndexTests`: such a board is out of the list and a link to it says why; `BoardKeepingTests`: through a relaunch, still kept), `just native-test`, the Mac build and the iPad simulator (2026-11-23, the Mac locked with the lock probe overridden on Igor's word: the whiteboard suite, ChatImage and the PaperKit contract tests, 90 tests; its failures were main's refused-push test, bead context-grabber-ts8a, and DropRoom under two overlapping runs, which passed alone); not yet seen on the iPad. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-3v69 (the dead-code sweep, area C; Igor 2026-11-22 via Larry: "drop the old canvas", no conversion step)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Paper is the only canvas*
+
+#### Use Case:
+- **As someone** whose boards all live on paper now
+- **I want to** stop seeing the boards drawn before paper, and the code that kept them half alive
+- **so that** the list holds only boards I can draw on, send and keep
+
+#### Acceptance Criteria:
+- **Scenario:** The list
+- **Given:** a board drawn on the old canvas, on this device or another
+- **When:** I open the boards list, on any device
+- **Then:** that board isn't in it
+
+- **Scenario:** A link to one
+- **Given:** a chat picture's *Jump to board*, or a link, naming a board drawn on the old canvas
+- **When:** I follow it
+- **Then:** a copyable problem says *This board was drawn on the old canvas, which is gone: it can't be opened*, and nothing opens
+
+- **Scenario:** Nothing erased
+- **Given:** a board drawn on the old canvas
+- **When:** the list leaves it out
+- **Then:** its file stays on the device and in iCloud; only showing it is gone
 
 ---
 
 ### User Story 1200:
 
-- **Summary:** Every look-only board says why, and all but the old canvas's can be sent
-- **Status:** implemented in [55e34d15](https://github.com/idvorkin/context-grabber/commit/55e34d15) (the rule in one place, `BoardIndex.sendable`; the old-canvas-only Send rule was already the code's, the stories and spec now say it); verified by host tests (`BoardIndexTests.testEveryLookOnlyBoardButTheOldCanvassCanBeSent`: each kind's note and Send, on the iPad and the iPhone; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2: `WhiteboardOnPaperUITests.testEveryLookOnlyBoardButTheOldCanvassHasSend`, another iPad's board with Send and its old-canvas board without; `testAnUnreadableBoardThatCannotBeMovedAsideOpensLookOnly` now finds Send there and dimmed). The iPhone's note and Send are the host test's alone: no iPhone runs during the whiteboard work (Igor, 2026-11-22)
+- **Summary:** Every look-only board says why, and every one can be sent
+- **Status:** since [619247b9](https://github.com/idvorkin/context-grabber/commit/619247b9) every look-only board has Send: the old canvas's boards, which had none, are dropped (story 1204); host `BoardIndexTests.testEveryLookOnlyBoardCanBeSent`, simulator `WhiteboardOnPaperUITests.testEveryLookOnlyBoardHasSend`. Before: implemented in [55e34d15](https://github.com/idvorkin/context-grabber/commit/55e34d15) (the rule in one place, `BoardIndex.sendable`; the old-canvas-only Send rule was already the code's, the stories and spec now say it); verified by host tests (`BoardIndexTests.testEveryLookOnlyBoardButTheOldCanvassCanBeSent`: each kind's note and Send, on the iPad and the iPhone; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2: `WhiteboardOnPaperUITests.testEveryLookOnlyBoardButTheOldCanvassHasSend`, another iPad's board with Send and its old-canvas board without; `testAnUnreadableBoardThatCannotBeMovedAsideOpensLookOnly` now finds Send there and dimmed). The iPhone's note and Send are the host test's alone: no iPhone runs during the whiteboard work (Igor, 2026-11-22)
 - **Issues:** bead context-grabber-xg3 (stories 746 and 658 disagreed on whether a look-only board has Send)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Which look-only boards can be sent*
 
 #### Use Case:
 - **As someone** opening a board I can't draw on here
 - **I want to** be told why, and still send it to Larry when he can see it as it is
-- **so that** I can talk about any board, and never send one whose ink isn't where it is saved
+- **so that** I can talk about any board
 
 #### Acceptance Criteria:
 - **Scenario:** Each kind of look-only board
-- **Given:** on the iPad, a board drawn on another iPad, the same kind drawn there on the old canvas, a board of this iPad's from the old canvas, and a board that could not be read; and on an iPhone, any board
+- **Given:** on the iPad, a board drawn on another iPad and a board that could not be read; and on an iPhone, any board
 - **When:** I open each
-- **Then:** the bar says *Drawn on <that iPad>: look only* with Send to Larry there; *Drawn on <that iPad>: look only* with no Send; *Drawn on the old canvas: look only* with no Send; *Couldn't be read: look only* with Send dimmed; and on the iPhone *Look only on iPhone: draw on the iPad* with Send there (a board from the old canvas, there too, has none)
+- **Then:** the bar says *Drawn on <that iPad>: look only* with Send to Larry there; *Couldn't be read: look only* with Send dimmed; and on the iPhone *Look only on iPhone: draw on the iPad* with Send there
 
 ---
 

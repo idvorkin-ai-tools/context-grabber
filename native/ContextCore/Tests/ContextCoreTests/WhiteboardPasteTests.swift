@@ -27,7 +27,7 @@ final class WhiteboardPasteTests: XCTestCase {
       XCTAssertEqual(box.midY, far.midY, accuracy: 0.5, "page 29, in the middle of the view")
       XCTAssertEqual(box.midX, far.midX, accuracy: 0.5)
       let old = bounds(WhiteboardPaste.layout("HI", visible: far, height: 24).lines)
-      XCTAssertLessThanOrEqual(old.maxY, WhiteboardFrame.side, "the old canvas keeps its edge")
+      XCTAssertLessThanOrEqual(old.maxY, WhiteboardFrame.side, "the fixed square keeps its edge")
     }
 
     func testOnPaperItStaysOnThePagesWidth() {

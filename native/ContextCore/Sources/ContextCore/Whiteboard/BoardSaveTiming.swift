@@ -5,10 +5,9 @@
 import Foundation
 
 public struct BoardSaveTiming {
-  /// What set a save off: the moment after a stroke, leaving the board, the app going to the background, or a launch
-  /// hook's fixture board.
+  /// What set a save off: the moment after a stroke, leaving the board, or the app going to the background.
   public enum Trigger: String, CaseIterable, Sendable {
-    case debounce, close, background, fixture
+    case debounce, close, background
   }
 
   public let board: String

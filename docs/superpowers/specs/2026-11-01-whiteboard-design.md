@@ -52,7 +52,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   filled with the current name, with the same *Rename* and *Cancel*. The new name shows at once in the bar (and in the
   list behind it), saves and reaches the other devices as the row's rename does, and is the name the next picture,
   *Send to Larry*, turn or Claude's look carries. Only a board that draws here offers it: on a look-only board (another
-  device's, an old-canvas one, one that couldn't be read, and every board on an iPhone, its own included) the name is
+  device's, one that couldn't be read, and every board on an iPhone, its own included) the name is
   plain text and a tap on it does nothing; an iPhone renames its own boards from the list. The name is a plain tap
   target, not a menu: a menu on the name (2026-11-16) made the iPad's Board menu open as a full-height list that stayed
   up after a pick. Renaming doesn't cost a stroke, close the board, or change what the Board menu does: after the box
@@ -115,20 +115,17 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   to look at: pan and pinch, no tool picker, and a note in the bar saying where it's drawn.
 - **On an iPhone every board is look-only**, its own included (Igor, 2026-11-10). The list has no *+ New board*;
   every board opens to pan and pinch, with no tool picker, no Board menu and no ghosts, and the bar says *Look only on
-  iPhone: draw on the iPad*. *Send to Larry* stays, as on every look-only board but one drawn on the old canvas (*Which
+  iPhone: draw on the iPad*. *Send to Larry* stays, as on every look-only board (*Which
   look-only boards can be sent*, below, story 1200): a board can still be talked about
   from the phone (Igor: "Maybe we can do chat"). Delete and, on the iPhone's own boards, Rename stay in the list. A board the iPhone drew
   before this keeps its ink and opens look-only like the rest.
 - **Which look-only boards can be sent** (story 1200, bead context-grabber-xg3). A look-only board's bar says why it is
-  look-only, in this order of precedence, and has *Send to Larry* unless it was drawn on the old canvas:
+  look-only, in this order of precedence, and every one has *Send to Larry*:
   - a board that could not be read: *Couldn't be read: look only*; Send is there and dimmed, with nothing read to send;
   - on an iPhone, any board: *Look only on iPhone: draw on the iPad*; Send is there;
-  - another device's board: *Drawn on <that device>: look only*; Send is there;
-  - this device's board from the old canvas: *Drawn on the old canvas: look only*; no Send.
-  A board drawn on the old canvas has no Send wherever it opens, whichever note it shows (another device's, or an
-  iPhone's): its ink is moved onto pages to be shown, not where it is saved, so there is no frame to show Larry and
-  nowhere for his marks to land. Its reply would have nothing to sit on. Any other look-only board can still be talked
-  about; its reply shows only in Chat, as the board takes no turn and doesn't look.
+  - another device's board: *Drawn on <that device>: look only*; Send is there.
+  A look-only board can still be talked about; its reply shows only in Chat, as the board takes no turn and doesn't
+  look.
 - **Without iCloud** (signed out, or no network), the list shows what this device already has and says that boards
   aren't syncing. Drawing still works, and the board goes up the next time it can.
 - **A sync iCloud turns down tries again by itself** (#1002: on the iPad, the first sync after the app was closed with
@@ -158,7 +155,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - VoiceOver reads what the press will do: *Undo Keep all*, *Redo Paste*, or plain *Undo* and *Redo* for a step with
     no name (his own stroke). Dimmed, it says so.
   - A press doesn't cost a stroke: the next stroke after it draws, as after the Board menu.
-  - A board only looked at (another device's, or the old canvas's) has neither, as it has no tool picker.
+  - A board only looked at (another device's, or any on an iPhone) has neither, as it has no tool picker.
 - **The top bar's groups and labels** (#1005; Igor's design critique of the iPad board, 2026-11-20: "Nothing says what
   the sparkle and hand icons do. There is a large empty gap between the palette and the mic in the right-hand group").
   - **Three groups.** The way back and *Undo*/*Redo* on the left; on the right the board's own things, the **Board**
@@ -203,11 +200,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - **A page number** floats at the corner: *Page 2 of 3*, for the page mostly on screen. It stays put while the board
     scrolls, stays out of the way of drawing, and isn't in any picture.
   - A board opens where he left it on this device, or at its first page if it's new to this device.
-  - **Boards from before pages** move onto pages the first time they open once that step ships (see *On paper* below for
-    the order). No stroke is scaled or lost and each stays in the same place relative to the others, with a little blank
-    paper between the ink and the first page's corner. A board with ink wider than a page keeps its own wider width, and
-    can pan sideways to that width. Every page on that board is that width and still about 1,060 tall. Anything Larry or
-    Claude drew on it stays on the ink it was drawn beside.
+  - **Boards from before pages** (drawn on the old canvas) are dropped: see *Paper is the only canvas* below.
   - **A mark past the page edge** widens that board, by the same rule as wide ink. Nothing is clipped.
 - **Grid lines** (Igor, 2026-11-02: "Let's give me the ability to enable grid lines"; #608). *Grid lines*, in the **Board**
   menu with the colours, turns faint lines on and off, on the device that draws the board.
@@ -279,15 +272,16 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 Igor tried the trial on his iPad on 2026-11-03: "Okay, I like that. Let's make it the default." He meant the board on
 Apple's PaperKit. His earlier decisions stand: a column of page-width boards with paper lines, old boards moving onto
-pages, strokes that never scale, and Larry seeing the pages on screen.
+pages (until 2026-11-22, below), strokes that never scale, and Larry seeing the pages on screen.
 
 **Paper is the only canvas** (Igor, 2026-11-07: "get rid of old canvas, only use new paper code. Old canvas can be erased").
 Every board is drawn on paper. The old canvas, its switch and the trial are gone.
 
-- **A board drawn on the old canvas is look-only** (Igor's choice, 2026-11-07). It opens on paper with every stroke where it
-  was and its colour, can be panned and pinched and deleted from the list, as any look-only board can, but not drawn on,
-  erased, pasted on, sent or given ghosts, wherever it opens (story 1200). The bar says *Drawn on the old canvas: look only*. Its row in the list doesn't say *On paper*.
-  To keep drawing on one, Igor starts a new board.
+- **Boards drawn on the old canvas are dropped** (Igor, 2026-11-22: "drop the old canvas"; no conversion). From
+  2026-11-07 they opened look-only, their ink moved onto the first page (story 658, now retired). Now they are left out
+  of the boards list on every device, and a link or *Jump to board* to one shows the copyable problem *This board was
+  drawn on the old canvas, which is gone: it can't be opened*. Their files are not deleted: nothing is erased from the
+  device or iCloud, they just aren't shown.
 - **A board on paper from another device** stays look-only on this one, as every board is, now shown on paper.
 
 **The app needs iOS 27 from here on.** Reading ink back out of PaperKit starts there, and Igor's iPhone and iPad both run
@@ -318,7 +312,7 @@ so." New boards are on paper from now on, on every device, though the rest of th
 - **It's a real board.** It keeps its name and colour, can be renamed and deleted, saves a moment after each stroke and again
   on leaving or going to the background, goes through iCloud, and leaves no row behind if it closes without a stroke. It
   opens where he left it on this device.
-- **On another device** it opens look-only, on paper, with the same ink. Older builds show it on their old canvas.
+- **On another device** it opens look-only, on paper, with the same ink.
 - **If a save fails,** the board shows the copyable problem and keeps drawing. If the failure comes as he leaves the board,
   the problem shows on the boards list instead of going with it, whichever canvas the board is on, until that board next
   saves.
@@ -329,7 +323,7 @@ so." New boards are on paper from now on, on every device, though the rest of th
 - **Grid and ruled lines.** The **Board** menu offers *Grid lines* and *Ruled lines*, as *Grid lines* above describes: a grid,
   ruled lines or neither, choosing one takes away the other, the grid on for a new board, and remembered per board on this device. They lie
   under the ink and the ghosts, on every page. The grid's squares run on unbroken from page to page; ruled lines start again at
-  each page's top. Pinching out thins them as it does on the old canvas, so a phone showing a whole page's width shows every
+  each page's top. Pinching out thins them, so a phone showing a whole page's width shows every
   second line. Neither is ink: they can't be erased, lassoed or undone, and they're not in the saved drawing, the card or any
   picture.
 - **Colour on paper.** A board on paper has the five colours, kept and shared as *The board's colour* says, in their pale shade
@@ -358,11 +352,11 @@ paper. That description is the requirement, and this lists only where paper need
   [Whiteboard: Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md).
 - **A ghost sits on the paper.** It moves and zooms with the board exactly as the ink does, because it lies on the same sheet:
   it can't drift off the ink or trail behind a scroll or a pinch.
-- **A ghost lies under the ink, as the page lines do.** Where one crosses ink, the ink is on top. On the old canvas it lay over
-  the ink. That's the one difference in how it looks, and it's what keeps it from ever lagging. It's Igor's to overrule.
+- **A ghost lies under the ink, as the page lines do.** Where one crosses ink, the ink is on top. That's what keeps it from
+  ever lagging. It's Igor's to overrule.
 - **A ghost is never ink until it's kept.** It isn't in the drawing, the saved file, any picture or the strokes Larry gets.
   Leaving the board with a ghost showing saves nothing of it.
-- **A finger tap keeps or dismisses,** as on the old canvas: on a ghost it keeps that one, off them it dismisses Claude's;
+- **A finger tap keeps or dismisses:** on a ghost it keeps that one, off them it dismisses Claude's;
   Larry's go only to a tap off them once Claude's are gone (#823).
   While ghosts show, a finger doesn't draw, wherever a finger would, so a tap leaves no dot and selects nothing; its drag
   pans. A tap off them gives a finger with no Pencil in use its pen back, and with none left it goes back to what it
@@ -416,8 +410,8 @@ only where a page needs saying.)
 - **Where it lands.** In the middle of the part of the paper on screen. A phone's one page, shorter than the screen, has its
   middle on the paper, not in the margin around it.
 - **It stays on the page's width.** A line wider than the part of the page on screen wraps, and nothing lands past a side.
-- **It lands wherever he is.** However far down the board he has gone, the text is in the middle of the view: the old canvas's
-  edge doesn't apply, as paper has none below.
+- **It lands wherever he is.** However far down the board he has gone, the text is in the middle of the view, as paper has no
+  edge below.
 - **A paste brings its pages.** Text running past the last page's end, or ending on it, brings the pages it needs, with the blank
   one below as for any ink.
 - **One undo takes the whole paste back,** with any pages it brought, and one redo brings them back. His strokes before it stay.
@@ -425,8 +419,7 @@ only where a page needs saying.)
   each with the same name every time they're sent.
 - **Strokes he copied.** With a hardware keyboard, when the clipboard holds copied strokes and no text, ⌘V pastes them, and
   they're ink like any other: one undo, the pages they need, Claude's pause. PaperKit places them if it will; if it won't, they land
-  with their middle in the middle of the paper on screen, at their own size, and on the page's width. Text on the clipboard wins, as
-  on the old canvas.
+  with their middle in the middle of the paper on screen, at their own size, and on the page's width. Text on the clipboard wins.
 - **A picture on the clipboard isn't pasted,** as on any board: pasting images isn't something boards do, and only strokes are
   saved, so one on the board would vanish on leaving. The board doesn't change.
 
@@ -834,7 +827,7 @@ built; the words and the sound (options 2 and 3) wait for his choice below.
 ## Trial on paper (removed 2026-11-07)
 
 The trial (#635, #636) settled what it was for: Igor made paper the default on 2026-11-03 and the only canvas on 2026-11-07.
-*Try on paper* is gone with the old canvas.
+*Try on paper* is gone with the old canvas, and boards drawn on the old canvas are dropped (2026-11-22).
 
 ## Later steps (not in this build)
 
@@ -870,8 +863,7 @@ that ghosts need the tailnet.
 - A new board is one page wide and scrolls only up and down. Draw to the bottom of a page and keep scrolling: a blank
   page is always there. The ink keeps Notes' feel past 4,000 and past 9,600 points down the column.
 - Pinching out stops at the page's width. The page number reads right while scrolling, and isn't in any picture.
-- An old board opens look-only on paper, with every stroke where it was relative to the others, none scaled. One wider
-  than a page keeps its width. Nothing draws on it.
+- A board drawn on the old canvas is not in the boards list, and a link to one shows the copyable problem that says why.
 - There is no *New boards on paper* switch and no *Try on paper*: every new board is on paper.
 - A new board made after the default ships is on paper, shows no test cross or ring, and an older build still opens it.
 - A save that fails on a board on paper shows a problem that can be copied, on the board or, when leaving it, on the list.

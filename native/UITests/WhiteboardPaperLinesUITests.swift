@@ -1,7 +1,6 @@
 //  Stories 434, 523, 538, 652–657 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it):
 //  what the sheet under a board on paper shows: its lines and colours, by the screen's own pixels, as the board isn't in the
-//  accessibility tree. The old canvas's are `WhiteboardTurnUITests`', and a board on paper staying light in dark mode is
-//  `WhiteboardOnPaperUITests`'.
+//  accessibility tree. A board on paper staying light in dark mode is `WhiteboardOnPaperUITests`'.
 
 import XCTest
 

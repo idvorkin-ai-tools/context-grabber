@@ -432,7 +432,9 @@ final class BoardIndexTests: XCTestCase {
   /// why; one it has opens.
   func testABoardThatCantOpenSaysWhy() {
     var phone = BoardIndex()
-    let board = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad")
+    let board = BoardEntry(
+      id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad",
+      onPages: true)
     _ = phone.merge(cloud: [board], device: "phone")
     XCTAssertEqual(
       phone.whyNotOpen("gone"), "This board isn't on this device: it was deleted, or iCloud hasn't brought it here.")
@@ -457,7 +459,8 @@ final class BoardIndexTests: XCTestCase {
   /// down, so a failed first download never opens blank; one that arrived once stays while a newer version fails.
   func testABoardIsListedOnlyOnceItsDrawingIsHere() {
     var phone = BoardIndex()
-    let board = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad")
+    let board = BoardEntry(
+      id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad", onPages: true)
     XCTAssertEqual(phone.merge(cloud: [board], device: "phone").fetch, ["a"])
     XCTAssertEqual(phone.shown.map(\.id), [], "its first download hasn't landed: nothing to open")
     phone.fetched("a", at: 10)
@@ -471,9 +474,9 @@ final class BoardIndexTests: XCTestCase {
   /// A reinstalled iPad gets its own board back from iCloud: not listed, so not drawn over blank, until its drawing is.
   func testAnOwnBoardBackFromICloudIsListedOnceItsDrawingIsHere() {
     var ipad = BoardIndex()
-    ipad.add(id: "new", at: nov1, device: "ipad", deviceName: "iPad")
+    ipad.add(id: "new", at: nov1, device: "ipad", deviceName: "iPad", onPages: true)
     let lost = BoardEntry(
-      id: "a", title: "A", created: 1, updated: 10, strokes: 4, device: "ipad", deviceName: "iPad")
+      id: "a", title: "A", created: 1, updated: 10, strokes: 4, device: "ipad", deviceName: "iPad", onPages: true)
     XCTAssertEqual(ipad.merge(cloud: [lost], device: "ipad").fetch, ["a"])
     XCTAssertEqual(ipad.shown.map(\.id), ["new"], "a board made here has nothing to wait for")
     ipad.fetched("a", at: 10)
@@ -490,18 +493,25 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.merge(cloud: [cloudCopy], device: "ipad").fetch, [])
   }
 
-  // MARK: Stories 590, 593–595, 606, 658: which boards can be drawn on
+  // MARK: Stories 590, 593–595, 606, 1204: which boards can be drawn on
 
   private let aDate = Date(timeIntervalSince1970: 1_800_000_000)
 
-  func testOnlyABoardMadeOnPaperCanBeDrawnOn() {
+  /// Story 1204: a board drawn on the old canvas, before paper, is dropped: out of the list, and a link to it says why.
+  func testABoardFromTheOldCanvasIsDropped() {
     var index = BoardIndex()
     index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
     index.add(id: "new", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
-    XCTAssertEqual(index.board("old").map { BoardIndex.drawable($0, on: "ipad") }, false, "story 658: look-only")
-    XCTAssertEqual(index.board("new").map { BoardIndex.drawable($0, on: "ipad") }, true)
-    XCTAssertEqual(index.board("old").map(BoardIndex.drawnOnTheOldCanvas), true)
-    XCTAssertEqual(index.board("new").map(BoardIndex.drawnOnTheOldCanvas), false)
+    let theirsOld = BoardEntry(
+      id: "theirs-old", title: "T", created: 1, updated: 2, strokes: 1, device: "ipad2", deviceName: "Studio iPad")
+    _ = index.merge(cloud: [theirsOld], device: "ipad")
+    index.fetched("theirs-old", at: 2)
+    XCTAssertEqual(index.shown.map(\.id), ["new"])
+    let gone = "This board was drawn on the old canvas, which is gone: it can't be opened."
+    XCTAssertEqual(index.whyNotOpen("old"), gone)
+    XCTAssertEqual(index.whyNotOpen("theirs-old"), gone)
+    XCTAssertNil(index.whyNotOpen("new"))
+    XCTAssertNotNil(index.board("old"), "nothing is erased: only showing it is gone")
   }
 
   func testABoardOnPaperIsDrawnOnOnlyWhereItsMade() {
@@ -510,38 +520,19 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertFalse(BoardIndex.drawable(board, on: "iphone"), "the look-only view elsewhere")
   }
 
-  /// Story 658: the bar names why a board is look-only. Another device's board says whose it is, whichever canvas it was
-  /// drawn on; this device's own old board says it's from the old canvas.
-  func testTheBarSaysWhyABoardIsLookOnly() {
+  /// Story 1200: every look-only board says why (and every one has Send, the board's bar shows it on all of them).
+  func testEveryLookOnlyBoardCanBeSent() {
     var index = BoardIndex()
     let mine = index.add(id: "mine", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
-    let old = index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
-    let theirs = index.add(id: "theirs", at: aDate, device: "iphone", deviceName: "iPhone", onPages: true)
-    let theirsOld = index.add(id: "theirs-old", at: aDate, device: "iphone", deviceName: "iPhone")
-    XCTAssertNil(BoardIndex.lookOnlyNote(mine, on: "ipad"))
-    XCTAssertEqual(BoardIndex.lookOnlyNote(old, on: "ipad"), "Drawn on the old canvas: look only")
-    XCTAssertEqual(BoardIndex.lookOnlyNote(theirs, on: "ipad"), "Drawn on iPhone: look only")
-    XCTAssertEqual(BoardIndex.lookOnlyNote(theirsOld, on: "ipad"), "Drawn on iPhone: look only")
-  }
-
-  /// Story 1200: every look-only board says why, and all but the old canvas's have Send, whichever note shows.
-  func testEveryLookOnlyBoardButTheOldCanvassCanBeSent() {
-    var index = BoardIndex()
-    let mine = index.add(id: "mine", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
-    let old = index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
     let theirs = index.add(id: "theirs", at: aDate, device: "ipad2", deviceName: "Studio iPad", onPages: true)
-    let theirsOld = index.add(id: "theirs-old", at: aDate, device: "ipad2", deviceName: "Studio iPad")
-    let cases: [(BoardEntry, String, Bool, String?, Bool)] = [
-      (mine, "ipad", false, nil, true),
-      (theirs, "ipad", false, "Drawn on Studio iPad: look only", true),
-      (theirsOld, "ipad", false, "Drawn on Studio iPad: look only", false),
-      (old, "ipad", false, "Drawn on the old canvas: look only", false),
-      (theirs, "iphone", true, "Look only on iPhone: draw on the iPad", true),
-      (old, "iphone", true, "Look only on iPhone: draw on the iPad", false),
+    let cases: [(BoardEntry, String, Bool, String?)] = [
+      (mine, "ipad", false, nil),
+      (theirs, "ipad", false, "Drawn on Studio iPad: look only"),
+      (theirs, "iphone", true, "Look only on iPhone: draw on the iPad"),
+      (mine, "iphone", true, "Look only on iPhone: draw on the iPad"),
     ]
-    for (board, device, onPhone, note, sendable) in cases {
-      XCTAssertEqual(BoardIndex.lookOnlyNote(board, on: device, onPhone: onPhone), note, board.id)
-      XCTAssertEqual(BoardIndex.sendable(board), sendable, "\(board.id) on \(device)")
+    for (board, device, onPhone, note) in cases {
+      XCTAssertEqual(BoardIndex.lookOnlyNote(board, on: device, onPhone: onPhone), note, "\(board.id) on \(device)")
     }
   }
 
@@ -563,11 +554,12 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertTrue(BoardIndex.startsBoards(onPhone: false))
   }
 
-  func testAListFromBeforePaperStillReadsAndNoBoardInItIsOnPaper() throws {
+  func testAListFromBeforePaperStillReadsAndItsBoardsAreDropped() throws {
     let board = #"{"id":"a","title":"T","created":1,"updated":2,"strokes":1,"device":"ipad","deviceName":"iPad"}"#
     let old = #"{"boards":["# + board + #"],"deleted":[]}"#
     let index = try JSONDecoder().decode(BoardIndex.self, from: Data(old.utf8))
-    XCTAssertEqual(index.board("a").map { BoardIndex.drawable($0, on: "ipad") }, false)
+    XCTAssertNotNil(index.board("a"))
+    XCTAssertEqual(index.shown.map(\.id), [], "story 1204")
   }
 
   func testOnPaperSurvivesTheListBeingSavedAndReadBack() throws {
@@ -588,8 +580,8 @@ final class BoardIndexTests: XCTestCase {
   }
 
   func testABoardOnPaperComesBackFromICloudOnPaper() {
-    // A reinstall or an unreadable list: iCloud gives this device's board back, and it has to reopen on paper, as its
-    // ink sits at the column's corner and not in the old canvas's middle.
+    // A reinstall or an unreadable list: iCloud gives this device's board back, and it has to reopen on paper, not be
+    // taken for one from before paper and dropped.
     var index = BoardIndex()
     let cloud = BoardEntry(
       id: "a", title: "T", created: 1, updated: 2, strokes: 1, device: "ipad", deviceName: "iPad", onPages: true)

@@ -10,7 +10,7 @@ extension PaperBoardController {
   /// Story 1153: the Pencil has touched a board since the app launched, so a finger never draws on any board.
   static var pencilThisLaunch = LaunchHooks.current.whiteboard.pencilSeen
 
-  /// As the old canvas's `.pencilOnly`, which PaperKit doesn't have: while marks or his controls show, a finger selects
+  /// A `.pencilOnly`, which PaperKit doesn't have: while marks or his controls show, a finger selects
   /// rather than draws, and a tap's selection is put straight back, so a tap leaves nothing.
   func fingerTaps(marks: Bool, controls: Bool) {
     finger.marks(marks, controls: controls)

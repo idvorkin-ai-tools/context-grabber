@@ -81,38 +81,28 @@ public struct BoardIndex: Codable, Equatable, Sendable {
   public var sorted: [BoardEntry] { boards.sorted { ($0.updated, $0.id) > ($1.updated, $1.id) } }
 
   /// The list's rows, newest first: a board waits out of it until its first drawing has come down, so a failed first
-  /// download never opens blank, nor gets drawn over blank on the device that made it (bead context-grabber-1jb4).
-  public var shown: [BoardEntry] { sorted.filter(\.arrived) }
+  /// download never opens blank, nor gets drawn over blank on the device that made it (bead context-grabber-1jb4). A
+  /// board drawn on the old canvas, before paper, is never shown (story 1204; Igor, 2026-11-22: "drop the old canvas").
+  public var shown: [BoardEntry] { sorted.filter { $0.arrived && $0.onPages == true } }
 
   public func board(_ id: String) -> BoardEntry? { boards.first { $0.id == id } }
 
   /// Only the device that made a board draws on it.
   public static func editable(_ board: BoardEntry, on device: String) -> Bool { board.device == device }
 
-  /// Every board opens on paper (Igor, 2026-11-07: the old canvas is gone). Only a board made on paper, on the device
-  /// that made it, can be drawn on; the rest are look-only. Nothing is drawn on a phone, its own boards included
-  /// (story 746; Igor, 2026-11-10: "we can't do hand drawing").
+  /// Only the device that made a board draws on it; the rest are look-only. Nothing is drawn on a phone, its own boards
+  /// included (story 746; Igor, 2026-11-10: "we can't do hand drawing").
   public static func drawable(_ board: BoardEntry, on device: String, onPhone: Bool = false) -> Bool {
-    !onPhone && board.onPages == true && editable(board, on: device)
+    !onPhone && editable(board, on: device)
   }
 
   /// A phone only looks at boards, so it starts none (story 746).
   public static func startsBoards(onPhone: Bool) -> Bool { !onPhone }
 
-  /// Drawn on the canvas that's gone: its ink sits where that canvas put it, so it's moved onto pages to be shown, and
-  /// it's look-only even on the device that made it.
-  public static func drawnOnTheOldCanvas(_ board: BoardEntry) -> Bool { board.onPages != true }
-
-  /// Story 1200: whether the board has *Send to Larry*. Every board but one drawn on the old canvas, wherever it opens:
-  /// that one's ink is moved onto pages to be shown, not where it's saved, so there is no frame to show Larry.
-  public static func sendable(_ board: BoardEntry) -> Bool { !drawnOnTheOldCanvas(board) }
-
   /// What the bar says on a board that can't be drawn on here; nil on one that can.
   public static func lookOnlyNote(_ board: BoardEntry, on device: String, onPhone: Bool = false) -> String? {
     if onPhone { return "Look only on iPhone: draw on the iPad" }
-    if drawable(board, on: device) { return nil }
-    if !editable(board, on: device) { return "Drawn on \(board.deviceName): look only" }
-    return "Drawn on the old canvas: look only"
+    return editable(board, on: device) ? nil : "Drawn on \(board.deviceName): look only"
   }
 
   /// Why the board can't be opened as it is now (#603): not on this device, or its latest drawing not down from iCloud
@@ -124,6 +114,10 @@ public struct BoardIndex: Codable, Equatable, Sendable {
         ? "This board isn't on this device: it was deleted, or iCloud hasn't brought it here."
         : "This board isn't on this device, and this build can't reach iCloud to bring it here: open it on the device"
           + " that drew it."
+    }
+    // Story 1204: made before paper (`onPages` is set on every board since), so dropped with the old canvas.
+    if board.onPages != true {
+      return "This board was drawn on the old canvas, which is gone: it can't be opened."
     }
     return board.current
       ? nil : "This board's latest drawing hasn't come down from iCloud, so it can't be opened as it is now."
