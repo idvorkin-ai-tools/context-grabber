@@ -960,7 +960,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1204:
 
 - **Summary:** Boards drawn on the old canvas are dropped
-- **Status:** implemented in COMMIT; verified by host tests (`BoardIndexTests`: such a board is out of the list and a link to it says why), `just native-test`, the Mac build and the iPad simulator whiteboard suite; not yet seen on the iPad. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Status:** implemented in COMMIT; verified by host tests (`BoardIndexTests`: such a board is out of the list and a link to it says why; `BoardKeepingTests`: through a relaunch, still kept), `just native-test`, the Mac build and the iPad simulator whiteboard suite; not yet seen on the iPad. No iPhone runs (whiteboard work, Igor 2026-11-22)
 - **Issues:** bead context-grabber-3v69 (the dead-code sweep, area C; Igor 2026-11-22 via Larry: "drop the old canvas", no conversion step)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Paper is the only canvas*
 

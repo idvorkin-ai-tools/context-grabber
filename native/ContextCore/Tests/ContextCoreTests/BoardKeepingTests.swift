@@ -356,7 +356,7 @@ final class BoardKeepingTests: XCTestCase {
     keeping.removeFiles("a")  // Files already gone are what was asked for.
   }
 
-  // MARK: Story 658: which boards can be drawn on, through a relaunch
+  // MARK: Story 1204: a board from the old canvas stays dropped through a relaunch
 
   func testABoardKeepsWhatItWasMadeOnThroughARelaunch() throws {
     let keeping = keeping()
@@ -366,7 +366,8 @@ final class BoardKeepingTests: XCTestCase {
     try keeping.writeIndex(index)
     let relaunched = BoardKeeping(dir: dir, disk: TestDisk()).readIndex()
     XCTAssertNil(relaunched.unreadable)
-    XCTAssertEqual(relaunched.index.board("old").map { BoardIndex.drawable($0, on: "ipad") }, false)
+    XCTAssertEqual(relaunched.index.shown.map(\.id), ["paper"], "the old canvas's board stays out of the list")
+    XCTAssertNotNil(relaunched.index.board("old"), "and is still kept")
     XCTAssertEqual(relaunched.index.board("paper").map { BoardIndex.drawable($0, on: "ipad") }, true)
   }
 
