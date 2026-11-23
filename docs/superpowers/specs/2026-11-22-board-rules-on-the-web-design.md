@@ -258,6 +258,25 @@ lines, for the same reasons, over the loaded outline. `bw_info` says `"abi": 9`;
   nor writing that is not his (a kept text, a card, a group of Larry's).
 - Asking changes nothing: the loaded outline stays as it was.
 
+## The interface, version 10: what moves whole, and its rows
+
+Story 1263. The boxes the web board cuts, pushes and folds around are the app's: what moves whole on the loaded
+outline, by the app's rule for it, and the rows they make. `bw_info` says `"abi": 10`; versions 1 to 9 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_rows` | none | a reply: `{"units": [{"names", "tag", "header", "box"}], "rows": [{"top", "bottom"}]}`; `{"error"}` with no outline |
+
+- A unit is what moves whole: a lone stroke, a kept text or card, a group of Larry's, or a header's row with
+  everything folded under it. `names` are its strokes' and boxes' names in board order (a folded header's include what
+  it hides); `tag` is its text, card, group or `h:<header>`, null for a lone stroke; `header` is its header's id, or
+  null; `box` is `[left, top, right, bottom]`, what shows of it (a folded header's is its own row).
+- Units come in board order; a hidden thing is only in the unit of the header that folded it, and one with nothing
+  showing is not listed.
+- Rows are the heights units take, top down, units that overlap merged: every height between two rows is a clear
+  line, the boxes `bw_load` can be given.
+- Asking changes nothing.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

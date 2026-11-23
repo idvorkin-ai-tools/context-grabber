@@ -1707,6 +1707,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1263:
+
+- **Summary:** The web board asks the app's own rules what moves whole and the rows it makes
+- **Status:** in progress
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 10
+- **Issues:** Larry's list of the web board's rules still in JavaScript, 2026-11-23 (units and rows)
+
+#### Use Case:
+- **As Igor,** writing on the Cockpit's web ink board
+- **I want to** have the web board take what moves whole, and where the clear lines are, from the app's own rules
+- **so that** a cut, a push or a fold on the web never splits what the iPad keeps whole
+
+#### Acceptance Criteria:
+- **Scenario:** The web board's units and rows are the app's
+- **Given:** an outline loaded into the module: a hand-worked one with a header folded over a line, a kept text and a group of Larry's, and the Cockpit's recorded boards and seeded ones
+- **When:** the module is asked for its units and rows
+- **Then:** it gives the app's own units, in board order with the same names and boxes (the folded header one unit with what it hides, its box its own row; the text and the group whole), and the rows they make; with no outline loaded it says so
+
+---
+
 ### User Story 1267:
 
 - **Summary:** The web board asks the app's own rules which lines look like headers
