@@ -8,4 +8,4 @@
 # passed in the same run, the whole history holds 7 such passes (PaperGhosts 5, fixed by #1051; Reword 1; ChatImage
 # 1). The "57 retried" PaperPaste lines were #906's deliberate 40-iteration repeat runs, not retries, so no class
 # earns a quarantine on the numbers; the one below is the flake still open, unexplained after its fix.
-WhiteboardPaperPasteUITests.testAPasteLandsInTheMiddleOfThePaperOnScreen context-grabber-2jw #906: no dark letters on screen about 1 run in 6; #962's heal not yet seen to fire
+WhiteboardPaperPasteUITests.testAPasteLandsInTheMiddleOfThePaperOnScreen context-grabber-2jw #906: no dark letters on screen about 1 run in 6 (2026-11-14), unseen since in 92 runs; every heal logged before 2jw's fix was a stale look at ink already gone

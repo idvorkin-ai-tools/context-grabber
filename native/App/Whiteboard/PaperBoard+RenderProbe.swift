@@ -7,7 +7,8 @@ extension PaperBoardController {
   /// A second after ink is kept or pasted or the sheet changes under it, whether the view's own picture has it. 0 with the
   /// ink in view is the ink missing, and the view redraws and looks again, twice at most, each try moving the view further
   /// (#906: a paste on a centred iPad page went unseen about 1 in 6 on the simulator, and a missed tile the first redraw
-  /// leaves empty was never drawn after). `paper_ink_heal` says a try was made; the look after it, whether it drew.
+  /// leaves empty was never drawn after). `paper_ink_heal` says a try was made; the look after it, whether it drew. Ink
+  /// gone from the board by then (`held` false) is not missing and is never healed (context-grabber-2jw).
   func lookForInk(_ ink: CGRect, why: String, attempt: Int = 0) {
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(1))
@@ -17,14 +18,17 @@ extension PaperBoardController {
       let spot = CGRect(x: corner.x, y: corner.y, width: ink.width * scale, height: ink.height * scale)
       let inView = self.view.bounds.contains(spot)
       let shown = self.shownPixels(in: spot)
+      // context-grabber-2jw: an undo, a delete or a clear inside the second takes the ink away, and its spot reads empty
+      // for that reason, not a missed tile. Only ink still held there can be missing.
+      let held = markup.strokeFrames.values.contains { $0.intersects(ink.insetBy(dx: -1, dy: -1)) }
       self.log.event(
         "whiteboard",
         [
           "action": "paper_ink_look", "why": why, "board": self.model.board.id, "ink": self.rect(ink),
           "spot": self.rect(spot), "in_view": inView, "strokes": markup.subelements.strokes.count,
-          "visible": self.rect(self.paper.contentVisibleFrame), "shown_px": shown, "attempt": attempt,
+          "visible": self.rect(self.paper.contentVisibleFrame), "shown_px": shown, "attempt": attempt, "held": held,
         ])
-      guard inView, shown == 0, !ink.isEmpty, attempt < 2, self.touchesDown == 0 else { return }
+      guard held, inView, shown == 0, !ink.isEmpty, attempt < 2, self.touchesDown == 0 else { return }
       let step: CGFloat = attempt == 0 ? 8 : 32
       self.log.event(
         "whiteboard",

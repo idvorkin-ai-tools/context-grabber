@@ -361,7 +361,8 @@ paper. That description is the requirement, and this lists only where paper need
 - **Ink the app adds is on the screen.** A kept ghost, a paste, an undo or a redo of one shows within half a second, where it
   belongs, with the view staying where it is. Ink that's saved and counted but not shown is a bug, however rarely it happens.
   If the board ever finds such ink missing from the screen a second later, it draws it again on its own, within a few
-  seconds, with no visible jump. Part of a kept mark missing counts too, and so does part of it drawn in a colour that
+  seconds, with no visible jump. Ink taken away in that second (an undo, a delete, a clear) isn't missing: the board
+  neither redraws nor moves for it. Part of a kept mark missing counts too, and so does part of it drawn in a colour that
   isn't its own: a kept text of Larry's whose first letter showed in his purple and the rest blank or black is drawn
   again on its own a second later (context-grabber-ikya); the mark may blink once as it does. If that first try still
   leaves it partly drawn, the view moves a screen away and straight back once, and always ends where it was.
