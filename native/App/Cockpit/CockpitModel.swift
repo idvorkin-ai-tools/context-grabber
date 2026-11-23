@@ -13,8 +13,21 @@ import WebKit
 final class CockpitModel: NSObject, ObservableObject {
   /// Loading, the page, or the panel for the page that failed, with Back and Cockpit (#234): one value, decided in
   /// ContextCore from WebKit's events (spec "Can't connect"); this model only feeds it and applies what it says.
-  @Published private(set) var state: CockpitPage.State
+  @Published private(set) var state: CockpitPage.State {
+    didSet { onTitleChange?() }  // story 233: a failed or reloading page renames its window
+  }
   private var backObservation: NSKeyValueObservation?
+  private var titleObservation: NSKeyValueObservation?
+  /// Story 233: the Cockpit's name for its view changed, or the page it shows did. AppModel renames the windows; the
+  /// lazily built model's changes don't reach AppModel's own change signal, so it is told here.
+  var onTitleChange: (() -> Void)?
+
+  /// Story 233: the Cockpit's own name for the view it shows (*Cockpit · Machines*, its story 211); nil until the page
+  /// has named itself, while it loads or failed, and on a page a link took the web view to that isn't the Cockpit's.
+  var pageTitle: String? {
+    guard case .shown = state.page, let web = builtWebView, let url = web.url, state.isCockpit(url) else { return nil }
+    return web.title
+  }
 
   private let log: SessionLog
   private let route: AudioRouteController
@@ -83,6 +96,10 @@ final class CockpitModel: NSObject, ObservableObject {
     // Back-forward list changes (including the page's own pushState) move canGoBack without a didFinish.
     backObservation = web.observe(\.canGoBack, options: [.new]) { [weak self] web, _ in
       Task { @MainActor in self?.state.apply(.backList(canGoBack: web.canGoBack)) }
+    }
+    // Story 233: the page names each view in document.title, hash changes included, without a navigation.
+    titleObservation = web.observe(\.title, options: [.new]) { [weak self] _, _ in
+      Task { @MainActor in self?.onTitleChange?() }
     }
     web.uiDelegate = self
     web.allowsBackForwardNavigationGestures = true

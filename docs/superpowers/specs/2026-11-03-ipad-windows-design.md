@@ -46,8 +46,23 @@ and how, is iPadOS's own choice.
 The home window on the home grid is called Home. When it shows something else the name follows, and it returns to Home
 when that closes: a Gym Timer, Box breathing, a call (*Call Larry*), Settings, the eulogy song's sheet (*Eulogy song*)
 and What's new are named as their tiles and rows are, as are the six above when they are up at home. A screen's window
-shows only its one screen, so its name stays. What is opened inside a screen doesn't rename the window: a thread in
-Chat is still Chat, a metric's week over Today is still Today.
+shows only its one screen, so its name stays. What is opened inside a screen doesn't rename the window: a metric's week
+over Today is still Today.
+
+**Its name says what's open in it** (Igor, 2026-11-22, feedback via Larry: window titles follow the view, as the Cockpit
+now does in its browser tab). Three screens add what is open in them to the name, *place · detail*, so a Mac's window
+list or the iPad's switcher reads alike across the app and the Cockpit:
+- **The Cockpit** takes the Cockpit's own name for the view it shows: *Cockpit · Inbox (3)*, *Cockpit · Machines*,
+  *Cockpit · <a thread's title>*, *Cockpit · Ink · <board>*, and so on, the same words as its browser tab, changing
+  as Igor moves around it. Until the page has said its name, while it fails to load, or when it shows a page that
+  isn't the Cockpit's, the window is plain *Cockpit*.
+- **Chat** with a thread open is *Chat · <the thread's title>*; on the list of threads it is *Chat*.
+- **The Whiteboard** with a board open is *Whiteboard · <the board's name>*, and follows a rename; on the list of
+  boards it is *Whiteboard*.
+
+The detail is the title as plain words (no markdown marks; a link reads as its label), cut to 40 characters with *…*,
+as the Cockpit cuts its own. The home window showing one of the three names itself the same way. Every other screen
+keeps its tile's name.
 
 A window choosing what to show, while home is open in another window, has no screen to be named after, and the app gives it no name. On a
 phone the app names nothing.
@@ -112,6 +127,11 @@ screen.
 - A link, a Shortcut or a notification with the home window closed still lands somewhere.
 - A link that lands in the home window, from another window in front, brings the home window forward.
 - A screen's window is named for its screen, by the name on its home tile, from the moment it opens.
+- The Cockpit's window carries the Cockpit's name for its view (*Cockpit · Machines*), and is plain *Cockpit* until
+  the page names itself, while it can't load, or on a page that isn't the Cockpit's.
+- A Chat window with a thread open is *Chat · <thread title>*, and a Whiteboard window with a board open is
+  *Whiteboard · <board name>*; the detail is plain words cut to 40 characters with *…*; back on the list, the window
+  is *Chat* or *Whiteboard* again.
 - The home window is named Home on the home grid, takes the name of what it shows when that goes up, and is Home again
   when that closes. A screen opening or closing in another window doesn't rename it.
 - A window choosing what to show has no name from the app. Choosing Chat there makes it the Chat window, named Chat;

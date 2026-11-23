@@ -66,7 +66,7 @@ extension AppModel {
       let name: String
       switch ledger.role(of: scene.session.persistentIdentifier) {
       case .home: name = homeWindowName
-      case .screen(let screen): name = tileName(screen.tile)
+      case .screen(let screen): name = windowName(screen)
       case .noScreen: name = ""
       }
       let was = scene.title ?? ""
@@ -78,13 +78,31 @@ extension AppModel {
 
   private func tileName(_ tile: String) -> String { HomeRow.row(tile)?.title ?? "" }
 
+  /// Story 233: a screen's name, with what is open in it: the Cockpit's own name for its view, Chat's open thread, the
+  /// Whiteboard's open board. Each is read only when that screen is up, so naming builds nothing lazily.
+  private func windowName(_ screen: WindowScreen) -> String {
+    let tile = tileName(screen.tile)
+    switch screen {
+    case .cockpit: return WindowTitle.name(tile: tile, pageTitle: cockpit.pageTitle)
+    case .chat:
+      // `title(of:)` answers "Chat" for a thread it can't name yet: no detail then, rather than *Chat · Chat*.
+      let thread = chat.openThread.map { chat.title(of: $0) }.flatMap { $0 == "Chat" ? nil : $0 }
+      return WindowTitle.name(tile: tile, detail: thread)
+    case .whiteboard:
+      return WindowTitle.name(tile: tile, detail: whiteboardOnScreen.flatMap { whiteboards.index.board($0)?.title })
+    case .today, .places, .card: return tile
+    }
+  }
+
   /// What the home window is showing: the covers first, as they sit over everything in its stack.
   private var homeWindowName: String {
     switch screens.named {
     case .home: return "Home"
     case .whatsNew: return "What's new"  // the home row's words; it has no tile
     // Everything else in `HomeStack.order` has a tile; the drill and a metric's week are never in `up`.
-    case let shown: return tileName(shown.tile ?? "")
+    case let shown:
+      let tile = shown.tile ?? ""
+      return WindowScreen(tile: tile).map(windowName) ?? tileName(tile)
     }
   }
 

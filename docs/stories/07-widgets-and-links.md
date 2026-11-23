@@ -1359,6 +1359,103 @@ apart."*
 
 ---
 
+### User Story 233:
+
+- **Summary:** A window's name says what's open in it, as the Cockpit's tab does
+- **Status:** native app only: implemented in [0d9609c9](https://github.com/idvorkin/context-grabber/commit/0d9609c9); verified by host tests and lint (`just native-test`, `WindowTitleTests`: the Cockpit's `pageTitle` and `titleDetail` cases) and the Mac build (`just native-build-mac`); not yet seen in a window on the iPad or the Mac. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-ds8r (Igor, 2026-11-22, feedback via Larry: window titles follow the view, as the
+  Cockpit now does, its story 211)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md), *Its name says what's open in it*
+
+#### Use Case:
+- **As** Igor with the app in several windows on the iPad or the Mac
+- **I want to** see in each window's name what it shows, in the same words the Cockpit's browser tab uses
+- **so that** I can pick the right window from the Mac's window list or the iPad's switcher without opening each one
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit in a window
+- **Given:** the Cockpit is open in a window of its own (or in the home window)
+- **When:** I move to its Machines view
+- **Then:** the window is named *Cockpit · Machines*, the Cockpit's own name for the view
+
+### User Story 234:
+
+- **Summary:** The Cockpit's window is plain Cockpit until its page names itself
+- **Status:** native app only: implemented in [0d9609c9](https://github.com/idvorkin/context-grabber/commit/0d9609c9); verified by host tests and lint (`just native-test`, `WindowTitleTests`: the Cockpit's `pageTitle` and `titleDetail` cases) and the Mac build (`just native-build-mac`); not yet seen in a window on the iPad or the Mac. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-ds8r (Igor, 2026-11-22, feedback via Larry: window titles follow the view, as the
+  Cockpit now does, its story 211)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md), *Its name says what's open in it*
+
+#### Use Case:
+- **As** Igor with the app in several windows on the iPad or the Mac
+- **I want to** see a plain name while the Cockpit's page hasn't said what it shows
+- **so that** the window never carries a stale or a stranger page's name
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit before it names itself
+- **Given:** the Cockpit's page hasn't loaded, can't load, or a link took it to a page that isn't the Cockpit's
+- **When:** I look at the window's name
+- **Then:** it is plain *Cockpit*
+
+### User Story 235:
+
+- **Summary:** A Chat window's name carries the open thread's title
+- **Status:** native app only: implemented in [0d9609c9](https://github.com/idvorkin/context-grabber/commit/0d9609c9); verified by host tests and lint (`just native-test`, `WindowTitleTests`: the Cockpit's `pageTitle` and `titleDetail` cases) and the Mac build (`just native-build-mac`); not yet seen in a window on the iPad or the Mac. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-ds8r (Igor, 2026-11-22, feedback via Larry: window titles follow the view, as the
+  Cockpit now does, its story 211)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md), *Its name says what's open in it*
+
+#### Use Case:
+- **As** Igor with the app in several windows on the iPad or the Mac
+- **I want to** see which thread a Chat window has open
+- **so that** I can find the conversation I want among my windows
+
+#### Acceptance Criteria:
+- **Scenario:** A thread open in Chat
+- **Given:** Chat is open in a window on its list of threads
+- **When:** I open a thread
+- **Then:** the window is *Chat · <the thread's title>*
+
+### User Story 236:
+
+- **Summary:** A Whiteboard window's name follows the open board's name
+- **Status:** native app only: implemented in [0d9609c9](https://github.com/idvorkin/context-grabber/commit/0d9609c9); verified by host tests and lint (`just native-test`, `WindowTitleTests`: the Cockpit's `pageTitle` and `titleDetail` cases) and the Mac build (`just native-build-mac`); not yet seen in a window on the iPad or the Mac. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-ds8r (Igor, 2026-11-22, feedback via Larry: window titles follow the view, as the
+  Cockpit now does, its story 211)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md), *Its name says what's open in it*
+
+#### Use Case:
+- **As** Igor with the app in several windows on the iPad or the Mac
+- **I want to** see which board a Whiteboard window has open, under its current name
+- **so that** the window list matches what I called the board
+
+#### Acceptance Criteria:
+- **Scenario:** Renaming the open board
+- **Given:** a board is open in the Whiteboard window, which is named *Whiteboard · <its name>*
+- **When:** I rename the open board
+- **Then:** the window carries the new name
+
+### User Story 237:
+
+- **Summary:** A long or markdown title is cut to plain words in a window's name
+- **Status:** native app only: implemented in [0d9609c9](https://github.com/idvorkin/context-grabber/commit/0d9609c9); verified by host tests and lint (`just native-test`, `WindowTitleTests`: the Cockpit's `pageTitle` and `titleDetail` cases) and the Mac build (`just native-build-mac`); not yet seen in a window on the iPad or the Mac. No iPhone runs (whiteboard work, Igor 2026-11-22)
+- **Issues:** bead context-grabber-ds8r (Igor, 2026-11-22, feedback via Larry: window titles follow the view, as the
+  Cockpit now does, its story 211)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md), *Its name says what's open in it*
+
+#### Use Case:
+- **As** Igor with the app in several windows on the iPad or the Mac
+- **I want to** see a short, plain name even when a thread's title is long or has markdown in it
+- **so that** the window list stays readable
+
+#### Acceptance Criteria:
+- **Scenario:** A long title
+- **Given:** a thread whose title is long or has markdown in it
+- **When:** it is open in the Chat window
+- **Then:** the name shows its plain words, cut to 40 characters with *…*
+
+---
+
 ### User Story 580:
 
 - **Summary:** One command opens the app on the Mac
