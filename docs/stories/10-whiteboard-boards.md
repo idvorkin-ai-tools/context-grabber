@@ -131,7 +131,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 836:
 
 - **Summary:** Rename a board from its row's swipe
-- **Status:** implemented in [d9fd5cf](https://github.com/idvorkin/context-grabber/commit/d9fd5cf), the rename menu on the board's bar taken out again in [d33c7d0](https://github.com/idvorkin/context-grabber/commit/d33c7d0) (it kept the iPad's Board menu up after a pick); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`) and on an iPad simulator (`WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndShowsItInItsBar`: the swipe's Rename beside Delete, the long press's, the row and the bar taking the name); the real iPad not yet tried
+- **Status:** implemented in [d9fd5cf](https://github.com/idvorkin/context-grabber/commit/d9fd5cf), the rename menu on the board's bar taken out again in [d33c7d0](https://github.com/idvorkin/context-grabber/commit/d33c7d0) (it kept the iPad's Board menu up after a pick; a plain tap on the bar's name renames again since story 1160); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`) and on an iPad simulator (`WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndShowsItInItsBar`: the swipe's Rename beside Delete, the long press's, the row and the bar taking the name); the real iPad not yet tried
 - **Issues:** [#916](https://github.com/idvorkin/context-grabber/issues/916) ("Log bug: Rename boards")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The boards*
 
@@ -185,6 +185,42 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board drawn on another device
 - **When:** I swipe or long-press its row
 - **Then:** it offers *Delete* and no *Rename*
+
+
+---
+
+### User Story 1160:
+
+- **Summary:** Rename a board by tapping its name in the board's own bar
+- **Status:** implemented in [156f1273](https://github.com/idvorkin/context-grabber/commit/156f1273); verified by host tests (`just native-test`) and the Mac build (`just native-build-mac`); on an iPad simulator (`WhiteboardTitleRenameUITests`: a tap on the name opens the box filled with it, a long name shows cut short with every bar button still there, the next stroke draws, the Board menu takes Grey and closes, the row takes the name, another device's board has no tappable name; `WhiteboardRowDeleteUITests` and `WhiteboardPaperLinesUITests.testTheFirstStrokeAfterChoosingTheSameColourDraws` still pass); the real iPad not yet tried
+- **Issues:** bead context-grabber-5chm (Igor, 2026-11-22: he looked for rename inside a board and couldn't find it)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Rename from the board's own bar*
+
+#### Use Case:
+- **As someone** with a board open who wants to give it a better name
+- **I want to** tap the board's name at the top of the board and rename it there
+- **so that** I don't have to go back to the list and find the row's swipe or long press
+
+#### Acceptance Criteria:
+- **Scenario:** Renamed from inside the board
+- **Given:** a board this iPad draws, open, named *Board, Nov 22*
+- **When:** I tap *Board, Nov 22* in the board's top bar, type *Energy week* and tap *Rename*
+- **Then:** the bar says *Energy week* at once, the next stroke draws, the Board menu still opens and closes, back in the list the row says *Energy week* at the top, the other devices take the name on their next sync, and the next picture sent to Larry carries *Energy week* as the board's name
+
+- **Scenario:** Cancel, or a blank name
+- **Given:** the rename box opened from the board's name
+- **When:** I tap *Cancel*, or clear the name and tap *Rename*
+- **Then:** the board keeps its name (story 878)
+
+- **Scenario:** A look-only board
+- **Given:** a board another device draws, an old-canvas board, or any board on an iPhone, open
+- **When:** I tap its name in the bar
+- **Then:** nothing happens; the name is only the name (an iPhone renames its own boards from the list)
+
+- **Scenario:** A long name
+- **Given:** a board renamed to a name longer than the bar has room for
+- **When:** I look at the bar
+- **Then:** the name is cut short and every button stays on the bar
 
 ---
 
