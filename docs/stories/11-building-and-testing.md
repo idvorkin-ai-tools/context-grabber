@@ -1552,7 +1552,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1503:
 
 - **Summary:** The Cockpit's web board runs the app's own board rules, built as WebAssembly
-- **Status:** implemented in 21b61fb2, ad1d2a52, ebb536b7, 525da348, 76810a0f, 1fc93ef2 and this PR's review fixes; verified by the Linux rung (just test-linux: ContextCore's tests under Linux Swift, 2,405 passed; the board's rules built for WASI with the Swift 6.4.2 wasm SDK and `just wasm-test` passing under node), the Mac's host tests and lint (just native-test, 2026-11-22), the Mac build (just native-build-mac) and the iPad simulator (rung 2: WhiteboardTurnUITests, WhiteboardQuestionUITests, CockpitBackUITests, the nine chat classes and the whiteboard classes from Connect to Listening pass; WhiteboardLarryWaitUITests fails on main too, bead context-grabber-5ulm). The web board itself is not yet on the Cockpit.
+- **Status:** implemented in 4dfdaec2, 3f12df04, 65a97722, bb54eb09, 76bdc64e, f0c2cce0 and 5d0f079d; verified by the Linux rung (just test-linux: ContextCore's tests under Linux Swift, 2,405 passed; the board's rules built for WASI with the Swift 6.4.2 wasm SDK and `just wasm-test` passing under node), the Mac's host tests and lint (just native-test, 2026-11-22), the Mac build (just native-build-mac) and the iPad simulator (rung 2: WhiteboardTurnUITests, WhiteboardQuestionUITests, CockpitBackUITests, the nine chat classes and the whiteboard classes from Connect to Listening pass; WhiteboardLarryWaitUITests fails on main too, bead context-grabber-5ulm). The web board itself is not yet on the Cockpit.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md)
 
 #### Use Case:
