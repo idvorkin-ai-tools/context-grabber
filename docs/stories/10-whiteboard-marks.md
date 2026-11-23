@@ -131,7 +131,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 353:
 
 - **Summary:** Larry can't be reached
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7), on the chat path in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); not verified by a test; a tap on *Send to Larry* waits in the outbox instead since [6a1449d7](https://github.com/idvorkin/context-grabber/commit/6a1449d7) (story 1190), so this holds only for a picture a pause hands him
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7), on the chat path in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); not verified by a test; a tap on *Send to Larry* waits in the outbox instead since [90663552](https://github.com/idvorkin/context-grabber/commit/90663552) (story 1190), so this holds only for a picture a pause hands him
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
