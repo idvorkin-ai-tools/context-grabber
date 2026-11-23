@@ -14,8 +14,8 @@ all that jazz". Bead context-grabber-0sf names the questions this proposal puts 
 - **Pushes.** Every push opens room downward from a clear line, in whole lines. It is rigid: everything below the cut
   moves the same distance, all the way to the end of the board.
 - **Folds.** A fold closes up its section and unfolding opens it again.
-- **Drops.** A selection, a kept text or ink dropped on writing pushes that writing down in whole lines (stories 973
-  and 1172).
+- **Drops.** A selection, a kept text or ink dropped on writing pushes that writing down in whole lines (story 973;
+  story 1172 lands with PR #1217).
 - **Erasing.** Erasing a folded section closes the gap it leaves (story 902). Erasing anything else leaves blank paper.
 - **The one rule.** Making room follows one rule (story 1148): Larry's ink never covers writing he didn't see, and
   Igor's newer writing moves down in whole lines.
@@ -70,8 +70,8 @@ is one rule).
 Today:
 
 - A word slid along its own line moves nothing else (story 969).
-- A word dropped onto another line pushes that whole line down in whole lines (stories 973 and 1172). It never moves
-  the line sideways.
+- A word dropped onto another line pushes that whole line down in whole lines (story 973; story 1172 lands with PR
+  #1217). It never moves the line sideways.
 
 A "word" here is whatever he picked up: a lasso, or the Pencil held on a word (story 859). His loose strokes are
 otherwise never one thing by themselves, so "the rest of the line" means his strokes in that row, to the right of where
@@ -121,7 +121,8 @@ reason: one tall arrow would otherwise stop room opening anywhere along its leng
 Today the board already knows whose ink is whose: his own, Larry's kept marks and texts, and unkept suggestions
 (ghosts). What exists:
 
-- **The Ghosts switch** stops Claude's ghosts being asked for or shown (marks story *Turn the ghosts off*).
+- **The *Ask at my pauses* switch** stops his pauses asking Larry or Claude for suggestions (marks story *Turn off
+  *Ask at my pauses**, story 351). It is not a hide: Larry's suggestions already showing stay (story 356).
 - **Larry can hide strokes and show them again** (edits story *Larry folds ink away and back*). Hidden ink keeps its
   place and moves with a push, and the board ignores it when looking for a clear line.
 - **Igor cannot hide anything himself**, except by folding a section.
@@ -134,7 +135,7 @@ everything, with a flag saying what was hidden.
 | | What Igor would feel | Cost | Risk |
 |---|---|---|---|
 | **A. Four switches in the Board menu** | *My ink*, *Larry's*, *Suggestions* and *Hidden*, each shown or hidden. One tap clears Larry away to see his own thinking, or shows only Larry's. It is a view on this device, like a fold. | Medium: per-layer view state, a menu, and a flag in the picture and the export. | Writing on paper where a hidden layer has ink lands on that ink once it is shown again. |
-| **B. Two switches and a Hide action** | *Larry's* on or off (his kept ink and his suggestions together), and *Hidden* on or off. A selection gets **Hide**, which puts anything into the hidden layer, his own ink included. | Low to medium | He can't hide only the suggestions, but the Ghosts switch partly does that. |
+| **B. Two switches and a Hide action** | *Larry's* on or off (his kept ink and his suggestions together), and *Hidden* on or off. A selection gets **Hide**, which puts anything into the hidden layer, his own ink included. | Low to medium | He can't hide only the suggestions; *Ask at my pauses* only stops new ones being asked for. |
 | **C. Layers in name only** | No new control. Layers decide colour and what Larry is told. | Low | It doesn't give him "show or hide one", which is what he asked for. |
 
 Whichever he picks, the same three rules apply:
