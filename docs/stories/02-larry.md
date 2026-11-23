@@ -1231,7 +1231,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1138:
 
 - **Summary:** Open a chat while ticking, and come back to the same ticks
-- **Status:** native app only: implemented in [40d31b37](https://github.com/idvorkin/context-grabber/commit/40d31b37); verified on the host (`just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (iPad Pro 11-inch (M5)) by `ChatArchiveUITests.testAChatOpenedWhileTickingComesBackToTheSameTicks` against the fake Cockpit, the class green; the iPhone simulator and the phone not yet (no iPhone runs during the whiteboard work)
+- **Status:** native app only: implemented in [4e573f98](https://github.com/idvorkin/context-grabber/commit/4e573f98); verified on the host (`just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (iPad Pro 11-inch (M5)) by `ChatArchiveUITests.testAChatOpenedWhileTickingComesBackToTheSameTicks` against the fake Cockpit, the class green; the iPhone simulator and the phone not yet (no iPhone runs during the whiteboard work)
 - **Issues:** [#1258](https://github.com/idvorkin/context-grabber/issues/1258)
 - **Spec:** [Native chat — Reading a chat before archiving it](../superpowers/specs/2026-10-25-native-chat-design.md)
 
