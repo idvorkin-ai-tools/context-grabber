@@ -29,7 +29,9 @@ final class WhiteboardPanelScrollUITests: XCTestCase {
     sleep(1)
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.5))
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)))
-    app.buttons["whiteboard-larry"].tap()
+    let send = app.buttons["whiteboard-send"]
+    waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 1 strokes"), send, timeout: 10)
+    send.tap()
     let chevron = app.buttons["whiteboard-note-chevron"]
     XCTAssertTrue(chevron.appears(within: 15), app.debugDescription)
     let panel = app.textViews["whiteboard-conversation-text"]

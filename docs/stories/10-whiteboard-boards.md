@@ -505,7 +505,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1054:
 
 - **Summary:** The board's bar has no hole: Paste shows only with text to paste, beside the Board menu
-- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`just test-ladder`: `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole` with no text on the clipboard, `WhiteboardPasteUITests` and `WhiteboardPaperGhostsUITests` with text on it, and the whiteboard's other UI classes) and the Mac build; changed in [53231df](https://github.com/idvorkin/context-grabber/commit/53231df) (text copied in an app beside the board shows Paste within about a second), not verified by a test. Not yet seen on the iPad
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`just test-ladder`: `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole` with no text on the clipboard, `WhiteboardPasteUITests` and `WhiteboardPaperGhostsUITests` with text on it, and the whiteboard's other UI classes) and the Mac build; changed in [53231df](https://github.com/idvorkin/context-grabber/commit/53231df) (text copied in an app beside the board shows Paste within about a second), not verified by a test. Not yet seen on the iPad; *Larry's turn* and *Send to Larry* made one button (story 1176) in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552), verified by host tests and the whiteboard UI tests on the iPad simulator
 - **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
 
@@ -518,14 +518,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Nothing to paste
 - **Given:** a board open on an iPad and no text on the clipboard
 - **When:** I look at the top bar
-- **Then:** the Board menu sits in a group of its own, Talk, Ghosts, Larry and Send are evenly spaced in theirs, and there is no empty space; once I copy some text, here or in an app beside the board, Paste appears beside the Board menu within about a second and the other four don't move
+- **Then:** the Board menu sits in a group of its own, Talk, *Ask at my pauses* and Send are evenly spaced in theirs (*Larry's turn* became Send, story 1176), and there is no empty space; once I copy some text, here or in an app beside the board, Paste appears beside the Board menu within about a second and the other three don't move
 
 ---
 
 ### User Story 1055:
 
 - **Summary:** A long press on a bar button says its name
-- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Renamed *Ask at my pauses*, its row naming the responder, in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac) (story 1171), the same test on the iPad simulator. Not yet seen on the iPad
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Renamed *Ask at my pauses*, its row naming the responder, in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac) (story 1171), the same test on the iPad simulator. Not yet seen on the iPad; *Larry's turn* and *Send to Larry* made one button (story 1176) in [90663552](https://github.com/idvorkin/context-grabber/commit/90663552), verified by host tests and the whiteboard UI tests on the iPad simulator
 - **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
 
@@ -538,7 +538,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Long press the sparkle
 - **Given:** a board open with *Ask at my pauses* on
 - **When:** I press and hold the sparkle
-- **Then:** a small *Ask at my pauses* menu offers a row that toggles the switch and names the board's responder ([story 1171](#user-story-1171)); Talk, Larry and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 926), and a plain tap on any of them does what it always did
+- **Then:** a small *Ask at my pauses* menu offers a row that toggles the switch and names the board's responder ([story 1171](#user-story-1171)); Talk and Send name themselves the same way (Talk's menu also lists the microphones under its row, story 926), and a plain tap on any of them does what it always did
 
 ---
 

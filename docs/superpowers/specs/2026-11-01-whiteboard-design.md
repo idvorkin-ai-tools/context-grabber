@@ -151,16 +151,17 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **The top bar's groups and labels** (#1005; Igor's design critique of the iPad board, 2026-11-20: "Nothing says what
   the sparkle and hand icons do. There is a large empty gap between the palette and the mic in the right-hand group").
   - **Three groups.** The way back and *Undo*/*Redo* on the left; on the right the board's own things, the **Board**
-    menu and **Paste**, in a group of their own like *Undo* and *Redo*; then the four that talk to Claude and Larry:
-    **Talk**, **Ask at my pauses**, **Larry** and **Send**, evenly spaced, with no hole among them.
+    menu and **Paste**, in a group of their own like *Undo* and *Redo*; then the three that talk to Claude and Larry:
+    **Talk**, **Ask at my pauses** and **Send**, evenly spaced, with no hole among them (*Larry's turn* became *Send*,
+    story 1176).
   - **Paste shows only while the clipboard holds text.** The gap was the system's paste button with nothing to paste:
     iOS dims it to near nothing, so it read as an empty space. Looking whether the clipboard holds text never asks
-    *Allow Paste?*. When it does, Paste appears beside the Board menu and the four on the far right don't move.
+    *Allow Paste?*. When it does, Paste appears beside the Board menu and the three on the far right don't move.
     It appears within about a second of text being copied, also from an app beside the board.
-  - **A long press names the button.** A long press on Talk, Ask at my pauses, Larry or Send shows a small menu headed
-    by the button's name (*Talk*, *Ask at my pauses*, *Larry*, *Send*) with one row saying what a tap does (*Talk to
+  - **A long press names the button.** A long press on Talk, Ask at my pauses or Send shows a small menu headed
+    by the button's name (*Talk*, *Ask at my pauses*, *Send*) with one row saying what a tap does (*Talk to
     Claude*, *Stop asking Larry at my pauses* (substitute the board's responder by name, or use
-    *Ask … at my pauses* while the switch is off), *Hand Larry the board*, *Send the board to Larry*); that row does it,
+    *Ask … at my pauses* while the switch is off), *Send the board to Larry*); that row does it,
     and a tap anywhere else closes the menu. A plain tap does what it always did. The Board menu opens on a tap and
     is headed by its sections. Talk's menu also picks the microphone, under its one row, whether the mic is open or
     closed ([Which microphone, and what it hears](2026-11-01-whiteboard-shapes-design.md), story 926).
@@ -225,16 +226,18 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   then *saved* (the UI tests wait on it, story 673). If a saved board can't be read, it's kept aside and the screen says so; if it can't even be moved
   aside, it's left untouched, nothing drawn that time is saved over it, and the screen says that too.
 - **Send to Larry** (top bar): sends a picture of everything drawn, on white, on the board's chat thread, titled with
-  the board's name: the first send or Larry's turn on a board starts the thread, and later ones go to it, so marks he
-  draws in answer come back to the board.
-  - The bar says *Sent to Larry: his reply shows in Chat*. One send makes one message: the button stays disabled
-    until the next stroke, or on paper until other pages are on screen, so a second tap never sends the same
-    picture twice.
-  - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
+  the board's name: the first send on a board starts the thread, and later ones go to it, so marks he
+  draws in answer come back to the board. On a board drawn here it is Larry's turn, the one button that hands him
+  the board ([One Send](2026-11-01-whiteboard-shapes-design.md), story 1176): his clock shows, his marks arrive, and a
+  repeat tap with nothing new says *Larry already has this*.
+  - On a board only looked at, the bar says *Sent to Larry: his reply shows in Chat*. One send makes one message: the
+    button stays disabled until other pages are on screen, so a second tap never sends the same picture twice.
+  - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back;
+    on a board drawn here the note says *Waiting to send* until it goes, and the button is dimmed meanwhile.
   - An empty board can't be sent; the button is disabled.
   - **The picture shows the page or pages on screen** (#636; Igor, 2026-11-03), so what he's looking at is what Larry
-    reads, with his writing at a size Larry can see. Scroll to another page and send again to show Larry that one. The
-    same goes for *Larry's turn*. An empty page on screen is left out of the picture; if everything on screen is empty,
+    reads, with his writing at a size Larry can see. Scroll to another page and send again to show Larry that one. An
+    empty page on screen is left out of the picture; if everything on screen is empty,
     there's nothing to send and the button says so by staying disabled. Claude's own turns keep looking at what they
     look at today. Larry's marks land by the picture's own place on the board, whichever page that is.
   - **The picture frames its ink at a readable size** (stories 420, 422, 425, 429; Igor, 2026-11-03: "maybe zoom into the pages").
@@ -327,7 +330,7 @@ so." New boards are on paper from now on, on every device, though the rest of th
   it: Larry's thread being looked at every few seconds, a save, a ghost coming or going. A row tapped at any moment is
   chosen and the menu closes, never a tap lost because the menu was put up again under the finger. Only a change to
   what the menu itself shows (its colour, lines, font or responder) may redraw it.
-- **What a board on paper can't do yet.** *Send to Larry*, *Larry's turn*, ghosts, the mic and paste work: see
+- **What a board on paper can't do yet.** *Send to Larry*, ghosts, the mic and paste work: see
   *Ghosts and Larry on paper* and *Paste on paper*. The picture is still the whole drawing.
 - **Undo and a new page.** Adding a page can count as a step of undo: one press may take back the page and not a stroke.
   The next stroke brings the page back. Whether this matters on the iPad is still to be seen.
