@@ -3277,42 +3277,101 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ### User Story 1136:
 
-- **Summary:** A Cockpit that blinks files no report; one that stays away files one
+- **Summary:** A Cockpit that blinks files no report
 - **Issues:** [#1245](https://github.com/idvorkin/context-grabber/issues/1245), [#1246](https://github.com/idvorkin/context-grabber/issues/1246), [#1247](https://github.com/idvorkin/context-grabber/issues/1247), [#1248](https://github.com/idvorkin/context-grabber/issues/1248), [#1249](https://github.com/idvorkin/context-grabber/issues/1249), [#1250](https://github.com/idvorkin/context-grabber/issues/1250), [#1251](https://github.com/idvorkin/context-grabber/issues/1251), [#1252](https://github.com/idvorkin/context-grabber/issues/1252), [#1253](https://github.com/idvorkin/context-grabber/issues/1253), [#1259](https://github.com/idvorkin/context-grabber/issues/1259), [#1268](https://github.com/idvorkin/context-grabber/issues/1268), [#1269](https://github.com/idvorkin/context-grabber/issues/1269)
-- **Status:** implemented in [011dd8cc](https://github.com/idvorkin/context-grabber/commit/011dd8cc); verified by the host rung (`just native-test`, `CockpitOutageTests`: a blip that heals files nothing, two minutes of failures file once, a pause starts the count again, the device offline never files, other failures file at once) and the Mac build (`just native-build-mac`); the simulator and the devices are not yet verified (no iPhone runs while the whiteboard work is in progress)
+- **Status:** implemented in [1a685bc5](https://github.com/idvorkin/context-grabber/commit/1a685bc5); verified by the host rung (`just native-test`, `CockpitOutageTests`: a blip that heals files nothing) and the Mac build (`just native-build-mac`); the simulator and the devices are not yet verified (no iPhone runs while the whiteboard work is in progress)
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md), [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** the developer reading the automatic reports
-- **I want to** get no report when the Cockpit's proxy answers 502 to one poll and the next one reads fine, and one
-  report when it stays away
-- **so that** a chat that heals in four seconds does not become ten issues, and a real outage is still seen
+- **I want to** get no report when the Cockpit's proxy answers 502 to one poll and the next one reads fine
+- **so that** a chat that heals in four seconds does not become ten issues
 
 #### Acceptance Criteria:
-- **Scenario:** One poll fails, the next reads
-- **Given:** a chat thread is open and the device is online
-- **When:** the Cockpit answers HTTP 502 (or 503, 504, or the read times out or can't connect), and the next poll reads
-  the thread
-- **Then:** the error showed with Copy error, no automatic report was saved, and the log has
-  `bug_report_auto_skipped` with `auto_file: false`, then `chat` `cockpit_outage` `ended` with `filed: false`
+- **Scenario:** A Cockpit that blinks files no report
+- **Given:** a chat thread is open, the device is online, and the Cockpit just answered HTTP 502 (or 503, 504, or the read timed
+  out, could not connect or lost its connection)
+- **When:** the next poll reads the thread
+- **Then:** the error showed with Copy error, no automatic report was saved, and the log has `bug_report_auto_skipped` with
+  `auto_file: false`, then `chat` `cockpit_outage` `ended` with `filed: false`
 
-- **Scenario:** The Cockpit stays away
-- **Given:** a chat thread is open and the device is online
-- **When:** every read fails that way for 2 minutes, and later a read gets through
-- **Then:** one automatic report is saved for the outage, saying how long it has lasted and how many reads failed; no
-  other is saved while it lasts; the log has `cockpit_outage` `filed`, then `ended` with `filed: true`
+---
 
-- **Scenario:** The device's own connection is down
-- **Given:** the app has not yet noticed the device is offline (the iPad waking, #1268)
+### User Story 1139:
+
+- **Summary:** A Cockpit that stays away files one report
+- **Issues:** [#1245](https://github.com/idvorkin/context-grabber/issues/1245), [#1246](https://github.com/idvorkin/context-grabber/issues/1246), [#1247](https://github.com/idvorkin/context-grabber/issues/1247), [#1248](https://github.com/idvorkin/context-grabber/issues/1248), [#1249](https://github.com/idvorkin/context-grabber/issues/1249), [#1250](https://github.com/idvorkin/context-grabber/issues/1250), [#1251](https://github.com/idvorkin/context-grabber/issues/1251), [#1252](https://github.com/idvorkin/context-grabber/issues/1252), [#1253](https://github.com/idvorkin/context-grabber/issues/1253), [#1259](https://github.com/idvorkin/context-grabber/issues/1259), [#1268](https://github.com/idvorkin/context-grabber/issues/1268), [#1269](https://github.com/idvorkin/context-grabber/issues/1269)
+- **Status:** implemented in [1a685bc5](https://github.com/idvorkin/context-grabber/commit/1a685bc5); verified by the host rung (`just native-test`, `CockpitOutageTests`: two minutes of failures file once, a pause starts the count again) and the Mac build (`just native-build-mac`); the simulator and the devices are not yet verified (no iPhone runs while the whiteboard work is in progress)
+- **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md), [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the developer reading the automatic reports
+- **I want to** get one report when the Cockpit stays away, and no more while it lasts
+- **so that** a real outage is still seen, once
+
+#### Acceptance Criteria:
+- **Scenario:** A Cockpit that stays away files one report
+- **Given:** a chat thread is open, the device is online, and every read has failed the way story 1136 names for 2 minutes
+- **When:** the next read fails that way
+- **Then:** one automatic report is saved for the outage, saying how long it has lasted and how many reads failed; no other is
+  saved while it lasts; the log has `cockpit_outage` `filed`, and `ended` with `filed: true` once a read gets through
+
+---
+
+### User Story 1600:
+
+- **Summary:** A device that is offline files no report
+- **Issues:** [#1245](https://github.com/idvorkin/context-grabber/issues/1245), [#1246](https://github.com/idvorkin/context-grabber/issues/1246), [#1247](https://github.com/idvorkin/context-grabber/issues/1247), [#1248](https://github.com/idvorkin/context-grabber/issues/1248), [#1249](https://github.com/idvorkin/context-grabber/issues/1249), [#1250](https://github.com/idvorkin/context-grabber/issues/1250), [#1251](https://github.com/idvorkin/context-grabber/issues/1251), [#1252](https://github.com/idvorkin/context-grabber/issues/1252), [#1253](https://github.com/idvorkin/context-grabber/issues/1253), [#1259](https://github.com/idvorkin/context-grabber/issues/1259), [#1268](https://github.com/idvorkin/context-grabber/issues/1268), [#1269](https://github.com/idvorkin/context-grabber/issues/1269)
+- **Status:** implemented in [1a685bc5](https://github.com/idvorkin/context-grabber/commit/1a685bc5); verified by the host rung (`just native-test`, `CockpitOutageTests`: the device offline never files) and the Mac build (`just native-build-mac`); the simulator and the devices are not yet verified (no iPhone runs while the whiteboard work is in progress)
+- **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md), [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the developer reading the automatic reports
+- **I want to** get no report when a chat read fails because the device's own connection is down
+- **so that** the iPad waking before the app notices it is offline (#1268) is not an issue
+
+#### Acceptance Criteria:
+- **Scenario:** A device that is offline files no report
+- **Given:** the app has not yet noticed the device is offline
 - **When:** a chat read fails with *The Internet connection appears to be offline*
 - **Then:** it shows *The Cockpit isn't answering* with Copy error and saves no report, however long it lasts
 
-- **Scenario:** Any other failed read
+---
+
+### User Story 1601:
+
+- **Summary:** Any other failed chat read files at once
+- **Issues:** [#1245](https://github.com/idvorkin/context-grabber/issues/1245), [#1246](https://github.com/idvorkin/context-grabber/issues/1246), [#1247](https://github.com/idvorkin/context-grabber/issues/1247), [#1248](https://github.com/idvorkin/context-grabber/issues/1248), [#1249](https://github.com/idvorkin/context-grabber/issues/1249), [#1250](https://github.com/idvorkin/context-grabber/issues/1250), [#1251](https://github.com/idvorkin/context-grabber/issues/1251), [#1252](https://github.com/idvorkin/context-grabber/issues/1252), [#1253](https://github.com/idvorkin/context-grabber/issues/1253), [#1259](https://github.com/idvorkin/context-grabber/issues/1259), [#1268](https://github.com/idvorkin/context-grabber/issues/1268), [#1269](https://github.com/idvorkin/context-grabber/issues/1269)
+- **Status:** implemented in [1a685bc5](https://github.com/idvorkin/context-grabber/commit/1a685bc5); verified by the host rung (`just native-test`, `CockpitOutageTests`: other failures file at once) and the Mac build (`just native-build-mac`); the simulator and the devices are not yet verified (no iPhone runs while the whiteboard work is in progress)
+- **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md), [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the developer reading the automatic reports
+- **I want to** keep a report for a chat read that fails in a way an outage does not explain
+- **so that** a real bug is not hidden by the outage rule
+
+#### Acceptance Criteria:
+- **Scenario:** Any other failed chat read files at once
 - **Given:** a chat thread is open
 - **When:** the Cockpit answers HTTP 404, or an answer the app cannot read
 - **Then:** it files at once, as story 155 says
 
-- **Scenario:** The list keeps trying
-- **Given:** the chat list is on screen and shows a Cockpit error of this kind
+---
+
+### User Story 1602:
+
+- **Summary:** The chat list keeps trying while the Cockpit is away
+- **Issues:** [#1245](https://github.com/idvorkin/context-grabber/issues/1245), [#1246](https://github.com/idvorkin/context-grabber/issues/1246), [#1247](https://github.com/idvorkin/context-grabber/issues/1247), [#1248](https://github.com/idvorkin/context-grabber/issues/1248), [#1249](https://github.com/idvorkin/context-grabber/issues/1249), [#1250](https://github.com/idvorkin/context-grabber/issues/1250), [#1251](https://github.com/idvorkin/context-grabber/issues/1251), [#1252](https://github.com/idvorkin/context-grabber/issues/1252), [#1253](https://github.com/idvorkin/context-grabber/issues/1253), [#1259](https://github.com/idvorkin/context-grabber/issues/1259), [#1268](https://github.com/idvorkin/context-grabber/issues/1268), [#1269](https://github.com/idvorkin/context-grabber/issues/1269)
+- **Status:** implemented in [1a685bc5](https://github.com/idvorkin/context-grabber/commit/1a685bc5); verified by the Mac build (`just native-build-mac`) only, the retry being app code no host test reaches; the simulator and the devices are not yet verified (no iPhone runs while the whiteboard work is in progress)
+- **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md), [Chat with Larry](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the developer reading the automatic reports
+- **I want to** see the chat list read again by itself while it shows that the Cockpit is away
+- **so that** the list heals without my pulling it, and the outage ends as soon as the Cockpit answers
+
+#### Acceptance Criteria:
+- **Scenario:** The chat list keeps trying while the Cockpit is away
+- **Given:** the chat list is on screen and shows a Cockpit error of the kind story 1136 names
 - **When:** 15 seconds pass
 - **Then:** the list is read again, and again every 15 seconds until it reads or leaves the screen

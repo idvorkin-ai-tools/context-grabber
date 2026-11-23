@@ -26,10 +26,10 @@ he sees, he does not have time to report, so they are never fixed.
   - every error shown while the phone has no network: offline, a failed send or load is expected, not a bug;
   - *Health is not available on this device*: the device has no Health, which no fix can change;
   - a chat read that failed because the device's own connection was down (*The Internet connection appears to be
-    offline*, the connection lost), even when the app had not yet noticed it was offline (#1268: the iPad waking).
+    offline*), even when the app had not yet noticed it was offline (#1268: the iPad waking).
 - **The Cockpit away for a moment files nothing; away for minutes files once.** A read of the chat list or a thread
   that fails because the Cockpit can't be reached (it answered a server error, 502, 503 or 504, from the proxy in front
-  of it; or the request timed out or could not connect) shows its error with Copy error as always, and the app keeps
+  of it; or the request timed out, could not connect, or lost its connection midway) shows its error with Copy error as always, and the app keeps
   reading again. It files no automatic report unless such failures go on, with no read getting through, for 2 minutes;
   then it files one report for that outage, saying how long it has lasted and how many reads failed, and no more until
   a read gets through. Any read that gets through ends the outage. A pause of over a minute with no read (the thread
@@ -55,7 +55,7 @@ he sees, he does not have time to report, so they are never fixed.
 - The same kind again within 10 minutes saves nothing; the log has `bug_report_auto_skipped`.
 - An error shown while offline, or *Health is not available*, saves nothing; the log has `bug_report_auto_skipped`
   with `auto_file: false`.
-- A chat read that fails once with HTTP 502 (or 503, 504, a timeout, a refused connection) and then reads fine saves
+- A chat read that fails once with HTTP 502 (or 503, 504, a timeout, a refused or dropped connection) and then reads fine saves
   nothing; its error showed with Copy error, and the log has `bug_report_auto_skipped` with `auto_file: false`.
 - Chat reads that keep failing that way for 2 minutes save one automatic report for the outage, and none more until a
   read gets through; the log has `chat` `cockpit_outage` with `filed` and the outage's length and failures, and

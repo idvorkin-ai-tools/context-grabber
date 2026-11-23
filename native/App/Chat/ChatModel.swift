@@ -292,7 +292,7 @@ final class ChatModel: ObservableObject {
     listQuiet = readFailed(kind, problem: shown, context: "ChatListView.refresh", extra: ["cockpit": .string(cockpit)])
     listProblem = shown
     log.event("chat", ["action": "refresh_failed", "why": reason, "reason": why])
-    // Story 1136: an outage's problem on the list keeps reading until it reads or the list leaves the screen.
+    // Story 1602: an outage's problem on the list keeps reading until it reads or the list leaves the screen.
     guard kind != .other, listOnScreen else { return }
     listRetry?.cancel()
     listRetry = Task { [weak self] in

@@ -13,7 +13,7 @@ final class CockpitOutageTests: XCTestCase {
     XCTAssertEqual(CockpitOutage.kind(URLError(.timedOut)), .away)
     XCTAssertEqual(CockpitOutage.kind(URLError(.cannotConnectToHost)), .away)
     XCTAssertEqual(CockpitOutage.kind(URLError(.notConnectedToInternet)), .deviceOffline)
-    XCTAssertEqual(CockpitOutage.kind(URLError(.networkConnectionLost)), .deviceOffline)
+    XCTAssertEqual(CockpitOutage.kind(URLError(.networkConnectionLost)), .away, "a proxy dropping its connection")
     XCTAssertEqual(CockpitOutage.kind(URLError(.badURL)), .other)
     XCTAssertEqual(CockpitOutage.kind(CocoaError(.fileNoSuchFile)), .other)
   }

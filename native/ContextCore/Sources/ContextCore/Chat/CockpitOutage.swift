@@ -1,7 +1,7 @@
 //  Story 1136 (#1245–#1253, #1259, #1268): a chat read that fails because the Cockpit can't be reached for a moment
-//  (its proxy answering 502, 503 or 504, a timeout, a refused connection) shows its error but files no automatic
-//  report until such failures have gone on, with no read getting through, for two minutes; then one report for that
-//  outage. A read failing because the device's own connection is down never files.
+//  (its proxy answering 502, 503 or 504, a timeout, a refused or dropped connection) shows its error but files no
+//  automatic report until such failures have gone on, with no read getting through, for two minutes; then one report
+//  for that outage. A read failing because the device's own connection is down never files.
 
 import Foundation
 
@@ -14,7 +14,8 @@ public struct CockpitOutage: Equatable, Sendable {
 
   /// What a failed read was.
   public enum Kind: Equatable, Sendable {
-    /// The Cockpit can't be reached for now: a 502, 503 or 504, a timeout, a refused or unfound host.
+    /// The Cockpit can't be reached for now: a 502, 503 or 504, a timeout, a refused or dropped connection, an unfound
+    /// host.
     case away
     /// The device's own connection is down, whether or not the app has noticed yet.
     case deviceOffline
@@ -47,9 +48,11 @@ public struct CockpitOutage: Equatable, Sendable {
   public init() {}
 
   static let awayStatuses: Set<Int> = [502, 503, 504]
-  static let awayCodes: Set<URLError.Code> = [.timedOut, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed]
+  static let awayCodes: Set<URLError.Code> = [
+    .timedOut, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed, .networkConnectionLost,
+  ]
   static let offlineCodes: Set<URLError.Code> = [
-    .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .internationalRoamingOff,
+    .notConnectedToInternet, .dataNotAllowed, .internationalRoamingOff,
   ]
 
   /// A read the Cockpit answered with this status (not 200, or a 200 the app could not read).

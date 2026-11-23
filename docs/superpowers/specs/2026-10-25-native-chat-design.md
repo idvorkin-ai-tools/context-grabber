@@ -602,7 +602,7 @@ is the phone being offline. Other failures (the Cockpit answering with an error)
 **A Cockpit that blinks is not a bug report** (#1245–#1253, #1259, #1268). The Cockpit sits behind a proxy that
 sometimes answers 502, 503 or 504 for a moment; on 2026-11-22 one poll in a hundred did, for hours, and each blip,
 healed by the next poll, filed an automatic report. Now a read of the list or a thread that fails that way, or times
-out or can't connect, still shows its copyable error at once, and the open thread keeps polling; the list, while it
+out, can't connect or loses its connection, still shows its copyable error at once, and the open thread keeps polling; the list, while it
 shows such an error on screen, reads again every 15 seconds. The error files an automatic report only when the
 failures have gone on, with no read getting through, for 2 minutes, and then once for that outage (with how long and
 how many reads failed). A read failing because the device's own connection is down never files. The full rule is in
