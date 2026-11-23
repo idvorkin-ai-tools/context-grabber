@@ -483,13 +483,14 @@ def answer_board_later(key):
                 # Stories 772, 779 (bead context-grabber-z8o): letters as small as Larry's that vanished once kept on the
                 # iPad, 12 points on the board (12 x the frame's scale in picture pixels), asking for a 1-point pen: under
                 # what PencilKit draws, as a ninth of their height was before Igor's pen reached his labels (#949). 80
-                # points below the picture, clear of a paste's selection menu.
-                LARRY_OPS = None
+                # points below the picture, clear of a paste's selection menu. "pen": <points> asks for that pen instead, as
+                # Igor's own 2.68 (bead context-grabber-qko5: a whole small label at a normal pen read as cut).
+                pen, LARRY_OPS = LARRY_OPS.get("pen", 1), None
                 frame = BOARD_MESSAGES[key]["frame"]
                 w, h = frame["w"] * frame["scale"], frame["h"] * frame["scale"]
                 marks(key, "small words", [
                     {"kind": "text", "points": [[w / 4, h + 80 * frame["scale"]]], "text": "small",
-                     "size": 12 * frame["scale"], "pen": frame["scale"]}])
+                     "size": 12 * frame["scale"], "pen": pen * frame["scale"]}])
                 return
             if LARRY_OPS is not None and LARRY_OPS.get("kind") == "words_only":
                 # Story 1155: his answer is words alone, so a test's unprompted marks after it are the only ones to keep.
