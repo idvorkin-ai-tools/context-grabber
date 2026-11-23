@@ -443,7 +443,7 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertNil(phone.whyNotOpen("a"))
   }
 
-  /// #1254, story 586: in a build with no iCloud (the Mac's own) another device's board never comes, and the problem
+  /// #1254, story 232: in a build with no iCloud (the Mac's own) another device's board never comes, and the problem
   /// says so rather than "deleted, or not brought here yet".
   func testABoardThatCantComeWithNoICloudSaysSo() {
     let mac = BoardIndex()

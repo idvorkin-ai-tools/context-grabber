@@ -1482,8 +1482,8 @@ apart."*
 ### User Story 586:
 
 - **Summary:** With no iCloud a Mac build's boards stay on the Mac
-- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac, ad hoc: the boards list says iCloud is out of reach, a board opens, a problem report saves on the Mac, and nothing crashes. A signed Mac build, which would have iCloud, has not been built. #1254: a link to another device's board in a build with no iCloud says why and files no automatic report, in [863c99ee](https://github.com/idvorkin/context-grabber/commit/863c99ee); verified on the host (`BoardIndexTests`, `just native-test`) and the Mac build (`just native-build-mac`); the Mac app itself not yet.
-- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638), [#1254](https://github.com/idvorkin/context-grabber/issues/1254)
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac, ad hoc: the boards list says iCloud is out of reach, a board opens, a problem report saves on the Mac, and nothing crashes. A signed Mac build, which would have iCloud, has not been built.
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
 #### Use Case:
@@ -1497,7 +1497,22 @@ apart."*
 - **When:** I open the whiteboard
 - **Then:** the list says boards stay on this device, and a board opens
 
-- **Scenario:** A link to a board drawn on another device (#1254)
+---
+
+### User Story 232:
+
+- **Summary:** With no iCloud a link to another device's board says why and files nothing
+- **Status:** native app only: implemented in [8c764c11](https://github.com/idvorkin/context-grabber/commit/8c764c11); verified on the host (`BoardIndexTests`, `just native-test`) and the Mac build (`just native-build-mac`); the Mac app itself not yet.
+- **Issues:** [#1254](https://github.com/idvorkin/context-grabber/issues/1254)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor running the Mac build with no iCloud
+- **I want** a chat link to a board drawn on the iPad to say why it can't open here
+- **so that** I open it on the iPad instead of chasing a report that is no bug
+
+#### Acceptance Criteria:
+- **Scenario:** A link to a board drawn on another device
 - **Given:** a Mac build with no iCloud, and a board drawn on the iPad
 - **When:** I tap the board's link in a chat
 - **Then:** a copyable problem says the board isn't on this device and this build can't reach iCloud to bring it, so open it on the device that drew it; it files no automatic report
