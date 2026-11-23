@@ -25,6 +25,7 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-tile-art.sh`: the asset catalog compiled with actool with every home tile's art present and square (#304, #299)
 - `scripts/native/test-ladder-map.sh`: the ladder's own map, which rungs and UI test classes a change gets, from the real script's dry run (story 683)
 - `scripts/native/test-build-lane.sh`: the build lanes, their locks and simulators, sim-boot and the xcodebuild wait per lane (story 785, #954)
+- `scripts/native/test-time-limit.sh`: the repo's own rung time limit, a hang and everything it started stopped (exit 124), a finished command's status kept, the lane count past it unchanged (story 1505)
 - `scripts/native/test-host-lane.sh`: the host slots, six jobs on four, the wait, a killed holder (stories 795, 797, 798)
 - `scripts/native/test-ui-timings.sh`: the UI test timing digest against a real run's log
 - `scripts/native/test-ladder-report.sh`: the ladder report keeping a retry, a wrong-device skip and a missing deploy apart, on a fixture (#1038, story 1016)
@@ -174,11 +175,16 @@ else one per 12 GB of memory (`sysctl -n hw.memsize`), at most four and at least
 is busy (up to an hour, then exit 75), and exports `BUILD_LANE` (its number) and `BUILD_LANES` to the job. Lane 1's lock
 is `~/tmp/agent/locks/build.lock`, the one every older checkout takes, so those still exclude lane 1; lane N's is
 `build-N.lock`. With one lane it is exactly `lockf -k -t 3600 ~/tmp/agent/locks/build.lock`, as before lanes. Inside
-the lock come the wait for other xcodebuilds (below), then `time-limit` and `caffeinate -i` (the simulator rung
-`caffeinate -d -i`, story 782), so the time limit counts only the rung's own run. `time-limit` is a zsh script and
-zsh reads `~/.zshenv`, so the ladder passes the lane's `BUILD_LANES` past it again rather than trust what arrives. A suite script runs in a lane the same way,
-given the simulator's name so that it resolves the lane's own device inside the lane:
-`scripts/native/build-lane.sh run ~/gits/mac-driver/bin/time-limit 30 caffeinate -i scripts/native/test-chat-ui.sh "iPhone 17"`.
+the lock come the wait for other xcodebuilds (below), then the time limit and `caffeinate -i` (the simulator rung
+`caffeinate -d -i`, story 782), so the time limit counts only the rung's own run. The time limit is the repo's own
+`scripts/native/time-limit.sh <minutes> <command…>` (story 1505, bead context-grabber-xmwp): past its minutes it stops
+the command and everything it started (TERM, then KILL 5 s later) and exits 124, so a hang frees the lane; it needs no
+`~/gits/mac-driver`. `LADDER_TIME_LIMIT` names another (mac-driver's `bin/time-limit` takes the same arguments). One that
+can't be found stops the rung with exit 2 and says so, rather than running with no limit. mac-driver's is a zsh script
+and zsh reads `~/.zshenv`, so the ladder passes the lane's `BUILD_LANES` past the time limit again rather than trust
+what arrives. A suite script runs in a lane the same way, given the simulator's name so that it resolves the lane's
+own device inside the lane:
+`scripts/native/build-lane.sh run scripts/native/time-limit.sh 30 caffeinate -i scripts/native/test-chat-ui.sh "iPhone 17"`.
 
 **Host builds and tests take a host slot** (stories 795, 797, 798; bead context-grabber-mkd0). Twenty agents' `just
 test` at once loaded the 18-core Mac to 281 (2026-11-22), and lanes only cover Xcode. So swift-format and SwiftLint

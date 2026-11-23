@@ -1530,6 +1530,35 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1505:
+
+- **Summary:** A Mac or simulator rung always runs under a time limit, from this repo, so a hang can't hold a build lane
+- **Status:** in progress on branch `fix/ladder-time-limit-xmwp`
+- **Issues:** bead `context-grabber-xmwp` (2026-11-21: every Mac and simulator rung printed "no …/mac-driver/bin/time-limit: rung N runs with no time limit, and a hang holds the build lock", because `~/gits/mac-driver` wasn't checked out)
+
+#### Use Case:
+- **As Igor,** with agents running the ladder on any Mac, mac-driver checked out or not
+- **I want to** have every Mac and simulator rung stopped when it runs past its minutes
+- **so that** a hung build or test frees its lane for the next agent instead of holding it for hours
+
+#### Acceptance Criteria:
+- **Scenario:** A rung that hangs
+- **Given:** a Mac or simulator rung in its build lane
+- **When:** it runs past the rung's minutes
+- **Then:** it and everything it started are stopped, the lane is free, and the ladder says the rung ran past its limit (exit 124)
+
+- **Scenario:** A Mac without mac-driver
+- **Given:** `~/gits/mac-driver` isn't checked out
+- **When:** a rung runs
+- **Then:** it still has its time limit, from the repo's own `scripts/native/time-limit.sh`
+
+- **Scenario:** A time limit that can't be found
+- **Given:** `LADDER_TIME_LIMIT` names a time limit that doesn't exist
+- **When:** a rung would run
+- **Then:** the rung doesn't start, and the ladder says which time limit is missing, instead of running with none
+
+---
+
 ### User Story 1504:
 
 - **Summary:** A UI test waits for something to go away without its own loop
