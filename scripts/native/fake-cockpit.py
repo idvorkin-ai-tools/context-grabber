@@ -11,7 +11,7 @@ accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that 
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n, "separate": bool} is a test's way to have him draw
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-says {"count": n,
-"from": k} adds n replies of Larry's words, "Reply k: …" onwards, on the newest board thread (bead context-grabber-o2i2). POST /fake/larry-ops {"stale": false, "dy": 120}
+"from": k} adds n replies of Larry's words, "Reply k: …" onwards, on the newest board thread (bead context-grabber-97s). POST /fake/larry-ops {"stale": false, "dy": 120}
 is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
 below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
 on the message's own rev (one behind it with "behind", which the board still applies, story 961; before anything the
@@ -811,7 +811,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/fake/larry-draws":
             return self._draws(data)
         if path == "/fake/larry-says":
-            # Bead context-grabber-o2i2: more of Larry's words on the newest board thread than the panel holds.
+            # Bead context-grabber-97s: more of Larry's words on the newest board thread than the panel holds.
             with LOCK:
                 if not BOARD_MESSAGES:
                     return self._json(404, {"ok": False, "error": "no board thread"})

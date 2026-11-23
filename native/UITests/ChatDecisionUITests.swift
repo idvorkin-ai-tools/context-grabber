@@ -287,12 +287,17 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertTrue(card.appears(within: 20), app.debugDescription)
     let context = card.staticTexts["decision-context"]
     XCTAssertTrue(context.appears(within: 5), app.debugDescription)
-    let closed = card.frame.height
+    // The context opening is measured on the context itself: on a tall device the closed card's options alone can
+    // already reach the cap (the iPad, 2026-11-23: 604.5 of 1210 before the tap), so the card itself needn't grow.
+    let closedContext = context.frame.height
     let window = app.windows.firstMatch.frame
 
     context.tap()
-    let grown = NSPredicate { _, _ in card.frame.height > closed + 100 }
-    wait(for: [expectation(for: grown, evaluatedWith: card)], timeout: 5)
+    let start = Date()
+    while context.frame.height <= closedContext + 100, Date().timeIntervalSince(start) < 5 { usleep(100_000) }
+    XCTAssertGreaterThan(
+      context.frame.height, closedContext + 100,
+      "the context opened: context \(context.frame) was \(closedContext) high, card \(card.frame), window \(window)")
     let opened = card.frame.height
     XCTAssertLessThanOrEqual(opened, window.height * 0.65, "bounded: \(opened) of \(window.height)")
     XCTAssertTrue(card.buttons["decision-fold"].isHittable, "the fold stays on top: \(app.debugDescription)")
@@ -312,8 +317,9 @@ final class ChatDecisionUITests: XCTestCase {
 
     for _ in 0..<12 { body.swipeDown() }
     context.tap()
-    let shrunk = NSPredicate { _, _ in card.frame.height < opened - 100 }
-    wait(for: [expectation(for: shrunk, evaluatedWith: card)], timeout: 5)
+    let shrunk = NSPredicate { _, _ in context.frame.height < closedContext + 100 }
+    wait(for: [expectation(for: shrunk, evaluatedWith: context)], timeout: 5)
+    XCTAssertLessThanOrEqual(card.frame.height, opened + 2, "closing never grows the card")
     XCTAssertTrue(try answers(cockpit).isEmpty, "reading and scrolling sends nothing")
   }
 
