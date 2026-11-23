@@ -96,6 +96,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let scratchNote = BoardScratchNote()
   /// Stories 940–942: a kept text's words open in place (BoardRewordFlow.swift).
   let reword = BoardRewordState()
+  /// Story 1188: PaperKit's handwriting reflow, for the log (PaperBoard+ReflowWatch.swift).
+  let reflowWatch = BoardReflowWatch()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
   private(set) var board = BoardPages()
   var pages = 1
@@ -166,6 +168,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     watchUndo()
     watchCovers()
     watchHandwritingOffers()
+    watchReflow()
     settleFinger()
   }
 
@@ -633,6 +636,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func touchWentDown(_ touch: UITouch) {
     if ghostTap?.selection?.isGroup == true { ghostTap = nil }
     groupTap = nil
+    reflowTouched(touch)
     // Story 1143: the turns logged as the touch began, so its line says how many came while it was down.
     if touchesDown == 0 { run?.turnsAtStart = model.turnsLogged }
     if touch.type == .pencil {
