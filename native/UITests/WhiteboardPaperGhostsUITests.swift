@@ -699,14 +699,15 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(result["label"] as? String, "make room")
   }
 
-  /// Story 772 (bead context-grabber-z8o): a label of Larry's with 12-point letters and no pen of its own, kept by a tap
-  /// and Keep, stays on the canvas as ink as wide as its ghost was, and the next picture Larry gets shows it in his
-  /// purple. On Igor's iPad such labels were saved but drew nothing: their pen was under what PencilKit draws (#883).
+  /// Story 772 (bead context-grabber-z8o): a label of Larry's with 12-point letters that asks for a 1-point pen,
+  /// kept by a tap and Keep, stays on the canvas as ink as wide as its ghost was, and the next picture Larry gets
+  /// shows it in his purple. On Igor's iPad such labels were saved but drew nothing: their pen was under what PencilKit
+  /// draws (#883).
   func testASmallLabelKeptStaysOnTheCanvasAndInThePicture() throws {
     let cockpit = try cockpit()
-    // Pasted ink, not drawn: no pen has been in hand, so his label takes its own pen, a ninth of its 12-point letters
-    // (1.3 points), as Igor's did on 2026-11-14; a drawn stroke would give it the pen in hand instead (#949).
-    // A hook pastes, as XCUITest's taps never reach the system's paste button.
+    // His label asks for a 1-point pen (story 779), under what PencilKit draws, as its own pen of a ninth of its
+    // 12-point letters (1.3 points) was on Igor's iPad on 2026-11-14; this test runs the asked pen, not that one.
+    // The board starts with pasted ink, as XCUITest's taps never reach the system's paste button.
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
     wait(send(app), label: strokes(4))
     try larrySmallLabel(cockpit)
@@ -733,7 +734,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertGreaterThan(purple, 20, "the picture Larry gets shows the kept label: \(purple) purple pixels, \(frame)")
   }
 
-  /// Arms the fake Cockpit's next board answer as one label of 12-point letters and no pen (story 772).
+  /// Arms the fake Cockpit's next board answer as one label of 12-point letters asking for a 1-point pen (story 772).
   private func larrySmallLabel(_ cockpit: String) throws {
     var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
     request.httpMethod = "POST"
