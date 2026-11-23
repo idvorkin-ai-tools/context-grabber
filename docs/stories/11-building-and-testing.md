@@ -1579,6 +1579,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1623:
+
+- **Summary:** The web board asks the app's own rules how much room a reply of Larry's opens when kept over ink written since its picture, and where a text of his set on ink lands
+- **Status:** implemented in ee948947 and 21039401 (where a text of his set on ink lands; on the Cockpit 4,055 text landings agree but for two classes counted apart: the Cockpit lands a text a full half line under the writing above where the app lands half of that, and a few whole-line 32-bit ties); verified by `just wasm-test` (157 checks, a hand-worked late room among them), the Linux rung (894 tests) and the Cockpit's comparison (recorded, 60 seeded and its five real boards: 9,732 keeps, 3,034 opening room, 0 differences), 2026-11-23. On the Mac, `just native-test` passes (SwiftLint, swift-format, host tests), 2026-11-23.
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 8
+- **Issues:** bead `context-grabber-edl`
+
+#### Use Case:
+- **As Igor,** keeping Larry's replies on the Cockpit's web ink board after I have written more
+- **I want to** have the web board ask the app's own rules how far my newer writing moves out from under his marks
+- **so that** a kept reply makes the same room on the web as on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** A late reply's room through the module
+- **Given:** the module built by `just wasm` with an outline of two lines, one written after the picture and one before
+- **When:** `just wasm-test` asks for the room a mark over the newer line opens, with the picture taken before it and after it, and for a mark on clear paper; and where a text set on the newer line and one on clear paper land
+- **Then:** over the newer line the room is two lines from that line's top, so it is half a line under the mark; with the picture after it, and on clear paper, there is none; with no `seen` it says so; the text on the line lands where it is and the line goes down two lines, the one on clear paper sits on nothing; with no box it says so
+
+---
+
 ### User Story 1622:
 
 - **Summary:** The web board asks the app's own rules what Larry's batch of board changes does

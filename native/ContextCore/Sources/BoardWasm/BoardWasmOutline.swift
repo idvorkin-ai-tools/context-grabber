@@ -18,8 +18,8 @@ struct WebOutlineUnreadable: Error, CustomStringConvertible {
 enum WebOutline {
   static func number(_ any: Any?) -> CGFloat? { (any as? NSNumber).map { CGFloat($0.doubleValue) } }
 
-  /// One stroke of ink: `{"id", "points": [[x, y], ...], "width", "hidden"}`, its box its points widened by half its
-  /// pen, as `BoardSnapshot` reads the iPad's.
+  /// One stroke of ink: `{"id", "points": [[x, y], ...], "width", "hidden", "t"}`, its box its points widened by half
+  /// its pen, as `BoardSnapshot` reads the iPad's; `t` when it was made, unix ms, when the host knows.
   static func ink(_ any: Any, _ index: Int) throws -> BoardOps.Stroke {
     guard let entry = any as? [String: Any], let id = entry["id"] as? String else {
       throw WebOutlineUnreadable(description: "stroke \(index) has no id")
@@ -34,7 +34,7 @@ enum WebOutline {
       $0.union(CGRect(origin: $1, size: .zero))
     }
     return BoardOps.Stroke(
-      ids: [id], t: nil, bounds: box.insetBy(dx: -width / 2, dy: -width / 2),
+      ids: [id], t: (entry["t"] as? NSNumber)?.int64Value, bounds: box.insetBy(dx: -width / 2, dy: -width / 2),
       hidden: entry["hidden"] as? Bool ?? false, points: points, pen: width)
   }
 
@@ -70,7 +70,10 @@ enum WebOutline {
   }
 
   /// The web board as `{"strokes", "boxes", "groups": {name: group}, "headers"}`: ink first, then the boxes.
-  static func outline(json any: Any) throws -> BoardOutline {
+  static func outline(json any: Any) throws -> BoardOutline { try parts(json: any).outline }
+
+  /// The outline, and the kept texts and groups it was made with (the outline keeps them to itself).
+  static func parts(json any: Any) throws -> (outline: BoardOutline, texts: [BoardText], groups: [String: String]) {
     guard let json = any as? [String: Any] else {
       throw WebOutlineUnreadable(description: "an outline is a JSON object")
     }
@@ -80,10 +83,10 @@ enum WebOutline {
     var groups = json["groups"] as? [String: String] ?? [:]
     for id in boxes.flatMap(\.ids) where groups[id] == nil { groups[id] = id }
     // Each box is a kept text to the outline, so a hold on it is on it anywhere inside (`word(at:)`, `group(at:)`), as
-    // on the iPad. Its time is one no stroke has (the web's ink carries none), so it owns no glyphs: the box is the
-    // whole of it.
+    // on the iPad. Its time is one no stroke can have (far before 1970), so it owns no glyphs: the box is the whole of
+    // it.
     let texts = boxes.enumerated().map { boxText($1, $0) }
-    return BoardOutline(strokes: ink + boxes, headers: headers, texts: texts, groups: groups)
+    return (BoardOutline(strokes: ink + boxes, headers: headers, texts: texts, groups: groups), texts, groups)
   }
 
   static func strokes(json any: Any) throws -> [BoardOps.Stroke] {
@@ -117,6 +120,9 @@ enum WebOutline {
 #if os(WASI)
   /// The loaded outline, and why the last outline call failed.
   var outline: BoardOutline?
+  /// The loaded outline's kept texts and groups, which it keeps to itself.
+  var outlineTexts: [BoardText] = []
+  var outlineGroups: [String: String] = [:]
 
   /// Replaces the loaded outline. The number of strokes and boxes read, or -1 with nothing loaded.
   @_expose(wasm, "bw_outline_load")
@@ -125,9 +131,11 @@ enum WebOutline {
     outline = nil
     lastError = nil
     do {
-      let loaded = try WebOutline.outline(json: JSONSerialization.jsonObject(with: input(pointer, length)))
-      outline = loaded
-      return Int32(loaded.strokes.count)
+      let read = try WebOutline.parts(json: JSONSerialization.jsonObject(with: input(pointer, length)))
+      outline = read.outline
+      outlineTexts = read.texts
+      outlineGroups = read.groups
+      return Int32(read.outline.strokes.count)
     } catch {
       return failed("the outline could not be read: \(error)")
     }
