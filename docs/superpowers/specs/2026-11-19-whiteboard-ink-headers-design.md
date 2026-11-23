@@ -112,7 +112,8 @@ Igor, 2026-11-20 (decision O2): "Keep [the #967 ink header design]; build ## and
 
 - **A long, straight, flat line that underlines nothing** (at least about half the page wide, and not just under a
   line of writing it would underline) is a rule. A section ends at the first rule below its header, as it ends where the ink
-  comes back to the header's indent or at the next header: whichever comes first.
+  comes back to the header's indent, at the next header, or where ink written under the header while it was folded
+  begins (the board ops spec, *Headers fold their sections*): whichever comes first.
 - The rule and what is below it never fold into the section above. Folding a header slides the rule up, with the rest
   of what is below, to a line or two under the header.
 - A rule ends every section open above it, outer ones included, as a horizontal rule ends them in Markdown.

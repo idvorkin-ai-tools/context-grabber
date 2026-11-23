@@ -110,6 +110,66 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1231:
+
+- **Summary:** Ink written under a folded header stays outside its fold
+- **Status:** implemented in [5c6650ae](https://github.com/idvorkin/context-grabber/commit/5c6650ae); verified by host tests (`BoardFoldWrittenUnderTests`, from the Cockpit's .ink repro: 21 hidden, 31 before the fix; the header's JSON round trip), `just native-test`, the Mac build (rung 1.5) and `WhiteboardOutlineUITests` on the iPad simulator (rung 2, 2026-11-23, 9/9); not yet seen with the Pencil on the iPad. The web board needs its unfold to record the header's `ends` (spec, board rules on the web)
+- **Issues:** context-grabber-eysh (Igor's board, 2026-11-23; Cockpit bead cockpit-9ik: 10 new strokes went into a 145-stroke fold)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** who folds a section and keeps writing just under its header
+- **I want to** have what I wrote stay out when I fold the section again
+- **so that** a fold never hides a new thought I didn't ask it to hide
+
+#### Acceptance Criteria:
+- **Scenario:** Written under the fold, then folded again
+- **Given:** a header whose lines aren't indented, folded, and a new line I wrote just under it while it was folded
+- **When:** I unfold it and fold it again
+- **Then:** the new line shows below the header, and only the section's own lines fold, as they did the first time
+
+---
+
+### User Story 1232:
+
+- **Summary:** Unfolding with nothing written leaves the section as it was
+- **Status:** implemented in [5c6650ae](https://github.com/idvorkin/context-grabber/commit/5c6650ae); verified by host tests (`BoardFoldWrittenUnderTests`: an unfold with nothing written), `just native-test`, the Mac build (rung 1.5) and `WhiteboardOutlineUITests` on the iPad simulator (rung 2, 2026-11-23, 9/9); not yet seen with the Pencil on the iPad
+- **Issues:** context-grabber-eysh
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** who folds and unfolds a section without writing under it
+- **I want to** have the fold hide the same lines each time
+- **so that** keeping new ink out of a fold never shrinks a section I didn't touch
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing written under the fold
+- **Given:** a folded header with nothing written under it
+- **When:** I unfold it and fold it again
+- **Then:** the fold hides the same lines as before, and the section ends where it always did
+
+---
+
+### User Story 1233:
+
+- **Summary:** Erasing the ink written under a fold lets the section run on again
+- **Status:** implemented in [5c6650ae](https://github.com/idvorkin/context-grabber/commit/5c6650ae); verified by host tests (`BoardFoldWrittenUnderTests`: the new ink erased), `just native-test`, the Mac build (rung 1.5) and `WhiteboardOutlineUITests` on the iPad simulator (rung 2, 2026-11-23, 9/9); not yet seen with the Pencil on the iPad
+- **Issues:** context-grabber-eysh
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** who wrote under a folded header and then changed my mind
+- **I want to** have the section run on as before once I erase that ink
+- **so that** an erased line leaves no hidden end behind in my outline
+
+#### Acceptance Criteria:
+- **Scenario:** The new ink erased
+- **Given:** a section ended by ink written under it while it was folded
+- **When:** I erase that ink
+- **Then:** the section runs on again as it did before
+
+---
+
 ### User Story 857:
 
 - **Summary:** Larry knows folded ink is folded, not erased

@@ -56,7 +56,7 @@ enum WebOutline {
     BoardText(id: box.ids[0], t: Int64.min + 4 * Int64(index), text: "", font: .plain, size: 0, color: "#000000")
   }
 
-  /// Headers as the iPad keeps them (`BoardHeader`'s own coding): `[{"id", "ids", "mark", "deeper", "fold": {"ids",
+  /// Headers as the iPad keeps them (`BoardHeader`'s own coding): `[{"id", "ids", "mark", "deeper", "ends", "fold": {"ids",
   /// "own", "shift", "lines", "bottom"}}]`.
   static func headers(_ any: Any?) throws -> [BoardHeader] {
     guard let any else { return [] }
