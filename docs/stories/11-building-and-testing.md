@@ -1579,6 +1579,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1621:
+
+- **Summary:** The web board asks the app's own rules where a connector's shaft runs
+- **Status:** implemented in e3a1668f; verified by `just wasm-test` (148 checks, a hand-worked straight route and one elbow round a box among them), the Linux rung (894 tests) and the Cockpit's comparison (60 seeded layouts, 3,432 routes, 548 with an elbow, 0 differences), 2026-11-23. Owed on the Mac: `just native-test` (SwiftLint and the Mac's swift-format)
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 6
+- **Issues:** bead `context-grabber-edl`
+
+#### Use Case:
+- **As Igor,** linking things with connectors on the Cockpit's web ink board as well as on the iPad
+- **I want to** have the web board ask the app's own rules how a connector routes around what is in the way
+- **so that** an arrow takes the same path on the web as on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** A connector's route through the module
+- **Given:** the module built by `just wasm`
+- **When:** `just wasm-test` asks for the route between two boxes with nothing between them, then with a box across the straight line, then with no boxes
+- **Then:** the first is straight from one's right to the other's left; the second goes across then down to the far box's top, clear of the box in the way; the third says it has no boxes
+
+---
+
 ### User Story 1620:
 
 - **Summary:** The web board asks the app's own rules what a Pencil hold picks up and what a finger hold offers
