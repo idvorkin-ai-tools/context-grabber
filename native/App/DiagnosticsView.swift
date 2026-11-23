@@ -475,6 +475,15 @@ private struct HomeSettingsView: View {
           }
           .tint(.primary)
           .accessibilityIdentifier("home-links")
+          // Story 1209: the iPad's PencilKit ink beside the web board's, an A/B tool. The iPhone only looks at boards.
+          if UIDevice.current.userInterfaceIdiom != .phone {
+            NavigationLink {
+              InkSideBySideView(log: model.log)
+            } label: {
+              Label("Ink side by side", systemImage: "rectangle.split.2x1")
+            }
+            .accessibilityIdentifier("home-ink-side-by-side")
+          }
           // Story 149: when the phone's sound is stuck after a call, a workout or breathing.
           Button("Reset audio") { model.resetAudio() }
             .disabled(model.call.snapshot.isActive)
