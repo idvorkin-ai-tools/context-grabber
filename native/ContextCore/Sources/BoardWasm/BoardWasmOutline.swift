@@ -75,7 +75,14 @@ enum WebOutline {
     let headers = try Self.headers(json["headers"])
     var groups = json["groups"] as? [String: String] ?? [:]
     for id in boxes.flatMap(\.ids) where groups[id] == nil { groups[id] = id }
-    return BoardOutline(strokes: ink + boxes, headers: headers, groups: groups)
+    // Each box is a kept text to the outline, so a hold on it is on it anywhere inside (`word(at:)`, `group(at:)`), as
+    // on the iPad. Its time is one no stroke has (the web's ink carries none), so it owns no glyphs: the box is the
+    // whole of it.
+    let texts = boxes.enumerated().map { index, box in
+      BoardText(
+        id: box.ids[0], t: Int64.min + 4 * Int64(index), text: "", font: .plain, size: 0, color: "#000000")
+    }
+    return BoardOutline(strokes: ink + boxes, headers: headers, texts: texts, groups: groups)
   }
 
   static func strokes(json any: Any) throws -> [BoardOps.Stroke] {

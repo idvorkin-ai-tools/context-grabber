@@ -55,7 +55,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 4, `bw_info abi is 4: ${JSON.stringify(info)}`);
+check(info.abi === 5, `bw_info abi is 5: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -288,6 +288,35 @@ check(call('bw_outline_load', { strokes: [line('x', 100)], boxes: [], groups: {}
 check(same(ask('bw_fold_plan', {}).folds, []), `an undone fold that does not fold again is not listed: ${JSON.stringify(ask('bw_fold_plan', {}))}`);
 check(call('bw_load', 'not json') === -1 && call('bw_outline_load', 'not json') === -1 && ask('bw_fold_plan', {}).error === 'no outline is loaded' &&
   ask('bw_ink_header', { name: 'u', id: 'H' }).error === 'no outline is loaded', 'with no outline, both say so');
+
+// Interface 5 (spec, what a hold is on): a header H at 100 (100..150), a line at 200 of two strokes 10 apart (100..130,
+// 140..170; under a word gap of 16, one word) and one far off (300..330), a group of Larry's at 300, a kept text at
+// 400..440.
+const seg = (id, x0, x1, y) => ({ id, width: 4, points: [[x0, y], [x1, y]] });
+const held = {
+  strokes: [seg('h1', 100, 150, 100), seg('a', 100, 130, 200), seg('b', 140, 170, 200), seg('c', 300, 330, 200), seg('g1', 100, 150, 300)],
+  boxes: [{ id: 't', box: [100, 400, 200, 440] }], groups: { t: 't', g1: 'g' }, headers: [{ id: 'H', ids: ['h1'] }],
+};
+check(call('bw_outline_load', held) === 6, `the held outline ${error() ?? ''}`);
+const wordAt = (px, py, slop = 10) => reply(x.bw_word_at(px, py, slop)).names;
+check(same(wordAt(105, 202), ['a', 'b']), `a Pencil on a picks up the word a b: ${JSON.stringify(wordAt(105, 202))}`);
+check(same(wordAt(310, 200), ['c']), 'on c, c alone: the gap to b is past a word gap');
+check(wordAt(500, 200) === null, 'off ink: nothing');
+check(same(wordAt(150, 420), ['t']), `on the kept text: the text: ${JSON.stringify(wordAt(150, 420))}`);
+check(same(wordAt(120, 100), ['h1']), "on the header: its row");
+const holdAt = (px, py, margin = false) => reply(x.bw_hold_menu(px, py, margin ? 1 : 0, 22));
+check(same(holdAt(105, 200), { choices: ['select', 'delete', 'make-room', 'paste', 'make-header'], names: ['a', 'b'], on: 'ink' }),
+  `a finger on a word: Select, Delete, then the line's rows: ${JSON.stringify(holdAt(105, 200))}`);
+check(same(holdAt(120, 100), { choices: ['select', 'make-room', 'paste', 'not-header'], header: 'H', names: ['h1'], on: 'header' }),
+  `on a header: no Delete, and Not a header: ${JSON.stringify(holdAt(120, 100))}`);
+check(same(holdAt(120, 300), { choices: ['select', 'delete', 'make-room', 'paste'], names: ['g1'], on: 'group' }),
+  `on a group of Larry's: the group, and no Make header (it is no one's writing): ${JSON.stringify(holdAt(120, 300))}`);
+check(same(holdAt(500, 250), { choices: ['make-room', 'paste'], names: [], on: 'paper' }), `on blank paper: ${JSON.stringify(holdAt(500, 250))}`);
+check(same(holdAt(30, 100, true), { choices: ['fold-all', 'level-1', 'level-2', 'level-3', 'unfold-all'], names: [], on: 'header-mark' }),
+  `in the margin beside a header: the outline: ${JSON.stringify(holdAt(30, 100, true))}`);
+check(same(holdAt(30, 200, true), { choices: ['make-room', 'paste', 'make-header'], names: [], on: 'paper' }), 'in the margin beside a line: its rows');
+check(call('bw_outline_load', 'not json') === -1 && reply(x.bw_word_at(0, 0, 10)).error === 'no outline is loaded' &&
+  reply(x.bw_hold_menu(0, 0, 0, 22)).error === 'no outline is loaded', 'with no outline, both say so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

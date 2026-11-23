@@ -700,7 +700,7 @@ The Cockpit's web board runs BoardCore compiled for WASI (spec
 against). `just wasm` builds the `BoardWasm` reactor release and stripped to `native/Build/wasm/BoardWasm.wasm` and
 prints its size and sha256; `just wasm-test` builds it and replays the recorded board sessions through it under node,
 with the checks `BoardSessionReplayTests` makes natively, plus a board loaded whole against the same board loaded in two
-halves, a hand-worked outline's rows and folds (story 1508), and a hand-worked paste and drop (story 1513). Both need a Swift toolchain with its wasm SDK (`scripts/native/build-wasm.sh` lists the settings; a box
+halves, a hand-worked outline's rows and folds (story 1508), a hand-worked paste and drop (story 1513), and a hand-worked board's Pencil and finger holds (story 1620). Both need a Swift toolchain with its wasm SDK (`scripts/native/build-wasm.sh` lists the settings; a box
 whose `wasm-ld` needs extra libraries passes `LINUX_LIB_DIR` as for `just test-linux`), and `wasm-test` says it
 skipped without one. Neither is on a rung: a release build of the board for WASI takes minutes. Run them when a
 change touches BoardCore's imports, the module's exports or the board's replay. BoardCore must keep building for

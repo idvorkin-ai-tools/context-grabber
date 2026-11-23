@@ -171,6 +171,22 @@ makes the board change. `bw_info` says `"abi": 4`; versions 1 to 3 are unchanged
   was opened first (Collapse does that; Fold all does not). `levels` is each header's level with everything open.
 - The Cockpit makes the folds one after another by its own fold, given each fold's strokes and shift.
 
+## The interface, version 5: what a hold is on
+
+Story 1620. A Pencil held still picks up the same word the iPad's Pencil hold picks up, and a finger held still brings
+up the same menu a finger hold brings up on the iPad: *Select* and *Delete* the thing under it (no *Delete* on a header's row), then the rows
+for its line. Both over the loaded outline; `bw_info` says `"abi": 5`; versions 1 to 4 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_word_at` | `x`, `y`, `slop` (`f64`, board points) | a reply: `{"names": [...]}`, or `{"names": null}` off ink; `{"error"}` with no outline |
+| `bw_hold_menu` | `x`, `y`, `inMargin` (`i32`, nonzero left of the margin), `slop` | a reply: `{"choices": [id], "names", "on", "header"?}`; `{"error"}` with no outline |
+
+- A choice is named by its id (`select`, `delete`, `make-room`, `paste`, `make-header`, `not-header`, `fold-all`,
+  `level-1` to `level-3`, `unfold-all`); `header` is the header *Not a header* takes. `on` is `header-mark`,
+  `header`, `group`, `ink` or `paper`; `names` are what *Select* and *Delete* take.
+- A hold anywhere inside a box the Cockpit sends (a kept text or a card) is on that box, as on the iPad.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
