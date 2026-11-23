@@ -21,19 +21,21 @@ public struct BoardReplay {
     case marks(WhiteboardMarks.Row)
     /// A finger tap at a board point: which of his marks it chooses (#941).
     case tap(CGPoint)
-    /// Igor's Keep group on a mark of this reply (#942): its marks still showing become ink, one group. `seen`: when
-    /// the picture the reply answers was taken (unix ms), so ink made after it makes room (#894); nil when unknown.
-    case keepGroup(String, seen: Int64? = nil)
+    /// Igor's Keep all (stories 895, 995; bead context-grabber-yqau): every mark of his showing and every text ghost of
+    /// his becomes ink, each reply of two or more marks one group. `seen`: when the picture each reply answers was
+    /// taken (unix ms, by reply id), so ink made after it makes room (#894); a reply not in it has no time known.
+    case keepAll(seen: [String: Int64] = [:])
 
-    /// A step file's JSON: a batch, a chat message carrying one under `ops`, `{"keep": [ids]}`, or a list of those.
+    /// A step file's JSON: a batch, a chat message carrying one under `ops`, `{"keep": [ids]}`,
+    /// `{"keep_all": {reply: ms}}`, or a list of those.
     public static func steps(_ any: Any, key: String) -> [Step] {
       if let list = any as? [Any] {
         return list.enumerated().flatMap { steps($1, key: "\(key)-\($0)") }
       }
       guard let json = any as? [String: Any] else { return [] }
       if let ids = json["keep"] as? [String] { return [.keep(ids)] }
-      if let reply = json["keep_group"] as? String {
-        return [.keepGroup(reply, seen: (json["seen"] as? NSNumber)?.int64Value)]
+      if let seen = json["keep_all"] as? [String: Any] {
+        return [.keepAll(seen: seen.compactMapValues { ($0 as? NSNumber)?.int64Value })]
       }
       if let at = json["tap"] as? [NSNumber], at.count == 2 {
         return [.tap(CGPoint(x: at[0].doubleValue, y: at[1].doubleValue))]
@@ -62,7 +64,7 @@ public struct BoardReplay {
     /// Larry's text ghosts the step left showing or took away.
     public var ghosts: [String] = []
     public var ghostsGone: [String] = []
-    /// Keep group with its picture's time (#894): how many things made after it the reply sat on, and the room it opened.
+    /// Keep all with its pictures' times (#894): how many things made after it the reply sat on, and the room it opened.
     public var covered = 0
     public var room: BoardRoom.Push?
     public var pagesBefore = 0
@@ -172,7 +174,7 @@ public struct BoardReplay {
       case .batch(let key, let json): run(key: key, json: json)
       case .keep(let ids): keep(ids)
       case .marks(let row): show(row)
-      case .keepGroup(let reply, let seen): keepGroup(reply, seen: seen)
+      case .keepAll(let seen): keepAll(seen: seen)
       case .tap(let at):
         var outcome = Outcome(label: "tap", action: "tapped")
         outcome.taps = [Tap(at: at, mark: nil, chose: choose(at: at)?.id)]
@@ -345,40 +347,46 @@ public struct BoardReplay {
     }
   }
 
-  /// Keep group (#942, story 995): the reply's marks still showing become ink where they showed, each stroke named for
-  /// its mark, all under the reply's one group; one change.
-  private mutating func keepGroup(_ reply: String, seen: Int64?) {
-    var outcome = Outcome(label: "keep group \(reply)", action: "kept")
-    let kept = marks.filter { WhiteboardMarks.reply(of: $0.id) == reply }
-    guard !kept.isEmpty else {
+  /// Keep all (stories 895, 995, 999; bead context-grabber-yqau): every mark showing becomes ink where it showed, each
+  /// stroke named for its mark, a reply of two or more marks under its one group, and his text ghosts become kept texts;
+  /// what Igor made after a reply's picture under its marks, or under his text, makes one room in the same change.
+  private mutating func keepAll(seen: [String: Int64]) {
+    var outcome = Outcome(label: "keep all", action: "kept")
+    let kept = marks
+    let ghosts = board.ghosts
+    guard !kept.isEmpty || !ghosts.isEmpty else {
       outcome.action = "ignored"
-      outcome.why = "no marks of \(reply) showing"
+      outcome.why = "no marks showing"
       outcomes.append(outcome)
       return
     }
-    var names: [String] = []
+    let groups = WhiteboardMarks.keptGroups(kept.map(\.id))
     var strokes: [BoardSnapshot.Ink] = []
     for mark in kept {
+      let group = groups[mark.id]
       for (k, line) in mark.lines.enumerated() {
         let name = "\(mark.id).\(k)"
-        names.append(name)
         strokes.append(
           BoardSnapshot.Ink(
             id: name, t: nextTime(), color: String(format: "#%06x", mark.color), width: mark.width,
-            points: WhiteboardTurn.inkPoints(line)))
+            points: WhiteboardTurn.inkPoints(line),
+            meta: group.flatMap { WhiteboardMarks.groupNotes([name], reply: $0)[name] }))
       }
     }
-    // #894 (stories 1004, 1006): what Igor made after the picture makes room under the reply, in the same change.
-    if let seen {
+    // #894 (stories 1004, 1006), #938: what Igor made after a reply's picture, and what his text lands on, makes room.
+    let replies = kept.map { mark in
+      (
+        box: WhiteboardMarkChoice.bounds(mark.lines).insetBy(dx: -mark.width / 2, dy: -mark.width / 2),
+        seen: WhiteboardMarks.reply(of: mark.id).flatMap { seen[$0] }
+      )
+    }
+    if replies.contains(where: { $0.seen != nil }) || !ghosts.isEmpty {
       let (planned, texts, metas) = board.planInput
       // The plan's ink goes by no time (a time is how a text's glyphs are known); here it is when each was made.
       var made = planned
       for i in board.ink.indices { made[i].t = board.ink[i].t }
-      let marks = kept.map { mark in
-        WhiteboardMarkChoice.bounds(mark.lines).insetBy(dx: -mark.width / 2, dy: -mark.width / 2)
-      }
       let late = BoardRoom.late(
-        marks, seen: seen, strokes: made, texts: texts, groups: metas.groups, theirs: theirs)
+        replies, landing: ghosts.map(\.box), strokes: made, texts: texts, groups: metas.groups, theirs: theirs)
       outcome.covered = late.covered
       if let push = late.push {
         outcome.room = push
@@ -388,12 +396,21 @@ public struct BoardReplay {
         put(plan, into: &outcome)
       }
     }
-    let notes = WhiteboardMarks.groupNotes(names, reply: reply)
-    for i in strokes.indices { strokes[i].meta = notes[strokes[i].id] }
     theirs.formUnion(strokes.compactMap(\.t))
     board.ink += strokes
-    marks.removeAll { WhiteboardMarks.reply(of: $0.id) == reply }
-    outcome.drawn = [WhiteboardMarks.group(reply: reply)]
+    for ghost in ghosts {
+      let t = nextTime()
+      theirs.insert(t)
+      board.texts.append(
+        BoardSnapshot.Kept(
+          id: ghost.id, text: ghost.text, font: ghost.font, box: ghost.box, color: BoardSnapshot.hex(ghost.color), t: t,
+          size: ghost.size))
+    }
+    board.ghosts = []
+    marks = []
+    outcome.drawn =
+      Set(groups.values).sorted().map(WhiteboardMarks.group(reply:))
+      + kept.filter { groups[$0.id] == nil }.map(\.id) + ghosts.map(\.id)
     applier.changed()
     board.rev = applier.rev
     outcomes.append(outcome)

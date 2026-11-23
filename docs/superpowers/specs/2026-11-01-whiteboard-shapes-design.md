@@ -169,7 +169,9 @@ suggest changes the board until Igor keeps it.
       of Igor's that any kept mark lands on and that he made after the picture *that mark's* reply answers. When
       replies to different pictures show together, ink in a reply's own picture never makes room for that reply's
       marks, even if an earlier reply's picture didn't have it. A mark whose picture's time this device doesn't know
-      makes no room of its own, but the room made for the others goes under it too.
+      makes no room of its own, but the room made for the others goes under it too. His text from a change kept with
+      them makes room in that same one room, as it does with Keep: whatever it lands on goes down under it, a frame
+      it sits wholly inside aside, and the text stays where it showed.
     - Not yet (#912's *Reflow rules*): his other unkept marks don't slide with the ink, and blank paper further down
       doesn't take up the push: the push moves everything below the line, as a paste's room does, marks of Larry's
       kept earlier from the same reply included (Keep all keeps each reply whole, so this only bites when Igor keeps a

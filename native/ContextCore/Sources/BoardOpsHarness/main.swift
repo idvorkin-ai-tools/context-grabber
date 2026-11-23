@@ -6,9 +6,10 @@
 //                      [--out <prefix>] [--rev <n>] [--scale <px per point>]
 //
 //  A step file may also be a chat reply of Larry's with `shapes` (#941): his marks show as ghosts where the iPad puts
-//  them, and each is tried with a tap; `--tap x,y` is a finger tap at a board point; `--keep-group <reply id>` is
-//  Igor's Keep group (#942), the reply's marks kept as ink under one group; `--keep-group <reply id>@<ms>` keeps it
-//  as if its picture was taken at that unix ms, so ink made after it makes room under the reply (#894).
+//  them, and each is tried with a tap; `--tap x,y` is a finger tap at a board point; `--keep-all -` is Igor's Keep all
+//  (bead context-grabber-yqau), every mark showing kept as ink, each reply of two or more under one group, and his text
+//  ghosts kept; `--keep-all <reply id>@<ms>,…` keeps them as if each reply's picture was taken at that unix ms, so ink
+//  made after it makes room under the marks (#894).
 //
 //    board-ops-harness --session <name|session.jsonl> [--out <prefix>]
 //
@@ -52,7 +53,7 @@ struct Arguments {
       case "--ops": steps.append(("ops", try value(flag)))
       case "--keep": steps.append(("keep", try value(flag)))
       case "--tap": steps.append(("tap", try value(flag)))
-      case "--keep-group": steps.append(("keep-group", try value(flag)))
+      case "--keep-all": steps.append(("keep-all", try value(flag)))
       case "--out": out = try value(flag)
       case "--rev": rev = Int(try value(flag))
       case "--scale": scale = CGFloat(Double(try value(flag)) ?? 1.5)
@@ -69,7 +70,7 @@ struct Arguments {
 
   static let usage = """
     usage: board-ops-harness --board <snapshot.json> --ops <batch.json|reply.json> [--ops ...] [--keep id,id]
-                             [--tap x,y] [--keep-group <reply id>[@<picture ms>]]
+                             [--tap x,y] [--keep-all -|<reply id>@<picture ms>,…]
                              [--out <prefix>] [--rev <n>] [--scale <px per point>]
            board-ops-harness --session <name|session.jsonl> [--out <prefix>]
     """
@@ -94,10 +95,14 @@ func main() throws {
   for (i, step) in args.steps.enumerated() {
     if step.kind == "keep" {
       steps.append(.keep(step.value.split(separator: ",").map(String.init)))
-    } else if step.kind == "keep-group" {
-      // `<reply id>@<ms>`: when the picture it answers was taken, so ink made after it makes room (#894).
-      let parts = step.value.split(separator: "@", maxSplits: 1).map(String.init)
-      steps.append(.keepGroup(parts[0], seen: parts.count > 1 ? Int64(parts[1]) : nil))
+    } else if step.kind == "keep-all" {
+      // `<reply id>@<ms>,…`: when the picture each reply answers was taken, so ink made after it makes room (#894).
+      let pairs = step.value.split(separator: ",").compactMap { entry -> (String, Int64)? in
+        let parts = entry.split(separator: "@", maxSplits: 1).map(String.init)
+        guard parts.count == 2, let ms = Int64(parts[1]) else { return nil }
+        return (parts[0], ms)
+      }
+      steps.append(.keepAll(seen: Dictionary(pairs, uniquingKeysWith: { a, _ in a })))
     } else if step.kind == "tap" {
       let xy = step.value.split(separator: ",").compactMap { Double($0) }
       guard xy.count == 2 else { throw Failure(description: "--tap wants x,y") }

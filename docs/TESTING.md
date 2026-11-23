@@ -642,7 +642,7 @@ board-ops bug, on the Mac with no simulator, in seconds (#936, story 990). The b
 
 ```bash
 just board-ops --board <snapshot.json> --ops <batch.json> [--ops <next.json>] [--keep id,id] [--out <prefix>]
-just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-group <reply id>[@<picture ms>]]
+just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-all -|<reply id>@<picture ms>,…]
 ```
 
 - **The snapshot** is the board's strokes JSON, the body the board posts to `POST /whiteboard/strokes` or the
@@ -655,10 +655,12 @@ just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-gr
 - **A reply with marks** (#941): his chat message with `shapes` shows them as his ghosts, placed by the message's
   frame as the iPad places them, and tries a tap on each: the result's `taps` say which mark each chose, and
   `unreachable` (ringed in red on the picture) names a mark a tap can't reach with the mark that takes it instead.
-  `--tap x,y` is a finger tap at a board point. `--keep-group <reply id>` is Igor's Keep group (#942): the reply's
-  marks become ink under the one group `reply-<id>`, which a later batch can move or erase by that name.
-  `--keep-group <reply id>@<ms>` keeps it as if its picture was taken at that unix ms (#894): ink made after it
-  (each stroke's `t`) that the reply lands on is pushed under it, and the step's `covered` and `room` say so.
+  `--tap x,y` is a finger tap at a board point. `--keep-all -` is Igor's Keep all (#942, bead context-grabber-yqau):
+  every mark showing becomes ink, each reply of two or more under the one group `reply-<id>`, which a later batch can
+  move or erase by that name, and his text ghosts become kept texts, making room for what they land on (#938).
+  `--keep-all <reply id>@<ms>,…` keeps them as if each reply's picture was taken at that unix ms (#894): ink made
+  after it (each stroke's `t`) that the reply's marks land on is pushed under them, and the step's `covered` and
+  `room` say so.
 - **Out**: `<prefix>.png` (the board after, with what each step moved in orange, drew or kept in green, erased in red
   dashes, his ghosts in purple dashes, and each step's `op_result` on top, a missing id in capitals),
   `<prefix>-before.png`, `<prefix>.result.json` (each step's `op_result` and the names it moved, erased, drew and left

@@ -223,23 +223,29 @@ extension WhiteboardModel {
 
   /// #894 (stories 1004–1006): the room Larry's marks need when kept, for what Igor made after the picture they answer;
   /// nil when that picture's time isn't known on this device. His marks stay where they showed.
+  /// Keep all's text from a change (#938) makes room in the same one room.
   private func lateRoom(_ marks: [Ghost]) -> BoardRoom.Late? {
-    guard marks.contains(where: { $0.seen != nil }) else { return nil }
+    guard marks.contains(where: { $0.seen != nil || $0.text != nil }) else { return nil }
     // Keep all: each mark against its own reply's picture, one room for all of them.
-    let boxes = marks.map { mark in
+    let replies = marks.filter { $0.text == nil }.map { mark in
       (box: WhiteboardMarkChoice.bounds(mark.lines).insetBy(dx: -mark.width / 2, dy: -mark.width / 2), seen: mark.seen)
     }
+    let landing = marks.filter { $0.text != nil }.map { WhiteboardMarkChoice.bounds($0.lines) }
     let strokes = opStrokes(drawing.strokes).strokes
     let theirs = opLedger.theirs(board: board.id)
     return BoardRoom.late(
-      boxes, strokes: strokes, texts: texts, groups: strokeMeta.groups, folds: outline(of: strokes).tags,
-      theirs: theirs)
+      replies, landing: landing, strokes: strokes, texts: texts, groups: strokeMeta.groups,
+      folds: outline(of: strokes).tags, theirs: theirs)
   }
 
-  /// The keep's log fields for #894: the picture's time (or that it isn't known), what newer it sat on, the room.
+  /// The keep's log fields for #894: the picture's time (or that it isn't known), each reply's when Keep all kept
+  /// replies to more than one, what newer it sat on, the room.
   private static func lateFields(_ late: BoardRoom.Late?, _ marks: [Ghost]) -> [String: Any] {
-    guard let late, let seen = marks.compactMap(\.seen).min() else { return ["picture_t": NSNull()] }
-    var out: [String: Any] = ["picture_t": seen, "covered_newer": late.covered]
+    let seen = Set(marks.compactMap(\.seen)).sorted()
+    var out: [String: Any] = ["picture_t": seen.first.map { $0 as Any } ?? NSNull()]
+    if seen.count > 1 { out["picture_ts"] = seen }
+    guard let late else { return out }
+    out["covered_newer"] = late.covered
     if let push = late.push {
       out["late_cut"] = Double(push.cut)
       out["late_dy"] = Double(push.dy)

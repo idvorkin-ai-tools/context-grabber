@@ -113,6 +113,35 @@ final class WhiteboardKeepAllTests: XCTestCase {
     XCTAssertGreaterThanOrEqual(200 + (push?.dy ?? 0), 440 + BoardRoom.air, "under the unknown one too")
   }
 
+  func testHisTextFromAChangePushesWhatItLandsOnUnderItWhenItWasMade() {
+    // A line Igor wrote before any picture: a reply's mark there moves nothing, his text from a change does (#938).
+    let line = writing("old", 200, made: early - 60_000)
+    let text = CGRect(x: 120, y: 190, width: 200, height: 40)
+    XCTAssertNil(BoardRoom.late([(box: text, seen: Optional(early))], strokes: [line]).push)
+    let late = BoardRoom.late([], landing: [text], strokes: [line])
+    let push = try? XCTUnwrap(late.push)
+    XCTAssertEqual(late.covered, 1)
+    XCTAssertEqual(push?.cut, 200)
+    XCTAssertGreaterThanOrEqual(200 + (push?.dy ?? 0), text.maxY + BoardRoom.air, "the line goes under the text")
+  }
+
+  func testHisTextInsideAFrameLeavesTheFrameWhereItIs() {
+    let frame = BoardOps.Stroke(ids: ["box"], t: later + 60_000, bounds: CGRect(x: 80, y: 150, width: 400, height: 200))
+    let text = CGRect(x: 120, y: 190, width: 200, height: 40)
+    XCTAssertNil(BoardRoom.late([], landing: [text], strokes: [frame]).push, "a label in a box stays in it")
+  }
+
+  func testHisTextAndALateReplyMakeOneRoomUnderBoth() {
+    let line = writing("new", 200, made: later + 60_000)
+    let other = writing("other", 420, made: early - 60_000)
+    let late = BoardRoom.late(
+      [(box: CGRect(x: 120, y: 190, width: 200, height: 40), seen: Optional(early))],
+      landing: [CGRect(x: 120, y: 410, width: 200, height: 40)], strokes: [line, other])
+    XCTAssertEqual(late.covered, 2)
+    XCTAssertEqual(late.push?.cut, 200)
+    XCTAssertGreaterThanOrEqual(420 + (late.push?.dy ?? 0), 450 + BoardRoom.air, "one room, under his text too")
+  }
+
   func testOneSeenForAllIsTheSameAsBefore() {
     let line = writing("new", 200, made: early + 60_000)
     let box = CGRect(x: 120, y: 190, width: 200, height: 40)

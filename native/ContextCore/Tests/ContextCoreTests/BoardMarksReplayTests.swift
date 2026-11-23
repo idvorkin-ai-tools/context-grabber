@@ -87,10 +87,10 @@ final class BoardMarksReplayTests: XCTestCase {
     }
   #endif
 
-  // MARK: Keep group (#942, story 995)
+  // MARK: Keep all (#942, stories 995, 999)
 
-  func testKeepGroupMakesTheReplyInkUnderOneGroupThatMovesAsOne() throws {
-    var replay = try family(then: [.keepGroup(row)])
+  func testKeepAllMakesTheReplyInkUnderOneGroupThatMovesAsOne() throws {
+    var replay = try family(then: [.keepAll()])
     let kept = replay.board.ink.filter { $0.meta?.group == "reply-\(row)" }
     XCTAssertGreaterThanOrEqual(kept.count, 7, "the four boxes and three lines at least, and the names' letters")
     XCTAssertEqual(replay.marks, [], "nothing of the reply left to keep")
@@ -128,8 +128,8 @@ final class BoardMarksReplayTests: XCTestCase {
   /// When the picture was taken: after every stroke of the fixture, which end at 1763432004000.
   private let picture: Int64 = 1_763_432_004_500
 
-  func testKeepGroupOverALineWrittenAfterThePicturePushesItUnderTheReply() throws {
-    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepGroup(row, seen: picture)])
+  func testKeepAllOverALineWrittenAfterThePicturePushesItUnderTheReply() throws {
+    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepAll(seen: [row: picture])])
     let outcome = try XCTUnwrap(replay.outcomes.last)
     XCTAssertEqual(outcome.action, "kept")
     XCTAssertEqual(outcome.covered, 1, "\(outcome.wire)")
@@ -143,21 +143,21 @@ final class BoardMarksReplayTests: XCTestCase {
     XCTAssertEqual(reply.minY, 1564.8, accuracy: 4, "the reply stays where it showed")
   }
 
-  func testKeepGroupOverALineInHisPictureMovesNothing() throws {
-    let replay = try familyWithALateLine(madeAt: picture - 500, then: [.keepGroup(row, seen: picture)])
+  func testKeepAllOverALineInHisPictureMovesNothing() throws {
+    let replay = try familyWithALateLine(madeAt: picture - 500, then: [.keepAll(seen: [row: picture])])
     let outcome = try XCTUnwrap(replay.outcomes.last)
     XCTAssertEqual(outcome.covered, 0)
     XCTAssertNil(outcome.room)
     XCTAssertEqual(outcome.moved, [:])
   }
 
-  func testKeepGroupOverAReplyOfHisKeptAfterThePictureMovesNothing() throws {
+  func testKeepAllOverAReplyOfHisKeptAfterThePictureMovesNothing() throws {
     // He answers the same picture twice, and the second reply lands on the first, kept a moment before: his own ink,
     // made after the picture, is never Igor's to push.
     var again = try XCTUnwrap(try fixture("family-marks") as? [String: Any])
     again["id"] = "second"
-    var replay = try family(then: [.keepGroup(row, seen: picture)])
-    replay.run(BoardReplay.Step.steps(again, key: "again") + [.keepGroup("second", seen: picture)])
+    var replay = try family(then: [.keepAll(seen: [row: picture])])
+    replay.run(BoardReplay.Step.steps(again, key: "again") + [.keepAll(seen: ["second": picture])])
     let outcome = try XCTUnwrap(replay.outcomes.last)
     XCTAssertEqual(outcome.action, "kept")
     XCTAssertEqual(outcome.covered, 0, "\(outcome.wire)")
@@ -165,22 +165,21 @@ final class BoardMarksReplayTests: XCTestCase {
     XCTAssertEqual(outcome.moved, [:])
   }
 
-  func testKeepGroupWithThePicturesTimeUnknownMovesNothing() throws {
-    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepGroup(row)])
+  func testKeepAllWithThePicturesTimeUnknownMovesNothing() throws {
+    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepAll()])
     XCTAssertEqual(replay.outcomes.last?.moved, [:])
   }
 
-  func testAKeepGroupStepFileCarriesThePicturesTime() {
-    let steps = BoardReplay.Step.steps(["keep_group": "r", "seen": 42], key: "k")
-    guard case .keepGroup(let reply, let seen)? = steps.first else { return XCTFail("not a keep group") }
-    XCTAssertEqual(reply, "r")
-    XCTAssertEqual(seen, 42)
+  func testAKeepAllStepFileCarriesEachRepliesPictureTime() {
+    let steps = BoardReplay.Step.steps(["keep_all": ["r": 42, "s": 43]], key: "k")
+    guard case .keepAll(let seen)? = steps.first else { return XCTFail("not a keep all") }
+    XCTAssertEqual(seen, ["r": 42, "s": 43])
   }
 
-  func testKeepGroupOfAReplyNotShowingKeepsNothing() throws {
-    let replay = try family(then: [.keepGroup("nope")])
+  func testKeepAllWithNothingShowingKeepsNothing() throws {
+    var replay = try family(then: [.keepAll()])
+    replay.run([.keepAll()])
     XCTAssertEqual(replay.outcomes.last?.action, "ignored")
-    XCTAssertEqual(replay.marks.count, replay.outcomes.first?.marks.count)
   }
 
   func testAReplyWithNoFrameShowsNothing() throws {

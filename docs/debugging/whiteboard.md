@@ -242,7 +242,7 @@ to that event's own bullet; never join two events on one line.
   - **paper_paste_landed** (strokes, at, view, clear, cut, dy, moved, pages_before, pages, selected, ms)
   - **paper_paste_deleted** (strokes)
   - a keep carries text_id for Larry's text, and room_cut, room_dy and landed_dy when it made room (#938)
-  - a keep of his marks and **keep_group** carry picture_t (when the picture his reply answers was taken, unix ms, or null when this device doesn't know it) with covered_newer (how many things made after it the marks sat on) and late_cut and late_dy when they made room (#894)
+  - a keep of his marks and **keep_all** (keep_group before bead context-grabber-yqau) carry picture_t (when the picture his reply answers was taken, unix ms, or null when this device doesn't know it; for a keep_all over replies to more than one picture the earliest, with picture_ts listing each) with covered_newer (how many things made after it the marks sat on) and late_cut and late_dy when they made room (#894)
   - `whiteboard_marks` **shown** carries picture_known
 - `whiteboard_turn` adds rev, events, op_result and folds (and, when the cap let some go, events_dropped and dropped_kinds, a count per wire `type`; bead context-grabber-27sv); a Larry hand-off also render_ms, encode_ms, strokes_ms and upload_ms (bead context-grabber-7zmj, story 1112)
 
