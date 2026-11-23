@@ -20,8 +20,14 @@ extension WhiteboardModel {
       delivered: out?.delivered ?? false, earlier: out?.receipt ?? .sent)
   }
 
-  /// The board has a thread with Larry on this device.
-  var threadKey: String? { threads.thread(board: board.id) }
+  /// The board's one thread with Larry (story 1158): this device's own on the board it drew, else the one the board
+  /// carries through iCloud, as the store has it now (a sync since the board opened may have brought it, #1161).
+  var threadKey: String? {
+    threads.board(board.id, carried: carriedThread, drawnHere: store.editable(board))
+  }
+
+  /// The thread the board's iCloud copy carries (#1161).
+  var carriedThread: String? { store.index.board(board.id)?.thread ?? board.thread }
 
   /// Story 1127 (#1138): a link chip in the open conversation was tapped; the kind and the board, never the link.
   func logLinkOpened(_ link: ChatLink) {
@@ -37,8 +43,7 @@ extension WhiteboardModel {
   /// iPhone has no panel, so it opens the board's thread in Chat, found among the chats when another device sent the
   /// board (story 1110, #1163), or says where the conversation is when none is found (story 769, #1161).
   func tapNote(onPhone: Bool, openChat: @escaping (String) -> Void) {
-    // The board as the store has it now: a sync since the board opened may have brought its thread (#1161).
-    let icloud = store.index.board(board.id)?.thread ?? board.thread
+    let icloud = carriedThread
     let tap = WhiteboardNote.tap(onPhone: onPhone, thread: threadKey, icloud: icloud)
     switch tap {
     case .toggle:
@@ -58,7 +63,8 @@ extension WhiteboardModel {
       let drawnOn = store.editable(board) ? nil : board.deviceName
       Task { [weak self, board = self.board, cockpit = self.cockpit, log = self.log] in
         let answer = await BoardThreadLookup.find(
-          board: board.id, title: title, icloud: icloud, cockpit: cockpit, log: log, from: "note")
+          board: board.id, title: title, icloud: icloud, drawnHere: drawnOn == nil, cockpit: cockpit, log: log,
+          from: "note")
         switch answer {
         case .thread(let key): openChat(key)
         case .problem(let problem):
@@ -119,7 +125,7 @@ extension WhiteboardModel {
     defer { if larryHandOffs.isLatest(attempt) { larrySending = false } }
     let (jpeg, strokes, picture, rect, scale) = (out.jpeg, out.strokes, out.picture, out.rect, out.scale)
     let folds = out.folds
-    let thread = threads.thread(board: board.id)
+    let thread = threadKey
     let started = Date()
     var event: [String: Any] = [
       "who": "larry", "board": board.id, "bytes": jpeg.count, "picture": picture.pictureID, "new_thread": thread == nil,

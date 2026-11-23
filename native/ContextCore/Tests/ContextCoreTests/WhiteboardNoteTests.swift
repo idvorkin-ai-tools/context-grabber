@@ -199,14 +199,18 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(WhiteboardNote.noThread(drawnOn: nil), "No conversation with Larry yet")
   }
 
-  /// #1161 (story 769): the thread the board carries through iCloud opens Chat, and says so; this phone's own wins.
+  /// #1161 (story 769): the thread the board carries through iCloud opens Chat, and says so; which thread is the
+  /// board's is `WhiteboardThreads.board`'s to pick (story 1158), and the tap names where it came from.
   func testATapOnAPhoneOpensTheThreadTheBoardCarriesThroughICloud() {
-    let fromICloud = WhiteboardNote.tap(onPhone: true, thread: nil, icloud: "igor2-88g.1609")
+    let fromICloud = WhiteboardNote.tap(onPhone: true, thread: "igor2-88g.1609", icloud: "igor2-88g.1609")
     XCTAssertEqual(fromICloud, .openChat("igor2-88g.1609", fromICloud: true))
     XCTAssertEqual(fromICloud.found, "icloud")
     XCTAssertEqual(WhiteboardNote.tap(onPhone: true, thread: "mine", icloud: "ipads"), .openChat("mine"))
     XCTAssertEqual(WhiteboardNote.tap(onPhone: true, thread: "mine", icloud: "ipads").found, "this_device")
     XCTAssertEqual(WhiteboardNote.tap(onPhone: false, thread: nil, icloud: "ipads"), .toggle, "the iPad has its panel")
+    XCTAssertEqual(
+      WhiteboardNote.tap(onPhone: true, thread: nil, icloud: "gone"), .nothing,
+      "a carried thread the Cockpit lost is not the board's, so nothing opens")
   }
 
   // MARK: Open: the conversation

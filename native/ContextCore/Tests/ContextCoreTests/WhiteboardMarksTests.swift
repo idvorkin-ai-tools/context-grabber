@@ -327,6 +327,89 @@ final class WhiteboardMarksTests: XCTestCase {
     XCTAssertEqual(report.boardThreads, ["b1"], "it started once, so the boards sync once (context-grabber-e3vb)")
   }
 
+  // MARK: A Send from any device goes to the board's one conversation (story 1158, bead context-grabber-da1)
+
+  private func sender(_ store: InboxStore, _ threads: WhiteboardThreads, _ paths: Paths) -> InboxSender {
+    InboxSender(store: store, cockpit: "https://c.example", threads: threads) { request in
+      await paths.add(request.url?.path ?? "")
+      let path = request.url?.path ?? ""
+      let thread = path == "/chat" ? "t-new" : String(path.dropFirst("/chat/".count))
+      return (
+        Data(#"{"ok": true, "thread": "\#(thread)"}"#.utf8),
+        HTTPURLResponse(url: try XCTUnwrap(request.url), statusCode: 200, httpVersion: nil, headerFields: nil)!
+      )
+    }
+  }
+
+  /// An iPhone that never sent an iPad's board: its Send goes to the thread the board carries, which it keeps after.
+  func testASendWithNoThreadOfItsOwnUsesTheOneTheBoardCarries() async throws {
+    let store = try outbox()
+    let threads = try makeThreads()
+    let thread = threads.board("b1", carried: "t-ipad", drawnHere: false)
+    XCTAssertEqual(thread, "t-ipad")
+    try store.add(picture("m1", at: 1, thread: thread))
+    let paths = Paths()
+    let report = await sender(store, threads, paths).sendWaiting { _, _ in }
+    XCTAssertEqual(report.sent, ["m1"])
+    let sentTo = await paths.all
+    XCTAssertEqual(sentTo, ["/chat/t-ipad"], "no second conversation")
+    XCTAssertEqual(threads.thread(board: "b1"), "t-ipad")
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: false), "t-ipad")
+  }
+
+  /// A board carrying no thread, on a device with none: the Send starts one and the board keeps it.
+  func testASendWithNeitherStartsOneAndRecordsIt() async throws {
+    let store = try outbox()
+    let threads = try makeThreads()
+    let thread = threads.board("b1", carried: nil, drawnHere: true)
+    XCTAssertNil(thread)
+    try store.add(picture("m1", at: 1, thread: thread))
+    let paths = Paths()
+    let report = await sender(store, threads, paths).sendWaiting { _, _ in }
+    let sentTo = await paths.all
+    XCTAssertEqual(sentTo, ["/chat"])
+    XCTAssertEqual(threads.thread(board: "b1"), "t-new")
+    XCTAssertEqual(report.boardThreads, ["b1"], "the drawing device sends it up with the board")
+    XCTAssertEqual(threads.board("b1", carried: nil, drawnHere: true), "t-new")
+  }
+
+  /// The carried thread wins on a device that didn't draw the board, even over an older one of its own; on the drawing
+  /// device its own is the board's, and a reinstall that knows none uses the carried one.
+  func testTheBoardsThreadIsTheCarriedOneExceptOnTheDrawingDevice() throws {
+    let threads = try makeThreads()
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: true), "t-ipad", "a reinstalled iPad")
+    XCTAssertNil(threads.board("b1", carried: nil, drawnHere: false))
+    threads.set("t-mine", board: "b1")
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: false), "t-ipad")
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: true), "t-mine")
+    XCTAssertEqual(threads.board("b1", carried: nil, drawnHere: false), "t-mine")
+  }
+
+  /// A carried thread the Cockpit said is gone is never used again, though the board's copy still carries it.
+  func testACarriedThreadTheCockpitLostIsNeverUsed() throws {
+    let threads = try makeThreads()
+    XCTAssertTrue(threads.forget("t-ipad", board: "b1"), "with none of its own, the carried one it used is gone")
+    XCTAssertEqual(threads.gone(), ["b1": "t-ipad"])
+    XCTAssertNil(threads.board("b1", carried: "t-ipad", drawnHere: false))
+    XCTAssertNil(threads.board("b1", carried: "t-ipad", drawnHere: true))
+    threads.set("t-next", board: "b1")
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: true), "t-next")
+    XCTAssertEqual(
+      threads.board("b1", carried: "t-ipad", drawnHere: false), "t-next",
+      "the board's copy still carries the dead one, and the phone's new thread is used instead")
+  }
+
+  /// A phone with an older thread of its own used the carried one, which the Cockpit then lost: it is gone too.
+  func testACarriedThreadLostBesideAnOlderOwnOneIsNeverUsed() throws {
+    let threads = try makeThreads()
+    threads.set("t-mine", board: "b1")
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: false), "t-ipad")
+    XCTAssertTrue(threads.forget("t-ipad", board: "b1"))
+    XCTAssertFalse(threads.forget("t-ipad", board: "b1"), "already known gone")
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: false), "t-mine")
+    XCTAssertEqual(threads.thread(board: "b1"), "t-mine", "its own thread stays")
+  }
+
   /// The Cockpit no longer has the thread: that picture is refused and the board's next one starts a new thread.
   func testAPictureToAThreadTheCockpitLostFreesTheBoard() async throws {
     let store = try outbox()
@@ -362,20 +445,21 @@ final class WhiteboardMarksTests: XCTestCase {
   func testForgettingAnOldThreadLeavesANewerOne() throws {
     let threads = try makeThreads()
     threads.set("new", board: "b1")
-    XCTAssertFalse(threads.forget("old", board: "b1"))
+    XCTAssertTrue(threads.forget("old", board: "b1"))
     XCTAssertEqual(threads.thread(board: "b1"), "new")
-    XCTAssertEqual(threads.gone(), [:], "nothing forgotten, nothing to clear from iCloud")
+    XCTAssertEqual(threads.gone(), ["b1": "old"])
   }
 
-  /// context-grabber-e3vb: a forgotten thread is remembered as gone until the board's next thread starts.
-  func testAForgottenThreadIsGoneUntilANewOneStarts() throws {
+  /// context-grabber-e3vb: a forgotten thread stays gone after the board's next thread starts, as the board's iCloud
+  /// copy may still carry it.
+  func testAForgottenThreadStaysGoneAfterANewOneStarts() throws {
     let threads = try makeThreads()
     threads.set("t1", board: "b1")
     XCTAssertTrue(threads.forget("t1", board: "b1"))
     XCTAssertEqual(threads.gone(), ["b1": "t1"])
     XCTAssertEqual(threads.all(), [:], "a gone thread is never read as the board's")
     threads.set("t2", board: "b1")
-    XCTAssertEqual(threads.gone(), [:])
+    XCTAssertEqual(threads.gone(), ["b1": "t1"])
     XCTAssertEqual(threads.all(), ["b1": "t2"])
   }
 
