@@ -83,6 +83,11 @@ let package = Package(
       exclude: chatWireSources + boardSources),
     .executableTarget(name: "BoardOpsHarness", dependencies: ["ContextCore"]),
     .executableTarget(name: "TouchReplay", dependencies: ["ContextCore"]),
+    // The board's rules for the Cockpit's web board: a WASI reactor exporting a small C interface (spec
+    // 2026-11-22-board-rules-on-the-web-design.md; `just wasm`). Elsewhere it is a stub that says so.
+    .executableTarget(
+      name: "BoardWasm", dependencies: ["BoardCore"],
+      linkerSettings: [.unsafeFlags(["-Xclang-linker", "-mexec-model=reactor"], .when(platforms: [.wasi]))]),
     .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"] + boardTests),
     .testTarget(
       name: "BoardCoreTests", dependencies: ["BoardCore"], path: "Tests/ContextCoreTests", sources: boardTests,
