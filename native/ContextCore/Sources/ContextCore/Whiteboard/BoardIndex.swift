@@ -103,6 +103,10 @@ public struct BoardIndex: Codable, Equatable, Sendable {
   /// it's look-only even on the device that made it.
   public static func drawnOnTheOldCanvas(_ board: BoardEntry) -> Bool { board.onPages != true }
 
+  /// Story 1200: whether the board has *Send to Larry*. Every board but one drawn on the old canvas, wherever it opens:
+  /// that one's ink is moved onto pages to be shown, not where it's saved, so there is no frame to show Larry.
+  public static func sendable(_ board: BoardEntry) -> Bool { !drawnOnTheOldCanvas(board) }
+
   /// What the bar says on a board that can't be drawn on here; nil on one that can.
   public static func lookOnlyNote(_ board: BoardEntry, on device: String, onPhone: Bool = false) -> String? {
     if onPhone { return "Look only on iPhone: draw on the iPad" }

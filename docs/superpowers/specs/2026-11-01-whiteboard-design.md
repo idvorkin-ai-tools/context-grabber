@@ -115,9 +115,20 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   to look at: pan and pinch, no tool picker, and a note in the bar saying where it's drawn.
 - **On an iPhone every board is look-only**, its own included (Igor, 2026-11-10). The list has no *+ New board*;
   every board opens to pan and pinch, with no tool picker, no Board menu and no ghosts, and the bar says *Look only on
-  iPhone: draw on the iPad*. *Send to Larry* stays, as on any look-only board: a board can still be talked about
+  iPhone: draw on the iPad*. *Send to Larry* stays, as on every look-only board but one drawn on the old canvas (*Which
+  look-only boards can be sent*, below, story 1200): a board can still be talked about
   from the phone (Igor: "Maybe we can do chat"). Delete and, on the iPhone's own boards, Rename stay in the list. A board the iPhone drew
   before this keeps its ink and opens look-only like the rest.
+- **Which look-only boards can be sent** (story 1200, bead context-grabber-xg3). A look-only board's bar says why it is
+  look-only, in this order of precedence, and has *Send to Larry* unless it was drawn on the old canvas:
+  - a board that could not be read: *Couldn't be read: look only*; Send is there and dimmed, with nothing read to send;
+  - on an iPhone, any board: *Look only on iPhone: draw on the iPad*; Send is there;
+  - another device's board: *Drawn on <that device>: look only*; Send is there;
+  - this device's board from the old canvas: *Drawn on the old canvas: look only*; no Send.
+  A board drawn on the old canvas has no Send wherever it opens, whichever note it shows (another device's, or an
+  iPhone's): its ink is moved onto pages to be shown, not where it is saved, so there is no frame to show Larry and
+  nowhere for his marks to land. Its reply would have nothing to sit on. Any other look-only board can still be talked
+  about; its reply shows only in Chat, as the board takes no turn and doesn't look.
 - **Without iCloud** (signed out, or no network), the list shows what this device already has and says that boards
   aren't syncing. Drawing still works, and the board goes up the next time it can.
 - **A sync iCloud turns down tries again by itself** (#1002: on the iPad, the first sync after the app was closed with
@@ -275,7 +286,7 @@ Every board is drawn on paper. The old canvas, its switch and the trial are gone
 
 - **A board drawn on the old canvas is look-only** (Igor's choice, 2026-11-07). It opens on paper with every stroke where it
   was and its colour, can be panned and pinched and deleted from the list, as any look-only board can, but not drawn on,
-  erased, pasted on, sent or given ghosts. The bar says *Drawn on the old canvas: look only*. Its row in the list doesn't say *On paper*.
+  erased, pasted on, sent or given ghosts, wherever it opens (story 1200). The bar says *Drawn on the old canvas: look only*. Its row in the list doesn't say *On paper*.
   To keep drawing on one, Igor starts a new board.
 - **A board on paper from another device** stays look-only on this one, as every board is, now shown on paper.
 

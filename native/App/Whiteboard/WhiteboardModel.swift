@@ -153,6 +153,8 @@ final class WhiteboardModel: ObservableObject {
   let editable: Bool
   /// Drawn on the old canvas: its ink is moved onto pages to be shown, and it can't be sent (story 658).
   let oldCanvas: Bool
+  /// The bar has *Send to Larry*: every board but the old canvas's, wherever it opens (story 1200).
+  let sendable: Bool
   /// Why it's only looked at, for the bar; nil on a board drawn on here.
   let lookOnlyNote: String?
   @Published var drawing: PKDrawing
@@ -241,6 +243,7 @@ final class WhiteboardModel: ObservableObject {
     // #1042: an unreadable drawing left in place opens look-only, so no stroke saves over it.
     editable = store.drawable(board) && !held
     oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
+    sendable = BoardIndex.sendable(board)
     lookOnlyNote = held ? "Couldn't be read: look only" : store.lookOnlyNote(board)
     ops = opLedger.applier(board: board.id)
     texts = opLedger.texts(board: board.id)
@@ -257,7 +260,7 @@ final class WhiteboardModel: ObservableObject {
       "whiteboard",
       [
         "action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": editable,
-        "old_canvas": oldCanvas, "look_only": lookOnlyNote as Any? ?? NSNull(),
+        "old_canvas": oldCanvas, "sendable": sendable, "look_only": lookOnlyNote as Any? ?? NSNull(),
       ])
     if LaunchHooks.current.whiteboard.grid { setGrid(true) }
     watchNotices()
