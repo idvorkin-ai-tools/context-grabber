@@ -1,6 +1,12 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
+// ChatWireKit's files, which stay where they are in ContextCore's tree (plan 2026-11-22-contextcore-targets-plan.md).
+let chatWireSources = [
+  "Chat/ChatWire.swift", "Chat/ChatDecisions.swift", "Chat/ChatMove.swift", "Chat/ChatLinks.swift",
+  "Chat/ChatBubbleLinks.swift", "Chat/ChatCockpitLink.swift", "Cockpit/CockpitAddress.swift",
+]
+
 // The platform-free half of the native app: everything here runs under `swift test` on the Mac (docs/TESTING.md).
 let package = Package(
   name: "ContextCore",
@@ -19,7 +25,13 @@ let package = Package(
     .systemLibrary(
       name: "CSQLite", pkgConfig: "sqlite3",
       providers: [.apt(["libsqlite3-dev"]), .brew(["sqlite"]), .yum(["sqlite-devel"])]),
-    .target(name: "ContextCore", dependencies: [.target(name: "CSQLite", condition: .when(platforms: [.linux]))]),
+    // The Cockpit chat wire the chat screen and the board share, in place under ContextCore (plan
+    // 2026-11-22-contextcore-targets-plan.md); ContextCore excludes the same files and re-exports the module.
+    .target(name: "ChatWireKit", path: "Sources/ContextCore", sources: chatWireSources),
+    .target(
+      name: "ContextCore",
+      dependencies: ["ChatWireKit", .target(name: "CSQLite", condition: .when(platforms: [.linux]))],
+      exclude: chatWireSources),
     .executableTarget(name: "BoardOpsHarness", dependencies: ["ContextCore"]),
     .executableTarget(name: "TouchReplay", dependencies: ["ContextCore"]),
     .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"]),

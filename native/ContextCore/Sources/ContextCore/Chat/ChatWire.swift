@@ -289,7 +289,7 @@ public enum ChatWire {
     request.httpMethod = "POST"
     request.timeoutInterval = 15
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
     request.httpBody = try JSONSerialization.data(withJSONObject: ["thread": key])
     return request
   }
@@ -305,7 +305,7 @@ public enum ChatWire {
     request.httpMethod = "POST"
     request.timeoutInterval = 15
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
     return request
   }
 
@@ -328,13 +328,6 @@ public enum ChatWire {
   /// The ticked threads Select can still archive, in list order: a Done or archived thread has left its rows.
   public static func liveKeys(_ picked: Set<String>, in threads: [ChatSummary]) -> [String] {
     threads.filter { !$0.done && picked.contains($0.key) }.map(\.key)
-  }
-
-  /// What only the list can show of what has not reached a thread: a new chat, or a message for a chat the list does
-  /// not hold, so no thread on screen can show it (a share into a chat that has gone, #587).
-  public static func pendingThreads(_ items: [InboxItem], listed threads: [ChatSummary]) -> [InboxItem] {
-    let keys = Set(threads.map(\.key))
-    return items.filter { item in item.status != .sent && item.thread.map { !keys.contains($0) } ?? true }
   }
 
   /// Where an attachment is served; nil for a ref that is not one the Cockpit mints (a picture, or since Cockpit
@@ -403,7 +396,7 @@ public enum ChatWire {
     return f.date(from: iso)
   }
 
-  static func get(_ cockpit: String, _ path: String) throws -> URLRequest {
+  public static func get(_ cockpit: String, _ path: String) throws -> URLRequest {
     guard let url = URL(string: cockpit.trimmingSuffix("/") + path) else { throw URLError(.badURL) }
     var request = URLRequest(url: url)
     request.timeoutInterval = 15
@@ -432,5 +425,12 @@ public enum ChatNotify {
     var out = notified
     for summary in summaries where !summary.lastTs.isEmpty { out[summary.key] = summary.lastTs }
     return out
+  }
+}
+
+// ContextCore has its own; this module sits below it and cannot see that one.
+extension String {
+  func trimmingSuffix(_ suffix: String) -> String {
+    hasSuffix(suffix) ? String(dropLast(suffix.count)) : self
   }
 }

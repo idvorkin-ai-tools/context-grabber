@@ -33,7 +33,7 @@ public enum ChatMove {
     request.timeoutInterval = 15
     // The Cockpit's write boundary answers 415 to a POST that isn't JSON, and refuses one from a foreign origin.
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    request.setValue(CockpitPage.origin(of: base), forHTTPHeaderField: "Origin")
     request.httpBody = try JSONSerialization.data(withJSONObject: ["thread": thread, "message_id": message])
     return request
   }
@@ -76,6 +76,11 @@ public enum ChatMove {
   public struct Line: Equatable, Sendable {
     public let words: String
     public let opens: String?
+
+    public init(words: String, opens: String?) {
+      self.words = words
+      self.opens = opens
+    }
   }
 
   /// What the old chat's moved line says when the Cockpit sent no words.
