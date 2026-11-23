@@ -7,7 +7,7 @@
 #   scripts/native/build-lane.sh run scripts/native/time-limit.sh 30 caffeinate -i \
 #     scripts/native/test-chat-ui.sh "iPhone 17"   (a name is the lane's own device: story 785)
 set -uo pipefail
-# Story 1508: run outside a build lane, it takes the first free one and uses that lane's own simulator.
+# Story 1516: run outside a build lane, it takes the first free one and uses that lane's own simulator.
 # shellcheck source=scripts/native/sim-lane.sh
 . "$(dirname "$0")/sim-lane.sh"
 take_lane "$0" "$@"

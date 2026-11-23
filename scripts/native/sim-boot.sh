@@ -13,7 +13,7 @@
 set -uo pipefail
 here=$(dirname "$0")
 udid=$("$here/sim-udid.sh" "${1:?simulator name or udid}") || exit
-# Story 1514: a lane's simulator can be booted only from its owning lane (exit 64 otherwise).
+# Story 1517: a lane's simulator can be booted only from its owning lane (exit 64 otherwise).
 # shellcheck source=scripts/native/sim-lane.sh
 . "$here/sim-lane.sh"
 sim_lane_guard "$udid" "sim-boot" || exit

@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Simulator lane selection and guards (stories 1508, 1514 and 1515, bead context-grabber-w7nl).
+# Simulator lane selection and guards (stories 1516, 1517 and 1518, bead context-grabber-w7nl).
 # Sourced by sim-smoke.sh, sim-boot.sh, xcodebuild-log.sh, test-chat-ui.sh and test-whiteboard-ui.sh.
 #   take_lane <script> <args…>  outside any lane, runs the script again in the first free one (build-lane.sh run),
 #                               marked SIM_LANE_TAKEN, so a simulator udid it was given means that model in the lane's
@@ -16,7 +16,7 @@ sim_lane_here=$(dirname "${BASH_SOURCE[0]}")
 
 take_lane() {
   [ -z "${BUILD_LANE:-}" ] || return 0
-  echo "${1##*/}: not in a build lane, so taking one: a simulator is driven only from the lane that owns it (story 1508)" >&2
+  echo "${1##*/}: not in a build lane, so taking one: a simulator is driven only from the lane that owns it (story 1516)" >&2
   exec "$sim_lane_here/build-lane.sh" run env SIM_LANE_TAKEN=1 bash "$@"
 }
 
@@ -65,9 +65,9 @@ sim_lane_guard() {  # <udid|name> <what>
   [ -n "$owner" ] || return 0
   [ "${BUILD_LANE:-}" = "$owner" ] && return 0
   if [ -z "${BUILD_LANE:-}" ]; then
-    echo "$2: refused: the simulator '$1' is build lane $owner's and this run holds no lane, so it could drive it under another job's tests (story 1508). Run it in a lane: scripts/native/build-lane.sh run <this command>, or a just recipe or the ladder, which take one." >&2
+    echo "$2: refused: the simulator '$1' is build lane $owner's and this run holds no lane, so it could drive it under another job's tests (story 1516). Run it in a lane: scripts/native/build-lane.sh run <this command>, or a just recipe or the ladder, which take one." >&2
   else
-    echo "$2: refused: the simulator '$1' is build lane $owner's and this run holds lane $BUILD_LANE (story 1508). Use this lane's own: scripts/native/sim-udid.sh <model name> inside the lane." >&2
+    echo "$2: refused: the simulator '$1' is build lane $owner's and this run holds lane $BUILD_LANE (story 1516). Use this lane's own: scripts/native/sim-udid.sh <model name> inside the lane." >&2
   fi
   return 64
 }

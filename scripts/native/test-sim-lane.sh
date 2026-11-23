@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Host test for story 1508 (bead context-grabber-w7nl): a simulator is driven only from the build lane that owns it.
+# Host test for story 1516 (bead context-grabber-w7nl): a simulator is driven only from the build lane that owns it.
 # scripts/native/sim-lane.sh, and the guard in sim-boot.sh and xcodebuild-log.sh, with a fake xcrun (simctl) and a fake
 # xcodebuild, so nothing boots and nothing builds:
 #   which lane owns a simulator (its " lane N", lane 1 for the named models, none for others or for an id this Mac
@@ -103,7 +103,7 @@ xlog() {
     xcodebuild -scheme X -destination "platform=iOS Simulator,id=$udid" "${XACT:-test}" >"$out" 2>&1
 }
 
-# Story 1514 requires both commands to refuse the same owned simulator regardless of UUID case.
+# Story 1517 requires both commands to refuse the same owned simulator regardless of UUID case.
 hold_lane_one=(lockf -k -t 0 "$tmp/locks/build.lock")
 for udid in "$PAD" "$PAD_LOWER"; do
   : >"$MARKS/xcrun"

@@ -2,7 +2,7 @@
 # Rung 2 of the native test ladder: run the simulator build from launch hooks and judge it from the session log.
 # Usage: sim-smoke.sh <simulator name or udid> <bundle id> <app path>
 set -euo pipefail
-# Story 1508: only in a build lane, on that lane's own simulator; run outside one, it takes the first free lane.
+# Story 1516: only in a build lane, on that lane's own simulator; run outside one, it takes the first free lane.
 # shellcheck source=scripts/native/sim-lane.sh
 . "$(dirname "$0")/sim-lane.sh"
 take_lane "$0" "$@"
