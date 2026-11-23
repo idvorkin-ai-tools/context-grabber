@@ -15,7 +15,9 @@ Usage: story-ids.py [stories-dir]   (default docs/stories)
 Hands out the next n free IDs (one by default) in a journey's ranges, one per line on stdout and nothing else.
 <journey> is one of its story files or a word from its row ("building", "whiteboard"). An ID is
 free when it is in none of: the stories on origin/main (fetched first), the stories in stories-dir, the story
-headings an open PR adds (gh pr diff), and the reservations in the ledger on this Mac that are under 24 hours old
+headings an open PR adds (gh pr diff; for a PR whose diff gh refuses as too large, each story file's patch from its
+file list, or the whole file on its head; a PR none of that can read is named in a warning and skipped, bead
+context-grabber-1338), and the reservations in the ledger on this Mac that are under 24 hours old
 and not yet on main. The ledger is read and written under a lock, so two reservations at once get different IDs.
 Fails, handing out nothing, when main can't be fetched or the open PRs can't be listed.
 Overrides, for the tests: STORY_IDS_LEDGER (default ~/tmp/agent/locks/story-ids.json), STORY_IDS_GH (the gh command),
@@ -171,13 +173,61 @@ def main_ids(root):
     return ids_in(texts), run(["git", "show", f"origin/main:{rel}/README.md"], cwd=top)
 
 
+def is_story(path):
+    return path.endswith(".md") and "stories/" in path and not path.endswith("README.md")
+
+
+def pr_files_ids(gh, number):
+    """A PR's story IDs when gh refuses its whole diff (too large; bead context-grabber-1338): each story file's own
+    patch from the PR's file list, and for a story file whose patch GitHub leaves out (itself too large), every heading
+    in that file as it is on the PR's head, which can only take more IDs than the PR adds, never fewer."""
+    listed = run(gh + ["api", "--paginate", f"repos/{{owner}}/{{repo}}/pulls/{number}/files?per_page=100",
+                       "--jq", ".[] | {f: .filename, p: .patch}"])
+    lines = [line for line in listed.splitlines() if line.strip()]
+    pr = json.loads(run(gh + ["pr", "view", str(number), "--json", "changedFiles,headRefOid"]))
+    if len(lines) != pr["changedFiles"]:
+        raise RuntimeError(f"its file list gives {len(lines)} of its {pr['changedFiles']} changed files")
+    ids, whole = set(), []
+    for line in lines:
+        entry = json.loads(line)
+        if not is_story(entry.get("f") or ""):
+            continue
+        if entry.get("p"):
+            ids |= {int(i) for i in ADDED.findall(entry["p"])}
+        else:
+            whole.append(entry["f"])
+    for f in whole:
+        ids |= ids_in([run(gh + ["api", "-H", "Accept: application/vnd.github.raw",
+                                 f"repos/{{owner}}/{{repo}}/contents/{f}?ref={pr['headRefOid']}"])])
+    return ids
+
+
+def one_pr_ids(gh, number):
+    """(IDs, None) for one open PR, or (set(), why) when neither its diff nor its files can be read."""
+    try:
+        return {int(i) for i in ADDED.findall(run(gh + ["pr", "diff", str(number)]))}, None
+    except RuntimeError as diff_error:
+        try:
+            return pr_files_ids(gh, number), None
+        except (RuntimeError, ValueError, KeyError) as files_error:
+            return set(), f"diff: {diff_error}; files: {files_error}"
+
+
 def pr_ids():
-    """The story IDs every open PR's diff adds (from any machine)."""
+    """The story IDs every open PR adds (from any machine). One PR that can't be read at all is named in a warning
+    and skipped, so it can't block every reservation (bead context-grabber-1338); the listing itself failing still
+    fails the reservation."""
     gh = shlex.split(os.environ.get("STORY_IDS_GH", "gh"))
     prs = json.loads(run(gh + ["pr", "list", "--state", "open", "--limit", "500", "--json", "number"]))
     with ThreadPoolExecutor(8) as pool:
-        diffs = list(pool.map(lambda p: run(gh + ["pr", "diff", str(p["number"])]), prs))
-    return {int(i) for d in diffs for i in ADDED.findall(d)}, len(prs)
+        results = list(pool.map(lambda p: one_pr_ids(gh, p["number"]), prs))
+    ids = set()
+    for p, (got, why) in zip(prs, results):
+        ids |= got
+        if why:
+            print(f"WARN reserve: open PR #{p['number']} could not be read, so the IDs it adds are not known and "
+                  f"may be handed out again; check it by hand ({why})", file=sys.stderr)
+    return ids, len(prs)
 
 
 def find_journey(query, ranges, journey, titles):
