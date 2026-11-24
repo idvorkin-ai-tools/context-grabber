@@ -23,6 +23,13 @@ public struct WhiteboardSpeech: Sendable {
     sent < words.count ? words[sent...].joined(separator: " ") : nil
   }
 
+  /// Story 1305 (Igor, 2026-11-24: "Keep a silence send, only after 5 s or more"): how long the mic must hear nothing
+  /// new before the waiting words go.
+  public static let silenceSendMs = 5000
+
+  /// Story 1305: whether `silentMs` of silence since the last change sends: only words not yet taken, only at 5 s.
+  public func silenceSends(silentMs: Int) -> Bool { pending != nil && silentMs >= Self.silenceSendMs }
+
   /// The words since the last call, once; nil when there are none.
   public mutating func takeNew() -> String? {
     guard sent < words.count else { return nil }

@@ -144,6 +144,7 @@ extension WhiteboardModel {
       dictation.selectMicrophone(id)
       return
     }
+    silenceTask?.cancel()
     log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": "switch_mic"])
     micClock.closed(t: Self.micNowMs)
     micOpening = true
@@ -196,6 +197,7 @@ extension WhiteboardModel {
       if opening { log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": why, "opening": true]) }
       return
     }
+    silenceTask?.cancel()
     log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": why])
     micClock.closed(t: Self.micNowMs)
     Task {
@@ -204,14 +206,23 @@ extension WhiteboardModel {
     }
   }
 
-  /// Story 1281: the mic listens continuously and silence never sends. What it hears shows live in the note and waits
-  /// for the next picture (the Pencil's pause, *Send to Larry*, closing the mic). A callback that only repeats them
-  /// changes nothing.
+  /// Story 1281: the mic listens continuously. What it hears shows live in the note and waits for the next picture (the
+  /// Pencil's pause, *Send to Larry*, closing the mic). Story 1305: 5 s with nothing new heard sends the waiting words
+  /// too, the mic staying open. A callback that only repeats them changes nothing and doesn't restart the silence.
   private func heard(_ text: String) {
     let changed = speech.heard(text)
     lastSaid.heard(text)
     guard changed else { return }
     micClock.heard(t: Self.micNowMs)
+    silenceTask?.cancel()
+    guard speech.pending != nil else { return }
+    let from = Self.micNowMs
+    silenceTask = Task { [weak self] in
+      try? await Task.sleep(for: .milliseconds(WhiteboardSpeech.silenceSendMs))
+      guard !Task.isCancelled, let self, self.micOn else { return }
+      guard self.speech.silenceSends(silentMs: Int(Self.micNowMs - from)) else { return }
+      self.spoke(end: "silence")
+    }
   }
 
   /// Story 1281: the words heard and not yet taken join the ones waiting for the next picture, asking nothing. `why`
@@ -242,12 +253,12 @@ extension WhiteboardModel {
     log.event("whiteboard", event)
   }
 
-  /// Closing the mic (or the say hook): the new words and those already waiting go now, or with the next turn if one
-  /// is on its way. Discards them if the pause switch is off.
-  private func spoke() {
+  /// Closing the mic, the say hook or (story 1305, `end` silence) 5 s of quiet: the new words and those already waiting
+  /// go now, or with the next turn if one is on its way. Discards them if the pause switch is off.
+  private func spoke(end: String = "closed") {
     let words = speech.takeNew()
     let went = turns.spoke(words)
-    if let words { logSpoke(words, went: went.rawValue, end: "closed") }
+    if let words { logSpoke(words, went: went.rawValue, end: end) }
     guard went == .now else { return }
     // This turn's picture has the strokes a waiting pause would ask about.
     cancelPause()
