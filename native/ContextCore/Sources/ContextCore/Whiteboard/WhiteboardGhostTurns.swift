@@ -294,7 +294,8 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public mutating func tapNearest(reach: (Ghost) -> CGFloat?) -> Tap {
     let hidden = hiddenMarks
     if let ghost = WhiteboardMarkChoice.nearest(ghosts, reach: { hidden.contains($0.id) ? nil : reach($0) }) {
-      guard ghost.id != chosenID else { return .nothing }
+      // Story 1285 (#1383): another mark of the reply already chosen is the same choice.
+      guard !chosenMarks.contains(where: { $0.id == ghost.id }) else { return .nothing }
       chosenID = ghost.id
       return .chose(ghost)
     }
@@ -320,23 +321,32 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return kept
   }
 
-  /// Keep beside a chosen mark of Larry's (story 1154; bead context-grabber-it0e): it and every other mark of its reply
-  /// still showing leave the ghosts, in the order they came, for the caller to keep as that reply's group. A mark of
-  /// Claude's, his text from a change (no reply's) and a reply's last mark showing leave alone. Nil with nothing chosen.
-  public mutating func keepChosenReply() -> [Ghost]? {
-    guard let ghost = chosen else { return nil }
-    guard ghost.who == .larry, let reply = WhiteboardMarks.reply(of: ghost.id) else {
-      return removeChosen().map { [$0] }
-    }
-    chosenID = nil
+  /// What Keep and Dismiss beside the chosen mark take (stories 1154, 1285, 1286; #1383): a mark of Larry's and every
+  /// other mark of its reply showing, in the order they came; a mark of Claude's, his text from a change (no reply's) and
+  /// a reply's last mark showing alone. Empty with nothing chosen.
+  public var chosenMarks: [Ghost] {
+    guard let ghost = chosen else { return [] }
+    guard ghost.who == .larry, let reply = WhiteboardMarks.reply(of: ghost.id) else { return [ghost] }
     let hidden = hiddenMarks
-    let ofReply = { (mark: Ghost) in
-      mark.who == .larry && WhiteboardMarks.reply(of: mark.id) == reply && !hidden.contains(mark.id)
-    }
-    let kept = ghosts.filter(ofReply)
-    ghosts.removeAll(where: ofReply)
-    return kept
+    return ghosts.filter { $0.who == .larry && WhiteboardMarks.reply(of: $0.id) == reply && !hidden.contains($0.id) }
   }
+
+  /// Story 1285 (#1383): Larry's replies with two or more marks showing, each outlined as one group, in the order their
+  /// first marks came.
+  public var groupedReplies: [(reply: String, marks: [Ghost])] {
+    var order: [String] = []
+    var marks: [String: [Ghost]] = [:]
+    for ghost in ghosts where ghost.who == .larry && !hiddenMarks.contains(ghost.id) {
+      guard let reply = WhiteboardMarks.reply(of: ghost.id) else { continue }
+      if marks[reply] == nil { order.append(reply) }
+      marks[reply, default: []].append(ghost)
+    }
+    return order.compactMap { reply in marks[reply].flatMap { $0.count > 1 ? (reply, $0) : nil } }
+  }
+
+  /// Keep beside a chosen mark (story 1154; bead context-grabber-it0e): `chosenMarks` leave the ghosts, for the caller to
+  /// keep as that reply's group, or alone when it is one. Nil with nothing chosen.
+  public mutating func keepChosenReply() -> [Ghost]? { removeChosenMarks() }
 
   /// One mark changed in place: moved with the ink it holds to (story 1180).
   public mutating func change(_ id: String, _ body: (inout Ghost) -> Void) {
@@ -354,14 +364,17 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return gone
   }
 
-  /// Dismiss: the chosen mark goes, and only it. The rest of an answer on its way still lands.
-  public mutating func dismissChosen() -> Ghost? { removeChosen() }
+  /// Dismiss beside a chosen mark (story 1286, #1383): `chosenMarks` go, the whole reply when it shows several. The rest
+  /// of an answer on its way still lands. Nil with nothing chosen.
+  public mutating func dismissChosen() -> [Ghost]? { removeChosenMarks() }
 
-  private mutating func removeChosen() -> Ghost? {
-    guard let ghost = chosen else { return nil }
+  private mutating func removeChosenMarks() -> [Ghost]? {
+    let marks = chosenMarks
+    guard !marks.isEmpty else { return nil }
     chosenID = nil
-    ghosts.removeAll { $0.id == ghost.id }
-    return ghost
+    let ids = Set(marks.map(\.id))
+    ghosts.removeAll { ids.contains($0.id) }
+    return marks
   }
 }
 

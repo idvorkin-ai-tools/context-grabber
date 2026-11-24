@@ -71,8 +71,8 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
 
 /// Story 825 (#883): Keep and Dismiss beside the chosen mark, wholly on screen. Over the board, not in it, so a tap on
 /// them never reaches the board as a tap off the marks. Story 1000 (#942): each button at least 36 points each way, the
-/// capsule taking every tap within it, and never under the board's top-right corner. Keeping more than one mark is Keep
-/// all, in the note's line (stories 995, 999; bead context-grabber-yqau): there is no Keep group here.
+/// capsule taking every tap within it, and never under the board's top-right corner. Story 1285 (#1383): beside a reply
+/// of Larry's that shows several marks they read Keep group and Dismiss group, and take the whole reply.
 private struct MarkChoiceButtons: View {
   @ObservedObject var model: WhiteboardModel
   let mark: CGRect?
@@ -81,15 +81,16 @@ private struct MarkChoiceButtons: View {
   var body: some View {
     GeometryReader { geometry in
       if let mark {
-        let size = CGSize(width: 210, height: Self.height)
+        let group = model.chosenMarks.count > 1
+        let size = CGSize(width: group ? 300 : 210, height: Self.height)
         let origin = geometry.frame(in: .global).origin
         let place = WhiteboardMarkChoice.place(
           mark: mark, buttons: size, in: CGRect(origin: .zero, size: geometry.size),
           avoid: model.cornerFrame.offsetBy(dx: -origin.x, dy: -origin.y))
         HStack(spacing: 4) {
-          Button(action: model.keepChosen) { Self.label("Keep", "checkmark") }
+          Button(action: model.keepChosen) { Self.label(group ? "Keep group" : "Keep", "checkmark") }
             .accessibilityIdentifier("whiteboard-mark-keep")
-          Button(action: model.dismissChosen) { Self.label("Dismiss", "xmark") }
+          Button(action: model.dismissChosen) { Self.label(group ? "Dismiss group" : "Dismiss", "xmark") }
             .accessibilityIdentifier("whiteboard-mark-dismiss")
         }
         .font(.subheadline.weight(.semibold))

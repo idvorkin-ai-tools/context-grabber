@@ -144,7 +144,7 @@ final class WhiteboardMarkChoiceTests: XCTestCase {
   func testDismissRemovesOnlyThatMark() {
     var (turns, claudes, larrys) = board()
     _ = turns.tap(hitting: { $0 == larrys[0] })
-    XCTAssertEqual(turns.dismissChosen(), larrys[0])
+    XCTAssertEqual(turns.dismissChosen(), [larrys[0]], "a mark in no reply goes alone")
     XCTAssertNil(turns.chosen)
     XCTAssertEqual(turns.ghosts, claudes + [larrys[1]])
     XCTAssertNil(turns.dismissChosen())
@@ -156,7 +156,7 @@ final class WhiteboardMarkChoiceTests: XCTestCase {
     XCTAssertTrue(turns.pauseEnded())
     let asked = turns.asked(.claude)
     _ = turns.tap(hitting: { $0 == claudes[0] })
-    XCTAssertEqual(turns.dismissChosen(), claudes[0])
+    XCTAssertEqual(turns.dismissChosen(), [claudes[0]])
     XCTAssertTrue(turns.current(asked), "one mark dismissed doesn't send the turn away")
     XCTAssertEqual(turns.ghosts, [claudes[1]])
   }

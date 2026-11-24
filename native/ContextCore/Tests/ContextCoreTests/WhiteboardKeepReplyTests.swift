@@ -6,7 +6,7 @@ import XCTest
 /// Keep beside any mark of a reply keeps the whole reply (story 1154; bead context-grabber-it0e; Igor, 2026-11-22 21:34,
 /// option A). The oracle is the shapes spec's "Keep beside any mark of a reply keeps the whole reply": the chosen mark
 /// and every other mark of its reply still showing are kept, as Keep all keeps that reply; other replies, his text from
-/// a change and Claude's marks stay; Dismiss still takes only the chosen mark.
+/// a change and Claude's marks stay. Dismiss beside a reply of several takes the whole reply too (story 1286, #1383).
 final class WhiteboardKeepReplyTests: XCTestCase {
   private struct G: WhiteboardGhost, Equatable {
     let id: String
@@ -36,15 +36,36 @@ final class WhiteboardKeepReplyTests: XCTestCase {
     XCTAssertEqual(Set(WhiteboardMarks.keptGroups(kept.map(\.id)).values), ["66618df4a0cc"], "one group, the reply's")
   }
 
-  func testDismissTakesOneAndKeepThenTakesTheRestAsOneGroup() throws {
+  /// Story 1286 (#1383): Dismiss beside a mark of a reply of several takes the whole reply; the other reply stays.
+  func testDismissGroupTakesTheWholeReply() throws {
     var turns = turns()
     _ = turns.tap(hitting: { $0.id == "66618df4a0cc#1" })
-    XCTAssertEqual(turns.dismissChosen()?.id, "66618df4a0cc#1", "Dismiss takes the arrow alone")
-    XCTAssertEqual(turns.ghosts.filter { $0.id.hasPrefix("66618df4a0cc") }.count, 6)
-    _ = turns.tap(hitting: { $0.id == "66618df4a0cc#5" })
-    let kept = try XCTUnwrap(turns.keepChosenReply())
-    XCTAssertEqual(kept.map(\.id), face.filter { $0 != "66618df4a0cc#1" }, "the other six")
-    XCTAssertEqual(WhiteboardMarks.keptGroups(kept.map(\.id)).count, 6, "all six in the reply's group")
+    let gone = try XCTUnwrap(turns.dismissChosen())
+    XCTAssertEqual(gone.map(\.id), face, "all seven, in the order they came")
+    XCTAssertEqual(turns.ghosts.map(\.id), ["c0", "r2#0", "r2#1", "op-text:t"], "the other reply, his text, Claude's")
+    XCTAssertNil(turns.chosen, "Keep and Dismiss went with the marks")
+  }
+
+  /// Story 1285 (#1383): a tap on any mark of a reply of several chooses the reply; another of its marks changes nothing.
+  func testATapChoosesTheWholeReplyAndAnotherOfItsMarksChangesNothing() throws {
+    var turns = turns()
+    guard case .chose = turns.tap(hitting: { $0.id == "66618df4a0cc#2" }) else { return XCTFail("chose the reply") }
+    XCTAssertEqual(turns.chosenMarks.map(\.id), face, "the whole reply is chosen")
+    guard case .nothing = turns.tap(hitting: { $0.id == "66618df4a0cc#5" }) else {
+      return XCTFail("another mark of the chosen reply changes nothing")
+    }
+    XCTAssertEqual(turns.chosen?.id, "66618df4a0cc#2", "still the first mark tapped")
+    guard case .chose = turns.tap(hitting: { $0.id == "r2#1" }) else { return XCTFail("the other reply") }
+    XCTAssertEqual(turns.chosenMarks.map(\.id), ["r2#0", "r2#1"])
+  }
+
+  /// Story 1285: the outlined replies are Larry's with two or more marks showing, hidden ones left out.
+  func testTheOutlinedRepliesAreHisRepliesOfTwoOrMore() {
+    var turns = turns()
+    XCTAssertEqual(turns.groupedReplies.map(\.reply), ["66618df4a0cc", "r2"])
+    XCTAssertEqual(turns.groupedReplies.first?.marks.count, 7)
+    turns.hiddenMarks = ["r2#0"]
+    XCTAssertEqual(turns.groupedReplies.map(\.reply), ["66618df4a0cc"], "one mark of r2 left showing: no outline")
   }
 
   func testALoneMarkHisTextAndClaudesAreKeptAlone() throws {
@@ -53,9 +74,9 @@ final class WhiteboardKeepReplyTests: XCTestCase {
     XCTAssertEqual(try XCTUnwrap(turns.keepChosenReply()).map(\.id), ["op-text:t"], "his text from a change, alone")
     _ = turns.tap(hitting: { $0.id == "c0" })
     XCTAssertEqual(try XCTUnwrap(turns.keepChosenReply()).map(\.id), ["c0"], "Claude's mark, alone")
-    _ = turns.tap(hitting: { $0.id == "r2#0" })
-    _ = turns.dismissChosen()
+    turns.hiddenMarks = ["r2#0"]
     _ = turns.tap(hitting: { $0.id == "r2#1" })
+    XCTAssertEqual(turns.chosenMarks.map(\.id), ["r2#1"], "a reply's last mark showing is chosen alone")
     let last = try XCTUnwrap(turns.keepChosenReply())
     XCTAssertEqual(last.map(\.id), ["r2#1"], "a reply's last mark")
     XCTAssertEqual(WhiteboardMarks.keptGroups(last.map(\.id)), [:], "kept alone, in no group")

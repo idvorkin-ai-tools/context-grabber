@@ -312,21 +312,67 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 1210:
 
-- **Summary:** After a Dismiss, Keep beside the reply keeps the rest as one group
-- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testDismissTakesOneAndKeepThenTakesTheRestAsOneGroup`)
-- **Issues:** bead context-grabber-it0e
-- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep beside any mark of a reply keeps the whole reply*
+- **Summary:** Most of a reply is kept by keeping the group and erasing the piece I don't want
+- **Status:** implemented in 04f92c9f (bead context-grabber-it0e), when Dismiss took one mark; since #1383 (story 1286) Dismiss beside a reply of several marks takes the whole reply, and a piece is dropped after *Keep group* by erasing it, on branch `native/ghost-group-1383`
+- **Issues:** bead context-grabber-it0e; #1383
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of several marks shows, is chosen and is turned down as one group*
 
 #### Use Case:
 - **As someone** keeping most of a picture Larry drew me
-- **I want to** dismiss one of its marks and keep the rest with one Keep
-- **so that** the mark I turned down stays gone and the rest stays one picture
+- **I want to** keep it as one group and then erase the piece I don't want
+- **so that** the piece I turned down is gone and the rest stays one picture
 
 #### Acceptance Criteria:
-- **Scenario:** Dismiss still takes one
-- **Given:** Larry's reply of seven marks shows, and I dismissed its arrow with the Dismiss beside it
-- **When:** I tap Keep beside one eye
-- **Then:** the arrow is still gone, and the other six are kept as one group
+- **Scenario:** Keep the group, then erase a piece
+- **Given:** Larry's reply of seven marks shows, and I kept it with *Keep group* beside one eye
+- **When:** I erase its arrow
+- **Then:** the arrow is gone, and the other six stay one group that a drag picks up whole
+
+---
+
+### User Story 1285:
+
+- **Summary:** Larry's reply of several marks arrives outlined as one group, and a tap on any of it offers Keep group
+- **Status:** on branch `native/ghost-group-1383`, not yet verified
+- **Issues:** #1383 (Igor on the iPad, 2026-11-24 05:07: Larry's four list lines came as four separate marks; he dismissed three one at a time and kept one, then: "it should've come in as keep group")
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of several marks shows, is chosen and is turned down as one group*
+
+#### Use Case:
+- **As someone** reading a reply Larry drew me in several marks
+- **I want to** see it as one group and have a tap on any of it offer to keep the group
+- **so that** I keep his whole answer in one tap instead of judging it line by line
+
+#### Acceptance Criteria:
+- **Scenario:** A reply of four lines shows as one group
+- **Given:** Larry's reply of four labels shows as marks to keep
+- **When:** I look at the board, then tap the third label with a finger
+- **Then:** a faint dashed outline in his colour sits round all four before the tap, and after it *Keep group* and *Dismiss group* sit beside the outline
+- **And:** a tap on another of the four changes nothing, and *Keep group* keeps all four as one group, one undo named *Keep*
+
+- **Scenario:** One mark shows as before
+- **Given:** a reply of Larry's with one mark showing, or one of Claude's marks
+- **When:** I tap it
+- **Then:** there is no outline, and *Keep* and *Dismiss* sit beside that mark
+
+---
+
+### User Story 1286:
+
+- **Summary:** Dismiss group turns down Larry's whole reply
+- **Status:** on branch `native/ghost-group-1383`, not yet verified
+- **Issues:** #1383
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of several marks shows, is chosen and is turned down as one group*
+
+#### Use Case:
+- **As someone** turning down a reply Larry drew me in several marks
+- **I want to** dismiss it in one tap
+- **so that** I don't clear his answer piece by piece
+
+#### Acceptance Criteria:
+- **Scenario:** Dismiss group
+- **Given:** two replies of Larry's show, one of four labels and one of two, and *Keep group* and *Dismiss group* show beside the four
+- **When:** I tap *Dismiss group*
+- **Then:** all four go, the other reply's two still show, and none of the four come back when the board opens again
 
 ---
 

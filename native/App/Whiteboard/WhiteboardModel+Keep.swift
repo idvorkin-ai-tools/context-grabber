@@ -10,6 +10,19 @@ import SwiftUI
 extension WhiteboardModel {
   /// The mark whose Keep and Dismiss show (story 825).
   var chosen: Ghost? { turns.chosen }
+  /// What Keep and Dismiss take: the chosen mark, or its whole reply of Larry's when that shows several (story 1285).
+  var chosenMarks: [Ghost] { turns.chosenMarks }
+
+  /// Story 1285 (#1383): each reply of Larry's showing two or more marks, with the box its outline goes round, in board
+  /// points: all its marks, a pen's half-width and a little more out.
+  var groupOutlines: [(reply: String, box: CGRect)] {
+    turns.groupedReplies.compactMap { group in
+      let box = WhiteboardMarkChoice.bounds(group.marks.flatMap(\.lines))
+      guard !box.isNull else { return nil }
+      let pad = (group.marks.map(\.width).max() ?? 0) / 2 + 6
+      return (group.reply, box.insetBy(dx: -pad, dy: -pad))
+    }
+  }
 
   /// A tap at `point` (board points) on a mark shows its Keep and Dismiss; anywhere else only puts them away (stories
   /// 825, 810, #883): a stray tap never keeps or dismisses a mark.
@@ -24,7 +37,7 @@ extension WhiteboardModel {
         "whiteboard",
         [
           "action": "mark_chosen", "board": board.id, "who": ghost.who.rawValue, "kind": ghost.kind.rawValue,
-          "within": within,
+          "within": within, "marks": turns.chosenMarks.count,
         ])
     case .putAway:
       log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "tap_off"])
@@ -185,16 +198,17 @@ extension WhiteboardModel {
     if frame != cornerFrame { cornerFrame = frame }
   }
 
-  /// Dismiss beside the chosen mark: that mark goes, and doesn't come back when the board opens again.
+  /// Dismiss beside the chosen mark: it goes, with every other mark of its reply showing (story 1286, #1383), and none
+  /// comes back when the board opens again.
   func dismissChosen() {
-    guard let gone = turns.dismissChosen() else { return }
+    guard let gone = turns.dismissChosen(), let first = gone.first else { return }
     log.event(
       "whiteboard",
       [
-        "action": "mark_choice", "board": board.id, "choice": "dismiss", "who": gone.who.rawValue,
-        "kind": gone.kind.rawValue, "left": turns.ghosts.count,
+        "action": "mark_choice", "board": board.id, "choice": "dismiss", "who": first.who.rawValue,
+        "kind": first.kind.rawValue, "marks": gone.count, "left": turns.ghosts.count,
       ])
-    settleLarrys(gone)
+    for ghost in gone { settleLarrys(ghost) }
   }
 
   /// The ghost as ink in its colour. Its point spacing is what makes PencilKit's spline follow the shape.
