@@ -64,6 +64,15 @@ extension BoardOutline {
     }
   }
 
+  /// The fold header `id` heads, as a path that crossed its marker would take it: nil unless it is folded and shows.
+  /// For the web board, which erases a fold by its header (BoardWasm, `bw_fold_erase`).
+  package func foldHit(_ id: String) -> FoldHit? {
+    guard let header = header(id), isFolded(header), shows(header), let hb = box(header) else { return nil }
+    var found = hit(header, top: hb.minY)
+    found.byMarker = true
+    return found
+  }
+
   private static func bounds(of points: [CGPoint]) -> CGRect {
     points.reduce(CGRect.null) { $0.union(CGRect(origin: $1, size: .zero)) }
   }
