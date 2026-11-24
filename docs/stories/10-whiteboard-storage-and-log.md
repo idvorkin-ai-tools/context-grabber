@@ -849,9 +849,10 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Refolding
-- **Given:** ink written under a header after its last fold
+- **Given:** ink written under a header while it was folded
 - **When:** a fold step hides it
 - **Then:** the review calls it a bug with the extra ink's ids, times and box
+- **And:** ink written into the section while it was open joins it and is no finding
 
 ---
 

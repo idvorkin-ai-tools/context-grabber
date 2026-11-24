@@ -1,0 +1,4 @@
+{"board": "b-check5-open-section", "folds": [{"folded": true, "header": "h", "held": ["sec"]}], "ink": [{"box": [60, 100, 200, 30], "header": true, "id": "h", "owner": "igor"}, {"box": [80, 140, 400, 300], "id": "sec", "n": 145, "owner": "igor"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check5-open-section", "surface": "ipad"}
+{"by": "menu", "fold": {"folded": false, "header": "h", "held": ["sec"]}, "kind": "unfold", "name": "Unfold", "t": 2000}
+{"by": "pencil", "changes": [{"after": [100, 450, 120, 20], "id": "w", "n": 6, "owner": "igor"}], "kind": "ink", "t": 2500}
+{"by": "menu", "fold": {"folded": true, "header": "h", "held": ["sec", "w"]}, "kind": "fold", "name": "Fold", "t": 3000}

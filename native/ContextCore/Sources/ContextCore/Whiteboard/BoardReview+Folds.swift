@@ -1,6 +1,6 @@
 //  Check 5 (spec 2026-11-23-board-interaction-review-design.md, *The checks*; story 1254): a fold hides its section and
-//  nothing else. Ink written under a header after its last fold stays out when it folds again (story 1231), and a fold
-//  again with nothing written hides what the last one did (story 1232).
+//  nothing else. Ink written under a header while it was folded stays out when it folds again (story 1231), ink written
+//  into the open section joins it, and a fold again hides nothing older that the last one didn't (story 1232).
 
 #if FOUNDATION_ESSENTIALS_ONLY
   import FoundationEssentials
@@ -18,16 +18,17 @@ extension BoardReview {
       guard let last = before.folds[fold.header] else { continue }
       let extra = Set(fold.held).subtracting(last.held)
       guard !extra.isEmpty else { continue }
-      // Newer than the header's last fold: added in this session after it (any time, for a fold the session began with).
-      let newer = extra.filter { id in
-        guard let added = after.units[id]?.added else { return false }
-        return last.at.map { added > $0 } ?? true
+      let writtenFolded = Set(
+        (0..<i).flatMap { j in
+          pass.states[j].folds[fold.header]?.folded == true
+            ? (pass.steps[j].changes ?? []).filter { $0.before == nil && $0.after != nil }.map(\.id) : []
+        })
+      let newer = extra.filter { writtenFolded.contains($0) }
+      let older = extra.filter { id in
+        guard let added = after.units[id]?.added else { return true }
+        return last.at.map { added <= $0 } ?? false
       }
-      let writtenSince = before.units.values.contains { unit in
-        guard let added = unit.added else { return false }
-        return last.at.map { added > $0 } ?? true
-      }
-      let ids = newer.isEmpty ? (writtenSince ? [] : Array(extra)) : Array(newer)
+      let ids = Array(newer.isEmpty ? older : newer)
       guard !ids.isEmpty else { continue }
       let boxes = ids.compactMap { after.units[$0]?.box }
       let times = ids.compactMap { after.units[$0]?.added }
@@ -46,7 +47,7 @@ extension BoardReview {
           5, .bug, step: i, story: newer.isEmpty ? 1232 : 1231, ids: ids,
           newer.isEmpty
             ? "folding \(fold.header) again hid \(many(strokes(ids, in: after))) its last fold didn't"
-            : "folding \(fold.header) hid \(many(strokes(ids, in: after))) written after its last fold", evidence))
+            : "folding \(fold.header) hid \(many(strokes(ids, in: after))) written while it was folded", evidence))
     }
     return out
   }

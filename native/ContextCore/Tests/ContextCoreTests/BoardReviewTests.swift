@@ -41,6 +41,8 @@ final class BoardReviewTests: XCTestCase {
     "check5-clean": [],
     "check5-first-fold": [],
     "check5-unix-ms": [(5, .bug)],
+    "check5-open-section": [],
+    "check5-refold-more": [(5, .bug)],
     "check6-fires": [(6, .bug)],
     "check6-clean": [],
     "check6-9bll": [(6, .bug)],

@@ -168,8 +168,9 @@ session gives the same findings on both.
 - **Rule**: folding a header hides its section and nothing else. Ink written under a folded header after it was folded
   stays outside its fold when it is folded again (story 1231); unfolding and folding with nothing written hides the same
   ink as before (story 1232).
-- **Bug**: a fold step hid ink the rules say is outside the section, in particular ink newer than the header's last
-  fold.
+- **Bug**: a fold step hid ink the rules say is outside the section: ink written under the header while it was
+  folded, or, with nothing written into the section since its last fold, ink that fold didn't hide. Ink written into
+  the section while it was open joins it and is no finding.
 - **Evidence**: the step, the header, the ink the rules say the fold holds and the ink it hid, with the extra ink's
   ids, times and box (the 2026-11-23 case on Igor's board: ten new strokes went into a 145-stroke fold).
 

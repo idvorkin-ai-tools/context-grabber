@@ -1,0 +1,4 @@
+{"board": "b-check5-refold-more", "folds": [{"folded": true, "header": "h", "held": ["sec"]}], "ink": [{"box": [60, 100, 200, 30], "header": true, "id": "h", "owner": "igor"}, {"box": [80, 140, 400, 300], "id": "sec", "n": 145, "owner": "igor"}, {"box": [60, 500, 200, 30], "header": true, "id": "h2", "n": 4, "owner": "igor"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check5-refold-more", "surface": "ipad"}
+{"by": "menu", "fold": {"folded": false, "header": "h", "held": ["sec"]}, "kind": "unfold", "name": "Unfold", "t": 2000}
+{"by": "larry", "changes": [{"after": [600, 800, 200, 30], "id": "r", "n": 5, "owner": "larry"}], "kind": "late", "t": 2500}
+{"by": "menu", "fold": {"folded": true, "header": "h", "held": ["sec", "h2"]}, "kind": "fold", "name": "Fold", "t": 3000}
