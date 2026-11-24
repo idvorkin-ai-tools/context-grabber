@@ -1824,3 +1824,23 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the module built by `just wasm`, its applier loaded at revision 3
 - **When:** `just wasm-test` sends a batch on that look, reports it applied after the board changed, sends one from the older look, one seen before, two while the Pencil is down, then lifts it, reports a stray and a failed canvas, and sends a batch naming a stroke Igor moved since
 - **Then:** the first applies and is recorded at revision 4; the older one is stale; the one seen before is ignored; the second held batch supersedes the first and applies on the lift; the stray report is late; the failed canvas is not applied; the batch naming what he moved is refused with that name, and applies once sent on the new look
+
+---
+
+### User Story 1165:
+
+- **Summary:** The web board asks the app's own rules what a zigzag scratches out, and what clean shape a stroke held still at its end becomes
+- **Status:** implemented in COMMIT (`bw_scratch_out`, `bw_shape_snap`, interface 17); verified by the host tests (`WebScratchTests`: 720 seeded zigzags over the four recorded boards and 20 seeded ones, and 200 seeded strokes with their times, against the app's own scratch-out, snap and hold) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 290 checks, a hand-worked zigzag and snap among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 17
+- **Issues:** bead `context-grabber-wvi9`
+
+#### Use Case:
+- **As Igor,** scratching out writing and drawing shapes on the Cockpit's web ink board
+- **I want to** have the web board ask the app's own rules whether a zigzag scratches out what is under it, and what shape a stroke I hold still becomes
+- **so that** a scratch-out and a snapped shape feel the same on the web as on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** A zigzag and a held stroke through the module
+- **Given:** the module built by `just wasm`, with an outline of two lines of ink
+- **When:** `just wasm-test` draws a fast zigzag over the first line, one over clear paper, a slow one and a three-point one, then asks about a rough straight stroke lifted late and early, and a small scribble
+- **Then:** the zigzag over the line takes it with four turns; over clear paper it finds nothing; the slow one is writing and the short one too short; the rough stroke snaps to a line 200 long and is held when lifted late, not when lifted early; the scribble snaps to nothing and, with no times, its hold is unknown

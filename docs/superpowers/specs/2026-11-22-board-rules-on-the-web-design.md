@@ -406,6 +406,32 @@ the host steps it. `bw_info` says `"abi": 16`; versions 1 to 15 are unchanged.
 - What changed between two looks of the board is the host's to say. The app learns it from its own canvas, not by
   comparing pictures, so the web board's comparison of two looks stays its own.
 
+## The interface, version 17: scratch-out and hold-to-shape
+
+Story 1165. A fast zigzag over writing scratches it out on the web board as it does on the iPad. The strokes it touches
+go, provided most of their ink lies under it. A zigzag that is slow, too small, or marches along as *mmm* does stays
+ink. One over clear paper, or only beside ink, finds nothing. A stroke held still at its end snaps to the clean line,
+rectangle or ellipse it nearly is, by the app's thresholds. `bw_info` says `"abi": 17`; versions 1 to 16 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_scratch_out` | `{"points": [[x, y]], "ms"?}`: the zigzag, not on the board, and how long it took | a reply: `{"ok", "gone": [name], "reversals", "speed", "why", "finds_nothing", "zigzag"}`; `{"error"}` with no outline or no points |
+| `bw_shape_snap` | `{"points": [[x, y]], "times"?: [seconds], "lifted"?}`: a stroke, when each point came and when the Pencil lifted | a reply: `{"shape": {"kind": "line" \| "rect" \| "ellipse", "name", "points", "error"} \| null, "held"}`; `{"error"}` with no points |
+
+- The scratch-out works over the outline `bw_outline_load` keeps: the ink that shows. Kept texts and cards are boxes
+  and never go with it. `why` says why it stays ink (`short`, `small`, `few turns`, `short sweeps`, `marches along`,
+  `slow`, `no ink`, `beside ink`, and for a scribble that wanders, `wanders, no ink` or `wanders, beside ink`).
+  `finds_nothing` is true for a scratch-out in shape and speed that found nothing to take. The app removes that one
+  with a word.
+- `zigzag` is true for a zigzag in shape and fast enough whatever is under it: over a fold's marker, where there is
+  no ink, the fold goes all the same, as on the iPad.
+- On the web board a scratch-out used to take kept texts and cards too; with the app's rule it takes only ink.
+- `speed` is board points per millisecond to two places, null without `ms`. Without `ms` it is not held to a speed.
+- `held` is whether the Pencil last moved five points or more at least half a second before it lifted. It is null
+  without times. The shape comes whether or not it was held; the host snaps only a held stroke.
+- The web board's strike-through (a saw across a line of writing) and a scratch-out's tail (its last sweeps lifted as
+  a stroke of their own) have no counterpart in the app's rules, so they stay the web board's own.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
