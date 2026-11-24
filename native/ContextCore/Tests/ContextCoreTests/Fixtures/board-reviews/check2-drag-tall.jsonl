@@ -1,0 +1,2 @@
+{"board": "b-check2-drag-tall", "ink": [{"box": [60, 300, 200, 80], "id": "g", "n": 20, "owner": "igor"}, {"box": [60, 100, 300, 60], "id": "a", "owner": "igor"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check2-drag-tall", "surface": "ipad"}
+{"aim": {"ids": ["g"], "start": "inside"}, "by": "pencil", "changes": [{"after": [60, 152, 200, 80], "before": [60, 300, 200, 80], "id": "g", "owner": "igor"}], "kind": "drop", "name": "Move", "t": 1000}

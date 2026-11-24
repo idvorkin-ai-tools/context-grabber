@@ -24,7 +24,8 @@ network, no clock read inside a check; the whiteboard file rule, one file per pi
 | `BoardReviewText.swift` | The copyable text of a finding and the one-line summary for Larry, so both surfaces print the same words |
 
 - **Tolerance** in one place: 0.5 pt for a move, edge-touching is no overlap (the rules already decide meeting the
-  Apple way, *Boxes that only touch*). Well above the 1e-4 pt the 32-bit wasm arithmetic differs by.
+  Apple way, *Boxes that only touch*). Well above the 1e-4 pt the 32-bit wasm arithmetic differs by. The one
+  exception is check 2's drag allowance for a drop by hand (`BoardReview.dragAllowance`, story 1318).
 - **Dedup**: one finding per (check, step, ids).
 - **`bw_review`** in `Sources/BoardWasm/BoardWasm.swift`: pointer, length of a record (JSONL) → a reply with the
   report as JSON, or `{"error"}`. Stateless: nothing loaded is touched, so it can run beside a live board. It landed

@@ -840,6 +840,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1318:
+
+- **Summary:** A drop I dragged myself that only grazes ink is as designed
+- **Status:** implemented in [0a798cc5](https://github.com/idvorkin/context-grabber/commit/0a798cc5); verified by host tests (`BoardReviewTests`: check2-drag-slight and check2-drag-tall as designed, check2-larry-slight and check2-drop-no-room still bugs, every golden). The wasm build runs the same fixtures (`test-board-wasm.mjs`), not run on this Mac (no wasm SDK)
+- **Issues:** Larry, 2026-11-24: three of five real check-2 findings were overlaps of a few points on drops Igor dragged himself
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 2
+
+#### Use Case:
+- **As someone** who drags my own writing into place by hand
+- **I want to** have a drop that only grazes nearby ink seen as meant
+- **so that** the review only calls a bug when the board covered my writing
+
+#### Acceptance Criteria:
+- **Scenario:** A drop by hand that grazes
+- **Given:** I drag ink and drop it overlapping other ink by under 4 pt, or under 15% of the shorter box's height
+- **When:** the session is reviewed
+- **Then:** check 2 calls it as designed, while anything Larry placed overlapping by the same amount is still a bug
+
+---
+
 ### User Story 1252:
 
 - **Summary:** My ink moved without my aim is a bug, or asked about

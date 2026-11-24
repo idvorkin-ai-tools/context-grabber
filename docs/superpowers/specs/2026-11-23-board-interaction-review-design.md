@@ -138,6 +138,9 @@ session gives the same findings on both.
   the room that opened was less than the rules say.
 - **Not a finding**: Igor's own pen writing over ink. He underlines, strikes through, annotates and scratches out on
   purpose; only what the board places is checked.
+- **As designed**: a drop Igor dragged himself (Pencil or finger) that overlaps ink by under 4 pt, or by under 15% of
+  the shorter box's height when that is more: his hand isn't that exact. Anything Larry placed, and ink a room or
+  push moved, stays held to the half-point tolerance (Larry and Igor, 2026-11-24).
 - **Evidence**: the step, what was placed and where, the ink it lands on (ids, owner, box), the room the rules called
   for and the room that opened.
 

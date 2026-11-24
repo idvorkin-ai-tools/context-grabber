@@ -88,6 +88,9 @@ extension BoardReview {
       }
       guard !under.isEmpty else { continue }
       let placedIDs = Array(placed)
+      // Story 1318: a drop Igor dragged himself that only grazes ink is as designed; what the board placed is strict.
+      let deepest = deepestOverlap(placed, under, in: after)
+      let grazed = byHand.contains(step.by) && step.kind == "drop" && deepest.depth < deepest.allowance
       var evidence = [
         Evidence("placed", "\(many(strokes(placedIDs, in: after))): \(list(placedIDs))"),
         Evidence("at", union(placedIDs.compactMap { after.units[$0]?.box }).map(box) ?? "none"),
@@ -102,12 +105,48 @@ extension BoardReview {
           Evidence("room the rules call for", rule.predicted.map { "\(num($0.dy)) at \(num($0.cut))" } ?? "none"))
         evidence.append(Evidence("room that opened", rule.opened.map { "\(num($0))" } ?? "none"))
       }
+      if byHand.contains(step.by) && step.kind == "drop" {
+        evidence.append(
+          Evidence("overlap", "\(num(deepest.depth)) pt, \(num(deepest.allowance)) allowed for a drop by hand"))
+      }
+      if grazed {
+        out.append(
+          pass.finding(
+            2, .asDesigned, step: i, story: 1318, ids: placedIDs,
+            "a drop he dragged himself grazed \(many(strokes(under, in: after))) by \(num(deepest.depth)) pt", evidence)
+        )
+        continue
+      }
       out.append(
         pass.finding(
           2, .bug, step: i, story: 1251, ids: placedIDs,
           "a \(step.kind) landed on \(many(strokes(under, in: after))) that were showing", evidence))
     }
     return out
+  }
+
+  /// Who drags by hand: a drop of theirs that only grazes ink is as designed (story 1318).
+  static let byHand: Set<String> = ["pencil", "finger"]
+
+  /// A drop by hand may overlap ink by this much: 4 pt, or 15% of the shorter box's height when that is more
+  /// (story 1318, Larry and Igor 2026-11-24).
+  static func dragAllowance(_ a: Box, _ b: Box) -> Double { max(4, 0.15 * min(a.h, b.h)) }
+
+  /// The deepest overlap between what was placed and the ink it landed on (the lesser of the two axes' overlaps,
+  /// how far it would have to move to clear), with the allowance of that pair.
+  static func deepestOverlap(_ placed: Set<String>, _ under: [String], in state: State) -> (
+    depth: Double, allowance: Double
+  ) {
+    var deepest = (depth: 0.0, allowance: 0.0)
+    for p in placed.sorted() {
+      guard let a = state.units[p]?.box else { continue }
+      for o in under {
+        guard let b = state.units[o]?.box else { continue }
+        let depth = min(min(a.maxX, b.maxX) - max(a.x, b.x), min(a.maxY, b.maxY) - max(a.y, b.y))
+        if depth > deepest.depth { deepest = (depth, dragAllowance(a, b)) }
+      }
+    }
+    return deepest
   }
 
   /// The room `BoardRoom.drop` calls for when the aimed ink is dropped, and the room that opened: how far the ink
