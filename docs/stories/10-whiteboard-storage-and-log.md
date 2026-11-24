@@ -518,7 +518,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1238:
 
 - **Summary:** Closing a board reviews its session
-- **Status:** implemented in [e5ee2537](https://github.com/idvorkin/context-grabber/commit/e5ee2537) and [813147df](https://github.com/idvorkin/context-grabber/commit/813147df); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a board left right after writing shows its review on the next open, the review having finished after the board was gone. Not yet seen on the iPad (rung 3 owed)
+- **Status:** implemented in [e5ee2537](https://github.com/idvorkin/context-grabber/commit/e5ee2537), [813147df](https://github.com/idvorkin/context-grabber/commit/813147df), [29d52bdd](https://github.com/idvorkin/context-grabber/commit/29d52bdd) and [f7fc5a9f](https://github.com/idvorkin/context-grabber/commit/f7fc5a9f); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a board left right after writing shows its review on the next open, the review having finished after the board was gone. Not yet seen on the iPad (rung 3 owed)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
@@ -538,7 +538,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1239:
 
 - **Summary:** A board only looked at is not reviewed
-- **Status:** implemented in [e5ee2537](https://github.com/idvorkin/context-grabber/commit/e5ee2537) and [813147df](https://github.com/idvorkin/context-grabber/commit/813147df); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me)
+- **Status:** implemented in [e5ee2537](https://github.com/idvorkin/context-grabber/commit/e5ee2537), [813147df](https://github.com/idvorkin/context-grabber/commit/813147df), [29d52bdd](https://github.com/idvorkin/context-grabber/commit/29d52bdd) and [f7fc5a9f](https://github.com/idvorkin/context-grabber/commit/f7fc5a9f); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
@@ -657,7 +657,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 1245:
 
-- **Summary:** Show me replays the step, erased ink included
+- **Summary:** Show me draws the step's outlines, erased ink included
 - **Status:** implemented in [e5ee2537](https://github.com/idvorkin/context-grabber/commit/e5ee2537) and [813147df](https://github.com/idvorkin/context-grabber/commit/813147df): *Show me* draws the record's outlines before and after the step, not playback (Igor, 2026-11-24: outlines are fine); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5))
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 5
@@ -671,7 +671,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Show me
 - **Given:** a finding about a step that erased ink
 - **When:** I tap *Show me*
-- **Then:** playback opens at that step showing the board before, with the erased ink as it was, then after, with the ink the finding names marked
+- **Then:** the step is drawn as outlines behind a Before/After switch: before, with the erased ink as it was; after, with the ink the finding names marked
 
 ---
 
@@ -698,7 +698,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1247:
 
 - **Summary:** Larry gets the findings with the board's next picture
-- **Status:** implemented in [e5ee2537](https://github.com/idvorkin/context-grabber/commit/e5ee2537) and [813147df](https://github.com/idvorkin/context-grabber/commit/813147df): the words go as a `board_review` event with the next picture's events, the whole event kept at or under 6 KB encoded, well inside the Cockpit's 8 KB per event, and saying how many lines it cut (Larry, 2026-11-23: the Cockpit keeps unknown event types); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me)
+- **Status:** implemented in [e5ee2537](https://github.com/idvorkin/context-grabber/commit/e5ee2537), [813147df](https://github.com/idvorkin/context-grabber/commit/813147df) and [8aceda0d](https://github.com/idvorkin/context-grabber/commit/8aceda0d): the words go as a `board_review` event with the next picture's events, the whole event kept at or under 6 KB encoded, well inside the Cockpit's 8 KB per event, and saying how many lines it cut (Larry, 2026-11-23: the Cockpit keeps unknown event types); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *How Larry gets findings*; *Decisions*, 4
 

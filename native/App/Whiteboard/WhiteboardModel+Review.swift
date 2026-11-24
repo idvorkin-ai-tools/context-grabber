@@ -31,14 +31,14 @@ extension WhiteboardModel {
     let id = board.id
     let store = BoardReviewDisk(board: id)
     let log = log
-    Task.detached(priority: .utility) { [weak self] in
+    BoardReviewDisk.queue.async { [weak self] in
       BoardReviewDisk.prune()
       if let cut = store.pending() {
         store.clearPending()
         if cut.hasIgorsStep { _ = Self.runReview(cut, why: "next_open", store: store, log: log) }
       }
       guard let (record, report) = store.unseen() else { return }
-      await self?.reviewShown(report, of: record)
+      Task { @MainActor in self?.reviewShown(report, of: record) }
     }
   }
 
@@ -104,7 +104,7 @@ extension WhiteboardModel {
     }
     reviewKeptAt = Date()
     let store = BoardReviewDisk(board: board.id)
-    Task.detached(priority: .utility) { store.keepPending(record) }
+    BoardReviewDisk.queue.async { store.keepPending(record) }
   }
 
   /// Reviews the session: `idle` and `close` end it (stories 1237, 1238; none on demand, story 1240). One
@@ -117,18 +117,18 @@ extension WhiteboardModel {
     reviewKeepTask = nil
     guard reviewRecorder.hasIgorsStep, let record = reviewRecorder.record else {
       let store = BoardReviewDisk(board: board.id)
-      Task.detached(priority: .utility) { store.clearPending() }
+      BoardReviewDisk.queue.async { store.clearPending() }
       return
     }
     reviewRecorder.nextSession()
     let store = BoardReviewDisk(board: board.id)
     let log = log
-    Task.detached(priority: .utility) { [weak self] in
+    BoardReviewDisk.queue.async { [weak self] in
       store.clearPending()
       let report = Self.runReview(record, why: why, store: store, log: log)
       // Closed, the board shows nothing now: its next open shows the review and sends Larry its words.
       guard why != "close" else { return }
-      await self?.reviewShown(report, of: record)
+      Task { @MainActor in self?.reviewShown(report, of: record) }
     }
   }
 
@@ -163,7 +163,8 @@ extension WhiteboardModel {
   /// A review finished: the note, and the words waiting for Larry's next picture.
   func reviewShown(_ report: BoardReview.Report, of record: BoardSessionRecord) {
     review.show(report, of: record)
-    BoardReviewDisk(board: board.id).markSeen()
+    let store = BoardReviewDisk(board: board.id)
+    BoardReviewDisk.queue.async { store.markSeen() }
     reviewToLarry()
   }
 
@@ -202,6 +203,8 @@ extension WhiteboardModel {
 /// Where a board's records and reports stay: this device's Application Support, never iCloud (story 1248).
 struct BoardReviewDisk: Sendable {
   static let keepDays: Double = 14
+  /// Every read and write of the records, one after another: a clear always lands after the writes before it.
+  static let queue = DispatchQueue(label: "board-reviews", qos: .utility)
   let board: String
 
   static var root: URL {
@@ -271,6 +274,7 @@ struct BoardReviewDisk: Sendable {
 
   /// The board was deleted: its records go with it (story 1248).
   static func forget(board: String) {
-    try? FileManager.default.removeItem(at: BoardReviewDisk(board: board).folder)
+    let folder = BoardReviewDisk(board: board).folder
+    queue.async { try? FileManager.default.removeItem(at: folder) }
   }
 }

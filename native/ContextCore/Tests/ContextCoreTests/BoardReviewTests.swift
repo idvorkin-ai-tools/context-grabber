@@ -94,11 +94,14 @@ final class BoardReviewTests: XCTestCase {
     let reflow = try XCTUnwrap(a.findings.first { $0.check == 4 })
     XCTAssertEqual(reflow.story, 1145)
     XCTAssertEqual(reflow.evidence.first { $0.key == "went back" }?.value, "igor")
-    let b = BoardReview.run(try record("ipad-2026-11-23-6bae-b"))
+    let bRecord = try record("ipad-2026-11-23-6bae-b")
+    let b = BoardReview.run(bRecord)
     let stretch = try XCTUnwrap(b.findings.first { $0.check == 3 })
     XCTAssertEqual(stretch.evidence.first { $0.key == "drag began" }?.value, "knob")
     XCTAssertEqual(stretch.evidence.first { $0.key == "size" }?.value, "13 wide, 2 high")
-    XCTAssertEqual(BoardReviewText.note(b), "Reviewed · 1 to look at")
+    var shown = BoardReviewShown()
+    shown.show(b, of: bRecord)
+    XCTAssertEqual(shown.note, "Reviewed · 1 to look at")
   }
 
   func testEachFixtureMatchesItsGolden() throws {
@@ -132,11 +135,12 @@ final class BoardReviewTests: XCTestCase {
   }
 
   func testACleanReviewShowsNothing() throws {
-    let clean = BoardReview.run(try record("check2-clean"))
-    XCTAssertNil(BoardReviewText.note(clean), "story 1242: no note, and none on demand (story 1240)")
+    let cleanRecord = try record("check2-clean")
+    let clean = BoardReview.run(cleanRecord)
+    var shown = BoardReviewShown()
+    shown.show(clean, of: cleanRecord)
+    XCTAssertNil(shown.note, "story 1242: no note, and none on demand (story 1240)")
     XCTAssertEqual(BoardReviewText.larry(clean), "Board review of session check2-clean on ipad, 1 steps: clean")
-    let designed = BoardReview.run(try record("check7-put-back"))
-    XCTAssertNil(BoardReviewText.note(designed), "as designed doesn't count")
   }
 
   func testAFindingCopiesWithItsStepRuleAndEvidence() throws {

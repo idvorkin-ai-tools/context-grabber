@@ -1,5 +1,5 @@
 //  The words of a review, the same on every surface (spec 2026-11-23-board-interaction-review-design.md, *What Igor
-//  sees* and *How Larry gets findings*; stories 1243, 1244, 1247): the note, a finding as copyable text, and the short
+//  sees* and *How Larry gets findings*; stories 1244, 1247): a finding as copyable text, and the short
 //  list that goes to Larry with the board's next picture.
 
 #if FOUNDATION_ESSENTIALS_ONLY
@@ -15,12 +15,6 @@ public enum BoardReviewText {
     case .asDesigned: return "as designed"
     case .unclear: return "unclear"
     }
-  }
-
-  /// The board's corner note, or nil when there is nothing to look at (*Decisions*, 6).
-  public static func note(_ report: BoardReview.Report) -> String? {
-    let n = report.toLookAt
-    return n > 0 ? "Reviewed · \(n) to look at" : nil
   }
 
   /// A finding as he copies it: the check, the verdict, the step, the evidence, the board, the session and the build.
