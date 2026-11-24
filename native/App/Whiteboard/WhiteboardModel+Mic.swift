@@ -144,13 +144,13 @@ extension WhiteboardModel {
       dictation.selectMicrophone(id)
       return
     }
-    silenceTask?.cancel()
     log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": "switch_mic"])
     micClock.closed(t: Self.micNowMs)
     micOpening = true
     Task {
       await dictation.finish(why: "switch_mic")
-      spoke()
+      // Story 1281: listening goes on, so what was heard waits for the next picture instead of going now.
+      gatherSpoken(why: "switch_mic")
       dictation.selectMicrophone(id)
       guard micOpening else { return }
       log.event(
@@ -196,7 +196,6 @@ extension WhiteboardModel {
       if opening { log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": why, "opening": true]) }
       return
     }
-    silenceTask?.cancel()
     log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": why])
     micClock.closed(t: Self.micNowMs)
     Task {
@@ -205,37 +204,50 @@ extension WhiteboardModel {
     }
   }
 
-  /// Story 1118: the words go once the silence after his last new words fits how the phrase ends (a sentence 1.5 s, an
-  /// open phrase 3 s, a hanging one 5 s). A callback that only repeats them doesn't restart the silence.
+  /// Story 1281: the mic listens continuously and silence never sends. What it hears shows live in the note and waits
+  /// for the next picture (the Pencil's pause, *Send to Larry*, closing the mic). A callback that only repeats them
+  /// changes nothing.
   private func heard(_ text: String) {
     let changed = speech.heard(text)
     lastSaid.heard(text)
     guard changed else { return }
     micClock.heard(t: Self.micNowMs)
-    silenceTask?.cancel()
-    guard let words = speech.pending else { return }
-    let end = BoardSpeechEnd.wait(after: words)
-    silenceTask = Task { [weak self] in
-      try? await Task.sleep(for: .milliseconds(end.ms))
-      guard !Task.isCancelled else { return }
-      self?.spoke(end: end)
-    }
   }
 
-  /// Sends the new words now or holds them for the next turn if one is on its way. Discards them if the pause switch
-  /// is off. `end` records the silence that finished the phrase (story 1118) and is nil when the mic closed or switched.
-  private func spoke(end: (ms: Int, why: BoardSpeechEnd.Why)? = nil) {
-    guard let words = speech.takeNew() else { return }
-    let went = turns.spoke(words)
+  /// Story 1281: the words heard and not yet taken join the ones waiting for the next picture, asking nothing. `why`
+  /// is what took them: `pause`, `turn`, `send`, `switch_mic`. On a Larry board's *Send* (`toLarry`) they wait with
+  /// his turn, so the tap sends them even when he already has the drawing.
+  func gatherSpoken(why: String, toLarry: Bool = false) {
+    var words = speech.takeNew()
+    if toLarry {
+      let waiting = turns.takeSaid()
+      let both = [waiting, words].compactMap { $0 }.joined(separator: " ")
+      words = both.isEmpty ? nil : both
+      larry.heard(words)
+    } else if let new = words, !turns.heard(new) {
+      logSpoke(new, went: "ghosts_off", end: why)
+      return
+    }
+    guard let words else { return }
+    logSpoke(words, went: "waiting", end: why)
+  }
+
+  /// The words are taken by `why` (story 1112: the mic's timing goes with the next picture unless they were dropped).
+  private func logSpoke(_ words: String, went: String, end: String) {
     var event: [String: Any] = [
-      "action": "spoke", "board": board.id, "chars": words.count, "went": went.rawValue,
-      "end": end?.why.rawValue ?? "closed",
+      "action": "spoke", "board": board.id, "chars": words.count, "went": went, "end": end,
     ]
-    if let end { event["wait_ms"] = end.ms }
-    // Story 1112: the mic's timing goes with the next picture, unless Ghosts off dropped the words.
-    let timing = micClock.taken(t: Self.micNowMs, chars: words.count, kept: went != .ghostsOff)
+    let timing = micClock.taken(t: Self.micNowMs, chars: words.count, kept: went != "ghosts_off")
     event.merge(timing?.gaps ?? [:]) { $1 }
     log.event("whiteboard", event)
+  }
+
+  /// Closing the mic (or the say hook): the new words and those already waiting go now, or with the next turn if one
+  /// is on its way. Discards them if the pause switch is off.
+  private func spoke() {
+    let words = speech.takeNew()
+    let went = turns.spoke(words)
+    if let words { logSpoke(words, went: went.rawValue, end: "closed") }
     guard went == .now else { return }
     // This turn's picture has the strokes a waiting pause would ask about.
     cancelPause()

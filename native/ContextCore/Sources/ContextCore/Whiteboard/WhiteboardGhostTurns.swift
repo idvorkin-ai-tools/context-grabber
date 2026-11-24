@@ -136,11 +136,28 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// Sets the notice when turning off the pause switch closes the mic (#824).
   public mutating func micClosedByGhostsOff() { note = WhiteboardTurn.micGhostsOff }
 
-  /// He stopped talking (stories 345, 367).
-  public mutating func spoke(_ words: String) -> Spoken {
+  /// He stopped talking (stories 345, 367, 1288): new words, if any, join those waiting, and what waits goes. Nothing
+  /// waiting asks nothing.
+  public mutating func spoke(_ words: String?) -> Spoken {
     guard on else { return .ghostsOff }
-    unsaid = unsaid.map { "\($0) \(words)" } ?? words
+    if let words { unsaid = unsaid.map { "\($0) \(words)" } ?? words }
+    guard unsaid != nil else { return .held }
     return pacer.pauseEnded() ? .now : .held
+  }
+
+  /// Story 1281: words the open mic heard wait for the next picture (the Pencil's pause, *Send to Larry*, closing the
+  /// mic) without asking anything. False, and dropped, with the pause switch off.
+  @discardableResult
+  public mutating func heard(_ words: String) -> Bool {
+    guard on else { return false }
+    unsaid = unsaid.map { "\($0) \(words)" } ?? words
+    return true
+  }
+
+  /// Story 1281: *Send to Larry* takes the words waiting, once.
+  public mutating func takeSaid() -> String? {
+    defer { unsaid = nil }
+    return unsaid
   }
 
   // MARK: A turn

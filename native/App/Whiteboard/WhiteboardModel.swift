@@ -183,7 +183,6 @@ final class WhiteboardModel: ObservableObject {
   var dictationWatches: Set<AnyCancellable> = []
   private var noticeWatch: AnyCancellable?
   var speech = WhiteboardSpeech()
-  var silenceTask: Task<Void, Never>?
   var pauseTask: Task<Void, Never>?
   /// Stories 892, 893: how long the pause waits, learned from his rhythm, and the look for his hand having left.
   var vad = WhiteboardWritingVad()

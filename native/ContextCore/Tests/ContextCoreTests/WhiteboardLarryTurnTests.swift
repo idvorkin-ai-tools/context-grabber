@@ -299,4 +299,19 @@ final class WhiteboardLarryTurnTests: XCTestCase {
     XCTAssertEqual(turn.closed(version: 1, now: at(0)), .done)
     XCTAssertFalse(turn.nothingToAdd)
   }
+
+  // MARK: Story 1281: words heard wait as new
+
+  func testHeardWordsMakeSendNotAlreadyHaveIt() {
+    var turn = WhiteboardLarryTurn()
+    let now = ContinuousClock.now
+    XCTAssertEqual(turn.tapped(version: 3, now: now), .send(words: nil))
+    XCTAssertTrue(turn.hasThis(version: 3, moved: false))
+    turn.heard("what about Tuesday")
+    XCTAssertFalse(turn.hasThis(version: 3, moved: false), "words waiting are new")
+    XCTAssertEqual(turn.tapped(version: 3, now: now), .send(words: "what about Tuesday"))
+    turn.heard(nil)
+    turn.heard("")
+    XCTAssertTrue(turn.hasThis(version: 3, moved: false), "nothing heard is nothing new")
+  }
 }

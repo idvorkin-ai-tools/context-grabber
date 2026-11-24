@@ -74,6 +74,9 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
   /// Words wait for the next picture.
   public var wordsWaiting: Bool { queued != nil }
 
+  /// Story 1281: words heard for the next picture; while they wait the board is new to him (`hasThis` is false).
+  public mutating func heard(_ words: String?) { queue(words) }
+
   /// A pause on a Larry board, the board at `version`, `words` spoken with it.
   public mutating func paused(version: Int, words: String?, now: ContinuousClock.Instant) -> Next {
     queue(words)

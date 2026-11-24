@@ -646,24 +646,27 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 ## Talking while drawing (Igor, 2026-11-02: "an interactive session so I can tell him to do stuff and he can add stuff"; stories 345, 360–368, #604, #605)
 
 - A **microphone** in the board's bar stays open while he draws, until he taps it again or leaves the board.
-- Once he has finished speaking, what he said goes with a picture of the board, without waiting for a stroke
-  (Igor, 2026-11-22, bead `context-grabber-u1yy`: turns went to Larry cut mid-sentence at short pauses, "I see a chip
-  that says", "OK when I drop text"). Finished means silence after his last new words, and how long depends on how the
-  phrase ends:
-  - one that ends like a sentence (a full stop, question or exclamation mark) goes after about 1.5 s of silence;
-  - one that doesn't (dictation on the device rarely punctuates, so this is the usual case) waits about 3 s;
-  - one whose last word leaves it hanging ("says", "that", "the", "and", "when", "to", …) waits about 5 s, the bound:
-    nothing waits longer, so a turn still goes if he trails off.
-  - The recognizer re-sending words it already gave (a revision that adds nothing) doesn't restart the silence; only
-    new words do.
-  - The 2026-11-22 cuts, from the iPad's log: the words went on after about 1.2 s, 2.4 s and 4.5 s of silence (the
-    last after "that says"). All three now stay one turn.
-  - A Pencil pause still asks its turn as before, with whatever finished phrases it has; words still being spoken
-    wait for their own end and go with the next turn, never dropped. Closing the mic, switching microphones or
-    leaving the board sends what was heard at once.
-  - The session log's `spoke` line says which wait it used and why, so the iPad can confirm the timing.
-  "draw a box around this" brings faint orange ghosts about 4 s later, kept or dismissed like any others. They are
-  still suggestions: nothing becomes ink without a Keep.
+- **The mic listens continuously; silence never sends** (Igor, 2026-11-24, his whiteboard picks: "continuous
+  listening with the words showing live, replacing the 1.5 s pause-to-send"; story 1281). It stays open while he
+  talks, thinks and draws, and a pause in his speech, however long, sends nothing. This replaces the end-of-phrase
+  wait (1.5 s after a sentence, 3 s after a plain phrase, 5 s after a hanging word; story 1118, bead
+  `context-grabber-u1yy`), which still cut him off when he stopped to think.
+  - **The words show live** in the note's line as he speaks, newest kept in view.
+  - **His words go with the next picture**, whatever sends it: the Pencil's pause (*When he has stopped writing*),
+    *Send to Larry*, or closing the mic. Each takes every word heard so far; words still coming go with the one
+    after. Nothing is dropped and nothing goes twice.
+  - **Words waiting count as new**: while words wait, *Send to Larry* is not dimmed as *Larry already has this*, and
+    a tap sends the board with them even when the drawing hasn't changed.
+  - **Talking with no drawing** sends nothing until he taps *Send to Larry* or closes the mic.
+  - **Switching microphones keeps listening**: the words heard so far wait for the next picture instead of going at
+    once. Closing the mic or leaving the board sends what was heard at once, as before.
+  - While Larry holds for more (*Larry: waiting*, the ear), nothing changes: his words still wait for the next pause,
+    tap or close, and that picture ends the hold as any turn does.
+  - The session log says what sent the words and how many characters went ([debugging](../../debugging/whiteboard.md)).
+    (Open, waiting on Igor via Larry, 2026-11-24: whether talking alone should still send after a long silence, about
+    8 s. Until he says, it doesn't.)
+  "draw a box around this" brings faint orange ghosts once the next picture goes, kept or dismissed like any others.
+  They are still suggestions: nothing becomes ink without a Keep.
 - It works on an empty board: "draw a circle" shows ghosts in the part of the board on screen.
 - If he speaks while Claude is answering, those words go with the next turn. Words whose turn didn't get through
   (skipped, refused or the Cockpit away) go with the next one.

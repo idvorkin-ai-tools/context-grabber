@@ -88,7 +88,9 @@ extension WhiteboardModel {
   /// Bead context-grabber-x3tm (story 765): Larry already has the board as it is, so Send is dimmed until the next
   /// stroke, words or other pages on screen. A board only looked at goes by its own `sent` (story 343).
   var larryHasThis: Bool {
-    editable && larry.hasThis(version: ops.rev, moved: larryFrameMoved)
+    // Story 1281: words heard and not yet sent are new to him.
+    editable && speech.pending == nil && turns.unsaid == nil
+      && larry.hasThis(version: ops.rev, moved: larryFrameMoved)
   }
 
   /// Bead context-grabber-x3tm: what dims Send, for the session log.
