@@ -646,7 +646,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1280:
 
 - **Summary:** Ink I grouped myself is still my writing; only Larry's groups are not
-- **Status:** implemented, not yet verified
+- **Status:** implemented in [6e977be8](https://github.com/idvorkin/context-grabber/commit/6e977be8); verified by host tests (`BoardOutlineIgorGroupsTests`, `WebMineGroupsTests`; `just test`, rung 1, 2026-11-24); the iPad is unchanged (every group there is Larry's); the web board passing `mine` (BoardWasm interface 18) is the Cockpit's; `just wasm-test`'s new check is owed on a Mac with the wasm SDK
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *An underline makes the line above it a header*; [Board rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), *The interface, version 18*
 - **Issues:** bead context-grabber-xzmc (found porting the web board's ink headers, #1330); Igor's pick on the whiteboard-now board, 2026-11-24 ~05:00: "only Larry's groups count as 'not your writing'; Igor's own grouped strokes stay his writing"
 
