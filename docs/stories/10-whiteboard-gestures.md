@@ -332,7 +332,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A finger held on ink offers to select what is under it
 - **Issues:** bead context-grabber-y4y (Larry, 2026-11-22: "press-and-hold on the board should open a useful menu"; the iPad's logs, 11-16 to 11-22: the menu came up 26 times and a row was chosen 3 times)
-- **Status:** implemented in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c); verified by host tests (`BoardHoldMenuTests`), `just native-test` and the Mac build (`just native-build-mac`); `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom` (with the hold on ink since bead context-grabber-3k6) passes on the iPad simulator with the rest of the class (rung 2, 2026-11-22); not yet seen on the iPad
+- **Status:** implemented in [06eddd08](https://github.com/idvorkin/context-grabber/commit/06eddd08) and [b0debd9c](https://github.com/idvorkin/context-grabber/commit/b0debd9c); verified by host tests (`BoardHoldMenuTests`), `just native-test` and the Mac build (`just native-build-mac`); `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom` (with the hold on ink since bead context-grabber-3k6) passes on the iPad simulator with the rest of the class (rung 2, 2026-11-22); not yet seen on the iPad; To text reached through the hold menu since [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23) (#1386)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
 
 #### Use Case:
@@ -498,7 +498,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 920:
 
 - **Summary:** Selected handwriting becomes typed text
-- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests`: `testTheRequestIsThePictureAndTheBoardAsTheWebBoardSendsThem`, `testTheCropIsTheInkWithAirRoundItNeverOffTheBoard`, `testTheWordsAreTheAnswer`, `testOneTypedLinePerLineReadAtTheInksTopLeftSizedToIt`; `just test`) and the Mac build (`just native-build-mac`), and on the simulator against the fake Cockpit (`WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace`, rung 2); not yet seen on the iPad, nor against the real Cockpit
+- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests`: `testTheRequestIsThePictureAndTheBoardAsTheWebBoardSendsThem`, `testTheCropIsTheInkWithAirRoundItNeverOffTheBoard`, `testTheWordsAreTheAnswer`, `testOneTypedLinePerLineReadAtTheInksTopLeftSizedToIt`; `just test`) and the Mac build (`just native-build-mac`), and on the simulator against the fake Cockpit (`WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace`, rung 2); not yet seen on the iPad, nor against the real Cockpit; To text reached through the hold menu since [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23) (#1386)
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
 
 #### Use Case:
@@ -517,7 +517,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 921:
 
 - **Summary:** A To text that fails leaves the ink and says why
-- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests.testAFailureSaysTheCockpitsReason`; `just test`) and the Mac build (`just native-build-mac`), and on the simulator against the fake Cockpit (`WhiteboardToTextUITests.testAFailureLeavesTheInkWithACopyableProblem`, rung 2); not yet seen on the iPad
+- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests.testAFailureSaysTheCockpitsReason`; `just test`) and the Mac build (`just native-build-mac`), and on the simulator against the fake Cockpit (`WhiteboardToTextUITests.testAFailureLeavesTheInkWithACopyableProblem`, rung 2); not yet seen on the iPad; To text reached through the hold menu since [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23) (#1386)
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
 
 #### Use Case:
@@ -536,7 +536,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 922:
 
 - **Summary:** No writing, or too much, leaves the ink and says so
-- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests.testNoWritingOrTooMuchLeavesTheInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests.testNoWritingOrTooMuchLeavesTheInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad; To text reached through the hold menu since [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23) (#1386)
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
 
 #### Use Case:
@@ -1142,7 +1142,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A small label on a selection says what I picked and what applies to it
 - **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
-- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`), the Mac build (rung 1.5) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace` reads *Selected: Ink, To text* and `WhiteboardConnectUITests.testALassoedArrowBetweenTwoWordsConnectsThem` *Selected: Arrow, Connect*, all 66 whiteboard UI tests passing); not yet seen on the iPad: a real lasso and the comparison #1045 asks for
+- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`), the Mac build (rung 1.5) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace` reads *Selected: Ink, To text* and `WhiteboardConnectUITests.testALassoedArrowBetweenTwoWordsConnectsThem` *Selected: Arrow, Connect*, all 66 whiteboard UI tests passing); not yet seen on the iPad: a real lasso and the comparison #1045 asks for; the plain-ink label says *Ink · hold for To text* since [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23) (#1386; `BoardSelectionLabelTests`)
 - **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
 
 #### Use Case:
@@ -1182,7 +1182,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** The label on a kept text says it can be reworded, and an erase turns it to ink
 - **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
-- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a kept text, reworded or erased
+- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a kept text, reworded or erased; the plain-ink label says *Ink · hold for To text* since [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23) (#1386; `BoardSelectionLabelTests`)
 - **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
 
 #### Use Case:
@@ -1262,7 +1262,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** To text is in the hold menu, and nowhere else
 - **Issues:** [#1386](https://github.com/idvorkin/context-grabber/issues/1386) (Igor, 2026-11-24 05:19: "To text only in the long-press menu")
-- **Status:** in progress
+- **Status:** implemented in [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23); verified by host tests (`BoardHoldMenuTests`, `WebHoldMenuTests`: the row after Select on a word, a group and a header's row, none on a kept text; `just native-test`), the Mac build (rung 1.5) and every whiteboard class on the iPad simulator (rung 2: `WhiteboardToTextUITests` reaches To text only through the hold menu, with nothing beside the selection). The wasm smoke (`test-board-wasm.mjs`, abi 20) is updated but did not run here: this Mac has no wasm Swift SDK
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*; [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold*
 
 #### Use Case:
@@ -1282,7 +1282,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A hold on my selection acts on all of it
 - **Issues:** [#1386](https://github.com/idvorkin/context-grabber/issues/1386) (the vision's "a tap inside his selection acts on the selection")
-- **Status:** in progress
+- **Status:** implemented in [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23); verified by host tests (`BoardHoldMenuTests.testHeldOnTheSelectionTheMenuTakesAllOfIt`, `WebHoldMenuTests`; `just native-test`) and on the iPad simulator (rung 2: `WhiteboardToTextUITests` and `WhiteboardRewordUITests` select the ink, hold on it and choose To text). The wasm smoke's `bw_hold_menu_on` checks did not run here: no wasm Swift SDK
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold*; [Board rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), *Interface 21*
 
 #### Use Case:
