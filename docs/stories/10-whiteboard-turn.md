@@ -1812,7 +1812,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1278:
 
 - **Summary:** A grip resizes the docked conversation, as on the web
-- **Status:** implemented in PENDING; verified by host tests (`WhiteboardPanelPlaceTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`WhiteboardConversationPlaceUITests`); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Status:** implemented in [e1324f42](https://github.com/idvorkin/context-grabber/commit/e1324f42); verified by host tests (`WhiteboardPanelPlaceTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at e1324f42: `WhiteboardConversationPlaceUITests`, and `WhiteboardBubblesUITests`, `WhiteboardPanelScrollUITests`, `WhiteboardLinkChipUITests` beside it); the Pencil on the card is the iPad's check; the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
 - **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("chat resizable like it is on the web"; "like a popover that I can move over the page, or can be docked like it is right now")
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
 
@@ -1842,7 +1842,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1279:
 
 - **Summary:** The conversation floats over the board as a card I move and size, or docks above it
-- **Status:** implemented in PENDING; verified by host tests (`WhiteboardPanelPlaceTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`WhiteboardConversationPlaceUITests`); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Status:** implemented in [e1324f42](https://github.com/idvorkin/context-grabber/commit/e1324f42); verified by host tests (`WhiteboardPanelPlaceTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at e1324f42: `WhiteboardConversationPlaceUITests`, and `WhiteboardBubblesUITests`, `WhiteboardPanelScrollUITests`, `WhiteboardLinkChipUITests` beside it); the Pencil on the card is the iPad's check; the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
 - **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("chat resizable like it is on the web"; "like a popover that I can move over the page, or can be docked like it is right now")
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
 
