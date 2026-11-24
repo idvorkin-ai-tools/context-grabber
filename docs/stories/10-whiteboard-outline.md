@@ -643,6 +643,31 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1280:
+
+- **Summary:** Ink I grouped myself is still my writing; only Larry's groups are not
+- **Status:** implemented, not yet verified
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *An underline makes the line above it a header*; [Board rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), *The interface, version 18*
+- **Issues:** bead context-grabber-xzmc (found porting the web board's ink headers, #1330); Igor's pick on the whiteboard-now board, 2026-11-24 ~05:00: "only Larry's groups count as 'not your writing'; Igor's own grouped strokes stay his writing"
+
+#### Use Case:
+- **As someone** who groups a few of my own words on the web board so they move together
+- **I want** that group to still count as my writing
+- **so that** I can still underline it, start it with a #, or tap the margin to make it a header, on the web as on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** A group I made is a line of my writing
+- **Given:** a line of my words that I grouped on the web board, with writing under it
+- **When:** I underline it, write a # at its start, or tap the margin beside it
+- **Then:** it becomes a header, as an ungrouped line would, and it still moves whole as one group
+
+- **Scenario:** A group of Larry's is not my writing
+- **Given:** one of Larry's groups (his marks, kept) on a line of its own
+- **When:** I underline it or tap the margin beside it
+- **Then:** it does not become a header, as before
+
+---
+
 ### User Story 1040:
 
 - **Summary:** A line tints for a moment when it becomes a header

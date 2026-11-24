@@ -71,9 +71,6 @@ extension BoardOutline {
     return hashed(newest, id: id)
   }
 
-  /// The strokes in a group of Larry's or a kept text: never his writing.
-  var tagged: Set<Int> { Set(units().filter { $0.tag != nil && $0.header == nil }.flatMap(\.members)) }
-
   // MARK: - Underlines and rules
 
   /// `u` underlines the line `l`: under it, across most of it, and not running far past it (that is a rule).

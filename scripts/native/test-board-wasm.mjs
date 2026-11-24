@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 17, `bw_info abi is 17: ${JSON.stringify(info)}`);
+check(info.abi === 18, `bw_info abi is 18: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -207,6 +207,12 @@ check(call('bw_outline_add', { strokes: [{ points: [[0, 0]] }] }) === -1 && /no 
 check(call('bw_outline_add', { strokes: [{ id: 'z', points: [] }] }) === -1 && /no points/.test(error() ?? ''), 'outline ink with no points is refused, saying why');
 check(same(rowAt(340), { bottom: 342, names: ['n2'], top: 338 }) && call('bw_outline_add', { strokes: [] }) === 6, 'and the outline is as it was');
 check(call('bw_outline_load', { boxes: [{ id: 't', box: [0, 400, 100, 440] }] }) === 1 && same(rowAt(420), { bottom: 440, names: [], top: 400 }), `a box with no group is still no one's ink: ${JSON.stringify(rowAt(420))}`);
+// Story 1280 (interface 18): a group is Larry's, no one's writing, unless the outline names it as Igor's.
+{
+  const g = (mine) => ({ strokes: [['a', 100], ['b', 124], ['c', 148]].map(([id, x0]) => ({ id, points: [[x0, 524], [x0 + 10, 500], [x0 + 20, 524]] })), groups: { a: 'g', b: 'g', c: 'g' }, ...(mine ? { mine } : {}) });
+  check(call('bw_outline_load', g()) === 3 && same(rowAt(512).names, []), `a group of Larry's is none of his writing: ${JSON.stringify(rowAt(512))}`);
+  check(call('bw_outline_load', g(['g'])) === 3 && same(rowAt(512).names, ['a', 'b', 'c']), `a group named mine is his writing: ${JSON.stringify(rowAt(512))}`);
+}
 check(call('bw_outline_load', { boxes: [{ id: 'b', box: [0, 0] }] }) === -1 && /\[left, top, right, bottom\]/.test(error() ?? ''), 'a box with no four sides is refused, saying why');
 check(call('bw_outline_load', { headers: 'nope' }) === -1 && /headers could not be read/.test(error() ?? ''), 'headers that are not a list are refused, saying why');
 check(reply(x.bw_row_at(100)).error === 'no outline is loaded', 'and nothing is loaded after it');

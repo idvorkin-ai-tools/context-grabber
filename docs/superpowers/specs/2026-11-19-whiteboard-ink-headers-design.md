@@ -37,6 +37,10 @@ a second kind of header; only the ways one is made and the ways a section ends a
 - The underline belongs to the header: it folds with it, moves with it and is erased with it.
 - Only Igor's own writing is made a header this way, never one of Larry's groups or kept texts, and never a line that
   is already a header.
+- A group Igor made of his own ink (the web board lets him group) is still his writing: it can be underlined, take a
+  #, join a header's row and make a line of writing, and it still moves whole. Only Larry's groups and kept texts are
+  not his writing (Igor, 2026-11-24, bead context-grabber-xzmc). On the iPad every group is Larry's, since only Larry
+  groups there.
 
 ### A # at the start of a line makes it a header
 

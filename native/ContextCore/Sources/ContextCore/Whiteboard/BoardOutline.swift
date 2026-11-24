@@ -105,15 +105,19 @@ public struct BoardOutline: Sendable {
   public internal(set) var erased: Set<Int> = []
   let texts: [BoardText]
   let groups: [String: String]
+  /// Story 1280: the groups Igor made of his own ink (the web board lets him group), still his writing. Every other
+  /// group is Larry's, as every group on the iPad is.
+  public let mine: Set<String>
 
   public init(
     strokes: [BoardOps.Stroke], headers: [BoardHeader], texts: [BoardText] = [], groups: [String: String] = [:],
-    declined: Set<String> = []
+    declined: Set<String> = [], mine: Set<String> = []
   ) {
     self.strokes = strokes
     self.declined = declined
     self.texts = texts
     self.groups = groups
+    self.mine = mine
     let names = Set(strokes.flatMap(\.ids))
     // A header whose ink is gone is no header, nor one whose underline or # is (#967).
     self.headers = headers.filter { $0.ids.contains(where: names.contains) && !$0.markGone(names) }
@@ -155,6 +159,13 @@ public struct BoardOutline: Sendable {
   }
 
   func names(_ members: [Int]) -> [String] { members.flatMap { strokes[$0].ids } }
+
+  /// His own: a lone stroke or a group he made (story 1280). A kept text, a card, a group of Larry's or a header's row
+  /// is not.
+  func his(_ unit: Unit) -> Bool { unit.tag.map(mine.contains) ?? true }
+
+  /// The strokes in a group of Larry's or a kept text: never his writing.
+  var tagged: Set<Int> { Set(units().filter { !his($0) && $0.header == nil }.flatMap(\.members)) }
 
   mutating func shift(_ unit: Unit, by dy: CGFloat) {
     for m in unit.members { shift(m, dx: 0, dy: dy) }
@@ -217,7 +228,7 @@ public struct BoardOutline: Sendable {
       return Row(header: header, names: [], top: r.lowerBound, bottom: r.upperBound)
     }
     return Row(
-      header: nil, names: names(inside.filter { $0.tag == nil }.flatMap(\.members)), top: r.lowerBound,
+      header: nil, names: names(inside.filter(his).flatMap(\.members)), top: r.lowerBound,
       bottom: r.upperBound)
   }
 
@@ -283,7 +294,7 @@ public struct BoardOutline: Sendable {
     let indented = lines.first.map { leftOf($0.us) > edge } ?? false
     var nextTop = CGFloat.infinity
     let rules = rules()
-    let isRule = { (u: Unit) in u.tag == nil && u.members.contains(where: rules.contains) }
+    let isRule = { (u: Unit) in self.his(u) && u.members.contains(where: rules.contains) }
     // Levels by #s (#1034): a header of this level at or left of the indent ends the section, as one of a shallower
     // level does wherever it is; a deeper one never does, and once one has begun, the indent no longer ends it.
     let live = liveNames
@@ -503,7 +514,7 @@ public struct BoardOutline: Sendable {
   /// His lines of writing, top down: his own strokes showing (not Larry's groups or texts), underlines left out.
   func writingLines() -> [WritingLine] {
     let inHeader = Set(headers.flatMap(\.ids))
-    let tagged = Set(units().filter { $0.tag != nil && $0.header == nil }.flatMap(\.members))
+    let tagged = tagged
     let boxes = strokes.indices.filter {
       !strokes[$0].hidden && !strokes[$0].points.isEmpty && !tagged.contains($0) && !Self.isUnderline(strokes[$0])
     }.map { ($0, strokes[$0].bounds, strokes[$0].bounds.height - (strokes[$0].pen > 0 ? strokes[$0].pen : 4)) }

@@ -74,7 +74,8 @@ enum WebOutline {
     }
   }
 
-  /// The web board as `{"strokes", "boxes", "groups": {name: group}, "headers"}`: ink first, then the boxes.
+  /// The web board as `{"strokes", "boxes", "groups": {name: group}, "mine"?: [group], "headers"}`: ink first, then
+  /// the boxes.
   static func outline(json any: Any) throws -> BoardOutline { try parts(json: any).outline }
 
   /// The outline, and the kept texts and groups it was made with (the outline keeps them to itself).
@@ -91,7 +92,11 @@ enum WebOutline {
     // on the iPad. Its time is one no stroke can have (far before 1970), so it owns no glyphs: the box is the whole of
     // it.
     let texts = boxes.enumerated().map { boxText($1, $0) }
-    return (BoardOutline(strokes: ink + boxes, headers: headers, texts: texts, groups: groups), texts, groups)
+    // Story 1280: the groups Igor made himself stay his writing; left out, every group is Larry's.
+    let mine = Set(json["mine"] as? [String] ?? [])
+    return (
+      BoardOutline(strokes: ink + boxes, headers: headers, texts: texts, groups: groups, mine: mine), texts, groups
+    )
   }
 
   static func strokes(json any: Any) throws -> [BoardOps.Stroke] {
