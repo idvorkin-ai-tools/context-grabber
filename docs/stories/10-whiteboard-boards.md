@@ -1870,7 +1870,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1295:
 
 - **Summary:** The web board asks the app's own rules for room by hand and for Larry's picture of a folded board
-- **Status:** implemented in COMMIT (`bw_room_by_hand`, `bw_fold_picture`, interface 20); verified by the host tests (`WebByHandTests`: 1,360 seeded drags of the room handle on the four recorded boards and 30 seeded ones, and the opened picture of every seeded board with a header folded, against the app's own room by hand and fold picture) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 310 checks, hand-worked drags and a folded section among them), 2026-11-24
+- **Status:** implemented in 412cfb29 (`bw_room_by_hand`, `bw_fold_picture`, interface 20); verified by the host tests (`WebByHandTests`: 1,360 seeded drags of the room handle on the four recorded boards and 30 seeded ones, and the opened picture of every seeded board with a header folded, against the app's own room by hand and fold picture) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 310 checks, hand-worked drags and a folded section among them), 2026-11-24
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 20
 - **Issues:** Larry's web parity list (cockpit-kp5), 2026-11-24: the web's push let blank paper absorb it, against the rigid push of 2026-11-22
 
