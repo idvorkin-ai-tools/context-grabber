@@ -2232,7 +2232,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A skill's thread is pinned under Larry's, there before its first message
 - **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and `ChatArchiverTests` (a pinned row has no swipe, tick or menu) and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit (pinned under Larry's); the real Cockpit (cockpit#90, unmerged) and the phone not yet
-- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
+- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632); bead `context-grabber-rg6x` (the UI test asked for one named other row on screen, which on the iPad sat below the fold after the other chat classes had added threads: it now reads the order off every row showing)
 - **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
