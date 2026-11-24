@@ -313,7 +313,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1210:
 
 - **Summary:** Most of a reply is kept by keeping the group and erasing the piece I don't want
-- **Status:** implemented in 04f92c9f (bead context-grabber-it0e), when Dismiss took one mark; since #1383 (story 1286) Dismiss beside a reply of several marks takes the whole reply, and a piece is dropped after *Keep group* by erasing it, on branch `native/ghost-group-1383`
+- **Status:** implemented in 04f92c9f (bead context-grabber-it0e), when Dismiss took one mark; since #1383 (story 1286) Dismiss beside a reply of several marks takes the whole reply, and a piece is dropped after *Keep group* by erasing it, in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9); the erase of a kept group's piece is story 1149's and 1193's, verified there
 - **Issues:** bead context-grabber-it0e; #1383
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of several marks shows, is chosen and is turned down as one group*
 
@@ -333,7 +333,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1285:
 
 - **Summary:** Larry's reply of several marks arrives outlined as one group, and a tap on any of it offers Keep group
-- **Status:** on branch `native/ghost-group-1383`, not yet verified
+- **Status:** implemented in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9); verified by host tests (`WhiteboardKeepReplyTests`, `WhiteboardMarkChoiceTests`; `just test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-24, *iPad Pro 11-inch (M5)*: `WhiteboardTheirsTapUITests`, `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTurnUITests`, 37 tests, 1 skipped, none failing); not yet seen on the iPad (`testKeepBesideOneMarkOfAReplyKeepsTheWholeReply`: *Keep group* beside his reply of three)
 - **Issues:** #1383 (Igor on the iPad, 2026-11-24 05:07: Larry's four list lines came as four separate marks; he dismissed three one at a time and kept one, then: "it should've come in as keep group")
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of several marks shows, is chosen and is turned down as one group*
 
@@ -359,7 +359,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1286:
 
 - **Summary:** Dismiss group turns down Larry's whole reply
-- **Status:** on branch `native/ghost-group-1383`, not yet verified
+- **Status:** implemented in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9); verified by host tests (`WhiteboardKeepReplyTests`, `WhiteboardMarkChoiceTests`; `just test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-24, *iPad Pro 11-inch (M5)*: `WhiteboardTheirsTapUITests`, `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTurnUITests`, 37 tests, 1 skipped, none failing); not yet seen on the iPad (`testDismissGroupBesideOneMarkTakesTheWholeReply`)
 - **Issues:** #1383
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of several marks shows, is chosen and is turned down as one group*
 
