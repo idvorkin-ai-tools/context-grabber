@@ -109,14 +109,17 @@ fi
 # Bead context-grabber-7un4: the session logs the app wrote during a run with a failed try, kept beside the log, as the
 # next run's install clears the app's container (a flake's evidence was gone by the time it was looked at).
 run_started=$(mktemp "${TMPDIR:-/tmp}/xcodebuild-started.XXXXXX")
+trap 'rm -f "$run_started"' EXIT
 keep_session_logs() {
   [ "$sim_test" -eq 1 ] && [ -n "$sim_udid" ] || return 0
   grep -qE "^Test Case '.+' failed" "$log" || return 0
-  local data dest=${log%.log}.session-logs
-  data=$(xcrun simctl get_app_container "$sim_udid" "${SIM_APP_BUNDLE:-com.idvorkin.grabbernative}" data 2>/dev/null) ||
-    return 0
+  local b data dest=${log%.log}.session-logs
   rm -rf "$dest" && mkdir -p "$dest" || return 0
-  find "$data/Documents/logs" -name '*.jsonl' -newer "$run_started" -exec cp -f {} "$dest/" \; 2>/dev/null
+  for b in $sim_apps; do
+    case $b in *.xctrunner) continue ;; esac
+    data=$(xcrun simctl get_app_container "$sim_udid" "$b" data 2>/dev/null) || continue
+    find "$data/Documents/logs" -name '*.jsonl' -newer "$run_started" -exec cp -f {} "$dest/" \; 2>/dev/null
+  done
   if [ -n "$(ls -A "$dest" 2>/dev/null)" ]; then
     echo "the session logs the app wrote during the run: $dest" >&2
   else
