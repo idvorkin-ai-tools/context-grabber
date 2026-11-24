@@ -987,7 +987,7 @@ redeem and reads the phone's shared pairing.
 ### User Story 569:
 
 - **Summary:** A link to a web ink board opens its page in the browser
-- **Status:** native app only: in progress
+- **Status:** native app only: implemented in [39b54039](https://github.com/idvorkin/context-grabber/commit/39b54039); verified by host tests (`WebInkBoardTests`: which ids are web boards, the page's address) and on the iPad Pro 11-inch (M5) simulator (`WebInkBoardLinkUITests`: the link opens Safari, no board-missing problem; the session log's `open_web_board` then `opened_web_board ok`); the board debug page's chip on the real iPad not yet
 - **Issues:** [#1354](https://github.com/idvorkin/context-grabber/issues/1354)
 - **Spec:** [Native links](../superpowers/specs/2026-10-06-native-links-design.md)
 
