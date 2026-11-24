@@ -256,6 +256,7 @@ final class ChatModel: ObservableObject {
       }
       guard names != ChatSiteNames.current else { return }
       ChatSiteNames.current = names
+      rowLinks = rowLinks.mapValues { $0.map(ChatLinks.relabeled) }
       database.setSetting(Self.siteNamesKey, String(decoding: names.saved, as: UTF8.self))
       objectWillChange.send()
       log.event("chat", ["action": "site_names_read", "sites": names.names.count])

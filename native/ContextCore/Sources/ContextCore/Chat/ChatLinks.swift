@@ -204,6 +204,15 @@ public enum ChatLinks {
     return ChatLink(url: url, kind: .web, label: webLabel(host: host, parts: parts), id: page)
   }
 
+  /// A link read again under the site names now (story 1135): a web chip's label follows the list, every other chip
+  /// stays as it was.
+  public static func relabeled(_ link: ChatLink) -> ChatLink {
+    guard link.kind == .web, let host = link.url.host?.lowercased(), !host.isEmpty else { return link }
+    var out = self.link(link.url, host: host)
+    out.state = link.state
+    return out
+  }
+
   /// An over-the-air install link, which the detector may not know (story 1133).
   static let installPrefix = "itms-services://"
 

@@ -52,6 +52,18 @@ final class ChatSiteNamesTests: XCTestCase {
     XCTAssertEqual(labels("https://github.com/idvorkin/context-grabber/issues/736", names), ["gh/issues/736"])
   }
 
+  func testLinksReadBeforeANewListTakeItsNames() {
+    ChatSiteNames.current = .shipped
+    let before = ChatLinks.found(
+      in: "https://example.org/a/b https://github.com/idvorkin/context-grabber/pull/734 "
+        + "https://idvorkin-ai-tools.github.io/p04.html")
+    XCTAssertEqual(before.map(\.label), ["example.org/b", "PR #734", "ai-tools/p04.html"])
+    ChatSiteNames.current = ChatSiteNames(names: ["example.org": "ex", "github.com": "gh"])
+    let after = before.map(ChatLinks.relabeled)
+    XCTAssertEqual(after.map(\.label), ["ex/b", "PR #734", "idvorkin-ai-tools.github.io/p04.html"])
+    XCTAssertEqual(after.map(\.url), before.map(\.url))
+  }
+
   func testAnUnreadableListIsNil() {
     XCTAssertNil(ChatSiteNames.parse(Data("not json".utf8)))
     XCTAssertNil(ChatSiteNames.parse(Data(#"{"other": 1}"#.utf8)))
