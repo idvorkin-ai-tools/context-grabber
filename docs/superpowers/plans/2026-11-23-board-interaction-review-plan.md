@@ -19,7 +19,7 @@ network, no clock read inside a check; the whiteboard file rule, one file per pi
 | `BoardReview+Placement.swift` | Checks 1 (inside a fold) and 2 (under ink), using `BoardRoom`, paste `place`, `drop` and the late-reply rule for the predicted room |
 | `BoardReview+Moves.swift` | Checks 3 (Igor's ink moved) and 4 (both owners), using the owners-apart rule and the room and fold shift predictions; intent = `aim` ∪ predicted push/slide |
 | `BoardReview+Folds.swift` | Check 5, against `BoardOutline`'s fold with the header's recorded `ends` (story 1231) |
-| `BoardReview+Undo.swift` | Check 6: keeps a board snapshot per step and compares an Undo's result with the snapshot before the step it named |
+| `BoardReview+Undo.swift` | Check 6: keeps a board snapshot per step and compares an Undo's result with the snapshot before the step it named, on only the ink and folds that step touched |
 | `BoardReview+Seen.swift` | Checks 7–9, read only from `seen`; absent means `notChecked`, `pen_approx` makes check 8 `approximate` |
 | `BoardReviewText.swift` | The copyable text of a finding and the one-line summary for Larry, so both surfaces print the same words |
 
