@@ -169,10 +169,14 @@ case "$1 $2" in
   # Its changed-file count is the list's length, or $FAKE_PRS/<n>.changed when GitHub's list would come up short.
   "api --paginate") n=$(sed -n 's|.*/pulls/\([0-9]*\)/files.*|\1|p' <<<"$3"); [ -e "$FAKE_PRS/$n.files" ] || exit 1
     cat "$FAKE_PRS/$n.files" ;;
-  # Its branch is $FAKE_PRS/<n>.branch (default pr<n>) and its commit subjects $FAKE_PRS/<n>.subjects, one per line.
+  # Its branch is $FAKE_PRS/<n>.branch (default pr<n>) and its commit subjects $FAKE_PRS/<n>.subjects, one per line,
+  # each cut as GitHub cuts a long one (seen on PR #1406, 2026-11-24): the headline's first 69 characters and "…", the
+  # rest after a "…" on the body's first line.
   "pr view") if [ -e "$FAKE_PRS/$3.changed" ]; then c=$(cat "$FAKE_PRS/$3.changed"); else c=$(grep -cs . "$FAKE_PRS/$3.files"); fi
     b=$(cat "$FAKE_PRS/$3.branch" 2>/dev/null || echo "pr$3")
-    subjects=$(python3 -c 'import json,sys; print(json.dumps([{"messageHeadline": l.rstrip("\n")} for l in sys.stdin]))' <"$FAKE_PRS/$3.subjects" 2>/dev/null || echo '[]')
+    subjects=$(python3 -c 'import json,sys
+cut = lambda l: {"messageHeadline": l[:69] + "\u2026", "messageBody": "\u2026" + l[69:]} if len(l) > 72 else {"messageHeadline": l}
+print(json.dumps([cut(l.rstrip("\n")) for l in sys.stdin]))' <"$FAKE_PRS/$3.subjects" 2>/dev/null || echo '[]')
     printf '{"headRefOid": "head%s", "changedFiles": %s, "headRefName": "%s", "commits": %s}\n' "$3" "${c:-0}" "$b" "$subjects" ;;
   "api -H") n=$(sed -n 's|.*?ref=head||p' <<<"$4"); f=$(sed -n 's|.*/contents/\([^?]*\)?.*|\1|p' <<<"$4")
     cat "$FAKE_PRS/$n.head.$(basename "$f")" ;;
@@ -353,6 +357,12 @@ printf "Story 3: something else\nMerge remote-tracking branch 'origin/main' into
 out=$(claimed)
 check "claimed still fails when the other PR shares only a merge commit's subject with the branch" \
   "$?|$(grep -c '^FAIL claimed: story 3 is also added by open PR #51' <<<"$out")" "1|1"
+long="Story 3: a subject long enough that GitHub cuts its headline short and carries the rest in the body"
+(cd "$cl" && g commit -q --allow-empty -m "$long") >/dev/null 2>&1
+printf '%s\n' "$long" >"$tmp/clprs/51.subjects"
+out=$(claimed)
+check "claimed finds the branch's own PR by a long commit subject that GitHub's headline cuts short" \
+  "$?|$(grep -c '^ok   claimed' <<<"$out")" "0|1"
 out=$(FAKE_GH_FAIL=1 claimed)
 check "claimed fails rather than guess when the open PRs can't be listed" "$?|$(grep -c '^FAIL claimed: ' <<<"$out")" "1|1"
 

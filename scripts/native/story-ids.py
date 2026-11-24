@@ -411,6 +411,15 @@ def main_head(root):
     return head
 
 
+def full_subject(commit):
+    """A PR commit's whole subject line. GitHub cuts a long one at about 70 characters, ending the headline in "…" and
+    carrying the rest, after a "…", on the body's first line; matched as cut, a branch's own PR was not found."""
+    head, body = commit.get("messageHeadline", ""), commit.get("messageBody") or ""
+    if head.endswith("\u2026") and body.startswith("\u2026"):
+        return head[:-1] + body.split("\n", 1)[0][1:]
+    return head
+
+
 def claimed(root):
     """Story 1515, bead context-grabber-6p52: every story ID this tree adds over main that another open PR adds too.
     The branch's own PR is the open PR sharing a commit subject with the branch's commits over main (the pipeline's
@@ -426,7 +435,7 @@ def claimed(root):
         info = {}
         for pr in sorted({pr for prs in clashes.values() for pr in prs}):
             view = json.loads(run(gh + ["pr", "view", str(pr), "--json", "headRefName,commits"]))
-            subjects = {c.get("messageHeadline", "") for c in view.get("commits") or []
+            subjects = {full_subject(c) for c in view.get("commits") or []
                         if not c.get("messageHeadline", "").startswith("Merge ")}
             info[pr] = (view.get("headRefName") or "?", bool(subjects & mine))
         failed = False
