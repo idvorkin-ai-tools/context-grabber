@@ -404,7 +404,10 @@ extension WhiteboardModel {
   func inkElements(updated: [String: [String]], removed: [String], report: Bool, reworded: [String]? = nil) {
     let before = strokeIDs
     let change = ink.changed(updated: updated, removed: removed, ids: &strokeIDs)
-    if strokeIDs != before { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
+    if strokeIDs != before {
+      opLedger.setStrokeIDs(strokeIDs, board: board.id)
+      marksFollow()
+    }
     guard report, !change.isEmpty else { return }
     let changed = change.moved + change.erased
     let owners =

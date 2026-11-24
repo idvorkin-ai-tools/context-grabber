@@ -314,7 +314,7 @@ the first clear space, which the first Keep all did).
 - The session log says what each did: how many marks were kept and how many moved, how many labels the tidy found and
   moved.
 
-### His marks hold to the ink they answer, and fade when written over (stories 1180, 1181, 1269–1272; bead context-grabber-p2an; Igor, 2026-11-23, 16:55: "Anchor, and fade when written over")
+### His marks hold to the ink they answer, and fade when written over (stories 1180, 1181, 1269–1271; bead context-grabber-p2an; Igor, 2026-11-23, 16:55: "Anchor, and fade when written over")
 
 A mark of Larry's that Igor hasn't kept or dismissed answers something on the board: a check on a word, a label beside
 a line, an arrow to a box. Until now it sat at the place it landed while the board moved under it: a fold, a drag or
@@ -369,7 +369,7 @@ already follows what its ends join (story 917) and holds to nothing more, though
 - **Unkept marks take no room**, as before: a paste, a drop, room and new writing land on them as on blank paper. Only
   ink lands under ink. (The board's interaction review checks writing that lands under ink; a stroke on an unkept mark
   is not that, it is this rule's *written over*.)
-- **The web board follows the same rule** (story 1272): the anchor, where each mark shows, whether it is folded away
+- **The web board follows the same rule** (a follow-up, with its own story): the anchor, where each mark shows, whether it is folded away
   or its ink erased, and whether new strokes wrote over it come from the board's own rules, so a mark on the Cockpit's
   web board holds to the same ink and fades for the same stroke as on the iPad.
 - The session log says, for each mark that lands, what it holds to (or nothing) and how far away; for each stroke that
