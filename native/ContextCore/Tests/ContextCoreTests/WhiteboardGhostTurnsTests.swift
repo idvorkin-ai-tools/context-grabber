@@ -391,6 +391,31 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertNil(turns.unsaid)
   }
 
+  // MARK: Story 1281: words wait for the next picture
+
+  func testHeardWordsWaitWithoutAskingAndGoWithThePause() {
+    var turns = turns()
+    XCTAssertTrue(turns.heard("I see a chip"))
+    XCTAssertTrue(turns.heard("that says hello"))
+    XCTAssertEqual(turns.said(.claude), "I see a chip that says hello", "nothing asked; the pause's turn takes them")
+    _ = turns.asked(.claude)
+    XCTAssertNil(turns.unsaid, "taken once")
+  }
+
+  func testHeardWordsWithGhostsOffAreDropped() {
+    var turns = turns(on: false)
+    XCTAssertFalse(turns.heard("draw a square"))
+    XCTAssertNil(turns.unsaid)
+  }
+
+  func testSendTakesTheWaitingWordsOnce() {
+    var turns = turns()
+    _ = turns.heard("what about Tuesday")
+    XCTAssertEqual(turns.takeSaid(), "what about Tuesday")
+    XCTAssertNil(turns.takeSaid())
+    XCTAssertNil(turns.unsaid)
+  }
+
   // MARK: Stories 345, 360: spoken turns
 
   func testWordsDuringATurnGoWithTheNextAfterItLands() {

@@ -23,6 +23,8 @@ extension WhiteboardModel {
       return true
     }
     guard !larrySending, !sendWaiting(in: inbox.items) else { return false }
+    // Story 1281: the words the mic heard go with this picture, and make it new to him.
+    gatherSpoken(why: "send", toLarry: true)
     let moved = pictureFrame().map { larryFrame?.moved(to: $0.rect) ?? true } ?? false
     guard case .send(let words) = larry.tapped(version: ops.rev, moved: moved, handOver: handOver, now: .now) else {
       alreadyHas(from: "send")

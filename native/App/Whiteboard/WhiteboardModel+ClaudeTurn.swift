@@ -11,6 +11,8 @@ extension WhiteboardModel {
   /// One turn: the board's picture to the Cockpit, shapes back as ghosts, or, on a board whose responder is Larry, the
   /// picture on to his thread (story 659). `paused`: how long the pause that asked it waited; nil for spoken words.
   func turn(_ who: WhiteboardTurn.Who, paused: Duration? = nil) async {
+    // Story 1281: every word the open mic heard so far goes with this picture.
+    if who == .claude { gatherSpoken(why: paused == nil ? "turn" : "pause") }
     let said = turns.said(who)
     // An empty board has no drawing to frame: a spoken turn sees the part on screen, and any other isn't asked.
     let framed =

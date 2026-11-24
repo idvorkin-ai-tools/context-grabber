@@ -85,14 +85,54 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Spoken direction
 - **Given:** the mic is open on the board, and I drew a curve
 - **When:** I say "this is my energy over the week, mark the dip"
-- **Then:** within about 5 s of my finishing (story 1118: the board waits for the end of a sentence), faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point, without my lifting or drawing anything more
+- **Then:** once the next picture goes (the Pencil's pause, *Send to Larry*, or closing the mic; story 1281), faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point
+
+---
+
+### User Story 1281:
+
+- **Summary:** The board's mic listens continuously, and my words go with the next picture
+- **Status:** not implemented
+- **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
+
+#### Use Case:
+- **As someone** who talks, stops to think, and draws on the board
+- **I want to** keep the mic open with my words showing as I say them, and have them go only with the next picture
+- **so that** a pause to think never sends half a thought to Larry
+
+#### Acceptance Criteria:
+- **Scenario:** Thinking out loud
+- **Given:** the mic is open on the board
+- **When:** I say "I see a chip that says", stop for ten seconds, and go on
+- **Then:** nothing is sent, and the note's line shows my words as I say them
+
+- **Scenario:** The Pencil's pause sends them
+- **Given:** the mic is open and I said "mark the dip"
+- **When:** I draw a curve and lift the Pencil, and the board's pause passes
+- **Then:** the picture goes with "mark the dip", and words I say after it go with the next picture
+
+- **Scenario:** Send takes my words even when the drawing hasn't changed
+- **Given:** Larry already has the board as it is, and the mic heard "what about Tuesday"
+- **When:** I look at *Send to Larry*
+- **Then:** it is not dimmed, and a tap sends the board with "what about Tuesday"
+
+- **Scenario:** Closing the mic
+- **Given:** the mic heard words no picture took
+- **When:** I tap the mic to close it
+- **Then:** the words go at once, as before
+
+- **Scenario:** Switching microphones
+- **Given:** the mic is open and heard "so the plan is"
+- **When:** I pick another microphone
+- **Then:** nothing is sent, the mic listens on the new one, and "so the plan is" goes with the next picture
 
 ---
 
 ### User Story 1118:
 
 - **Summary:** A spoken turn waits until I have finished my sentence
-- **Status:** implemented in [ea86e616](https://github.com/idvorkin/context-grabber/commit/ea86e616); the rule verified on the host by `BoardSpeechEndTests` with the 2026-11-22 iPad log's timings, the app by `just native-build-mac`; real dictation on the iPad not yet
+- **Status:** superseded by story 1281 (Igor, 2026-11-24: silence never sends; the words go with the next picture); was implemented in [ea86e616](https://github.com/idvorkin/context-grabber/commit/ea86e616)
 - **Issues:** bead `context-grabber-u1yy`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 

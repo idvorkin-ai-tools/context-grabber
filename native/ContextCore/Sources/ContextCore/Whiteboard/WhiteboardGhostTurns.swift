@@ -143,6 +143,21 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return pacer.pauseEnded() ? .now : .held
   }
 
+  /// Story 1281: words the open mic heard wait for the next picture (the Pencil's pause, *Send to Larry*, closing the
+  /// mic) without asking anything. False, and dropped, with the pause switch off.
+  @discardableResult
+  public mutating func heard(_ words: String) -> Bool {
+    guard on else { return false }
+    unsaid = unsaid.map { "\($0) \(words)" } ?? words
+    return true
+  }
+
+  /// Story 1281: *Send to Larry* takes the words waiting, once.
+  public mutating func takeSaid() -> String? {
+    defer { unsaid = nil }
+    return unsaid
+  }
+
   // MARK: A turn
 
   /// What the turn tells the Cockpit Igor said: Claude's turns carry the words, Larry's none.
