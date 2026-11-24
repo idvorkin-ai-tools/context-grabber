@@ -30,7 +30,8 @@ final class WebMarksTests: XCTestCase {
   /// A mark of Larry's somewhere over or near the board's ink: a short label, or a drawn ring or underline.
   private func mark(_ id: String, _ rng: inout Seeded, over board: WebBoard) -> BoardMark {
     let shown = board.strokes.filter { !$0.hidden }
-    let near = shown.isEmpty ? CGRect(x: 100, y: 100, width: 100, height: 40) : shown[rng.int(0...(shown.count - 1))].bounds
+    let near =
+      shown.isEmpty ? CGRect(x: 100, y: 100, width: 100, height: 40) : shown[rng.int(0...(shown.count - 1))].bounds
     let x = near.minX + CGFloat(rng.int(-60...80))
     let y = near.minY + CGFloat(rng.int(-50...60))
     let label = rng.int(0...2) == 0
@@ -39,10 +40,12 @@ final class WebMarksTests: XCTestCase {
     let lines: [[CGPoint]] =
       label
       ? [[CGPoint(x: x, y: y), CGPoint(x: x + w, y: y + h)]]
-      : [(0...8).map { i in
-        let a = Double(i) / 8 * 2 * .pi
-        return CGPoint(x: x + w / 2 + w / 2 * CGFloat(cos(a)), y: y + h / 2 + h / 2 * CGFloat(sin(a)))
-      }]
+      : [
+        (0...8).map { i in
+          let a = Double(i) / 8 * 2 * .pi
+          return CGPoint(x: x + w / 2 + w / 2 * CGFloat(cos(a)), y: y + h / 2 + h / 2 * CGFloat(sin(a)))
+        }
+      ]
     return BoardMark(id: id, lines: lines, pen: CGFloat(rng.int(1...4)), label: label)
   }
 
@@ -117,7 +120,9 @@ final class WebMarksTests: XCTestCase {
         erased += 1
       }
       let web = try board.web()
-      let asked = try json(["marks": zip(marks, webAnchors).map { ["id": $0.id, "anchor": $1.map(WebMarks.wire) as Any] }])
+      let asked = try json([
+        "marks": zip(marks, webAnchors).map { ["id": $0.id, "anchor": $1.map(WebMarks.wire) as Any] }
+      ])
       let held = try XCTUnwrap(WebMarks.held((asked as? [String: Any])?["marks"], needLines: false), board.name)
       let places = WebMarks.places(held, outline: web.outline)["places"] as? [String: Any] ?? [:]
       for (mark, anchor) in zip(marks, appAnchors) {
@@ -130,7 +135,10 @@ final class WebMarksTests: XCTestCase {
       let drops = WebMarks.drops(held, outline: web.outline)["drops"] as? [[String: Any]] ?? []
       let wantDrops = BoardMarkHolds.drops(
         marks, anchors: Dictionary(uniqueKeysWithValues: zip(marks.map(\.id), appAnchors)), strokes: board.strokes)
-      XCTAssert(sameJSON(drops, wantDrops.map { ["id": $0.id, "why": $0.why == .writtenOver ? "written_over" : "ink_erased"] }), "\(board.name): \(drops) vs \(wantDrops)")
+      XCTAssert(
+        sameJSON(
+          drops, wantDrops.map { ["id": $0.id, "why": $0.why == .writtenOver ? "written_over" : "ink_erased"] }),
+        "\(board.name): \(drops) vs \(wantDrops)")
     }
     XCTAssertGreaterThan(moved, 0)
     XCTAssertGreaterThan(folded, 0)
@@ -148,7 +156,10 @@ final class WebMarksTests: XCTestCase {
       for mark in marks {
         appAnchors[mark.id] = BoardMarkHolds.anchor(mark, on: appInk(board))
         webMarks.append(
-          (mark, WebMarks.anchor(WebMarks.anchor(mark, outline: web.outline, texts: web.texts, groups: web.groups)["anchor"])))
+          (
+            mark,
+            WebMarks.anchor(WebMarks.anchor(mark, outline: web.outline, texts: web.texts, groups: web.groups)["anchor"])
+          ))
       }
       for n in 0..<6 {
         // A stroke across one of the marks, or beside it.

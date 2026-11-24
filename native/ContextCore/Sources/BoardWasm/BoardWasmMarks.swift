@@ -90,8 +90,7 @@ enum WebMarks {
 
   /// Where each mark shows on the outline as it is now (`BoardMarkHolds.place`), by id; a mark with no anchor holds
   /// to nothing and stays where it landed.
-  static func places(_ marks: [(mark: BoardMark, anchor: BoardMarkAnchor?)], outline: BoardOutline) -> [String: Any]
-  {
+  static func places(_ marks: [(mark: BoardMark, anchor: BoardMarkAnchor?)], outline: BoardOutline) -> [String: Any] {
     var out: [String: Any] = [:]
     for (mark, anchor) in marks {
       out[mark.id] = wire(BoardMarkHolds.place(anchor ?? BoardMarkAnchor(strokes: []), on: outline.strokes))
@@ -135,7 +134,9 @@ enum WebMarks {
   @_cdecl("bw_mark_anchor")
   public func bwMarkAnchor(_ pointer: UnsafeRawPointer?, _ length: Int32) -> UnsafeMutableRawPointer {
     guard let loaded = outline else { return reply(json: ["error": "no outline is loaded"]) }
-    guard let mark = WebMarks.mark(marksJSON(pointer, length)?["mark"]) else { return reply(json: ["error": "no mark"]) }
+    guard let mark = WebMarks.mark(marksJSON(pointer, length)?["mark"]) else {
+      return reply(json: ["error": "no mark"])
+    }
     return reply(json: WebMarks.anchor(mark, outline: loaded, texts: outlineTexts, groups: outlineGroups))
   }
 
