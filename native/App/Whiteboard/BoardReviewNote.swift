@@ -1,5 +1,5 @@
 //  What the board shows of a session's review (spec 2026-11-23-board-interaction-review-design.md, *What Igor sees*;
-//  stories 1242–1246): a quiet line in the board's corner, only when there is something to look at or he asked; a tap
+//  stories 1242–1246): a quiet line in the board's corner, only when there is something to look at; a tap
 //  lists the findings, newest first, each copyable, each with *Show me*; an unclear one asks whether he meant it.
 
 import ContextCore

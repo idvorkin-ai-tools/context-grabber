@@ -85,13 +85,12 @@ holds it. It stays on the device that made it, for 14 days, and never syncs (*De
 
 ## When a review runs
 
-Both:
+Only on its own (Igor, 2026-11-24: no *Review this session* row; reviews run on idle and close only):
 
-- **On its own**, once the board has been idle for five minutes after writing (five minutes with no step), and
+- Once the board has been idle for five minutes after writing (five minutes with no step), and
   when the board closes after a session with at least one step. A session cut short by the app closing is reviewed
   the next time the board opens.
-- **On demand**, from the board's Board menu: *Review this session*. It reviews the session so far, and again from its
-  start if asked later; asking twice gives the same findings.
+- There is no review on demand and no review row in the Board menu.
 
 A session with no step of Igor's (the board only opened and looked at) is not reviewed. A review runs in the
 background and never holds up writing; a board opened again while a review runs gets its note when it finishes.
@@ -216,8 +215,7 @@ replayed. The last three depend on what a surface saw, and are as good as its re
 
 - **A quiet note per board, only when there is something to look at.** After a review with a bug or an unclear
   finding, the board's corner shows a small line, never a sheet or an alert: *Reviewed · 1 to look at*. Findings
-  marked *as designed* don't count toward it. A clean review of its own shows nothing at all; one he asked for from
-  the menu says *Reviewed · clean*, since he is waiting for an answer. The note goes once he has opened it, or with
+  marked *as designed* don't count toward it. A clean review shows nothing at all. The note goes once he has opened it, or with
   his next stroke.
 - **The findings.** A tap on the note lists them, newest first: when, the check, the verdict, one line of what
   happened (*10 new strokes went into the fold under "Plans"*). A clean review lists what it checked and what it
@@ -263,8 +261,8 @@ replayed. The last three depend on what a surface saw, and are as good as its re
 
 ## Acceptance criteria
 
-- A board idle for the review's wait after writing shows a review note; *Review this session* gives the same findings
-  as the automatic review of the same session.
+- A board idle for the review's wait after writing shows a review note when there is a finding, and nothing when the
+  session is clean. The Board menu has no review row.
 - A review never changes the board, its Undo stack or its folds.
 - The iPad sessions of 2026-11-22 and 2026-11-23, as their logs tell them, review to the manual review's verdict:
   no bug; the 05:15 reflow *as designed* (story 1145); the 05:28 knob stretch *unclear*; the four keeps clean on
@@ -292,7 +290,11 @@ Igor approved the spec on 2026-11-23 with the proposed answers to his questions:
 3. **A finding never files anything by itself.** It is copied, or sent to Larry, and a bead is filed from there.
 4. **Larry gets the findings with the board's next picture.**
 5. ***Show me* shows ink that was erased**, in the *before* of the step that erased it.
-6. **A clean review shows nothing.** Only a finding to look at puts a note on the board (or a review he asked for).
+6. **A clean review shows nothing.** Only a finding to look at puts a note on the board.
+7. **No review on demand** (Igor, 2026-11-24): no *Review this session* row in the Board menu; reviews run on idle and
+   close only.
+8. ***Show me* draws outlines** (Igor, 2026-11-24): the step's strokes as outlines, before and after, are enough; no
+   real playback of the board.
 
 ## Larry's answer: what the web board observes
 

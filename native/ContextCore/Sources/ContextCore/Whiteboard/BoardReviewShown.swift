@@ -16,8 +16,6 @@ public struct BoardReviewShown: Equatable, Sendable {
 
   public private(set) var report: BoardReview.Report?
   public private(set) var record: BoardSessionRecord?
-  /// He asked for it from the menu: a clean review then says so.
-  public private(set) var asked = false
   /// The note went: he opened it, or wrote again.
   public private(set) var noteGone = false
   /// His answers to unclear findings, by the finding's key (`key(_:)`).
@@ -32,21 +30,19 @@ public struct BoardReviewShown: Equatable, Sendable {
   }
 
   /// A review finished: it replaces the last.
-  public mutating func show(_ report: BoardReview.Report, of record: BoardSessionRecord, asked: Bool) {
+  public mutating func show(_ report: BoardReview.Report, of record: BoardSessionRecord) {
     self.report = report
     self.record = record
-    self.asked = asked
     noteGone = false
     answers = [:]
     toLarry = false
   }
 
-  /// What the corner says, or nil (story 1242: a clean review he didn't ask for shows nothing).
+  /// What the corner says, or nil (story 1242: a clean review shows nothing).
   public var note: String? {
     guard !noteGone, let report else { return nil }
     let open = report.findings.filter { $0.verdict != .asDesigned && answers[Self.key($0)] == nil }.count
-    if open > 0 { return "Reviewed · \(open) to look at" }
-    return asked && report.toLookAt == 0 ? "Reviewed · clean" : nil
+    return open > 0 ? "Reviewed · \(open) to look at" : nil
   }
 
   /// He opened the findings, or wrote again: the note goes (story 1243).

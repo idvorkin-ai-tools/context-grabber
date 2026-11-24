@@ -38,7 +38,7 @@ extension WhiteboardModel {
         if cut.hasIgorsStep { _ = Self.runReview(cut, why: "next_open", store: store, log: log) }
       }
       guard let (record, report) = store.unseen() else { return }
-      await self?.reviewShown(report, of: record, asked: false)
+      await self?.reviewShown(report, of: record)
     }
   }
 
@@ -97,31 +97,26 @@ extension WhiteboardModel {
     Task.detached(priority: .utility) { store.keepPending(record) }
   }
 
-  /// Reviews the session: `idle` and `close` end it (stories 1237, 1238), `asked` reviews it so far (story 1240). One
+  /// Reviews the session: `idle` and `close` end it (stories 1237, 1238; none on demand, story 1240). One
   /// with no step of his isn't reviewed (story 1239). The review needs nothing of the model: on close it finishes,
   /// logs and is kept after the board is gone, and the next open shows it.
   func reviewSession(why: String) {
     reviewIdleTask?.cancel()
     reviewIdleTask = nil
-    let asked = why == "asked"
-    guard asked || reviewRecorder.hasIgorsStep, let record = reviewRecorder.record else {
-      if asked {
-        review = BoardReviewShown()
-      } else {
-        let store = BoardReviewDisk(board: board.id)
-        Task.detached(priority: .utility) { store.clearPending() }
-      }
+    guard reviewRecorder.hasIgorsStep, let record = reviewRecorder.record else {
+      let store = BoardReviewDisk(board: board.id)
+      Task.detached(priority: .utility) { store.clearPending() }
       return
     }
-    if !asked { reviewRecorder.nextSession() }
+    reviewRecorder.nextSession()
     let store = BoardReviewDisk(board: board.id)
     let log = log
     Task.detached(priority: .utility) { [weak self] in
-      if !asked { store.clearPending() }
+      store.clearPending()
       let report = Self.runReview(record, why: why, store: store, log: log)
       // Closed, the board shows nothing now: its next open shows the review and sends Larry its words.
       guard why != "close" else { return }
-      await self?.reviewShown(report, of: record, asked: asked)
+      await self?.reviewShown(report, of: record)
     }
   }
 
@@ -154,8 +149,8 @@ extension WhiteboardModel {
   }
 
   /// A review finished: the note, and the words waiting for Larry's next picture.
-  func reviewShown(_ report: BoardReview.Report, of record: BoardSessionRecord, asked: Bool) {
-    review.show(report, of: record, asked: asked)
+  func reviewShown(_ report: BoardReview.Report, of record: BoardSessionRecord) {
+    review.show(report, of: record)
     BoardReviewDisk(board: board.id).markSeen()
     reviewToLarry()
   }

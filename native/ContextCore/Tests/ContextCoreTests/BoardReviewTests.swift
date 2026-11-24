@@ -98,7 +98,7 @@ final class BoardReviewTests: XCTestCase {
     let stretch = try XCTUnwrap(b.findings.first { $0.check == 3 })
     XCTAssertEqual(stretch.evidence.first { $0.key == "drag began" }?.value, "knob")
     XCTAssertEqual(stretch.evidence.first { $0.key == "size" }?.value, "13 wide, 2 high")
-    XCTAssertEqual(BoardReviewText.note(b, asked: false), "Reviewed · 1 to look at")
+    XCTAssertEqual(BoardReviewText.note(b), "Reviewed · 1 to look at")
   }
 
   func testEachFixtureMatchesItsGolden() throws {
@@ -131,13 +131,12 @@ final class BoardReviewTests: XCTestCase {
     XCTAssertNotEqual(approx.findings.first?.verdict, .bug)
   }
 
-  func testACleanReviewShowsNothingUnlessAsked() throws {
+  func testACleanReviewShowsNothing() throws {
     let clean = BoardReview.run(try record("check2-clean"))
-    XCTAssertNil(BoardReviewText.note(clean, asked: false))
-    XCTAssertEqual(BoardReviewText.note(clean, asked: true), "Reviewed · clean")
+    XCTAssertNil(BoardReviewText.note(clean), "story 1242: no note, and none on demand (story 1240)")
     XCTAssertEqual(BoardReviewText.larry(clean), "Board review of session check2-clean on ipad, 1 steps: clean")
     let designed = BoardReview.run(try record("check7-put-back"))
-    XCTAssertNil(BoardReviewText.note(designed, asked: false), "as designed doesn't count")
+    XCTAssertNil(BoardReviewText.note(designed), "as designed doesn't count")
   }
 
   func testAFindingCopiesWithItsStepRuleAndEvidence() throws {

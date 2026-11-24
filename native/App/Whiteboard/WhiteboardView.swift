@@ -130,7 +130,7 @@ struct WhiteboardView: View {
             editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved,
             play: model.isEmpty ? nil : { model.startPlayback() })
           if model.blocked.showing { blockedChip.padding(.trailing, 20) }
-          // Stories 1242, 1243: a session's review, only when there is something to look at or he asked.
+          // Stories 1242, 1243: a session's review, only when there is something to look at.
           if let note = model.review.note {
             BoardReviewChip(note: note) { model.openReview() }.padding(.trailing, 20)
           }

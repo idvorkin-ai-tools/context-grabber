@@ -557,21 +557,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 1240:
 
-- **Summary:** Review this session, from the board's menu
-- **Status:** implemented in [f13174f6](https://github.com/idvorkin/context-grabber/commit/f13174f6) and [e7c92cc2](https://github.com/idvorkin/context-grabber/commit/e7c92cc2); verified by the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): *Review this session* from the Board menu (the row waits on Igor's OK)
-- **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
-- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
+- **Summary:** No review row in the Board menu: reviews run on idle and close only
+- **Status:** implemented in REVIEW_DROP_SHA; verified by host tests (`BoardReviewRecorderTests`, `BoardReviewTests`) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): the Board menu has no review row
+- **Issues:** Igor, 2026-11-24 (via Larry): "NO 'Review this session' row; reviews run on idle and close only"
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*, *Decisions* 7
 
 #### Use Case:
-- **As someone** who just saw something odd on the board
-- **I want to** review the session so far on demand
-- **so that** I don't have to wait five minutes to find out
+- **As someone** whose Board menu has room for no more
+- **I want to** have reviews happen on their own
+- **so that** I never have to ask for one, and the menu stays short
 
 #### Acceptance Criteria:
-- **Scenario:** On demand
-- **Given:** a session with steps
-- **When:** I choose *Review this session*
-- **Then:** the findings are the same as the automatic review of the same session gives, and asking twice gives the same findings
+- **Scenario:** The Board menu
+- **Given:** a board with a session of writing
+- **When:** I open the Board menu
+- **Then:** there is no review row, and the session is reviewed after idle or when the board closes
 
 ---
 
@@ -598,7 +598,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1242:
 
 - **Summary:** A clean review shows nothing
-- **Status:** implemented in [f13174f6](https://github.com/idvorkin/context-grabber/commit/f13174f6) and [e7c92cc2](https://github.com/idvorkin/context-grabber/commit/e7c92cc2); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): asked, a clean review says *Reviewed · clean*
+- **Status:** implemented in [f13174f6](https://github.com/idvorkin/context-grabber/commit/f13174f6) and [e7c92cc2](https://github.com/idvorkin/context-grabber/commit/e7c92cc2); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a clean session after idle shows no note; no review on demand since REVIEW_DROP_SHA
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 6
 
@@ -611,7 +611,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Clean
 - **Given:** a session where every check is clean or as designed
 - **When:** its automatic review finishes
-- **Then:** no note shows; a review I asked for from the menu says *Reviewed · clean*
+- **Then:** no note shows
 
 ---
 
@@ -658,7 +658,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1245:
 
 - **Summary:** Show me replays the step, erased ink included
-- **Status:** implemented in [f13174f6](https://github.com/idvorkin/context-grabber/commit/f13174f6) and [e7c92cc2](https://github.com/idvorkin/context-grabber/commit/e7c92cc2): *Show me* draws the record's outlines before and after the step, not playback (waits on Igor's OK); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5))
+- **Status:** implemented in [f13174f6](https://github.com/idvorkin/context-grabber/commit/f13174f6) and [e7c92cc2](https://github.com/idvorkin/context-grabber/commit/e7c92cc2): *Show me* draws the record's outlines before and after the step, not playback (Igor, 2026-11-24: outlines are fine); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5))
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 5
 

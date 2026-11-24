@@ -17,11 +17,10 @@ public enum BoardReviewText {
     }
   }
 
-  /// The board's corner note, or nil when there is nothing to look at and he didn't ask (*Decisions*, 6).
-  public static func note(_ report: BoardReview.Report, asked: Bool) -> String? {
+  /// The board's corner note, or nil when there is nothing to look at (*Decisions*, 6).
+  public static func note(_ report: BoardReview.Report) -> String? {
     let n = report.toLookAt
-    if n > 0 { return "Reviewed · \(n) to look at" }
-    return asked ? "Reviewed · clean" : nil
+    return n > 0 ? "Reviewed · \(n) to look at" : nil
   }
 
   /// A finding as he copies it: the check, the verdict, the step, the evidence, the board, the session and the build.

@@ -191,7 +191,7 @@ final class BoardReviewRecorderTests: XCTestCase {
     report.session = #"s "quoted" \back\slash/ ⟨Igor’s 箱⟩ "# + String(repeating: "\"\\/\u{1}\t", count: 30)
     report.findings = Array(repeating: try XCTUnwrap(report.findings.first), count: 200)
     var long = BoardReviewShown()
-    long.show(report, of: record, asked: false)
+    long.show(report, of: record)
     let (bytes, wire) = try sent(&long)
     XCTAssertLessThanOrEqual(bytes, 6000)
     XCTAssertGreaterThan(try XCTUnwrap(wire["cut"] as? Int), 0)
@@ -203,16 +203,15 @@ final class BoardReviewRecorderTests: XCTestCase {
     try BoardSessionRecord(jsonl: Data(contentsOf: Self.folder.appendingPathComponent("\(name).jsonl")))
   }
 
-  private func shown(_ name: String, asked: Bool = false) throws -> BoardReviewShown {
+  private func shown(_ name: String) throws -> BoardReviewShown {
     let record = try fixture(name)
     var shown = BoardReviewShown()
-    shown.show(BoardReview.run(record), of: record, asked: asked)
+    shown.show(BoardReview.run(record), of: record)
     return shown
   }
 
   func testTheNoteSaysWhatToLookAtAndGoesWhenOpened() throws {
     XCTAssertNil(try shown("check2-clean").note, "story 1242: a clean review shows nothing")
-    XCTAssertEqual(try shown("check2-clean", asked: true).note, "Reviewed · clean")
     XCTAssertNil(try shown("check7-put-back").note, "as designed doesn't count")
     var note = try shown("check3-knob-stretch")
     XCTAssertEqual(note.note, "Reviewed · 1 to look at")

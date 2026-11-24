@@ -1,8 +1,8 @@
 //  Stories 1237, 1240, 1242–1246 on the iPad simulator (spec 2026-11-23-board-interaction-review-design.md, bead
 //  context-grabber-8ao5.2): a session reviewed after idle (`GRABBER_WHITEBOARD_REVIEW_IDLE` shortens five minutes to
 //  seconds) shows its quiet note only for a finding, here one `GRABBER_WHITEBOARD_REVIEW_FINDING` stands in (a Keep that
-//  changed the pen, which the simulator can't make); the note opens the findings, each copyable with *Show me*; a review
-//  asked for from the Board menu says when it is clean. The checks themselves are `BoardReviewTests` and the recorder
+//  changed the pen, which the simulator can't make); the note opens the findings, each copyable with *Show me*; a clean
+//  review shows nothing, and the Board menu has no review row. The checks themselves are `BoardReviewTests` and the recorder
 //  `BoardReviewRecorderTests`, on the host; a real session reviewed after idle is the iPad's.
 
 import XCTest
@@ -73,28 +73,23 @@ final class WhiteboardReviewUITests: XCTestCase {
     XCTAssertFalse(note.exists, "story 1243: opened, the note goes")
   }
 
-  func testAReviewAskedForFromTheBoardMenuSaysClean() {
-    let app = launch(["GRABBER_WHITEBOARD_REVIEW_IDLE": "600"])
+  /// Stories 1240, 1242: a clean session reviewed after idle shows no note, and the Board menu has no review row.
+  func testACleanReviewAfterIdleShowsNothingAndTheMenuHasNoReviewRow() {
+    let app = launch(["GRABBER_WHITEBOARD_REVIEW_IDLE": "3"])
     strokeOnANewBoard(app)
-    XCTAssertFalse(app.buttons["whiteboard-review-note"].exists, "nothing before a review")
-    app.buttons["whiteboard-board"].tap()
-    let review = app.descendants(matching: .any)["whiteboard-review-session"].firstMatch
-    XCTAssertTrue(review.appears(within: 5), app.debugDescription)
-    // #880: the simulator's keyboard rising under a menu can cancel a tap; tap again while the menu is still up.
     let note = app.buttons["whiteboard-review-note"]
-    for _ in 0..<3 {
-      review.tapWhenSettled()
-      if note.appears(within: 3) || !review.exists { break }
-    }
-    XCTAssertTrue(note.appears(within: 10), "story 1240: \(app.debugDescription)")
-    XCTAssertEqual(note.label, "Reviewed · clean", "story 1242: clean, because he asked")
-    keep(app, "a clean review he asked for")
+    XCTAssertFalse(note.appears(within: 10), "story 1242: a clean review shows nothing: \(app.debugDescription)")
+    app.buttons["whiteboard-board"].tap()
+    XCTAssertTrue(app.buttons["whiteboard-tidy"].firstMatch.appears(within: 5), app.debugDescription)
+    XCTAssertFalse(
+      app.descendants(matching: .any)["whiteboard-review-session"].exists, "story 1240: no review row in the menu")
+    keep(app, "the Board menu, no review row")
   }
 
   /// Stories 1237, 1238 (bead context-grabber-8ao5.3): a board left right after writing is reviewed as it closes, and
   /// the note shows when it opens again, though the board that started the review was gone; the board opens with its
-  /// ink, the next stroke puts the note away, and that session, reviewed from the menu, is clean.
-  func testAReviewStartedOnCloseShowsOnTheNextOpenAndTheReopenedBoardIsClean() {
+  /// ink, and the next stroke puts the note away.
+  func testAReviewStartedOnCloseShowsOnTheNextOpen() {
     let app = launch(["GRABBER_WHITEBOARD_REVIEW_IDLE": "600", "GRABBER_WHITEBOARD_REVIEW_FINDING": "1"])
     strokeOnANewBoard(app)
     sleep(1)
@@ -114,15 +109,5 @@ final class WhiteboardReviewUITests: XCTestCase {
     let gone = Date().addingTimeInterval(5)
     while note.exists, Date() < gone { RunLoop.current.run(until: Date().addingTimeInterval(0.1)) }
     XCTAssertFalse(note.exists, "story 1243: his next stroke puts the note away")
-    app.buttons["whiteboard-board"].tap()
-    let review = app.descendants(matching: .any)["whiteboard-review-session"].firstMatch
-    XCTAssertTrue(review.appears(within: 5), app.debugDescription)
-    for _ in 0..<3 {
-      review.tapWhenSettled()
-      if note.appears(within: 3) || !review.exists { break }
-    }
-    XCTAssertTrue(note.appears(within: 10), app.debugDescription)
-    XCTAssertEqual(
-      note.label, "Reviewed · clean", "a board that opens with ink starts from it: its old stroke isn't new")
   }
 }
