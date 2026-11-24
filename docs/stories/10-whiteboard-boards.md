@@ -1804,3 +1804,23 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the module built by `just wasm`, with an outline of a line written after a reply's picture, a line written before it, labels on ink, on clear paper, in a kept text and in a group
 - **When:** `just wasm-test` keeps the reply's two marks with a lone mark, keeps them with the newer line among Larry's own ink, keeps a text of his landing on the older line, and tidies the labels
 - **Then:** the reply's two marks are one group and the lone mark none; the newer line and all below go down three whole lines, to half a line under the lower mark; among his own ink nothing moves; the landing text moves the older line down two lines; the label on the line moves 30 under it, the one in the kept text 70 to half a line under its box, and the clear one and the grouped one stay
+
+---
+
+### User Story 1164:
+
+- **Summary:** The web board asks the app's own rules whether each batch of Larry's applies now, waits for the Pencil, or is refused, and keeps the board's revision as the app keeps it
+- **Status:** implemented in 3372bd1d (`bw_applier`, interface 16); verified by the host tests (`WebApplierTests`: the recorded sessions' batches on their own look, after Igor moved what they name and after a batch of Larry's, and 60 seeded runs of 80 steps, each step's decision and the whole applier checked against the app's own) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 279 checks, a hand-worked run of the applier among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 16
+- **Issues:** bead `context-grabber-dwow`
+
+#### Use Case:
+- **As Igor,** letting Larry change my Cockpit web ink board while I keep writing
+- **I want to** have the web board decide each of his batches with the app's own rules: apply, wait for my Pencil, or refuse what I changed under it
+- **so that** his changes land, wait and refuse the same way on the web as on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's batches through the module's applier
+- **Given:** the module built by `just wasm`, its applier loaded at revision 3
+- **When:** `just wasm-test` sends a batch on that look, reports it applied after the board changed, sends one from the older look, one seen before, two while the Pencil is down, then lifts it, reports a stray and a failed canvas, and sends a batch naming a stroke Igor moved since
+- **Then:** the first applies and is recorded at revision 4; the older one is stale; the one seen before is ignored; the second held batch supersedes the first and applies on the lift; the stray report is late; the failed canvas is not applied; the batch naming what he moved is refused with that name, and applies once sent on the new look

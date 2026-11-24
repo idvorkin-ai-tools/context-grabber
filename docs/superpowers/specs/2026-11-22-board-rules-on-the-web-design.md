@@ -380,6 +380,32 @@ untouched. `bw_info` says `"abi": 15`; versions 1 to 14 are unchanged.
   stands.
 - Evidence numbers are printed to one decimal, so the 32-bit arithmetic below never changes a report's text.
 
+## The interface, version 16: the board's revision and Larry's batches
+
+Story 1164. The web board decides each batch of Larry's as the app decides it: applied now, held until the Pencil
+lifts, refused, or ignored. It keeps the board's revision the same way. A batch made on an older look of the board still
+applies, unless something Igor moved or erased since is named in it, or a batch of Larry's changed the board since.
+A batch seen before is ignored, and so is one for another board. A second batch held for the Pencil replaces the first,
+which is refused as superseded. Only the batch let through is reported once the board answers. A report for any other
+batch, or a second report, counts for nothing. The module keeps the board's applier as it keeps the loaded board, and
+the host steps it. `bw_info` says `"abi": 16`; versions 1 to 15 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_applier` | one step, `{"step", ...}`: `load` `{"rev", "since", "handled", "touches": [{"rev", "ids", "all"}], "last_result"}`; `changed` `{"ids", "all"}`; `receive` `{"key", "batch", "board", "editable", "ready"}`; `release` `{"ready"}`; `report` `{"key", "outcome": "applied" \| "unavailable" \| "failed", "reason", "changes_board", "missing_ids", "rooms"}`; `drop_held` `{"reason"}`; `closed` | a reply: what came of the step, and `"state"`: `{"rev", "since", "handled", "touches", "held", "applying", "last_result"}`; `{"error"}` for a step it can't read |
+
+- `load` sets the applier as the board last kept it; with nothing given it is a fresh board's.
+- `changed`: the ink changed. `ids` names what Igor moved, erased or broke a group of (none for new ink alone), with
+  the groups and texts those belong to, as the app records a change; `all` marks a change made by a batch of Larry's.
+- `receive` and `release` answer `"decision"`: `"apply"` (with the batch's `key`, `label` and `rebased_from`), `"held"`
+  (with the `replaced` label), `"refused"` (with the `result` Larry hears, its `conflict_ids` when he named something
+  moved since) or `"ignored"` (with `why`); null when nothing is held or the Pencil is still down.
+- `report` answers `"applied"` or `"refused"` with the `result`, or `"late"`. A refused one also gives `canvas`:
+  `unavailable` or `failed:<reason>`. A batch that changed the board counts as touching everything, so no batch from
+  an earlier look applies over it. The host sends `changed` first, as the board's own change.
+- What changed between two looks of the board is the host's to say. The app learns it from its own canvas, not by
+  comparing pictures, so the web board's comparison of two looks stays its own.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
