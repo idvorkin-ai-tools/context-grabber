@@ -233,6 +233,51 @@ of the screen is just under the panel.
 - **Not here:** how each picture was sent, how much ink was new, how long each answer took. That is for a page on
   the Cockpit.
 
+## The conversation as chat (Igor, 2026-11-24, #1384)
+
+Igor, from the board: "Give me an alternate chat view so I can move chat to be like bubbles", and a minute later: "And
+chat resizable like it is on the web. Actually I like the web view of chat, and I think I should also be able to
+migrate chat so it's like a popover that I can move over the page, or can be docked like it is right now."
+
+### Bubbles (built first)
+
+- **A switch at the panel's foot**, beside *Open in Chat*: **Lines** (the panel as it is above) or **Bubbles**. Lines
+  is the default. The choice is remembered for the next board, as open or closed is.
+- **Bubbles look like Chat and the Cockpit's web chat.** Each message the panel shows is a bubble: Igor's on the right,
+  in the accent colour with white words; Larry's on the left, in a quiet grey with the main text colour. No names over
+  them: the side says who. Links are chips, and tables are grids, as in Chat's bubbles; a tap on a chip opens it as
+  in Chat, and the log says so as it does for a chip in Lines.
+- **The same messages as Lines.** The last ten; the Cockpit's own lines and Igor's word-less pictures left out; a
+  reply of Larry's with marks and no words reads *drew on the board*.
+- **The same size and scrolling as Lines.** At most a fifth of the board tall, never less than about four lines; it
+  opens at the newest bubble, follows new ones while at the bottom, and stays where Igor is reading once a finger has
+  scrolled up. The status chip, what the mic hears and *Open in Chat* stay under the bubbles.
+- **The Pencil never acts on it**: it neither draws through nor scrolls the bubbles. Fingers scroll and tap them.
+- **A long press on a bubble copies its words.** There is no reacting, quoting or sending on from here: that is
+  Chat's, one tap away through *Open in Chat*.
+
+### Resize, and float or dock (next)
+
+- **Resize, as on the web.** A grip on the panel's lower edge drags it taller or shorter, between about four lines and
+  most of the board. The height is remembered for the next board. Docked, the page moves with it, so ink is still
+  never under the panel.
+- **Float or dock.** A control on the panel undocks it into a card floating over the board, which a finger drags by
+  its top edge anywhere on the screen and resizes by its corner. Floating, the page moves back up and the card lies
+  over the ink, so it is Igor's choice to cover ink, never the board's. Dock puts it back above the board. Floating or
+  docked, and where the card was, are remembered.
+- **The Pencil never acts on the card either**: a stroke that starts on the card does nothing; one that starts on the
+  board and runs under the card draws.
+
+### Acceptance
+
+- Open the conversation, tap **Bubbles**: the same messages show as bubbles, Igor's on the right in the accent colour,
+  Larry's on the left. Close the board and open another: the conversation there opens in Bubbles.
+- In Bubbles, Larry replies: a new bubble shows at the bottom and the panel stays the same height.
+- In Bubbles, scroll up to an older bubble and Larry replies: the panel stays where it was.
+- In Bubbles, a reply with a link: the link is a chip, and a finger tap opens it.
+- In Bubbles, a Pencil stroke on the panel neither scrolls it nor draws.
+- Tap **Lines**: the panel is as it was before this change.
+
 ## Larry is listening (Igor, 2026-11-22, context-grabber-4fww)
 
 Igor, on his board: when Larry has seen a post but is waiting for more, because Igor is mid-thought, Larry says

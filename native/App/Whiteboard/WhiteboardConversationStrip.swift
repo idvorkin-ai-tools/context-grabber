@@ -157,6 +157,11 @@ struct WhiteboardConversationPanel: View {
   let openInChat: (() -> Void)?
   /// Story 1127: a link chip in the thread was tapped; it opens on its own, this only tells the log.
   var linkOpened: (ChatLink) -> Void = { _ in }
+  /// Story 1277 (#1384): Chat's model and the board's thread, for the bubbles' links and tables; nil shows no switch.
+  var chat: ChatModel?
+  var threadKey: String?
+  /// Story 1277 (#1384): Lines or Bubbles, remembered for the next board.
+  @AppStorage(WhiteboardPanelLook.storageKey) private var look: WhiteboardPanelLook = .lines
   /// Story 1045 (#1003): the conversation's text stops at about seventy characters of its own type.
   @ScaledMetric(relativeTo: .footnote) private var readableWidth: CGFloat = 470
   /// Story 837: what the panel's chip, Open in Chat and padding take, and the fewest lines of thread it keeps.
@@ -170,16 +175,24 @@ struct WhiteboardConversationPanel: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      WhiteboardConversationText(rows: rows, maxHeight: threadCap, linkOpened: linkOpened)
+      if look == .bubbles, let chat {
+        WhiteboardConversationBubbles(
+          bubbles: WhiteboardPanelLook.bubbles(rows), maxHeight: threadCap, chat: chat, thread: threadKey ?? "")
+      } else {
+        WhiteboardConversationText(rows: rows, maxHeight: threadCap, linkOpened: linkOpened)
+      }
       if ticks {
         TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(live(.now)) }
       } else {
         liveRows(current)
       }
-      if let openInChat {
-        Button("Open in Chat", action: openInChat)
-          .font(.footnote).buttonStyle(.borderless)
-          .accessibilityIdentifier("whiteboard-conversation-chat")
+      HStack(spacing: 12) {
+        if let openInChat {
+          Button("Open in Chat", action: openInChat)
+            .font(.footnote).buttonStyle(.borderless)
+            .accessibilityIdentifier("whiteboard-conversation-chat")
+        }
+        if chat != nil { WhiteboardPanelLookSwitch(look: $look) }
       }
     }
     .frame(maxWidth: readableWidth, alignment: .leading)

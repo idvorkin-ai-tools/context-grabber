@@ -1422,8 +1422,9 @@ enum ChatText {
   }
 }
 
-/// A message as its words and tables (story 747, `ChatTables`): a table is a grid, the rest `BubbleWords`.
-private struct BubbleText: View {
+/// A message as its words and tables (story 747, `ChatTables`): a table is a grid, the rest `BubbleWords`. The board's
+/// conversation bubbles use it too (#1384, story 1277).
+struct BubbleText: View {
   let text: String
   let chat: ChatModel
   let thread: String

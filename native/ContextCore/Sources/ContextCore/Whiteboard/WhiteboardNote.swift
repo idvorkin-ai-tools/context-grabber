@@ -230,6 +230,9 @@ public enum WhiteboardNote {
   /// it, between Larry's sentences; the status chip says where that picture is.
   public static let boardTurnNote = "Your turn on the board"
 
+  /// A reply of Larry's with marks and no words, in the panel.
+  public static let drewOnTheBoard = "drew on the board"
+
   /// The panel's thread: the recent end of the board's thread (`thread`, oldest first, as the Cockpit sends it), newest
   /// at the bottom. The Cockpit's own lines (*Moved to a new chat*) are neither Igor's nor Larry's, and are left out, and
   /// so are Igor's pictures that carried no words of his (#1003, story 1047): the chip under the thread stands for them.
@@ -239,7 +242,7 @@ public enum WhiteboardNote {
       guard message.fromIgor else {
         return Row(
           id: message.id, kind: .larry, who: message.author ?? "Larry",
-          text: message.text.isEmpty ? "drew on the board" : message.text)
+          text: message.text.isEmpty ? drewOnTheBoard : message.text)
       }
       let words = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
       if !message.attachments.isEmpty, words.isEmpty || words == boardTurnNote { return nil }

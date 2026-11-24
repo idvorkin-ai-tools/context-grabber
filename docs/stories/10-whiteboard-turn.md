@@ -1704,6 +1704,31 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1277:
+
+- **Summary:** The open conversation reads as chat bubbles, like Chat and the web chat
+- **Status:** implemented in PENDING; verified by host tests (`WhiteboardPanelLookTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`WhiteboardBubblesUITests`); the Pencil on the bubbles and their look beside the web chat are the real iPad's, not yet seen; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("Give me an alternate chat view so I can move chat to be like bubbles"; "I like the web view of chat")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The conversation as chat*
+
+#### Use Case:
+- **As someone** talking with Larry on a board while I draw
+- **I want to** read the board's conversation as chat bubbles, as in Chat and the Cockpit's web chat
+- **so that** who said what is clear at a glance, without leaving the board
+
+#### Acceptance Criteria:
+- **Scenario:** Switch to bubbles
+- **Given:** a board with a thread and its conversation open, on an iPad
+- **When:** I tap **Bubbles** at the panel's foot
+- **Then:** the same messages show as bubbles, mine on the right in the accent colour and Larry's on the left, links as chips; the panel keeps its size, opens at the newest bubble and scrolls with a finger, never the Pencil
+
+- **Scenario:** The choice is kept
+- **Given:** I picked **Bubbles** on one board
+- **When:** I open another board's conversation
+- **Then:** it opens in Bubbles; **Lines** brings back the panel as it was
+
+---
+
 ### User Story 887:
 
 - **Summary:** Another reply scrolls the full panel, not grows it
