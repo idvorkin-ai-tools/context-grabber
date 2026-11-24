@@ -33,9 +33,9 @@ extension WhiteboardModel {
     let log = log
     BoardReviewDisk.queue.async { [weak self] in
       BoardReviewDisk.prune()
-      if let cut = store.pending() {
-        store.clearPending()
-        if cut.hasIgorsStep { _ = Self.runReview(cut, why: "next_open", store: store, log: log) }
+      // Story 1295: a session already reviewed (the app closed between its review and the clear) isn't again.
+      if let cut = store.takePending(), cut.hasIgorsStep {
+        _ = Self.runReview(cut, why: "next_open", store: store, log: log)
       }
       guard let (record, report) = store.unseen() else { return }
       Task { @MainActor in self?.reviewShown(report, of: record) }
@@ -61,7 +61,10 @@ extension WhiteboardModel {
   /// One of the board's events, as the log wrote it, with the board's strokes and folds as they are now when it can
   /// change them (bead context-grabber-8ao5.3: what changed is the real strokes' change).
   func reviewTook(type: String, t: Double, fields: [String: Any]) {
-    guard let action = fields["action"] as? String, BoardReviewRecorder.reads.contains(action) else { return }
+    // Story 1295: an event handed on before the board closed, arriving after, starts no session of its own.
+    guard reviewTap != nil, let action = fields["action"] as? String, BoardReviewRecorder.reads.contains(action) else {
+      return
+    }
     let paper = canvas as? PaperBoardController
     let ink = BoardReviewRecorder.changesInk.contains(action) ? paper?.reviewInk() : nil
     let folds = BoardReviewRecorder.changesFolds(action, fields) ? paper?.reviewFolds() : nil
@@ -123,8 +126,9 @@ extension WhiteboardModel {
     reviewRecorder.nextSession()
     let store = BoardReviewDisk(board: board.id)
     let log = log
+    let session = record.header.session
     BoardReviewDisk.queue.async { [weak self] in
-      store.clearPending()
+      store.clearPending(session: session)
       let report = Self.runReview(record, why: why, store: store, log: log)
       // Closed, the board shows nothing now: its next open shows the review and sends Larry its words.
       guard why != "close" else { return }
@@ -197,84 +201,5 @@ extension WhiteboardModel {
     if let tap = reviewTap { log.stopListening(tap) }
     reviewTap = nil
     reviewSession(why: "close")
-  }
-}
-
-/// Where a board's records and reports stay: this device's Application Support, never iCloud (story 1248).
-struct BoardReviewDisk: Sendable {
-  static let keepDays: Double = 14
-  /// Every read and write of the records, one after another: a clear always lands after the writes before it.
-  static let queue = DispatchQueue(label: "board-reviews", qos: .utility)
-  let board: String
-
-  static var root: URL {
-    FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-      .appendingPathComponent("board-reviews", isDirectory: true)
-  }
-
-  var folder: URL { Self.root.appendingPathComponent(board, isDirectory: true) }
-  var pendingURL: URL { folder.appendingPathComponent("pending.jsonl") }
-
-  private func ready() {
-    try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-  }
-
-  func keepPending(_ record: BoardSessionRecord) {
-    ready()
-    try? record.jsonl().write(to: pendingURL, options: .atomic)
-  }
-
-  func pending() -> BoardSessionRecord? {
-    guard let data = try? Data(contentsOf: pendingURL) else { return nil }
-    return try? BoardSessionRecord(jsonl: data)
-  }
-
-  func clearPending() { try? FileManager.default.removeItem(at: pendingURL) }
-
-  var unseenURL: URL { folder.appendingPathComponent("unseen.txt") }
-
-  /// A finished review no board has shown yet: its session's name.
-  func markUnseen(_ session: String) {
-    ready()
-    try? Data(session.utf8).write(to: unseenURL, options: .atomic)
-  }
-
-  func markSeen() { try? FileManager.default.removeItem(at: unseenURL) }
-
-  /// The review no board has shown yet, with its record.
-  func unseen() -> (BoardSessionRecord, BoardReview.Report)? {
-    guard let name = try? String(contentsOf: unseenURL, encoding: .utf8),
-      let data = try? Data(contentsOf: folder.appendingPathComponent("\(name).jsonl")),
-      let record = try? BoardSessionRecord(jsonl: data)
-    else { return nil }
-    return (record, BoardReview.run(record))
-  }
-
-  func keep(_ record: BoardSessionRecord, _ report: BoardReview.Report) {
-    ready()
-    let name = record.header.session
-    try? record.jsonl().write(to: folder.appendingPathComponent("\(name).jsonl"), options: .atomic)
-    try? report.json().write(to: folder.appendingPathComponent("\(name).report.json"), options: .atomic)
-  }
-
-  /// Everything older than 14 days goes, and a board's folder once it is empty.
-  static func prune(now: Date = Date()) {
-    let fm = FileManager.default
-    guard let boards = try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: nil) else { return }
-    for folder in boards {
-      let files =
-        (try? fm.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
-      for file in files {
-        let date = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? now
-        if now.timeIntervalSince(date) > keepDays * 86400 { try? fm.removeItem(at: file) }
-      }
-      if (try? fm.contentsOfDirectory(atPath: folder.path))?.isEmpty == true { try? fm.removeItem(at: folder) }
-    }
-  }
-
-  /// The board was deleted: its records go with it (story 1248).
-  static func forget(board: String) {
-    let folder = BoardReviewDisk(board: board).folder
-    queue.async { try? FileManager.default.removeItem(at: folder) }
   }
 }

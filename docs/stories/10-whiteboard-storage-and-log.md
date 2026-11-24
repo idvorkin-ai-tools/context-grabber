@@ -535,6 +535,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1295:
+
+- **Summary:** A session is reviewed once, however the board closes
+- **Status:** in progress (bead context-grabber-04ks)
+- **Issues:** context-grabber-04ks (no-mistakes review round 2 on PR #1379: a save of the session in flight could land after the close cleared it)
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
+
+#### Use Case:
+- **As someone** who closes a board right after writing
+- **I want to** have that session reviewed exactly once
+- **so that** the next open never shows me the same review a second time
+
+#### Acceptance Criteria:
+- **Scenario:** A save still on its way at close
+- **Given:** a session of mine whose save was on its way as I closed the board
+- **When:** the close's review has run and I open the board again
+- **Then:** that session is not reviewed again, and nothing about it shows twice
+
+---
+
 ### User Story 1239:
 
 - **Summary:** A board only looked at is not reviewed

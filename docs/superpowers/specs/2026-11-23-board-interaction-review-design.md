@@ -95,6 +95,10 @@ Only on its own (Igor, 2026-11-24: no *Review this session* row; reviews run on 
 A session with no step of Igor's (the board only opened and looked at) is not reviewed. A review runs in the
 background and never holds up writing; a board opened again while a review runs gets its note when it finishes.
 
+**A session is reviewed once.** The session saved as it goes (so one cut short can be reviewed) is never saved again
+once its review has run, even by a save that was already on its way when the board closed, and the next open never
+reviews a session whose review is already kept. Ending one session never drops the next session's saved record.
+
 ## The checks
 
 Each check replays the session's steps through the board's shared rules and compares what the rules say should have

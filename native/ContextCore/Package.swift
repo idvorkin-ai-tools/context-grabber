@@ -60,6 +60,7 @@ let boardTests = [
 // Board test files that need more of ContextCore than the board (the Inbox, the call log, the session log): they stay
 // in ContextCoreTests and see only BoardCore's public API.
 let boardTestsInContextCore = [
+  "BoardReviewDiskTests.swift",
   "BoardChatJumpTests.swift", "BoardDebugTimingTests.swift", "BoardOpsTests.swift", "BoardTouchReplayTests.swift",
   "WhiteboardLogArchiveTests.swift", "WhiteboardMarksTests.swift", "WhiteboardRequestsTests.swift",
   "WhiteboardStrokesTests.swift",
