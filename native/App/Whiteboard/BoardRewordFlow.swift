@@ -134,7 +134,7 @@ extension PaperBoardController {
       let stroke = PKStroke(
         ink: element.ink, path: element.path, transform: element.transform, mask: element.mask,
         randomSeed: element.randomSeed)
-      let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
+      let t = BoardMoment.of(stroke)
       guard let text = BoardText.owning(t, in: byTime) else { continue }
       let key = Self.key(element.elementID)
       if var entry = found[text.t] {

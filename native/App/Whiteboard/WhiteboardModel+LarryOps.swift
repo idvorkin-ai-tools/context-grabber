@@ -230,7 +230,7 @@ extension WhiteboardModel {
     let byTime = BoardText.byTime(texts)
     var boxes: [String: CGRect] = [:]
     for stroke in drawing.strokes {
-      let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
+      let t = BoardMoment.of(stroke)
       guard let text = BoardText.owning(t, in: byTime) else { continue }
       boxes[text.id] = (boxes[text.id] ?? .null).union(stroke.renderBounds)
     }
@@ -453,7 +453,7 @@ extension WhiteboardModel {
     let strokes = zip(ink, sent).map { stroke, stretches in
       BoardOps.Stroke(
         ids: stretches.map { strokeIDs.stable($0.id) },
-        t: Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000), bounds: stroke.renderBounds,
+        t: BoardMoment.of(stroke), bounds: stroke.renderBounds,
         hidden: stroke.ink.color.cgColor.alpha == 0, points: stretches.flatMap(\.points),
         pen: CGFloat(stretches.first?.width ?? 0))
     }

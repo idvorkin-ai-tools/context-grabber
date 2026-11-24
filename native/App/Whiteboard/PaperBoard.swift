@@ -755,7 +755,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "touch_mode": name(paper.directTouchMode),
         "auto_draws": paper.directTouchAutomaticallyDraws, "pages": pages,
         "page": board.page(at: CGPoint(x: 0, y: visible.midY)), "ghosts": model.ghosts.count,
-        "ghost_slip": round(seat.worst), "ghost_checks": seat.checks,
+        "ghost_slip": round(seat.worst), "ghost_checks": seat.checks, "pinch_held": run.pinchHeld ?? "",
+        "pinches_held": run.pinchesHeld,
       ].merging(touchAudit(run)) { $1 })
     seat = (0, 0)
   }

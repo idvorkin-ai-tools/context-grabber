@@ -180,6 +180,13 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Who draws:**
   - With a Pencil paired, only the Pencil draws, and a finger moves the board. A palm resting on the glass never
     leaves a mark.
+  - **Writing never zooms the board** (Igor, 2026-11-24: "it zooms while I write"). Only a deliberate pinch of two
+    fingertips zooms. While the Pencil is on the glass, or a palm rests on it, the board holds its zoom: a palm shifting
+    under the writing hand, or a palm and a fingertip together, never pinches. A palm is a contact far wider than a
+    fingertip (on Igor's iPad a fingertip reads about 30–50 points in radius, a resting palm 60 or more). The Pencil
+    never counts as a pinch's finger, and fingers that land within 400 ms of the Pencil lifting don't zoom either, the
+    hand still settling after a word (the same number as the web board, cockpit-kp5). Once everything lifts, the next two
+    fingertips pinch as before. Panning is unchanged.
   - Without a Pencil (an iPad with none paired), a finger draws and two fingers move the board.
   - This follows the system's "Only Draw with Apple Pencil" setting, and on paper also the Pencil itself: once it has
     touched a board, a finger only pans, selects and taps until the app is next launched (context-grabber-2eml; the
@@ -603,6 +610,19 @@ there, when, and what the menu belonged to, the log can't say. Before anything c
 - **Its going says how long it stayed**, so a cover that stayed up while Igor tapped shows as one long stay.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.
 
+### A tap brings up no system menu (stories 1276, 1306, #1385; Igor, 2026-11-24: "Every time I tap I get paste and select all")
+
+The log settled what the cover was: a finger tap on the paper brings up the system's own *Paste · Select All* edit menu,
+which the paper answers. Igor: "better would be using my long hold paste". So a plain tap is quiet.
+
+- **No tap brings up *Paste* or *Select All***: a finger or the Pencil, on blank paper, on ink, in the margin, with
+  something on the clipboard or not.
+- **Paste lives in the board's own hold menu** (*Press and hold*, Larry edits the board), and ⌘V with a hardware
+  keyboard pastes as before.
+- **A selection's own menu stays without them**: tapped, a selection still offers what acts on it (Copy, Delete and the
+  rest), never *Paste* or *Select All*.
+- A menu that would hold nothing else doesn't come up at all.
+
 ### The log says what a moving touch held and what moved (story 1143, bead context-grabber-eg7v)
 
 On the iPad a one-finger drag moved 54 strokes at once: a text of Larry's he had just kept and two of Igor's strokes
@@ -863,6 +883,10 @@ that ghosts need the tailnet.
 - A new board is one page wide and scrolls only up and down. Draw to the bottom of a page and keep scrolling: a blank
   page is always there. The ink keeps Notes' feel past 4,000 and past 9,600 points down the column.
 - Pinching out stops at the page's width. The page number reads right while scrolling, and isn't in any picture.
+- Writing a page with the hand resting on the glass leaves the zoom where it was; so does a palm and a fingertip landing
+  together. Two fingertips, with nothing else down, still pinch in and out.
+- Lifting the Pencil and putting two fingers down at once (within 400 ms) doesn't zoom; a moment later the same two
+  fingers pinch.
 - A board drawn on the old canvas is not in the boards list, and a link to one shows the copyable problem that says why.
 - There is no *New boards on paper* switch and no *Try on paper*: every new board is on paper.
 - A new board made after the default ships is on paper, shows no test cross or ring, and an older build still opens it.

@@ -1404,3 +1404,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a UI test launched the app the usual way for tests and named no bridge of its own
 - **When:** it taps the stand-in Cockpit page's ☎, which asks for a drill call, and hangs the call up while it still rings
 - **Then:** the call dialled an address that never answers, nothing reached Igor's voice bridge or his drill and call records, and the call ended cleanly with no automatic report
+
+---
+
+### User Story 1073:
+
+- **Summary:** The Cockpit knows what a call was on: the device, the microphone and output, the audio and the network, and each change
+- **Status:** implemented in [9bf83750](https://github.com/idvorkin/context-grabber/commit/9bf83750); host-verified by `just test` (`CallMetaTests`, `CallSessionMetaTests`); the Mac build (rung 1.5); the iPad simulator's call smoke (rung 2, 2026-11-24): the start frame went with the meta, its route logged as *no microphone · Speaker* on synthetic audio. A real call on the phone, with the Cockpit's /debug/call (cockpit-71g) reading it, not yet
+- **Issues:** context-grabber-2k58 (Igor, 2026-11-24 06:13 via Larry: send call metadata whenever we have it; Cockpit cockpit-71g, /debug/call)
+- **Spec:** [Native call — What the call says about itself](../superpowers/specs/2026-08-28-native-call-screen-design.md#what-the-call-says-about-itself)
+
+#### Use Case:
+- **As** Igor, who reads a bad call afterwards on the Cockpit's call debug page
+- **I want to** have every call tell the Cockpit which device, microphone, output, audio settings and network it was on, and each time those changed
+- **so that** "Larry couldn't hear me" can be traced to the AirPods dropping or Wi-Fi giving way without the phone in hand
+
+#### Acceptance Criteria:
+- **Scenario:** Putting AirPods in during a call on Wi-Fi
+- **Given:** a call started on the iPhone's microphone and speaker, on Wi-Fi
+- **When:** I put my AirPods in mid-call, then walk out of Wi-Fi range
+- **Then:** the call's start told the bridge the device, *iPhone Microphone* and *Speaker*, the audio session and Wi-Fi; one route message followed naming *AirPods Pro* as microphone and output and why iOS changed it; one network message followed naming cellular; a route change that left the same devices sent nothing; and no permission was asked for

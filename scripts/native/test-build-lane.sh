@@ -9,8 +9,10 @@
 #   `sims refresh` and `sims list` (stories 786-788, #980).
 set -uo pipefail
 # The lane settings come from each case, never from this shell: ~/.zshenv may set BUILD_LANES (#1008), and a run inside a
-# lane carries BUILD_LANE and its port offset.
-unset BUILD_LANES BUILD_LANE BUILD_LANE_PORT_OFFSET
+# lane carries BUILD_LANE and its port offset. Nor the simulator names, waits or lock folder: every ladder run sets SIM to
+# the iPad (AGENTS.md), and a caller's SIM failed 14 checks here (bead context-grabber-2l07; scripts/native/test-lane-env.sh).
+unset BUILD_LANES BUILD_LANE BUILD_LANE_PORT_OFFSET SIM WHITEBOARD_SIM BUILD_LOCK_DIR \
+  BUILD_LANE_WAIT BUILD_LANE_POLL BUILD_LANE_CLONE_WAIT BUILD_LANE_REFRESH_WAIT XCODEBUILD_IDLE_WAIT XCODEBUILD_IDLE_POLL
 cd "$(dirname "$0")/../.."
 lane=scripts/native/build-lane.sh
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/cg-build-lane-test.XXXXXX")

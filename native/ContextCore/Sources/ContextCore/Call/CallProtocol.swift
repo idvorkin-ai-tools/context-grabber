@@ -184,11 +184,11 @@ public enum CallProtocol {
     return String(decoding: data, as: UTF8.self)
   }
 
-  /// Empty model / voice = the vendor's default. `client` / `build` / `location` / `today` / `stt` are extra keys; a
-  /// bridge that does not know them ignores them. An empty `stt` is left out (#556).
+  /// Empty model / voice = the vendor's default. `client` / `build` / `location` / `today` / `stt` / `meta` are extra
+  /// keys; a bridge that does not know them ignores them. An empty `stt` is left out (#556).
   public static func startFrame(
     backend: CallBackend, build: String = "", voice: String = "", model: String = "", location: CallLocation? = nil,
-    today: CallToday? = nil, stt: String = ""
+    today: CallToday? = nil, stt: String = "", meta: CallMeta? = nil
   ) -> String {
     var frame: [String: Any] = [
       "type": "start", "backend": backend.rawValue, "model": model, "voice": voice, "client": clientName,
@@ -197,12 +197,25 @@ public enum CallProtocol {
     if let location { frame["location"] = location.fields }
     if let today { frame["today"] = today.fields }
     if !stt.isEmpty { frame["stt"] = stt }
+    if let meta { frame["meta"] = meta.fields }
     return json(frame)
   }
 
   /// Where Igor is now, mid-call — after a significant move, or a fix that landed after the start.
   public static func locationFrame(_ location: CallLocation) -> String {
     json(location.fields.merging(["type": "location"]) { _, new in new })
+  }
+
+  /// Story 1073: the microphone or the outputs changed mid-call, with iOS's reason and the audio as it is now.
+  public static func routeFrame(_ route: CallRoute, audio: CallAudioState?, reason: String, at: String) -> String {
+    var frame = route.fields.merging(["type": "route", "reason": reason, "at": at]) { _, new in new }
+    if let audio { frame["audio"] = audio.fields }
+    return json(frame)
+  }
+
+  /// Story 1073: the network under the call changed (not its first reading).
+  public static func networkFrame(_ path: CallNetworkPath, at: String) -> String {
+    json(path.fields.merging(["type": "network", "at": at]) { _, new in new })
   }
 
   public static func sttStartFrame() -> String { json(["type": "stt_start", "rate": 16000]) }

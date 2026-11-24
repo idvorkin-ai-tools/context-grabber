@@ -1904,3 +1904,77 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** an outline with a header whose two lines are folded under it
 - **When:** `just wasm-test` asks for the fold picture, then asks again with nothing folded
 - **Then:** the picture shows the two folded lines, slides what is below back down by the section's height, shades the section and maps the one fold back; with nothing folded there is no picture of its own
+
+---
+
+### User Story 1284:
+
+- **Summary:** Writing never zooms the board, however the palm shifts
+- **Status:** implemented in 888797de and ce4562c0; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
+- **Issues:** bead `context-grabber-hxzv` (Igor, 2026-11-24 ~05:00, via Larry: "it zooms while I write")
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
+
+#### Use Case:
+- **As Igor,** writing on a board with the Pencil, my hand resting on the glass
+- **I want to** have the board keep its zoom however my palm shifts while I write
+- **so that** the page stays still under the pen and only a pinch I mean zooms it
+
+#### Acceptance Criteria:
+- **Scenario:** A palm shifting while I write
+- **Given:** a board at its fitted zoom
+- **When:** I write a line with the Pencil, my palm resting and sliding on the glass beside it
+- **Then:** the zoom is the same when I lift as when I started, and the log says the pinch was held off and why
+
+### User Story 1290:
+
+- **Summary:** A palm and a fingertip together never zoom the board
+- **Status:** implemented in 888797de and ce4562c0; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
+- **Issues:** bead `context-grabber-hxzv`
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
+
+#### Use Case:
+- **As Igor,** resting my hand on a board without the Pencil
+- **I want to** have a palm and a fingertip on the glass leave the zoom alone
+- **so that** only a pinch I mean zooms the board
+
+#### Acceptance Criteria:
+- **Scenario:** A palm and a fingertip together, no Pencil
+- **Given:** a board at its fitted zoom
+- **When:** my palm and a fingertip land and move apart
+- **Then:** the board doesn't zoom
+
+### User Story 1291:
+
+- **Summary:** Two fingertips still pinch the board once everything has lifted
+- **Status:** implemented in 888797de and ce4562c0; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
+- **Issues:** bead `context-grabber-hxzv`
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
+
+#### Use Case:
+- **As Igor,** zooming a board on purpose
+- **I want to** pinch with two fingertips as before, once nothing else is on the glass
+- **so that** holding the pinch off while I write never costs me a zoom I mean
+
+#### Acceptance Criteria:
+- **Scenario:** A deliberate pinch
+- **Given:** nothing on the glass
+- **When:** I pinch in with two fingertips
+- **Then:** the board zooms in, as before
+
+### User Story 1296:
+
+- **Summary:** Fingers landing just as the Pencil lifts never zoom the board
+- **Status:** implemented in 563a9e08; verified by the host tests (`PaperProbeTests.testFingersJustAfterThePencilLiftsDontPinch`); the real Pencil lift on the iPad is still to check
+- **Issues:** bead `context-grabber-hxzv` (Larry, 2026-11-24: match the web board's 400 ms after a Pencil lift)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
+
+#### Use Case:
+- **As Igor,** lifting the Pencil at the end of a word, my hand still settling on the glass
+- **I want to** have fingers that land in that moment leave the zoom alone
+- **so that** the board doesn't zoom between words, and agrees with the web board
+
+#### Acceptance Criteria:
+- **Scenario:** Two fingers within 400 ms of the Pencil lifting
+- **Given:** a board at its fitted zoom, and I have just lifted the Pencil
+- **When:** two fingers land and spread apart less than 400 ms after the lift
+- **Then:** the board doesn't zoom, and the log says the pinch was held off for the Pencil's lift

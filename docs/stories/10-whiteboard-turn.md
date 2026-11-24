@@ -1809,6 +1809,126 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1278:
+
+- **Summary:** A grip resizes the docked conversation, as on the web
+- **Status:** implemented in [b2da55db](https://github.com/idvorkin/context-grabber/commit/b2da55db); verified by host tests (`WhiteboardPanelPlaceTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at b2da55db: `WhiteboardConversationPlaceUITests`, and `WhiteboardBubblesUITests`, `WhiteboardPanelScrollUITests`, `WhiteboardLinkChipUITests` beside it); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("chat resizable like it is on the web"; "like a popover that I can move over the page, or can be docked like it is right now")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
+
+#### Use Case:
+- **As someone** reading a long exchange with Larry on a board
+- **I want to** drag the conversation taller or shorter
+- **so that** I see as much of it as I want, and no more, while I draw
+
+#### Acceptance Criteria:
+- **Scenario:** Drag it taller
+- **Given:** a board's conversation open above the board, on an iPad
+- **When:** I drag the grip under it down with a finger
+- **Then:** the panel grows with my finger, the page moves down with it so no ink is under it, it stops short of the whole board, and the next board's panel opens at that height
+
+---
+
+### User Story 1272:
+
+- **Summary:** Dragged up, the docked conversation stops at about four lines
+- **Status:** implemented in [b2da55db](https://github.com/idvorkin/context-grabber/commit/b2da55db); verified by host tests (`WhiteboardPanelPlaceTests`: the dragged height's bounds; `just native-test`) and the Mac build (`just native-build-mac`); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("chat resizable like it is on the web"; "like a popover that I can move over the page, or can be docked like it is right now")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
+
+#### Use Case:
+- **As someone** reading a long exchange with Larry on a board
+- **I want to** drag the conversation as short as I like
+- **so that** the board gets the room, and a few lines of Larry still show
+
+#### Acceptance Criteria:
+- **Scenario:** Drag it shorter
+- **Given:** a board's conversation open above the board, on an iPad
+- **When:** I drag the grip up as far as it goes
+- **Then:** it stops at about four lines
+
+---
+
+### User Story 1275:
+
+- **Summary:** A double tap on the grip gives the docked conversation its own size back
+- **Status:** implemented in [b2da55db](https://github.com/idvorkin/context-grabber/commit/b2da55db); verified by the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at b2da55db: `WhiteboardConversationPlaceUITests`: the double tap after a drag); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("chat resizable like it is on the web"; "like a popover that I can move over the page, or can be docked like it is right now")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
+
+#### Use Case:
+- **As someone** who dragged the conversation taller
+- **I want to** put it back to its own size in one gesture
+- **so that** I don't have to drag it back by hand
+
+#### Acceptance Criteria:
+- **Scenario:** Back to its own size
+- **Given:** a panel I dragged taller
+- **When:** I double-tap the grip
+- **Then:** it is its own size again, a fifth of the board at most
+
+---
+
+### User Story 1279:
+
+- **Summary:** The conversation floats over the board as a card I move and size, or docks above it
+- **Status:** implemented in [b2da55db](https://github.com/idvorkin/context-grabber/commit/b2da55db); verified by host tests (`WhiteboardPanelPlaceTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at b2da55db: `WhiteboardConversationPlaceUITests`, and `WhiteboardBubblesUITests`, `WhiteboardPanelScrollUITests`, `WhiteboardLinkChipUITests` beside it); the Pencil on the card is the iPad's check; the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("chat resizable like it is on the web"; "like a popover that I can move over the page, or can be docked like it is right now")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
+
+#### Use Case:
+- **As someone** drawing with Larry's conversation open
+- **I want to** float it as a card over the board, where I choose, and dock it back
+- **so that** it stays in view without pushing the page down, or out of the way when I need the whole board
+
+#### Acceptance Criteria:
+- **Scenario:** Float it
+- **Given:** a board's conversation open above the board, on an iPad
+- **When:** I tap **Float**
+- **Then:** the page moves back up and the conversation is a card at the board's top left; dragging its top edge moves it, never off the board, and its corner sizes it, never smaller than a few lines
+
+---
+
+### User Story 1292:
+
+- **Summary:** The floating card stays where I left it, at its size
+- **Status:** implemented in [b2da55db](https://github.com/idvorkin/context-grabber/commit/b2da55db); verified by host tests (`WhiteboardPanelPlaceTests`: the card kept as text; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at b2da55db: `WhiteboardConversationPlaceUITests`: a relaunch finds the card where it was left); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("chat resizable like it is on the web"; "like a popover that I can move over the page, or can be docked like it is right now")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
+
+#### Use Case:
+- **As someone** who floated and placed Larry's conversation
+- **I want to** find it where I put it on the next board
+- **so that** I place it once, not every time
+
+#### Acceptance Criteria:
+- **Scenario:** It stays where I left it
+- **Given:** I floated and moved the card
+- **When:** I open another board's conversation
+- **Then:** it floats where I left the card, at the card's size
+
+---
+
+### User Story 1293:
+
+- **Summary:** Dock puts the floating conversation back above the board
+- **Status:** implemented in [b2da55db](https://github.com/idvorkin/context-grabber/commit/b2da55db); verified by the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at b2da55db: `WhiteboardConversationPlaceUITests`: Dock brings back the grip at its dragged height); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("chat resizable like it is on the web"; "like a popover that I can move over the page, or can be docked like it is right now")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
+
+#### Use Case:
+- **As someone** with Larry's conversation floating
+- **I want to** dock it above the board again
+- **so that** it stops covering the page when I need the whole board
+
+#### Acceptance Criteria:
+- **Scenario:** Dock it
+- **Given:** the conversation floating
+- **When:** I tap **Dock**
+- **Then:** it is above the board again, at its docked height, and pushes the page down
+
+---
+
 ### User Story 887:
 
 - **Summary:** Another reply scrolls the full panel, not grows it

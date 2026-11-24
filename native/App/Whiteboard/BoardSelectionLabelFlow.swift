@@ -25,7 +25,7 @@ extension PaperBoardController {
       let board = elements.map { element in
         BoardSelectionLabel.Piece(
           names: (model.ink.hashes[Self.key(element.elementID)] ?? []).map(model.strokeIDs.stable),
-          t: Int64(element.path.creationDate.timeIntervalSince1970 * 1000))
+          t: BoardMoment.ms(element.path.creationDate))
       }
       let picked = elements.indices.filter { paper.selection.contains(elements[$0].elementID) }.map { board[$0] }
       strokes = picked.count
