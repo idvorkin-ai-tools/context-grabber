@@ -207,7 +207,7 @@ public struct BoardSession {
         let turn = Turn(
           id: body["id"] as? String ?? "", onBoard: body["board"] != nil, picture: picture,
           rev: JSONNumber(body["rev"])?.intValue,
-          opResult: Self.result(body["op_result"]), events: (body["events"] as? [Any])?.count ?? 0,
+          opResult: BoardOps.Result(wire: body["op_result"]), events: (body["events"] as? [Any])?.count ?? 0,
           eventsDropped: JSONNumber(body["events_dropped"])?.intValue, strokes: answer?.count, new: answer?.new)
         if turn.events > BoardTurnReport.maxEvents {
           report.mismatches.append("turn \(turn.id) carries \(turn.events) events, over \(BoardTurnReport.maxEvents)")
@@ -258,8 +258,8 @@ public struct BoardSession {
   ) -> Batch {
     let label = ops["label"] as? String ?? ""
     let base = JSONNumber(ops["base_rev"])?.intValue ?? lastRev ?? 0
-    let repeated = steps[..<index].last(where: isChat).flatMap { Self.result(body($0)["op_result"]) }
-    let recorded = steps[(index + 1)...].lazy.filter(isChat).compactMap { Self.result(body($0)["op_result"]) }
+    let repeated = steps[..<index].last(where: isChat).flatMap { BoardOps.Result(wire: body($0)["op_result"]) }
+    let recorded = steps[(index + 1)...].lazy.filter(isChat).compactMap { BoardOps.Result(wire: body($0)["op_result"]) }
       .first { $0.label == label && $0 != repeated }
     let before = changes.filter { change in at.map { change.t <= $0 } ?? false }.map(\.rev).max()
     let arrived =
@@ -286,17 +286,6 @@ public struct BoardSession {
 
   private func isChat(_ step: [String: Any]) -> Bool {
     step["step"] as? String == "post" && (step["route"] as? String)?.hasPrefix("/chat/") == true
-  }
-
-  /// An `op_result` as the iPad sends it.
-  static func result(_ any: Any?) -> BoardOps.Result? {
-    guard let json = any as? [String: Any], let label = json["label"] as? String, let ok = json["ok"] as? Bool,
-      let rev = JSONNumber(json["rev"])?.intValue
-    else { return nil }
-    return BoardOps.Result(
-      label: label, ok: ok, rev: rev, reason: json["reason"] as? String, missingIDs: json["missing_ids"] as? [String],
-      rebasedFrom: JSONNumber(json["rebased_from"])?.intValue, conflictIDs: json["conflict_ids"] as? [String],
-      rooms: (json["room"] as? [Any])?.compactMap(BoardOps.Room.init(wire:)))
   }
 
   /// A step's `at` (ISO 8601, as the Cockpit stores it) in unix ms.

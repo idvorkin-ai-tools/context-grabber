@@ -17,18 +17,6 @@ struct WebApplier {
 
   static func strings(_ any: Any?) -> [String] { (any as? [Any] ?? []).compactMap { $0 as? String } }
 
-  /// A result as the wire carries it (`BoardOps.Result.wire`), or nil.
-  static func result(_ any: Any?) -> BoardOps.Result? {
-    guard let json = any as? [String: Any], let label = json["label"] as? String, let ok = json["ok"] as? Bool,
-      let rev = JSONNumber(json["rev"])?.intValue
-    else { return nil }
-    let rooms = (json["room"] as? [Any])?.compactMap(BoardOps.Room.init(wire:))
-    return BoardOps.Result(
-      label: label, ok: ok, rev: rev, reason: json["reason"] as? String,
-      missingIDs: json["missing_ids"] as? [String], rebasedFrom: JSONNumber(json["rebased_from"])?.intValue,
-      conflictIDs: json["conflict_ids"] as? [String], rooms: rooms)
-  }
-
   /// What the applier remembers, for the host to keep with the board and to see.
   var state: [String: Any] {
     [
@@ -87,7 +75,7 @@ struct WebApplier {
       }
       applier = BoardOpApplier(
         rev: JSONNumber(json["rev"])?.intValue ?? 0, handled: Self.strings(json["handled"]),
-        lastResult: Self.result(json["last_result"]), touches: touches, since: JSONNumber(json["since"])?.intValue)
+        lastResult: BoardOps.Result(wire: json["last_result"]), touches: touches, since: JSONNumber(json["since"])?.intValue)
       letThrough = nil
     case "changed":
       applier.changed()

@@ -271,6 +271,17 @@ public enum BoardOps {
       if let rooms, !rooms.isEmpty { out["room"] = rooms.map(\.wire) }
       return out
     }
+
+    /// As the wire carries it (`wire`, the iPad's `op_result`), or nil.
+    public init?(wire any: Any?) {
+      guard let json = any as? [String: Any], let label = json["label"] as? String, let ok = json["ok"] as? Bool,
+        let rev = JSONNumber(json["rev"])?.intValue
+      else { return nil }
+      self.init(
+        label: label, ok: ok, rev: rev, reason: json["reason"] as? String, missingIDs: json["missing_ids"] as? [String],
+        rebasedFrom: JSONNumber(json["rebased_from"])?.intValue, conflictIDs: json["conflict_ids"] as? [String],
+        rooms: (json["room"] as? [Any])?.compactMap(Room.init(wire:)))
+    }
   }
 
   /// Story 1195: one make-room of Larry's as asked and as the board made it: the cut on a clear line, whole lines.
