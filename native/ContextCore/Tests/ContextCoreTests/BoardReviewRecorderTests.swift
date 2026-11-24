@@ -162,17 +162,16 @@ final class BoardReviewRecorderTests: XCTestCase {
     XCTAssertEqual(board.found, ["4 as_designed"])
   }
 
-  func testOnlyLookingIsNotDueAndIdleIsFiveMinutesAfterHisStep() {
+  func testOnlyLookingIsNotHisStepAndAStrokeIs() {
     var board = Board()
     board.event("paper_open", ink: ink(["a": ("igor", a)]))
     board.event("paper_selection", ["box": [Int]()], ink: ink(["a": ("igor", a)]))
     XCTAssertFalse(board.recorder.hasIgorsStep)
-    XCTAssertFalse(board.recorder.due(now: 1_000_000))
+    XCTAssertEqual(board.recorder.record?.hasIgorsStep, false)
     board.event("paper_ink", ["in_touch": true], ink: ink(["a": ("igor", a), "n": ("igor", b)]))
     board.recorder.take(type: "whiteboard", t: 9e9, fields: ["action": "paper_ink", "board": "other"], ink: [:])
     XCTAssertTrue(board.recorder.hasIgorsStep)
-    XCTAssertFalse(board.recorder.due(now: board.t + BoardReviewRecorder.idle - 1))
-    XCTAssertTrue(board.recorder.due(now: board.t + BoardReviewRecorder.idle))
+    XCTAssertEqual(board.recorder.record?.hasIgorsStep, true)
     board.recorder.nextSession()
     XCTAssertNil(board.recorder.record)
   }

@@ -35,7 +35,7 @@ extension WhiteboardModel {
       BoardReviewDisk.prune()
       if let cut = store.pending() {
         store.clearPending()
-        _ = Self.runReview(cut, why: "next_open", store: store, log: log)
+        if cut.hasIgorsStep { _ = Self.runReview(cut, why: "next_open", store: store, log: log) }
       }
       guard let (record, report) = store.unseen() else { return }
       await self?.reviewShown(report, of: record, asked: false)
@@ -92,7 +92,7 @@ extension WhiteboardModel {
   private func keepPending() {
     if let at = reviewKeptAt, Date().timeIntervalSince(at) < 5 { return }
     reviewKeptAt = Date()
-    guard let record = reviewRecorder.record else { return }
+    guard let record = reviewRecorder.record, record.hasIgorsStep else { return }
     let store = BoardReviewDisk(board: board.id)
     Task.detached(priority: .utility) { store.keepPending(record) }
   }
@@ -105,7 +105,12 @@ extension WhiteboardModel {
     reviewIdleTask = nil
     let asked = why == "asked"
     guard asked || reviewRecorder.hasIgorsStep, let record = reviewRecorder.record else {
-      if asked { review = BoardReviewShown() }
+      if asked {
+        review = BoardReviewShown()
+      } else {
+        let store = BoardReviewDisk(board: board.id)
+        Task.detached(priority: .utility) { store.clearPending() }
+      }
       return
     }
     if !asked { reviewRecorder.nextSession() }

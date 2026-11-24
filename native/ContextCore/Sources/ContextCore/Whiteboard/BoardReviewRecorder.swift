@@ -71,15 +71,7 @@ public struct BoardReviewRecorder: Sendable {
   }
 
   /// Whether the session has a step of Igor's own (story 1239): one only looked at is never reviewed.
-  public var hasIgorsStep: Bool {
-    steps.contains { ["pencil", "finger", "menu"].contains($0.by) && !["select", "deselect"].contains($0.kind) }
-  }
-
-  /// Due a review: a step of his, then `idle` with none.
-  public func due(now: Double) -> Bool {
-    guard hasIgorsStep, let last else { return false }
-    return now - last >= Self.idle
-  }
+  public var hasIgorsStep: Bool { BoardSessionRecord.hasIgorsStep(steps) }
 
   /// Whether it has the board it is measured from yet.
   public var hasBegun: Bool { begun }
