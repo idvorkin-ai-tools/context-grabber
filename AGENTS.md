@@ -38,6 +38,12 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   → 3 the phone (`just native-run-device`). Verify on the cheapest rung that can see the change and **say which rung
   you used**. Audio session behaviour, HealthKit, GPS, widgets, Live Activities,
   Shortcuts and the voice bridge exist only on the phone ([TESTING.md](docs/TESTING.md)).
+- **Which machine builds what** (Igor, 2026-11-24). Larry's Linux VM builds and tests all WebAssembly (BoardWasm,
+  AudioWasm: `just wasm`, `just wasm-test`), runs the Linux Swift tests, and does xtool iPad builds when the Mac is
+  busy. The Mac does Xcode, the simulators, the Mac app, signing, `/builds` and device installs. When a branch changes
+  BoardCore's exports or anything the wasm builds, push it and ask Larry on the lead thread (`igor2-88g.1620`) to build
+  and test it; he posts the result. Don't run `just wasm-test` on the Mac or report "no wasm SDK" as a skip: the wasm
+  check belongs to the VM, so say it's with Larry.
 - **Spec first, story always.** The design spec (`docs/superpowers/specs/`) is updated before the code — the full
   rule is below. And every feature or behaviour change updates the user stories (`docs/stories/`) in the same PR: a
   new capability gets a story in its journey (Cohn + Gherkin, the `user-story` skill) with a `Status:` line naming
