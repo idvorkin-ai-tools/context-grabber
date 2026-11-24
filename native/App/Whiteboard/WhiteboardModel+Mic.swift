@@ -215,8 +215,8 @@ extension WhiteboardModel {
   }
 
   /// Story 1281: the words heard and not yet taken join the ones waiting for the next picture, asking nothing. `why`
-  /// is what took them: `pause`, `turn`, `send`, `switch_mic`. On a Larry board's *Send* (`toLarry`) they wait with his turn,
-  /// so the tap sends them even when he already has the drawing.
+  /// is what took them: `pause`, `turn`, `send`, `switch_mic`. On a Larry board's *Send* (`toLarry`) they wait with
+  /// his turn, so the tap sends them even when he already has the drawing.
   func gatherSpoken(why: String, toLarry: Bool = false) {
     var words = speech.takeNew()
     if toLarry {
