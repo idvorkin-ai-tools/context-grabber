@@ -26,6 +26,12 @@ final class WebInkBoardTests: XCTestCase {
       "a fake Cockpit's address, with its trailing slash")
   }
 
+  func testNoCockpitAddressIsNoPage() {
+    let board = WebInkBoard(board: "ink-wasn-t")
+    XCTAssertNil(board?.url(cockpit: ""), "a simulator with no Cockpit address")
+    XCTAssertNil(board?.url(cockpit: "c-5004.squeaker-teeth.ts.net"), "an address with no scheme")
+  }
+
   func testANameIsEscapedNotTrusted() {
     XCTAssertEqual(
       WebInkBoard(board: "ink-a b&c")?.url(cockpit: "https://cockpit.test")?.absoluteString,

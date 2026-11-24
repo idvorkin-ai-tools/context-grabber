@@ -480,6 +480,7 @@ final class AppModel: ObservableObject {
     homeProblem = nil
     guard let url = web.url(cockpit: chat.cockpit) else {
       log.event("ui", ["action": "open_web_board", "board": web.name, "from": source, "ok": false])
+      log.event("error", ["where": "open_web_board", "board": web.name, "reason": "no_cockpit_url"])
       homeProblem = .grabber(
         "The web board \(web.name) has no address: the Cockpit's address (\(chat.cockpit)) isn't a URL.",
         context: "AppModel.open_web_board",
@@ -502,6 +503,7 @@ final class AppModel: ObservableObject {
       let ok = await UIApplication.shared.open(url)
       log.event("ui", ["action": "opened_web_board", "board": web.name, "ok": ok])
       guard !ok else { return }
+      log.event("error", ["where": "open_web_board", "board": web.name, "reason": "not_opened"])
       self.homeProblem = .grabber(
         "The web board \(web.name) would not open in the browser.", context: "AppModel.open_web_board",
         extra: ["board": .string(web.name), "link": .string(url.absoluteString), "from": .string(source)])

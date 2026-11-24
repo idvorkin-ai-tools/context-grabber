@@ -19,7 +19,7 @@ public struct WebInkBoard: Equatable, Sendable {
 
   /// The board's page on the Cockpit: `<cockpit>/ink?b=<name>`.
   public func url(cockpit: String) -> URL? {
-    guard var parts = URLComponents(string: cockpit) else { return nil }
+    guard var parts = URLComponents(string: cockpit), parts.scheme != nil, parts.host != nil else { return nil }
     let base = parts.path.hasSuffix("/") ? String(parts.path.dropLast()) : parts.path
     parts.path = base + "/ink"
     parts.percentEncodedQueryItems = [
