@@ -269,6 +269,10 @@ migrate chat so it's like a popover that I can move over the page, or can be doc
   Chat*, the Lines / Bubbles switch and **Dock**. Floating, the page moves back up and the card lies
   over the ink, so it is Igor's choice to cover ink, never the board's. Dock puts it back above the board. Floating or
   docked, and where the card was, are remembered.
+- **Everything at the card's foot fits, at any size it can be** (#1416, Igor 2026-11-24: "this dialogue is a little
+  wonky"). The foot's controls stay on one line: when the card is too narrow for *Open in Chat* and **Dock** as words,
+  they show as their icons, with the same names for VoiceOver. The thread takes what is left of the card after the
+  chip, what the mic hears and the foot, so nothing at the bottom is cut off, docked or floating.
 - **The Pencil never acts on the card either**: a stroke that starts on the card does nothing; one that starts on the
   board and runs under the card draws.
 
@@ -288,6 +292,8 @@ migrate chat so it's like a popover that I can move over the page, or can be doc
   it follows the finger and stops at the board's edges. Drag its corner: it grows and shrinks, never smaller than a
   few lines. Close the board and open another: the card is where it was left. Tap **Dock**: it is above the board
   again, at its docked height.
+- Float the card at its first size, and at the smallest its corner allows: the foot is one line, nothing at its bottom is
+  cut off, and *Open in Chat* and **Dock** still work (as icons when the words don't fit).
 - With the card floating, a Pencil stroke that starts on the card draws nothing; one that starts beside it draws.
 
 ## Larry is listening (Igor, 2026-11-22, context-grabber-4fww)

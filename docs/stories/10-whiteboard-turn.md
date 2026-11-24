@@ -1909,6 +1909,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1313:
+
+- **Summary:** Everything at the floating card's foot fits, at any size the card can be
+- **Status:** in progress on `native/float-card-footer-1416`
+- **Issues:** [#1416](https://github.com/idvorkin/context-grabber/issues/1416) (Igor, 2026-11-24, iPad: "This dialogue is a little wonky": at the card's first size *Open in Chat* and **Dock** wrapped and the foot was cut off)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
+
+#### Use Case:
+- **As someone** drawing with Larry's conversation floating as a card
+- **I want to** see the card's whole foot, on one line, however small I make the card
+- **so that** *Open in Chat*, Lines / Bubbles and **Dock** are always there to tap and nothing looks broken
+
+#### Acceptance Criteria:
+- **Scenario:** A narrow card
+- **Given:** the conversation floating as a card, at its first size or the smallest its corner allows
+- **When:** I look at its foot
+- **Then:** *Open in Chat*, Lines / Bubbles and **Dock** sit on one line, *Open in Chat* and **Dock** as icons when their words don't fit, nothing at the card's bottom is cut off, and each still works
+
+---
+
 ### User Story 1307:
 
 - **Summary:** The floating card stays where I left it, at its size

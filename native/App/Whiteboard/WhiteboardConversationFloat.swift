@@ -22,16 +22,19 @@ struct WhiteboardPanelDock {
 /// The panel's Float or Dock button, at its foot.
 struct WhiteboardPanelDockButton: View {
   let dock: WhiteboardPanelDock
+  /// Story 1313 (#1416): its icon alone, when the foot is too narrow for the word.
+  var compact = false
 
   var body: some View {
     Button {
       dock.toggle()
     } label: {
-      Label(
+      let label = Label(
         dock.floating ? "Dock" : "Float",
         systemImage: dock.floating ? "rectangle.topthird.inset.filled" : "macwindow.on.rectangle")
+      if compact { label.labelStyle(.iconOnly) } else { label }
     }
-    .font(.footnote).buttonStyle(.borderless)
+    .font(.footnote).buttonStyle(.borderless).lineLimit(1)
     .accessibilityIdentifier(dock.floating ? "whiteboard-conversation-dock" : "whiteboard-conversation-float")
   }
 }

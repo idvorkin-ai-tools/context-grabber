@@ -1,4 +1,4 @@
-//  Stories 1278, 1275, 1279, 1307, 1308 (#1384) on an iPad simulator, against the fake Cockpit
+//  Stories 1278, 1275, 1279, 1307, 1308 (#1384), 1313 (#1416) on an iPad simulator, against the fake Cockpit
 //  (scripts/native/test-whiteboard-ui.sh starts it): the board's open conversation grows by its grip and pushes the
 //  page down; floats as a card at the board's top left that a finger moves and sizes; is kept that way for the next
 //  board; and docks back. The bounds are
@@ -75,6 +75,20 @@ final class WhiteboardConversationPlaceUITests: XCTestCase {
     XCTAssertLessThan(help.frame.minY, grown - 150, "floating, the page is back up")
     XCTAssertLessThan(card.frame.midX, window.midX, "it starts at the left")
     shot(app, "whiteboard-conversation-card")
+
+    // Story 1313 (#1416): at its first size the card's whole foot is inside it, each control on the one line.
+    let foot =
+      ["whiteboard-conversation-chat", "whiteboard-conversation-dock"].map { app.buttons[$0] }
+      + [app.segmentedControls["whiteboard-conversation-look"]]
+    for control in foot {
+      XCTAssertTrue(control.isHittable, "\(control.identifier) can be tapped")
+      XCTAssertTrue(
+        card.frame.insetBy(dx: -1, dy: -1).contains(control.frame),
+        "\(control.identifier) \(control.frame) is inside the card \(card.frame)")
+    }
+    let middles = foot.map(\.frame.midY)
+    XCTAssertLessThan(
+      (middles.max() ?? 0) - (middles.min() ?? 0), 12, "the foot is one line: \(foot.map(\.frame))")
 
     // Its top edge moves it.
     let before = card.frame
