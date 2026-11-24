@@ -157,6 +157,20 @@ func sameJSON(_ a: Any, _ b: Any) -> Bool {
   return data(a) != nil && data(a) == data(b)
 }
 
+/// The same JSON with every number rounded to a millionth: the app's boxes go through CGRect's origin and size, so an
+/// edge it works out can differ in the last bit from the same edge worked out from the points.
+func sameJSONToAMillionth(_ a: Any, _ b: Any) -> Bool {
+  func rounded(_ x: Any) -> Any {
+    switch x {
+    case let d as Double: return (d * 1e6).rounded() / 1e6
+    case let list as [Any]: return list.map(rounded)
+    case let dict as [String: Any]: return dict.mapValues(rounded)
+    default: return x
+    }
+  }
+  return sameJSON(rounded(a), rounded(b))
+}
+
 /// SplitMix64: the same boards every run.
 struct Seeded {
   var state: UInt64

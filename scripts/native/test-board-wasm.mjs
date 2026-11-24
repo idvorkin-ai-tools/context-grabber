@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 12, `bw_info abi is 12: ${JSON.stringify(info)}`);
+check(info.abi === 13, `bw_info abi is 13: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -466,15 +466,37 @@ check(call('bw_outline_load', rowsInk) === 6, `the rows outline ${error() ?? ''}
 const wantRows = {
   rows: [{ bottom: 102, top: 98 }, { bottom: 302, top: 298 }, { bottom: 422, top: 398 }, { bottom: 540, top: 500 }],
   units: [
-    { box: [-2, 98, 202, 102], header: 'H', names: ['h1', 'b1'], tag: 'h:H' },
-    { box: [-2, 298, 202, 302], header: null, names: ['n'], tag: null },
-    { box: [-2, 398, 202, 422], header: null, names: ['g1', 'g2'], tag: 'g' },
-    { box: [0, 500, 100, 540], header: null, names: ['t'], tag: 't' },
+    { box: [-2, 98, 202, 102], header: 'H', key: 'h:H', names: ['h1', 'b1'], object: null, objectIds: [], strokeIds: ['h1', 'b1'], tag: 'h:H' },
+    { box: [-2, 298, 202, 302], header: null, key: 's:n', names: ['n'], object: null, objectIds: [], strokeIds: ['n'], tag: null },
+    { box: [-2, 398, 202, 422], header: null, key: 'o:g', names: ['g1', 'g2'], object: 'g', objectIds: ['g'], strokeIds: ['g1', 'g2'], tag: 'g' },
+    { box: [0, 500, 100, 540], header: null, key: 'o:t', names: ['t'], object: 't', objectIds: ['t'], strokeIds: [], tag: 't' },
   ],
 };
 const rowsNow = () => reply(x.bw_rows());
 check(isDeepStrictEqual(rowsNow(), wantRows), `the units and rows: ${JSON.stringify(rowsNow())}`);
 check(isDeepStrictEqual(rowsNow(), wantRows), 'asking leaves the outline as it was');
+// Version 13 (story 1263): the edges are the page's to the last bit, though the rules' geometry here is 32-bit. A
+// stroke's are its points' extremes widened by half its pen, as the page works them out; a box's are its own numbers;
+// new ink's too.
+const pageBox = (pts, w) => {
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]), r = w / 2;
+  return [Math.min(...xs) - r, Math.min(...ys) - r, Math.max(...xs) + r, Math.max(...ys) + r];
+};
+const oddA = [[0.1, 100.1], [200.3, 100.7]], oddB = [[10.01, 140.123456789], [12.7, 141.9]], oddC = [[5.55, 700.07], [9.9, 700.3]];
+check(call('bw_outline_load', {
+  strokes: [{ id: 'a', points: oddA, width: 3.3 }, { id: 'b', points: oddB, width: 4 }],
+  boxes: [{ id: 't', box: [0.3, 300.17, 99.9, 340.71] }], groups: { t: 't' }, headers: [],
+}) === 3, `the odd outline ${error() ?? ''}`);
+check(call('bw_outline_add', { strokes: [{ id: 'c', points: oddC, width: 2.2 }] }) === 4, `and new ink ${error() ?? ''}`);
+const odd = rowsNow();
+const oddWant = [pageBox(oddA, 3.3), pageBox(oddB, 4), pageBox(oddC, 2.2), [0.3, 300.17, 99.9, 340.71]];
+check(isDeepStrictEqual(odd.units.map((u) => u.box), [oddWant[0], oddWant[1], oddWant[3], oddWant[2]]),
+  `the edges are the page's exactly: ${JSON.stringify(odd.units.map((u) => u.box))}`);
+check(odd.units.some((u) => u.box[1] !== Math.fround(u.box[1])), 'and some of them are no 32-bit number');
+check(isDeepStrictEqual(odd.rows, [
+  { bottom: oddWant[0][3], top: oddWant[0][1] }, { bottom: oddWant[1][3], top: oddWant[1][1] },
+  { bottom: 340.71, top: 300.17 }, { bottom: oddWant[2][3], top: oddWant[2][1] },
+]), `and so are the rows: ${JSON.stringify(odd.rows)}`);
 check(call('bw_outline_load', 'not json') === -1 && rowsNow().error === 'no outline is loaded', 'rows with no outline say so');
 
 // Interface 11, story 1264 (spec, opening a fold): the outline of interface 2 with H folded (b1 hidden, the line at 300

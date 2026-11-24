@@ -1710,9 +1710,9 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1263:
 
 - **Summary:** The web board asks the app's own rules what moves whole and the rows it makes
-- **Status:** implemented in 4eafeb75 (`bw_rows`, BoardWasm interface 10); verified by `just wasm-test` in Docker with Swift 6.4.3 and its wasm SDK (187 checks, a hand-worked folded header, group and kept text among them), by `BoardWasmTests` on the Mac (the recorded boards and 60 seeded ones, open and folded, the same units and rows as the app's outline), and on the Mac by `just native-test` (SwiftLint, swift-format, host tests), 2026-11-23.
-- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 10
-- **Issues:** Larry's list of the web board's rules still in JavaScript, 2026-11-23 (units and rows)
+- **Status:** keys, strokes and objects apart and exact edges (BoardWasm interface 13) in 7b6990fc, verified by `just wasm-test` in Docker with Swift 6.4.3 and its wasm SDK (207 checks, edges that are no 32-bit number coming back to the last bit among them) and by `BoardWasmTests` on the Mac, 2026-11-23; implemented in 4eafeb75 (`bw_rows`, BoardWasm interface 10); verified by `just wasm-test` in Docker with Swift 6.4.3 and its wasm SDK (187 checks, a hand-worked folded header, group and kept text among them), by `BoardWasmTests` on the Mac (the recorded boards and 60 seeded ones, open and folded, the same units and rows as the app's outline), and on the Mac by `just native-test` (SwiftLint, swift-format, host tests), 2026-11-23.
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, versions 10 and 13
+- **Issues:** Larry's list of the web board's rules still in JavaScript, 2026-11-23 (units and rows); Larry's shape request for `bw_rows`, 2026-11-23 (keys, strokes and objects apart, exact edges)
 
 #### Use Case:
 - **As Igor,** writing on the Cockpit's web ink board
@@ -1723,7 +1723,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The web board's units and rows are the app's
 - **Given:** an outline loaded into the module: a hand-worked one with a header folded over a line, a kept text and a group of Larry's, and the Cockpit's recorded boards and seeded ones
 - **When:** the module is asked for its units and rows
-- **Then:** it gives the app's own units, in board order with the same names and boxes (the folded header one unit with what it hides, its box its own row; the text and the group whole), and the rows they make; with no outline loaded it says so
+- **Then:** it gives the app's own units, in board order with the same names (the folded header one unit with what it hides, its box its own row; the text and the group whole), each with its key and its strokes and objects apart, and the rows they make; every edge is the one the page sent, to the last bit, though the rules' own geometry on the web is 32-bit; with no outline loaded it says so
 
 ---
 
