@@ -676,6 +676,11 @@ keeps its plain reason and files at once. The device being offline keeps its own
   A failed read more than five minutes after the screen's last one starts a new spell (longer than a read's timeout
   and the list's retry, so a Cockpit that times out every read stays one spell): a thread closed mid-outage and
   opened again later counts from one, and its words name the new spell's start and status.
+- **While a thread's first read is on its way** (#1362: a thread opened on the Mac stayed blank for the 15 s its read
+  took to time out, and Igor filed *Chat is blank here*): a thread with no messages read yet, nothing of Igor's waiting
+  to go and no problem showing says **Loading this chat…** with a spinner, never a blank page. It goes when the read
+  lands, with the messages in its place, or when the banner above replaces it. A new chat (the +) has nothing to read
+  and shows no such line, and the device being offline keeps its own *No network* line instead.
 - **When it goes:** by itself, at the first read that gets through, with the fresh content in place; no pull is
   needed. The open thread's poll and the list's 15-second retry keep reading while the Cockpit is down.
 - Filing is unchanged: an outage files one report after two minutes, as below.
