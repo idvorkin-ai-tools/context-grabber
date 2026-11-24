@@ -1850,7 +1850,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1294:
 
 - **Summary:** The web board asks the app's own rule where Larry's marks hold, when they hide and fade, and which the next post takes away
-- **Status:** implemented in COMMIT (`bw_mark_anchor`, `bw_mark_place`, `bw_mark_wrote`, `bw_mark_drops`, interface 19); verified by the host tests (`WebMarksTests`: 408 seeded marks on the four recorded boards and 30 seeded ones, folded and with ink erased, and 204 seeded strokes across them, against the app's own `BoardMarkHolds`) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 301 checks, a hand-worked label among them), 2026-11-24
+- **Status:** implemented in f0cfc13f (`bw_mark_anchor`, `bw_mark_place`, `bw_mark_wrote`, `bw_mark_drops`, interface 19); verified by the host tests (`WebMarksTests`: 408 seeded marks on the four recorded boards and 30 seeded ones, folded and with ink erased, and 204 seeded strokes across them, against the app's own `BoardMarkHolds`) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 301 checks, a hand-worked label among them), 2026-11-24
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 19
 - **Issues:** Larry's web parity list (cockpit-kp5), 2026-11-24
 
