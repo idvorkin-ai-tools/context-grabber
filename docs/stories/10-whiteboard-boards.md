@@ -1747,6 +1747,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1265:
+
+- **Summary:** The web board asks the app's own rules which folds an eraser takes whole, and what erasing them does
+- **Status:** implemented in 303af6eb (`bw_fold_erase`, BoardWasm interface 12); verified by `just wasm-test` in Docker with Swift 6.4.3 and its wasm SDK (202 checks, a hand-worked fold erased by its marker, by its header's words and by name among them), by `BoardWasmTests` on the Mac (60 seeded boards folded: the same folds taken and erased as the app's outline), and on the Mac by `just native-test` (SwiftLint, swift-format, host tests), 2026-11-23.
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 12
+- **Issues:** Larry's list of the web board's rules still in JavaScript, 2026-11-23 (fold erase)
+
+#### Use Case:
+- **As Igor,** erasing on the Cockpit's web ink board
+- **I want to** have an eraser across a fold's marker take the whole fold and close up the ink below as the iPad does
+- **so that** a folded section goes whole on the web, never leaving its lines hidden under no header
+
+#### Acceptance Criteria:
+- **Scenario:** Erasing a fold through the module
+- **Given:** an outline loaded into the module with a header folded over a line and a line below it (a hand-worked one, and seeded ones folded)
+- **When:** the module is asked about a path across the fold's marker, a path across the header's words with and without `onHeader`, the fold by its header's name, and a path on clear paper
+- **Then:** it gives the app's own answer: the marker and the header's words with `onHeader` take the fold, its header and hidden line go and the line below closes up in whole lines; the words without `onHeader` and clear paper take nothing; with no outline, or neither a path nor headers, it says so
+
+---
+
 ### User Story 1267:
 
 - **Summary:** The web board asks the app's own rules which lines look like headers

@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 11, `bw_info abi is 11: ${JSON.stringify(info)}`);
+check(info.abi === 12, `bw_info abi is 12: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -495,6 +495,30 @@ check(isDeepStrictEqual(opening({ id: 'H' }), opened), 'asking leaves the outlin
 check(isDeepStrictEqual(opening({ id: 'X' }), { opening: null }), 'a header that is not there opens nothing');
 check(opening({}).error === 'no header id', 'no id says so');
 check(call('bw_outline_load', 'not json') === -1 && opening({ id: 'H' }).error === 'no outline is loaded', 'opening with no outline says so');
+
+// Interface 12, story 1265 (spec, erasing a fold whole): H at 100 folded over b1, the line below slid up to 180. H's
+// "▸ 1 line folded" (15 letters) sits 212..335.5 by 88..108. A path across it takes the fold: h1 and b1 go, H goes, and
+// the line at 178 closes up to H's top (98) in whole lines, 80. Across H's words it takes the fold only with onHeader;
+// clear paper takes nothing; by its name, the same as by its marker.
+const eraseInk = {
+  strokes: [line('h1', 100), { ...line('b1', 140), points: [[60, 140], [200, 140]], hidden: true }, line('n', 180)],
+  boxes: [], groups: {},
+  headers: [{ id: 'H', ids: ['h1'], fold: { ids: ['b1'], own: ['b1'], shift: 120, lines: 1, bottom: 40 } }],
+};
+check(call('bw_outline_load', eraseInk) === 3, `the fold to erase ${error() ?? ''}`);
+const foldErase = (body) => ask('bw_fold_erase', body);
+const hitH = (byMarker) => ({ byMarker, header: 'H', headers: ['H'], names: ['b1', 'h1'], top: 98 });
+const erasedH = { headers: ['H'], moves: { n: -80 }, names: ['h1', 'b1'] };
+const byMark = foldErase({ path: [[250, 95], [260, 95]] });
+check(isDeepStrictEqual(byMark, { erased: erasedH, hits: [hitH(true)] }), `across the marker: ${JSON.stringify(byMark)}`);
+check(isDeepStrictEqual(foldErase({ path: [[250, 95], [260, 95]] }), byMark), 'asking leaves the outline as it was');
+check(isDeepStrictEqual(foldErase({ headers: ['H'] }), byMark), `by name: ${JSON.stringify(foldErase({ headers: ['H'] }))}`);
+const words = foldErase({ path: [[50, 100], [60, 100]], onHeader: true });
+check(isDeepStrictEqual(words, { erased: erasedH, hits: [hitH(false)] }), `across its words with onHeader: ${JSON.stringify(words)}`);
+check(isDeepStrictEqual(foldErase({ path: [[50, 100], [60, 100]] }), { erased: null, hits: [] }), 'across its words without onHeader: nothing');
+check(isDeepStrictEqual(foldErase({ path: [[50, 600], [60, 600]] }), { erased: null, hits: [] }), 'on clear paper: nothing');
+check(foldErase({}).error === 'no path or headers', 'neither a path nor headers says so');
+check(call('bw_outline_load', 'not json') === -1 && foldErase({ headers: ['H'] }).error === 'no outline is loaded', 'erasing with no outline says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

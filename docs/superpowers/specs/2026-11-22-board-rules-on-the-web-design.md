@@ -295,6 +295,26 @@ leaves it out. `bw_info` says `"abi": 11`; versions 1 to 10 are unchanged.
   section would otherwise take. Null when there is none.
 - Asking changes nothing: the Cockpit opens the fold on its own board with the answer and loads the outline again.
 
+## The interface, version 12: erasing a fold whole
+
+Story 1265. An eraser across a folded header's "▸ N lines folded", or across the header's own words with a scratch-out,
+takes the whole fold on the web board as it does on the iPad: the header, everything it hides and every fold folded
+inside it go, and what was below closes up to where the header was, in whole lines. `bw_info` says `"abi": 12`;
+versions 1 to 11 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_fold_erase` | `{"path": [[x, y]], "reach"?, "onHeader"?}`, or `{"headers": [id]}` | a reply: `{"hits": [{"header", "byMarker", "headers", "names", "top"}], "erased": null \| {"names", "headers", "moves": {name: dy}}}`; `{"error"}` with no outline, or with neither a path nor headers |
+
+- With a path (board points), the folds it takes are the shown folds whose marker it passes within `reach` of (8 when
+  left out), and with `onHeader` those whose header's words it passes over too (never by its underline or #). With
+  `headers`, each named fold that is folded and shows is taken as if by its marker.
+- Each hit names its header, whether it was by the marker, every header that goes with it (folds inside it), every
+  stroke and box that goes, by name, and the top of its header's row.
+- `erased` is what erasing all of them at once does: the names and headers gone, and how far each thing below moved
+  up. Null when the path takes no fold.
+- Asking changes nothing: the Cockpit erases on its own board with the answer and loads the outline again.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
