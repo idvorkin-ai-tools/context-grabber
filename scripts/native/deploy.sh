@@ -21,7 +21,7 @@ while [ $# -gt 0 ]; do
       [ $# -ge 2 ] || { echo "deploy: --only needs a device" >&2; exit 2; }
       only=""
       IFS=, read -ra names <<<"${2:-}"
-      for n in "${names[@]}"; do
+      for n in ${names[@]+"${names[@]}"}; do
         case $n in
           ipad) n=$(ls -d ~/tmp/agent/bugs/context-grabber/ipad-* 2>/dev/null | head -1 | xargs -n1 basename 2>/dev/null); n=${n:-ipad-air-11-inch-m3} ;;
           phone | iphone) n=$(ls -d ~/tmp/agent/bugs/context-grabber/iphone-* 2>/dev/null | head -1 | xargs -n1 basename 2>/dev/null); n=${n:-iphone-17-pro} ;;
@@ -43,7 +43,8 @@ out=$(mktemp "${TMPDIR:-/tmp}/cg-deploy.XXXXXX")
 trap 'rm -f "$out"' EXIT
 # The install time is the deploy's start: deploy-all launches the app, starting its session, before it returns.
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-"$deploy_all" context-grabber "${args[@]}" 2>&1 | tee "$out"
+# ${args[@]+…}: macOS bash 3.2 under set -u calls an empty array unbound (bead context-grabber-hb5y).
+"$deploy_all" context-grabber ${args[@]+"${args[@]}"} 2>&1 | tee "$out"
 status=${PIPESTATUS[0]}
 
 # Each device that reports "installed" (launched or not) is in the ledger; a dry run installs nothing.

@@ -82,4 +82,15 @@ if grep -q '"device":"phone"' "$dir/deploys2.jsonl"; then cp "$dir/deploys2.json
 has "deploy then checks the device's next session" "ipad: MATCH ${want:0:8}"
 exits "a deploy that matches exits as deploy-all did" 0
 
+# Bead context-grabber-hb5y: plain `just deploy` (no options) under macOS's bash 3.2, where set -u fails on an empty
+# array; it must reach deploy-all with nothing after the app's name.
+: >"$dir/deploys3.jsonl"
+DEPLOY_ALL=$dir/deploy-all PULL_LOGS=$dir/pull DEPLOY_REPO=$repo DEPLOY_CHECK_WAIT=0 LEAD_TIMES_DEPLOYS=$dir/deploys3.jsonl \
+  GRABBER_LOGS=$logs /bin/bash "$here/deploy.sh" >"$out" 2>&1
+status=$?
+if grep -qx 'args: context-grabber' "$out"; then
+  ok "deploy with no options passes deploy-all only the app"
+else bad "deploy with no options passes deploy-all only the app"; fi
+exits "deploy with no options exits as deploy-all did" 0
+
 exit $fail
