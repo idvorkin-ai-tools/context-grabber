@@ -354,8 +354,13 @@ final class CallModel: ObservableObject {
       }
     }
     pathMonitor = monitor
-    monitor.start(queue: .global(qos: .utility))
+    // #1414 (story 1074), a guard, not a proven fix: the post-hang-up crash released a freed object in a block on a
+    // global concurrent queue, and this monitor was the only thing the call handed one. A serial queue of its own
+    // keeps its deliveries from running at once with each other or with its cancel.
+    monitor.start(queue: Self.networkQueue)
   }
+
+  private static let networkQueue = DispatchQueue(label: "call.network", qos: .utility)
 
   private func stopWatchingNetwork() {
     if let monitor = pathMonitor {

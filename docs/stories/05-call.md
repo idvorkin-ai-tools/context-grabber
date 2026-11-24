@@ -1428,7 +1428,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1074:
 
 - **Summary:** A crash after hanging up leaves, as the session log's last lines, which of the call's teardown steps was still in flight
-- **Status:** implemented in [0f2859c8](https://github.com/idvorkin/context-grabber/commit/0f2859c8) (instrumentation only, no fix yet); host-verified by `just test` and the Mac build (rung 1.5). The iPhone, where the crash happened, gets it with its next build (the no-iPhone rule holds it for now)
+- **Status:** implemented in [0f2859c8](https://github.com/idvorkin/context-grabber/commit/0f2859c8) (instrumentation); the call's network watch moved off the global queue onto its own serial one as a guard, not a proven fix; host-verified by `just test` and the Mac build (rung 1.5). The iPhone, where the crash happened, gets it with its next build (the no-iPhone rule holds it for now)
 - **Issues:** #1414, #1413 (iPhone, build 5271406b, 2026-11-24 14:52:36Z: SIGSEGV in objc_release from a block on a global queue, 1.4 s after a 23-minute call was hung up)
 - **Spec:** [Native call — What the call says about itself](../superpowers/specs/2026-08-28-native-call-screen-design.md#what-the-call-says-about-itself)
 
