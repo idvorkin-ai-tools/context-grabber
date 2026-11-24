@@ -33,12 +33,19 @@ struct WhiteboardQuestionCards: View {
       ForEach(questions.board.cards) { card in
         let frame = place.rect(WhiteboardQuestions.box(card))
         Button {
-          questions.tap(card)
+          if card.hidden { questions.show(card) } else { questions.tap(card) }
         } label: {
-          WhiteboardQuestionCardFace(card: card, title: questions.title(of: card), scale: place.scale)
-            .frame(width: frame.width, height: frame.height)
+          Group {
+            if card.hidden {
+              WhiteboardQuestionMarkFace(card: card, scale: place.scale)
+            } else {
+              WhiteboardQuestionCardFace(card: card, title: questions.title(of: card), scale: place.scale)
+            }
+          }
+          .frame(width: frame.width, height: frame.height)
         }
         .buttonStyle(.plain)
+        .modifier(WhiteboardQuestionDrag(questions: questions, card: card, scale: place.scale))
         .allowsHitTesting(!(place.erasing && card.answered != nil))
         .accessibilityLabel(WhiteboardQuestions.lines(card, title: questions.title(of: card)).joined(separator: ", "))
         .accessibilityIdentifier("whiteboard-question-\(card.ask)")
@@ -146,6 +153,14 @@ private struct WhiteboardQuestionPopup: View {
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           Button("Close") { dismiss() }.accessibilityIdentifier("whiteboard-question-close")
+        }
+        // Story 1273: any card, open or answered, shrinks to a bare '?' on the board.
+        ToolbarItem(placement: .primaryAction) {
+          if let card = questions.board.card(cardID) {
+            Button("Hide", systemImage: "questionmark.circle") { questions.hide(card) }
+              .labelStyle(.titleAndIcon)
+              .accessibilityIdentifier("whiteboard-question-hide")
+          }
         }
       }
     }

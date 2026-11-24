@@ -1,4 +1,4 @@
-//  Stories 880, 882, 883, 885, 889, 1119 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
+//  Stories 880, 882, 883, 885, 889, 1119, 1273, 1274 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
 //  it): Larry puts a question card on the board, a tap opens it, an option answers it through the fake's /act, the card
 //  keeps the question over the answer, opens read-only and folds to a chip that a tap opens out. Where cards land, the
 //  open asks naming a board, the answers fetched for asks closed elsewhere and the eraser are `WhiteboardQuestionsTests`,
@@ -156,5 +156,60 @@ final class WhiteboardQuestionUITests: XCTestCase {
     waitUntil(NSPredicate(format: "label == %@", "✓ Renew the gym for a year?, Month to month"), card, timeout: 10)
     let posted = try answers(cockpit).filter { $0["id"] as? String == "igor2-88g.879" }
     XCTAssertEqual(posted.map { $0["response"] as? String }, ["DECISION: Month to month"], "\(posted)")
+  }
+
+  /// Stories 1273, 1274 (#1387): *Hide* shrinks the open card to a bare '?' where its left end was, answering nothing;
+  /// the '?' and the card drag and stay where they're let go, a drag opening nothing; a tap on the '?' brings the card
+  /// back where the '?' is.
+  func testAQuestionHidesToAMarkAndDrags() throws {
+    guard let cockpit else { throw XCTSkip("needs the fake Cockpit: run scripts/native/test-whiteboard-ui.sh") }
+    let (app, card) = try boardWithQuestion(cockpit)
+    let line = "? Renew the gym for a year? ···"
+    let whole = card.frame
+
+    card.tap()
+    let hide = app.buttons["whiteboard-question-hide"]
+    XCTAssertTrue(hide.appears(within: 10), app.debugDescription)
+    hide.tap()
+    XCTAssertTrue(hide.waitForNonExistence(timeout: 5), "the popup closed: \(app.debugDescription)")
+    waitUntil(NSPredicate(format: "label == %@", "?"), card, timeout: 5)
+    let mark = card.frame
+    XCTAssertLessThan(mark.width, whole.width / 4, "a bare '?', not the card")
+    XCTAssertEqual(mark.minX, whole.minX, accuracy: 2, "where the card's left end was")
+    XCTAssertEqual(mark.minY, whole.minY, accuracy: 2)
+    XCTAssertTrue(try answers(cockpit).filter { $0["id"] as? String == "igor2-88g.879" }.isEmpty, "nothing answered")
+    let hidden = XCTAttachment(screenshot: app.screenshot())
+    hidden.name = "question-card-hidden"
+    hidden.lifetime = .keepAlways
+    add(hidden)
+
+    // Story 1274: the '?' drags and stays; a drag opens nothing.
+    let from = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    from.press(forDuration: 0.2, thenDragTo: from.withOffset(CGVector(dx: 150, dy: 120)))
+    XCTAssertFalse(app.buttons["decision-option-yes"].waitForExistence(timeout: 1), "a drag opens no popup")
+    XCTAssertEqual(card.frame.minX, mark.minX + 150, accuracy: 12, app.debugDescription)
+    XCTAssertEqual(card.frame.minY, mark.minY + 120, accuracy: 12, app.debugDescription)
+    XCTAssertEqual(card.label, "?", "still hidden after the drag")
+
+    // Story 1273: a tap brings the card back where the '?' is, and no popup opens.
+    let moved = card.frame
+    card.tap()
+    waitUntil(NSPredicate(format: "label == %@", line), card, timeout: 5)
+    XCTAssertFalse(app.buttons["decision-option-yes"].waitForExistence(timeout: 1), "showing it opens no popup")
+    XCTAssertEqual(card.frame.minY, moved.minY, accuracy: 2)
+    XCTAssertGreaterThan(card.frame.width, whole.width - 4, "the whole card again")
+
+    // The card itself drags too, and a tap still opens it afterwards.
+    let shown = card.frame
+    let grab = card.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5))
+    grab.press(forDuration: 0.2, thenDragTo: grab.withOffset(CGVector(dx: 0, dy: 160)))
+    XCTAssertEqual(card.frame.minY, shown.minY + 160, accuracy: 12, app.debugDescription)
+    XCTAssertFalse(app.buttons["decision-option-yes"].exists, "a drag opens no popup")
+    card.tap()
+    XCTAssertTrue(app.buttons["decision-option-yes"].appears(within: 10), app.debugDescription)
+    let picture = XCTAttachment(screenshot: app.screenshot())
+    picture.name = "question-card-moved"
+    picture.lifetime = .keepAlways
+    add(picture)
   }
 }

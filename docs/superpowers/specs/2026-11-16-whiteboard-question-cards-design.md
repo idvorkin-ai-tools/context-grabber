@@ -80,8 +80,8 @@ A tap on a chip opens it out again.
 hide there should be a '?', that's just a '?'"*). Every card's popup, open or answered, has *Hide*. It closes the popup
 and shrinks the card to a bare *?* on the board: a small round mark, Larry's purple for an open question, grey for an
 answered one, a finger's size at the board's normal zoom. The *?* sits where the card's left end was, at the place
-Larry put it beside the ink it is about (a recommendation; Igor hasn't settled where it goes, and the margin is the
-other choice). A tap on the *?* brings the card back as it was, open or answered, folded or not; it opens no popup.
+Larry put it beside the ink it is about (Larry agreed 2026-11-24; Igor is unsure, and drags it where he wants; the
+margin was the other choice). A tap on the *?* brings the card back as it was, open or answered, folded or not; it opens no popup.
 A hidden card stays hidden when the board is closed and opened again. The eraser takes an answered card's *?* as it
 takes the card; an open question's *?* stays.
 
