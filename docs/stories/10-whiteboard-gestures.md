@@ -1222,7 +1222,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A tap on the board brings up no Paste or Select All menu
 - **Issues:** [#1385](https://github.com/idvorkin/context-grabber/issues/1385) (Igor, 2026-11-24: "Every time I tap I get paste and select all"; then "better would be using my long hold paste")
-- **Status:** in progress
+- **Status:** implemented in [06598a44](https://github.com/idvorkin/context-grabber/commit/06598a44); verified by `just native-test`, the Mac build (rung 1.5) and the whiteboard classes on the iPad simulator (rung 2, `WhiteboardQuietTapUITests`: finger taps with the Pencil seen bring up no *Paste* or *Select All*). The simulator never brought the menu up, even before the fix (it comes with Only Draw with Apple Pencil, which a simulator can't set), so the iPad is still to show it: its log's `tap_menu_quiet` and an empty `board_cover` `edit_menu` after a tap
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *A tap brings up no system menu*
 
 #### Use Case:
