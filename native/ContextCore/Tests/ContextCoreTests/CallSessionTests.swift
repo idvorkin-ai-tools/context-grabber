@@ -403,7 +403,8 @@ final class CallSessionHandoffTests: XCTestCase {
     XCTAssertEqual(t.session.snapshot.endedReason, CallProtocol.connectionLost)
   }
 
-  func testARedialLostAgainBeforeAnyAudioEndsTheCall() {
+  /// Story 324: the redial lost before any audio, with no network change since it began, ends the call.
+  func testARedialLostAgainWithNoFreshNetworkChangeEndsTheCall() {
     let t = CallHarness()
     t.goLive()
     t.audio.mic()
@@ -412,10 +413,81 @@ final class CallSessionHandoffTests: XCTestCase {
     t.socket.drop()
     second.open()
     second.say(["type": "ready", "out_rate": 24000, "backend": "gemini", "session": "s2"])
-    t.session.networkChanged()
     second.drop()
-    XCTAssertEqual(redials(t).count, 1, "one redial until a call carries audio")
+    XCTAssertEqual(redials(t).count, 1, "no fresh change: no second redial")
     XCTAssertEqual(t.session.snapshot.state, .ended)
+    XCTAssertEqual(t.session.snapshot.endedReason, CallProtocol.connectionLost)
+  }
+
+  /// #1417, story 1075: cellular joining Wi-Fi 2.5 s into the redial took its socket; that second handoff redials.
+  func testASecondHandoffDuringTheRedialRedialsAgain() {
+    let t = CallHarness()
+    t.goLive(.eleven, voice: .igor)
+    t.audio.mic()
+    t.session.networkChanged()
+    let second = t.nextSocket()
+    t.socket.drop()
+    second.open()
+    second.say(["type": "ready", "out_rate": 24000, "backend": "eleven", "session": "s2"])
+    t.audio.mic()
+    t.clock.advance(2500)
+    t.session.networkChanged()
+    t.clock.advance(1700)
+    let third = t.nextSocket()
+    second.drop()
+    XCTAssertEqual(redials(t).count, 2)
+    XCTAssertEqual(redials(t).map { $0["handoff_redials"] as? Int }, [1, 2])
+    XCTAssertEqual(t.connects.count, 3)
+    XCTAssertEqual(t.session.snapshot.state, .connecting)
+    third.open()
+    XCTAssertEqual(third.frames.first?["backend"] as? String, "eleven")
+    XCTAssertEqual(t.session.snapshot.voice, .igor)
+  }
+
+  /// #1417, story 1075: at most three handoff redials in any sixty seconds; the fourth handoff ends the call.
+  func testAFourthHandoffInAMinuteEndsTheCall() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.mic()
+    var socket = t.socket
+    for n in 1...3 {
+      t.session.networkChanged()
+      let next = t.nextSocket()
+      socket.drop()
+      XCTAssertEqual(redials(t).count, n)
+      next.open()
+      next.say(["type": "ready", "out_rate": 24000, "backend": "gemini", "session": "s\(n + 1)"])
+      t.audio.mic()
+      t.clock.advance(5000)
+      socket = next
+    }
+    t.session.networkChanged()
+    socket.drop()
+    XCTAssertEqual(redials(t).count, 3, "three in the minute, no more")
+    XCTAssertEqual(t.session.snapshot.state, .ended)
+    XCTAssertEqual(t.session.snapshot.endedReason, CallProtocol.connectionLost)
+  }
+
+  /// #1417, story 1075: the minute slides; handoffs spread wider than that keep redialing.
+  func testHandoffRedialsOlderThanAMinuteStopCounting() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.mic()
+    var socket = t.socket
+    for n in 1...4 {
+      t.session.networkChanged()
+      let next = t.nextSocket()
+      socket.drop()
+      XCTAssertEqual(redials(t).count, n)
+      next.open()
+      next.say(["type": "ready", "out_rate": 24000, "backend": "gemini", "session": "s\(n + 1)"])
+      t.audio.mic()
+      t.clock.advance(25_000)
+      socket = next
+    }
+    XCTAssertEqual(redials(t).last?["handoff_redials"] as? Int, 3, "the first one fell out of the minute")
+    XCTAssertEqual(t.connects.count, 5, "the first call and four redials")
+    XCTAssertEqual(t.session.snapshot.state, .live)
   }
 
   func testACallThatCarriedAudioMayRedialOnTheNextHandoff() {

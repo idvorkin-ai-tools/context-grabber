@@ -688,9 +688,14 @@ screen's, and they do not care which client is connected.
   in the same voice, on the microphone and output Igor picked: *Calling Larry…* briefly, then *live*. Larry
   starts a fresh session (his greeting again); the ended call's captions give way to the new one's, Diagnostics
   keep both, and a redial that gets through files no trouble report. Losing every network is not a handoff and
-  ends the call. If the redial itself fails, or the
-  connection is lost again before Larry's audio has come through on it, the call ends *connection lost* as
-  before. A loss with no network change nearby is not a handoff and ends the call.
+  ends the call. If the redial itself fails, the call ends *connection lost*. If the redial's connection is lost
+  again before Larry's audio has come through on it, it redials again only when the phone's network changed
+  after that redial began (a second handoff: on 2026-11-24, in the car, cellular joined Wi-Fi 2.5 s into the
+  redial and took its socket); with no fresh change the call ends *connection lost* as before, so a network that
+  cannot carry a call is not dialled in a loop. At most three handoff redials in any sixty seconds: a fourth
+  handoff in that minute ends the call. Each redial is logged with its count in the minute. A loss with no network
+  change nearby is not a handoff and ends the call
+  ([#1417](https://github.com/idvorkin/context-grabber/issues/1417); Larry for Igor, 2026-11-24).
 - **A lost connection says why** ([#440](https://github.com/idvorkin/context-grabber/issues/440),
   [#439](https://github.com/idvorkin/context-grabber/issues/439)). Two calls from home in October ended
   *connection lost* seconds in; the phone saw the network connection drop and the bridge saw the phone vanish,
