@@ -840,6 +840,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1318:
+
+- **Summary:** A drop I dragged myself that only grazes ink is as designed
+- **Status:** in progress (Larry's proposal on PR #1379, approved 2026-11-24)
+- **Issues:** Larry, 2026-11-24: three of five real check-2 findings were overlaps of a few points on drops Igor dragged himself
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 2
+
+#### Use Case:
+- **As someone** who drags my own writing into place by hand
+- **I want to** have a drop that only grazes nearby ink seen as meant
+- **so that** the review only calls a bug when the board covered my writing
+
+#### Acceptance Criteria:
+- **Scenario:** A drop by hand that grazes
+- **Given:** I drag ink and drop it overlapping other ink by under 4 pt, or under 15% of the shorter box's height
+- **When:** the session is reviewed
+- **Then:** check 2 calls it as designed, while anything Larry placed overlapping by the same amount is still a bug
+
+---
+
 ### User Story 1252:
 
 - **Summary:** My ink moved without my aim is a bug, or asked about
