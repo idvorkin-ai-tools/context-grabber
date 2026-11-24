@@ -350,7 +350,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1292:
+### User Story 1303:
 
 - **Summary:** Another mark of the reply I chose changes nothing
 - **Status:** implemented in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9); verified by host tests (`WhiteboardKeepReplyTests.testATapChoosesTheWholeReplyAndAnotherOfItsMarksChangesNothing`; `just test`)
@@ -370,7 +370,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1293:
+### User Story 1304:
 
 - **Summary:** One mark is chosen alone, with no outline
 - **Status:** implemented in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9); verified by host tests (`WhiteboardKeepReplyTests.testALoneMarkHisTextAndClaudesAreKeptAlone`, `testTheOutlinedRepliesAreHisRepliesOfTwoOrMore`; `just test`)
