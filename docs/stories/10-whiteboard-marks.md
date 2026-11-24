@@ -233,7 +233,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 664:
 
 - **Summary:** A deliberate choice clears Larry's marks
-- **Status:** implemented in [a117e38](https://github.com/idvorkin/context-grabber/commit/a117e38); verified on the host (`WhiteboardGhostTurnsTests.testATapOffDismissesClaudesFirstAndLarrysOnlyWhenTheyAreAlone`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad; changed on branch `native/batch-decided-1114` (#883, story 825): a tap off the marks dismisses nothing, and a mark goes only by its own Dismiss; verified by host tests and the Mac build, simulator and device still to do
+- **Status:** implemented in [a117e38](https://github.com/idvorkin/context-grabber/commit/a117e38); verified on the host (`WhiteboardGhostTurnsTests.testATapOffDismissesClaudesFirstAndLarrysOnlyWhenTheyAreAlone`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad; changed on branch `native/batch-decided-1114` (#883, story 825): a tap off the marks dismisses nothing, and a mark goes only by its own Dismiss; verified by host tests and the Mac build, simulator and device still to do; criteria changed by #1383 (a reply of several marks is chosen and dismissed whole, stories 1285, 1286) in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9), verified there
 - **Issues:** [#823](https://github.com/idvorkin/context-grabber/issues/823) (one stray tap dismissed Larry's marks for good), [#883](https://github.com/idvorkin/context-grabber/issues/883) (Keep and Dismiss beside the mark, story 825)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -246,7 +246,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A tap off the ghosts with only Larry's left
 - **Given:** only Larry's marks are showing
 - **When:** I tap Dismiss beside each of them (story 825)
-- **Then:** each goes as I dismiss it, and a tap off them dismisses nothing
+- **Then:** each goes as I dismiss it (a reply of several marks goes at once, by *Dismiss group*: story 1286), and a tap off them dismisses nothing
 
 ---
 
@@ -273,7 +273,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 825:
 
 - **Summary:** Keep and Dismiss beside a tapped mark
-- **Status:** implemented on branch `native/batch-decided-1114`, merged in #909 ([09171cae](https://github.com/idvorkin/context-grabber/commit/09171cae)); verified by host tests (`WhiteboardMarkChoiceTests`: the tap and where the buttons sit) and the Mac build. Fixed in [6754880](https://github.com/idvorkin/context-grabber/commit/6754880): the dot PaperKit draws under a finger's tap is taken back (`PaperProbeTests.testATapsDotIsTheSmallInkAtTheTapJustAfterIt`), and Keep and Dismiss carry their own names; verified on an iPad simulator by `WhiteboardPaperGhostsUITests`, three runs, every test passing first time. The iPad itself still to do
+- **Status:** implemented on branch `native/batch-decided-1114`, merged in #909 ([09171cae](https://github.com/idvorkin/context-grabber/commit/09171cae)); verified by host tests (`WhiteboardMarkChoiceTests`: the tap and where the buttons sit) and the Mac build. Fixed in [6754880](https://github.com/idvorkin/context-grabber/commit/6754880): the dot PaperKit draws under a finger's tap is taken back (`PaperProbeTests.testATapsDotIsTheSmallInkAtTheTapJustAfterIt`), and Keep and Dismiss carry their own names; verified on an iPad simulator by `WhiteboardPaperGhostsUITests`, three runs, every test passing first time. The iPad itself still to do; criteria changed by #1383 (a reply of several marks is chosen and dismissed whole, stories 1285, 1286) in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9), verified there
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -286,14 +286,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A tap on a mark at the edge
 - **Given:** Larry's marks are showing on a board, one of them at the edge of the screen
 - **When:** I tap the one at the edge
-- **Then:** nothing on the board has changed, only Keep and Dismiss show beside it, wholly on screen; Keep keeps that mark and the rest of its reply (story 1154), Dismiss that mark alone
+- **Then:** nothing on the board has changed, only Keep and Dismiss show beside it, wholly on screen; Keep keeps that mark and the rest of its reply (story 1154), Dismiss that mark alone; beside a reply of several marks they read *Keep group* and *Dismiss group* and take the whole reply (stories 1285, 1286)
 
 ---
 
 ### User Story 1154:
 
 - **Summary:** Keep beside any mark of Larry's reply keeps the whole reply as one group
-- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testKeepBesideOneEyeKeepsAllSevenOfTheFace`) and the simulator (`WhiteboardTheirsTapUITests.testKeepBesideOneMarkOfAReplyKeepsTheWholeReply`)
+- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testKeepBesideOneEyeKeepsAllSevenOfTheFace`) and the simulator (`WhiteboardTheirsTapUITests.testKeepBesideOneMarkOfAReplyKeepsTheWholeReply`); criteria changed by #1383 (a reply of several marks is chosen and dismissed whole, stories 1285, 1286) in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9), verified there
 - **Issues:** bead context-grabber-it0e (Igor on the iPad, 2026-11-22 21:28: "Keep is not keeping the group properly"; he kept one eye, both labels and the arrow of Larry's 7-mark smiley face one mark at a time, and the face circle, the smile and the other eye stayed behind as marks to keep. Igor chose option A at 21:34)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep beside any mark of a reply keeps the whole reply*
 
@@ -304,7 +304,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Keep beside one mark of a reply
-- **Given:** Larry's reply of seven marks shows (a face circle, a smile, two eyes, an arrow and two labels), and Keep and Dismiss show beside one eye
+- **Given:** Larry's reply of seven marks shows (a face circle, a smile, two eyes, an arrow and two labels), and *Keep group* and *Dismiss group* show beside it, chosen by a tap on one eye (story 1285)
 - **When:** I tap Keep
 - **Then:** all seven become ink where they showed, as one group named for his reply, no marks of that reply are left to keep, and one undo named *Keep* takes all seven back
 
@@ -413,7 +413,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1211:
 
 - **Summary:** Keep beside a reply's mark leaves another reply's marks showing
-- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testKeepBesideOneEyeKeepsAllSevenOfTheFace`)
+- **Status:** implemented in 04f92c9f (bead context-grabber-it0e); verified by host tests (`WhiteboardKeepReplyTests.testKeepBesideOneEyeKeepsAllSevenOfTheFace`); criteria changed by #1383 (a reply of several marks is chosen and dismissed whole, stories 1285, 1286) in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9), verified there
 - **Issues:** bead context-grabber-it0e
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep beside any mark of a reply keeps the whole reply*
 
@@ -424,7 +424,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Another reply's marks stay
-- **Given:** two of Larry's replies show, Keep and Dismiss beside a mark of the first
+- **Given:** two of Larry's replies show, *Keep group* and *Dismiss group* beside the first, chosen by a tap on one of its marks
 - **When:** I tap Keep
 - **Then:** the whole first reply is kept and the second's marks still show, to keep or dismiss
 
@@ -453,7 +453,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 808:
 
 - **Summary:** Dismiss beside a mark removes only it
-- **Status:** implemented on branch `native/batch-decided-1114`, merged in #909 ([09171cae](https://github.com/idvorkin/context-grabber/commit/09171cae)); verified by host tests (`WhiteboardMarkChoiceTests.testDismissRemovesOnlyThatMark`, `WhiteboardMarksTests.testSettlingRemembersOnlyThatRowsKeptOrDismissedMarks`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Status:** implemented on branch `native/batch-decided-1114`, merged in #909 ([09171cae](https://github.com/idvorkin/context-grabber/commit/09171cae)); verified by host tests (`WhiteboardMarkChoiceTests.testDismissRemovesOnlyThatMark`, `WhiteboardMarksTests.testSettlingRemembersOnlyThatRowsKeptOrDismissedMarks`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do; criteria changed by #1383 (a reply of several marks is chosen and dismissed whole, stories 1285, 1286) in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9), verified there
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -464,7 +464,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Dismissing one of his marks
-- **Given:** Keep and Dismiss show beside one of Larry's three marks
+- **Given:** Keep and Dismiss show beside one of Larry's three marks, no two of them from one reply (a reply of several goes whole: story 1286)
 - **When:** I tap Dismiss
 - **Then:** only that mark goes, and when the board opens again it stays gone while his other two show
 
@@ -1110,7 +1110,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1149:
 
 - **Summary:** One Keep all keeps each reply of Larry's as one group, with one make-room and one Undo
-- **Status:** decided 2026-11-22 (bead context-grabber-nrg); implemented in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e) (#1224, merge ef074fc8: Keep group and Keep all made one *Keep all*, bead context-grabber-yqau), the change main's stories 895, 995, 999, 1004 and 1009 also record; verified by host tests (`WhiteboardKeepAllTests`, `BoardMarksReplayTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`); not yet seen on the iPad
+- **Status:** decided 2026-11-22 (bead context-grabber-nrg); implemented in [96fb571e](https://github.com/idvorkin/context-grabber/commit/96fb571e) (#1224, merge ef074fc8: Keep group and Keep all made one *Keep all*, bead context-grabber-yqau), the change main's stories 895, 995, 999, 1004 and 1009 also record; verified by host tests (`WhiteboardKeepAllTests`, `BoardMarksReplayTests`; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardPaperGhostsUITests`, `WhiteboardGroupTapUITests`, `WhiteboardTheirsTapUITests`, `WhiteboardTurnUITests`); not yet seen on the iPad; criteria changed by #1383 (a reply of several marks is chosen and dismissed whole, stories 1285, 1286) in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9), verified there
 - **Spec:** [Ink that reflows like text](../superpowers/specs/2026-11-16-whiteboard-object-layer-design.md), *Decided 2026-11-22*
 - **Issues:** Igor's pick on the design board, 2026-11-22: "One rule everywhere: his ink never covers writing he didn't see; my newer writing moves down in whole lines; every cut lands between lines; Keep all behaves like Keep group. A fold is erased only by its words or its marker."
 
@@ -1122,7 +1122,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** Keep all over newer writing
 - **Given:** marks from two of Larry's replies showing, one of their labels on a line I wrote after his picture went
-- **When:** I tap *Keep all* beside the count of marks to keep (there is no *Keep group*; a single mark I tap offers only Keep and Dismiss)
+- **When:** I tap *Keep all* beside the count of marks to keep (there is no separate *Keep group* button; a mark I tap offers only Keep and Dismiss, which read *Keep group* and *Dismiss group* beside a reply of several, story 1285)
 - **Then:** every mark becomes ink where it showed, each reply's marks become one group a tap picks up whole (story 1205), my newer line and everything under it move down in whole lines in one make-room (story 1148), and one Undo, named *Keep all*, takes all of it back
 
 ---

@@ -200,7 +200,8 @@ suggest changes the board until Igor keeps it.
       reply mark by mark).
     - The session log's keep line says whether it made room, where and how far, how many things it landed on that Igor
       wrote after the picture, and when that picture was taken, or that its time isn't known.
-  - **Dismiss** removes that mark and only that mark. It isn't kept, and it doesn't come back, on the next look or the
+  - **Dismiss** removes that mark and only that mark (beside a reply of several marks it is *Dismiss group* and takes
+    the whole reply: *A reply of several marks shows, is chosen and is turned down as one group*, above). It isn't kept, and it doesn't come back, on the next look or the
     next time the board opens. The other marks stay, and the rest of an answer still on its way still lands.
   - **A tap anywhere else puts the buttons away and changes nothing**: no mark is kept or dismissed by a stray tap.
     Starting to draw puts them away too, and the Pencil keeps drawing while they show. If their mark goes (Claude's
