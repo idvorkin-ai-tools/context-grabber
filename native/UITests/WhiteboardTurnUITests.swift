@@ -228,7 +228,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(named.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.staticTexts["Ask at my pauses"].exists, app.debugDescription)
     shot("whiteboard-bar-long-press")
-    named.tap()
+    named.tapWhenSettled()
     waitUntil(NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: off'"), ghosts, timeout: 5)
     ghosts.tap()
     waitUntil(NSPredicate(format: "label BEGINSWITH 'Ask at my pauses: on'"), ghosts, timeout: 5)
@@ -275,7 +275,9 @@ final class WhiteboardTurnUITests: XCTestCase {
     asking.press(forDuration: 1.2)
     let stop = app.buttons["Stop asking Larry at my pauses"]
     XCTAssertTrue(stop.appears(within: 5), app.debugDescription)
-    stop.tap()
+    // Bead context-grabber-3zil: a menu's row exists before it stops moving, and a tap then can miss, leaving the menu
+    // up over the bar (#686), so the button under it reads as not found: the tap waits for the row to settle.
+    stop.tapWhenSettled()
     wait(asking, label: "Ask at my pauses: off, 2 showing", timeout: 5)
     try aPauseAsksNoOne(app, cockpit, strokes: 2, atHeight: 0.35)
     XCTAssertTrue(
@@ -295,7 +297,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     let ask = app.buttons["Ask Haiku at my pauses"]
     XCTAssertTrue(ask.appears(within: 5), app.debugDescription)
     shot("whiteboard-ask-at-my-pauses-haiku")
-    ask.tap()
+    ask.tapWhenSettled()
     wait(asking, label: "Ask at my pauses: on, 2 showing", timeout: 5)
     asking.tap()
     wait(asking, label: "Ask at my pauses: off, 2 showing", timeout: 5)
