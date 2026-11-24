@@ -52,7 +52,7 @@ App files, each its own `+Review` extension:
 
 | File | What |
 |---|---|
-| `native/App/Whiteboard/WhiteboardModel+Review.swift` | The session's lifetime (open, idle timer, close, a cut-short session reviewed on next open), appending model-side steps (Larry's ops, keeps, folds, room, paste, undo names), running `BoardReview` off the main actor, storing the record and report |
+| `native/App/Whiteboard/WhiteboardModel+Review.swift` | The session's lifetime (open, idle timer, close, a cut-short session reviewed on next open), appending model-side steps (Larry's ops, keeps, folds, room, paste, undo names), running `BoardReview` off the main actor; the record and report are stored by ContextCore's `Storage/BoardReviewDisk.swift` (host-tested, and the keeper of *a session is reviewed once*) |
 | `native/App/Whiteboard/PaperBoard+Review.swift` | Surface-side steps from what the board already observes and logs: `paper_ink` (changes, `undoing`), `paper_drop`/`paper_drop_after`, `paper_apart`, `group_tap_lost`/`_after`, `paper_keep` (pen before/after), `paper_kept_ink` (`span`, `dark_px`, heals), the touch's start (`on_knob`, `handle_inside`, the reflow view) from `PaperBoard+MoveAudit.swift` |
 | `native/App/Whiteboard/BoardReviewNote.swift` | The corner note and the findings list; each finding a `BugProblemView`-style copyable block; *Show me* opens `BoardPlayback` at the step with before/after and the named ids marked; *I meant that* / *Not what I meant* |
 
