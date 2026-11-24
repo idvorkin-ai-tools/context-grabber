@@ -177,7 +177,9 @@ struct WhiteboardConversationPanel: View {
     VStack(alignment: .leading, spacing: 6) {
       if look == .bubbles, let chat {
         WhiteboardConversationBubbles(
-          bubbles: WhiteboardPanelLook.bubbles(rows), maxHeight: threadCap, chat: chat, thread: threadKey ?? "")
+          bubbles: WhiteboardPanelLook.bubbles(rows), maxHeight: threadCap, chat: chat, thread: threadKey ?? ""
+        )
+        .environment(\.bubbleLinkOpened, linkOpened)
       } else {
         WhiteboardConversationText(rows: rows, maxHeight: threadCap, linkOpened: linkOpened)
       }

@@ -1295,6 +1295,8 @@ extension EnvironmentValues {
   /// Bead context-grabber-dbku: how a picture inside a thread jumps to its board, over that same thread (nil outside
   /// one, where the jump goes the link's way).
   @Entry var jumpToBoard: (@MainActor (_ board: String, _ from: String) -> Void)?
+  /// Story 1277 (#1384): who logs a tapped chip in a bubble's text; nil logs it as Chat's own (story 1127).
+  @Entry var bubbleLinkOpened: (@MainActor (ChatLink) -> Void)?
 }
 
 private struct ChatImage: View {
@@ -1455,6 +1457,7 @@ private struct ReviewBatchCard: View {
   /// GRABBER_CHAT_REVIEW=open: the card's first note opens by itself, for the simulator.
   @State private var openHook = LaunchHooks.current.chat.reviewOpen
   @Environment(\.openURL) private var openURL
+  @Environment(\.bubbleLinkOpened) private var linkOpened
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
@@ -1462,7 +1465,7 @@ private struct ReviewBatchCard: View {
         if let url = batch.page {
           let link = ChatLink(url: url, kind: .web, label: batch.title, id: url.absoluteString)
           LinkChip(link: link) {
-            chat.logLinkOpened(link, thread: thread, from: "review")
+            if let linkOpened { linkOpened(link) } else { chat.logLinkOpened(link, thread: thread, from: "review") }
             openURL(url)
           }
         } else {
@@ -1566,6 +1569,7 @@ private struct BubbleWords: View {
   let chat: ChatModel
   let thread: String
   @Environment(\.openURL) private var openURL
+  @Environment(\.bubbleLinkOpened) private var linkOpened
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
@@ -1594,7 +1598,7 @@ private struct BubbleWords: View {
   }
 
   private func open(_ link: ChatLink) {
-    chat.logLinkOpened(link, thread: thread, from: "bubble")
+    if let linkOpened { linkOpened(link) } else { chat.logLinkOpened(link, thread: thread, from: "bubble") }
     openURL(link.url)
   }
 }
