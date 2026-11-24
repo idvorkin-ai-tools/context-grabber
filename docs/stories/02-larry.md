@@ -3544,7 +3544,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A thread says it is loading while its first read is on its way
 - **Issues:** [#1362](https://github.com/idvorkin/context-grabber/issues/1362)
-- **Status:** in progress on branch native/chat-loading-1362
+- **Status:** implemented in [86c5457e](https://github.com/idvorkin/context-grabber/commit/86c5457e); verified by the host rung (`ChatThreadLoadingTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests.testASlowFirstReadSaysItIsLoading` against the fake Cockpit's `/fake/slow`, with the other chat classes); the devices are not yet verified
 - **Spec:** [Chat with Larry — Saying plainly when the Cockpit is down](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
