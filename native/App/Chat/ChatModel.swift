@@ -106,6 +106,7 @@ final class ChatModel: ObservableObject {
       database.setting(Self.foldedLinksKey)
       .flatMap { try? JSONDecoder().decode(Set<String>.self, from: Data($0.utf8)) } ?? []
     declined = .restored(database.setting(ChatLooksDoneDeclined.settingKey))
+    restoreSiteNames()
   }
 
   // MARK: Turning down Larry's proposals (#1098)
@@ -226,6 +227,49 @@ final class ChatModel: ObservableObject {
     guard !prStatesFailing else { return }
     prStatesFailing = true
     log.event("chat", ["action": "pr_states_failed", "reason": why, "refs": refs, "from": place])
+  }
+
+  // MARK: Site names from the Cockpit (story 1135)
+
+  private static let siteNamesKey = "chat_site_names"
+  /// A Cockpit without the list (or down) is logged once a launch, not on every chat opened.
+  private static var siteNamesFailed = false
+
+  /// The last list the Cockpit gave, kept across launches; the shipped names until there is one.
+  private func restoreSiteNames() {
+    guard let saved = database.setting(Self.siteNamesKey), let names = ChatSiteNames.parse(Data(saved.utf8)) else {
+      return
+    }
+    ChatSiteNames.current = names
+  }
+
+  /// Asks the Cockpit for its site names when a chat opens. A new list redraws the chips and is kept; a failure or an
+  /// unreadable answer keeps what the chips read now, and only the log hears of it.
+  private func readSiteNames() async {
+    guard !inbox.offline, cockpit != ChatCockpit.nowhere else { return }
+    do {
+      let (data, response) = try await URLSession.shared.data(for: try ChatSiteNames.request(cockpit: cockpit))
+      let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+      guard status == 200, let names = ChatSiteNames.parse(data) else {
+        siteNamesFailed(status == 200 ? "unreadable" : "HTTP \(status)")
+        return
+      }
+      guard names != ChatSiteNames.current else { return }
+      ChatSiteNames.current = names
+      database.setSetting(Self.siteNamesKey, String(decoding: names.saved, as: UTF8.self))
+      objectWillChange.send()
+      log.event("chat", ["action": "site_names_read", "sites": names.names.count])
+    } catch is CancellationError {
+    } catch let error as URLError where error.code == .cancelled {
+    } catch {
+      siteNamesFailed(error.localizedDescription)
+    }
+  }
+
+  private func siteNamesFailed(_ why: String) {
+    guard !Self.siteNamesFailed else { return }
+    Self.siteNamesFailed = true
+    log.event("chat", ["action": "site_names_failed", "reason": why])
   }
 
   func title(of key: String) -> String {
@@ -432,6 +476,7 @@ final class ChatModel: ObservableObject {
     // #878: the card at the top comes from the open asks, read once per open, not on every poll.
     decisions.threadOpened(key)
     Task { await decisions.refresh(reason: "thread") }
+    Task { await readSiteNames() }
     poll?.cancel()
     poll = Task { [weak self] in
       var seenOnce = false

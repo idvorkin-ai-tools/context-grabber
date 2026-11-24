@@ -4,8 +4,8 @@ import PackageDescription
 // ChatWireKit's files, which stay where they are in ContextCore's tree (plan 2026-11-22-contextcore-targets-plan.md).
 let chatWireSources = [
   "Chat/ChatWire.swift", "Chat/ChatDecisions.swift", "Chat/ChatMove.swift", "Chat/ChatLinks.swift",
-  "Chat/ChatBubbleLinks.swift", "Chat/ChatCockpitLink.swift", "Cockpit/CockpitAddress.swift",
-  "Archive/ArchiveRecord.swift", "Chat/AppBuild.swift", "Platform/FoundationLite.swift",
+  "Chat/ChatSiteNames.swift", "Chat/ChatBubbleLinks.swift", "Chat/ChatCockpitLink.swift",
+  "Cockpit/CockpitAddress.swift", "Archive/ArchiveRecord.swift", "Chat/AppBuild.swift", "Platform/FoundationLite.swift",
   "Platform/FoundationLiteShims.swift",
 ]
 

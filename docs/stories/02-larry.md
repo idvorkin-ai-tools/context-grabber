@@ -3318,6 +3318,36 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 1135:
+
+- **Summary:** A link's chip reads the site's short name the Cockpit gives, so a new name needs no app release
+- **Status:** native app: in progress on branch `native/server-link-labels`
+- **Issues:** Larry, 2026-11-24, Cockpit thread igor2-88g.1620 (msg 1edde2605703): Igor said yes to server-sent link labels; background in thread igor2-88g.1571
+- **Spec:** [Chat with Larry — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md), *Site names come from the Cockpit*
+
+#### Use Case:
+- **As** Igor, reading a Larry thread full of links to his explainer pages
+- **I want to** see *ai-tools/p04.html* instead of *idvorkin-ai-tools.github.io/p04.html*, and have the next short name appear without an app update
+- **so that** chips stay short and Larry can rename a site from the Cockpit alone
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit names a site
+- **Given:** the Cockpit's site names include *idvorkin-ai-tools.github.io* as *ai-tools* and *example.org* as *ex*
+- **When:** I open a thread linking https://idvorkin-ai-tools.github.io/p04.html, https://example.org/a/b and https://example.org/
+- **Then:** the chips read *ai-tools/p04.html*, *ex/b* and *ex*, on the strip and in the bubbles, each opening its full address
+
+- **Scenario:** No list from the Cockpit yet
+- **Given:** a first launch with the Cockpit unreachable
+- **When:** I open a thread linking https://idvorkin-ai-tools.github.io/p04.html
+- **Then:** the chip reads *ai-tools/p04.html* from the names the app ships with; once the Cockpit answers, its list is used and kept for the next launch
+
+- **Scenario:** A name never changes a special chip
+- **Given:** a list that also names *github.com*, *gist.github.com* and the Cockpit's own host
+- **When:** a thread links a PR, a gist, a Cockpit thread and a Lavish page
+- **Then:** they still read *PR #n*, *gist*, *Inbox* and *Larry: Lavish*; and a list the app can't read leaves every chip as it was
+
+---
+
 ### User Story 1136:
 
 - **Summary:** A Cockpit that blinks files no report
