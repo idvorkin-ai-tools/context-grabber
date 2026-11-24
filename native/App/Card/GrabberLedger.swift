@@ -53,7 +53,9 @@ enum GrabberLedger {
     if let device, let ledger = device.services["ledger"] {
       config = LedgerConfig(url: ledger.absoluteString, key: device.key)
     }
-    return LedgerPairing(config: config, message: status.message(), needsPairing: status.needsPairing)
+    // #1356: beside *Pair with code*, where a code comes from.
+    let message = DrillPairingHint.pairingMessage(status.message(), needsPairing: status.needsPairing)
+    return LedgerPairing(config: config, message: message, needsPairing: status.needsPairing)
   }
 
   /// Story 238: a code from *Stats*, redeemed at the box's pairing host, never a host that was pasted. The code

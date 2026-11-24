@@ -676,6 +676,29 @@ redeem and reads the phone's shared pairing.
 
 ---
 
+### User Story 571:
+
+- **Summary:** The drill's Stats says where a pair link comes from
+- **Status:** native app only: implemented in [4e31ea21](https://github.com/idvorkin/context-grabber/commit/4e31ea21), verified by host tests (`DrillPairingHintTests`), the Mac build and the iPad Pro 11-inch (M5) simulator (`CardUITests` and the smoke); the words on an unpaired phone not yet seen
+- **Issues:** [#1356](https://github.com/idvorkin/context-grabber/issues/1356)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+Igor, 2026-11-23 (#1356): "I need a pair code. I don't know how to get one." Nothing beside the field said where a
+code comes from: Larry makes one on the box and sends it as a link.
+
+#### Use Case:
+- **As a** man practising his stack in Grabber Native whose phone needs pairing
+- **I want to** be told, beside *Pair with code*, how to get a pair link
+- **so that** I can pair (story 238) without guessing where a code comes from
+
+#### Acceptance Criteria:
+- **Scenario:** Where a code comes from
+- **Given:** the phone is unpaired, its key expired or the ledger refused it
+- **When:** I open the drill's *Stats*
+- **Then:** beside *Pair with code* it says to ask Larry in chat for a pair link, and that the link lasts 10 minutes
+
+---
+
 ### User Story 227:
 
 - **Summary:** A Stats load that fails in the drill is a copyable error

@@ -22,4 +22,17 @@ final class DrillPairingHintTests: XCTestCase {
       XCTAssertEqual(DrillPairingHint.explained(message), message)
     }
   }
+
+  /// Story 571 (#1356): while the phone needs pairing, Stats says where a code comes from.
+  func testWhilePairingIsNeededItSaysWhereALinkComesFrom() {
+    let said = DrillPairingHint.pairingMessage("Not paired. Ask Larry to pair this device.", needsPairing: true)
+    XCTAssertEqual(
+      said, "Not paired. Ask Larry to pair this device. He sends a pair link in chat when asked; it lasts 10 minutes.")
+  }
+
+  func testAPairedPhoneSaysOnlyItsPairing() {
+    XCTAssertEqual(
+      DrillPairingHint.pairingMessage("Paired as Igor's iPhone until Dec 8", needsPairing: false),
+      "Paired as Igor's iPhone until Dec 8")
+  }
 }
