@@ -1870,7 +1870,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1284:
 
 - **Summary:** Writing never zooms the board, however the palm shifts
-- **Status:** implemented in 821f2e6a; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
+- **Status:** implemented in 888797de and ce4562c0; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
 - **Issues:** bead `context-grabber-hxzv` (Igor, 2026-11-24 ~05:00, via Larry: "it zooms while I write")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
 
@@ -1888,7 +1888,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1290:
 
 - **Summary:** A palm and a fingertip together never zoom the board
-- **Status:** implemented in 821f2e6a; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
+- **Status:** implemented in 888797de and ce4562c0; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
 - **Issues:** bead `context-grabber-hxzv`
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
 
@@ -1906,7 +1906,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1291:
 
 - **Summary:** Two fingertips still pinch the board once everything has lifted
-- **Status:** implemented in 821f2e6a; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
+- **Status:** implemented in 888797de and ce4562c0; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
 - **Issues:** bead `context-grabber-hxzv`
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
 
@@ -1924,7 +1924,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1296:
 
 - **Summary:** Fingers landing just as the Pencil lifts never zoom the board
-- **Status:** not implemented (bead `context-grabber-hxzv`)
+- **Status:** implemented in 563a9e08; verified by the host tests (`PaperProbeTests.testFingersJustAfterThePencilLiftsDontPinch`); the real Pencil lift on the iPad is still to check
 - **Issues:** bead `context-grabber-hxzv` (Larry, 2026-11-24: match the web board's 400 ms after a Pencil lift)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
 
