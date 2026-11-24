@@ -26,16 +26,6 @@ public enum WhiteboardFrame {
   /// Never drawn finer than the iPad's own screen.
   public static let maxScale: CGFloat = 2
 
-  /// The scroll offset that puts the drawing's centre (the board's middle when nothing is drawn) in the middle of
-  /// `viewport`, kept on the board.
-  public static func openingOffset(drawing: CGRect?, viewport: CGSize) -> CGPoint {
-    let centre =
-      drawing.flatMap { $0.isNull || $0.isEmpty ? nil : CGPoint(x: $0.midX, y: $0.midY) }
-      ?? CGPoint(x: side / 2, y: side / 2)
-    let clamp = { (v: CGFloat, span: CGFloat) in min(max(v - span / 2, 0), max(side - span, 0)) }
-    return CGPoint(x: clamp(centre.x, viewport.width), y: clamp(centre.y, viewport.height))
-  }
-
   /// Larry's picture: the drawing plus a margin, kept `within` (the pages a picture on paper shows, story 433), and the
   /// scale that keeps it within the pixel budget and the long side within `maxLong`. Nil for an empty drawing.
   public static func export(_ drawing: CGRect, within: CGRect = .infinite) -> (rect: CGRect, scale: CGFloat)? {
@@ -51,15 +41,6 @@ public enum WhiteboardFrame {
   /// screen, which bounds the lines however far it is pinched out, and the lines that stay were lines already.
   public static let gridStep: CGFloat = 40
   public static let gridMinGap: CGFloat = 24
-
-  /// The lines that cover a viewport, in the canvas's own (zoomed) points.
-  public struct Grid: Equatable, Sendable {
-    public var origin: CGPoint
-    /// Between neighbouring lines.
-    public var gap: CGFloat
-    public var across: Int
-    public var down: Int
-  }
 
   /// #624: what moved between two versions of a drawing with the same strokes, by each stroke's box. `dx`/`dy` are the
   /// first moved stroke's, `topY` the highest moved stroke's top. Nil when nothing moved or the counts differ.
@@ -79,13 +60,5 @@ public enum WhiteboardFrame {
     var step = gridStep
     while step * zoom < gridMinGap { step *= 2 }
     return step
-  }
-
-  /// `offset` and `viewport` in zoomed points. Equal until the view crosses a line, so nothing moves between crossings.
-  public static func grid(offset: CGPoint, viewport: CGSize, zoom: CGFloat) -> Grid {
-    let gap = lineStep(zoom: zoom) * zoom
-    return Grid(
-      origin: CGPoint(x: (offset.x / gap).rounded(.down) * gap, y: (offset.y / gap).rounded(.down) * gap), gap: gap,
-      across: Int((viewport.width / gap).rounded(.up)) + 2, down: Int((viewport.height / gap).rounded(.up)) + 2)
   }
 }

@@ -162,9 +162,9 @@ final class WhiteboardTurnTests: XCTestCase {
 
   func testATapNearAGhostsLineHitsIt() {
     let lines = [[CGPoint(x: 0, y: 0), CGPoint(x: 100, y: 0)]]
-    XCTAssertTrue(WhiteboardTurn.hit(lines, at: CGPoint(x: 50, y: 8), tolerance: 10))
-    XCTAssertFalse(WhiteboardTurn.hit(lines, at: CGPoint(x: 50, y: 12), tolerance: 10))
-    XCTAssertFalse(WhiteboardTurn.hit(lines, at: CGPoint(x: 115, y: 0), tolerance: 10))
+    XCTAssertEqual(WhiteboardTurn.reach(lines, kind: .line, at: CGPoint(x: 50, y: 8), tolerance: 10), 8)
+    XCTAssertNil(WhiteboardTurn.reach(lines, kind: .line, at: CGPoint(x: 50, y: 12), tolerance: 10))
+    XCTAssertNil(WhiteboardTurn.reach(lines, kind: .line, at: CGPoint(x: 115, y: 0), tolerance: 10))
   }
 
   #if canImport(CoreText)

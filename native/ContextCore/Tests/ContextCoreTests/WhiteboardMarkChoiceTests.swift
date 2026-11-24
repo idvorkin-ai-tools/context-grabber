@@ -3,6 +3,11 @@ import XCTest
 
 @testable import ContextCore
 
+extension WhiteboardGhostTurns {
+  /// A tap that is on exactly the marks `hitting` says, at no distance: the tests' way to say which mark a finger met.
+  mutating func tap(hitting: (Ghost) -> Bool) -> Tap { tapNearest(reach: { hitting($0) ? 0 : nil }) }
+}
+
 /// Stories 825, 808, 809, 810 (#883): a tap on a mark shows Keep and Dismiss beside it, a stray tap or a stroke puts them away and
 /// changes nothing, Keep is the old keep and Dismiss removes that one mark. The oracle is the shapes spec's "A tap on a
 /// mark offers Keep and Dismiss".
