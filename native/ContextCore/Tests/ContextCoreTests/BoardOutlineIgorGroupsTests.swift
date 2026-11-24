@@ -57,8 +57,8 @@ final class BoardOutlineIgorGroupsTests: XCTestCase {
 
   func testHisGroupStillMovesWhole() {
     let o = board(mine: ["g"])
-    let groups = ["h0": "g", "h1": "g", "h2": "g"]
-    let item = BoardOps.items(strokes: o.strokes, groups: groups).first { $0.tag == "g" }
-    XCTAssertEqual(item?.members.count, 3, "his group is still one thing that moves whole")
+    let mine = o.units().filter { $0.tag == "g" }
+    XCTAssertEqual(mine.count, 1, "his group is still one thing that moves whole")
+    XCTAssertEqual(Set(o.names(mine.first?.members ?? [])), ["h0", "h1", "h2"])
   }
 }

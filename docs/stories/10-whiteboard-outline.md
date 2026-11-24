@@ -658,13 +658,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** A group I made is a line of my writing
 - **Given:** a line of my words that I grouped on the web board, with writing under it
-- **When:** I underline it, write a # at its start, or tap the margin beside it
+- **When:** I make it a header (an underline, a # at its start, or a margin tap)
 - **Then:** it becomes a header, as an ungrouped line would, and it still moves whole as one group
-
-- **Scenario:** A group of Larry's is not my writing
-- **Given:** one of Larry's groups (his marks, kept) on a line of its own
-- **When:** I underline it or tap the margin beside it
-- **Then:** it does not become a header, as before
 
 ---
 
