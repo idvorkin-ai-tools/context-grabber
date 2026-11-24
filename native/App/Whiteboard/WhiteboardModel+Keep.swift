@@ -144,7 +144,7 @@ extension WhiteboardModel {
 
   /// A label's moment, kept in the board's meaning and saved with its ink (bead context-grabber-p1pl).
   func rememberLabel(_ made: Date) {
-    opLedger.rememberLabels([Int64(made.timeIntervalSince1970 * 1000)], board: board.id)
+    opLedger.rememberLabels([BoardMoment.ms(made)], board: board.id)
   }
 
   /// #894: the moments of ink Larry or Claude made (a mark kept, Larry's ink or text), kept in the board's meaning, so it

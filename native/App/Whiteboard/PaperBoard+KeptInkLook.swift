@@ -19,7 +19,7 @@ extension PaperBoardController {
   /// the keep (ink of Igor's already there).
   func lookAtKeptInk(_ made: [PKStroke], why: String, attempt: Int = 0, before: Int? = nil) {
     guard !made.isEmpty else { return }
-    let moments = Set(made.map { BoardMoment.of($0) })
+    let moments = Set(made.map { BoardMoment.nearest($0) })
     let box = PKDrawing(strokes: made).bounds
     let want = Self.inkRGB(made[0].ink.color)
     let darkBefore = before ?? max(drawnColours(in: keptSpot(box), ink: want).dark, 0)
@@ -86,7 +86,7 @@ extension PaperBoardController {
     guard let markup = paper.markup else { return }
     var without = markup
     var removed: [(index: Int, element: MarkupOrderedSet.Element)] = []
-    for stroke in markup.subelements.strokes where moments.contains(BoardMoment.of(stroke)) {
+    for stroke in markup.subelements.strokes where moments.contains(BoardMoment.nearest(stroke)) {
       guard let element = without.subelements.removeElement(for: stroke.elementID) else { continue }
       removed.append((markup.subelements.firstIndex(of: element) ?? markup.subelements.count, element))
     }
@@ -137,7 +137,7 @@ extension PaperBoardController {
   /// The strokes PaperKit holds that were made at one of `moments` (a kept mark's strokes share their moment).
   private func heldStrokes(at moments: Set<Int64>) -> [PKStroke] {
     guard let markup = paper.markup else { return [] }
-    return markup.inkDrawing.strokes.filter { moments.contains(BoardMoment.of($0)) }
+    return markup.inkDrawing.strokes.filter { moments.contains(BoardMoment.nearest($0)) }
   }
 
   /// Each ink kind and colour among `strokes`, with how many strokes have it: `com.apple.ink.pen #ba39e6 x13`.
@@ -166,7 +166,8 @@ extension PaperBoardController {
     guard let markup = paper.markup else { return [:] }
     let all = markup.inkDrawing.strokes
     let places = held.map { stroke in
-      all.firstIndex { BoardMoment.of($0) == BoardMoment.of(stroke) && $0.renderBounds == stroke.renderBounds } ?? -1
+      let moment = BoardMoment.nearest(stroke)
+      return all.firstIndex { BoardMoment.nearest($0) == moment && $0.renderBounds == stroke.renderBounds } ?? -1
     }
     var each: [[Int]] = []
     for (place, stroke) in zip(places, held) {

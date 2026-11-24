@@ -14,6 +14,17 @@ final class BoardMomentTests: XCTestCase {
     XCTAssertEqual(BoardMoment.ms(Date(timeIntervalSince1970: 0)), 0)
   }
 
+  /// A kept mark's date is a whole millisecond; one read back a hair under it still names that millisecond when
+  /// rounded, where truncation puts it a millisecond early.
+  func testNearestHoldsAWholeMillisecondReadBackAHairUnder() {
+    let whole = Date(timeIntervalSince1970: Double(1_795_525_623_123) / 1000)
+    let hairUnder = Date(timeIntervalSince1970: whole.timeIntervalSince1970 - 1e-6)
+    XCTAssertEqual(BoardMoment.nearestMs(whole), 1_795_525_623_123)
+    XCTAssertEqual(BoardMoment.nearestMs(hairUnder), 1_795_525_623_123)
+    XCTAssertEqual(BoardMoment.ms(hairUnder), 1_795_525_623_122)
+    XCTAssertEqual(BoardMoment.nearestMs(Date(timeIntervalSince1970: 1_795_525_623.1236)), 1_795_525_623_124)
+  }
+
   #if canImport(PencilKit)
     func testAStrokeIsKnownByWhenItWasMade() {
       let made = Date(timeIntervalSince1970: 1_795_525_623.5007)
@@ -23,6 +34,7 @@ final class BoardMomentTests: XCTestCase {
       let stroke = PKStroke(ink: PKInk(.pen), path: PKStrokePath(controlPoints: [point], creationDate: made))
       XCTAssertEqual(BoardMoment.of(stroke), BoardMoment.ms(made))
       XCTAssertEqual(BoardMoment.of(stroke), 1_795_525_623_500)
+      XCTAssertEqual(BoardMoment.nearest(stroke), 1_795_525_623_501)
     }
   #endif
 }
