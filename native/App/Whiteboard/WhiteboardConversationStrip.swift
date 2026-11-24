@@ -172,10 +172,16 @@ struct WhiteboardConversationPanel: View {
   @ScaledMetric(relativeTo: .footnote) private var panelChrome: CGFloat = 72
   @ScaledMetric(relativeTo: .footnote) private var threadFloor: CGFloat = 64
 
+  /// Story 1313 (#1416): what the chip, the mic's words and the foot really take under the thread, once laid out.
+  @State private var belowThread: CGFloat = 0
+
+  /// The panel's chrome: measured when it has been laid out (the foot can be taller than a line), else the estimate.
+  private var chrome: CGFloat { belowThread > 0 ? belowThread + 18 : panelChrome }
+
   private var threadCap: CGFloat {
-    if let height { return max(height - panelChrome, threadFloor) }
+    if let height { return max(height - chrome, threadFloor) }
     let page = pageHeight > 0 ? WhiteboardNote.panelHeight(board: Double(pageHeight)) : WhiteboardNote.panelFloor
-    return max(CGFloat(page) - panelChrome, threadFloor)
+    return max(CGFloat(page) - chrome, threadFloor)
   }
 
   /// The thread: Lines or Bubbles.
@@ -195,19 +201,18 @@ struct WhiteboardConversationPanel: View {
       thread
         // A dragged height is the thread's whether its messages fill it or not, as on the web.
         .frame(height: height == nil ? nil : threadCap, alignment: .top)
-      if ticks {
-        TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(live(.now)) }
-      } else {
-        liveRows(current)
-      }
-      HStack(spacing: 12) {
-        if let openInChat {
-          Button("Open in Chat", action: openInChat)
-            .font(.footnote).buttonStyle(.borderless)
-            .accessibilityIdentifier("whiteboard-conversation-chat")
+      VStack(alignment: .leading, spacing: 6) {
+        if ticks {
+          TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(live(.now)) }
+        } else {
+          liveRows(current)
         }
-        if chat != nil { WhiteboardPanelLookSwitch(look: $look) }
-        if let dock { WhiteboardPanelDockButton(dock: dock) }
+        WhiteboardPanelFoot(openInChat: openInChat, look: $look, showsLook: chat != nil, dock: dock)
+      }
+      .onGeometryChange(for: CGFloat.self) {
+        $0.size.height
+      } action: {
+        belowThread = $0
       }
     }
     .frame(maxWidth: readableWidth, alignment: .leading)
@@ -416,5 +421,40 @@ struct WhiteboardConversationText: UIViewRepresentable {
     case .inbox: return "tray"
     case .install: return "arrow.down.app"
     }
+  }
+}
+
+/// Story 1313 (#1416): the panel's foot, on one line at any width. Too narrow for the words, *Open in Chat* and
+/// **Dock** show as their icons, keeping their names for VoiceOver and their identifiers.
+struct WhiteboardPanelFoot: View {
+  let openInChat: (() -> Void)?
+  @Binding var look: WhiteboardPanelLook
+  let showsLook: Bool
+  let dock: WhiteboardPanelDock?
+
+  var body: some View {
+    ViewThatFits(in: .horizontal) {
+      row(compact: false)
+      row(compact: true)
+    }
+  }
+
+  private func row(compact: Bool) -> some View {
+    HStack(spacing: compact ? 8 : 12) {
+      if let openInChat {
+        Button(action: openInChat) {
+          if compact {
+            Label("Open in Chat", systemImage: "bubble.left.and.bubble.right").labelStyle(.iconOnly)
+          } else {
+            Text("Open in Chat")
+          }
+        }
+        .font(.footnote).buttonStyle(.borderless).lineLimit(1)
+        .accessibilityIdentifier("whiteboard-conversation-chat")
+      }
+      if showsLook { WhiteboardPanelLookSwitch(look: $look) }
+      if let dock { WhiteboardPanelDockButton(dock: dock, compact: compact) }
+    }
+    .fixedSize()
   }
 }

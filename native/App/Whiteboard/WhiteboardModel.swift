@@ -283,6 +283,7 @@ final class WhiteboardModel: ObservableObject {
         "look_only": lookOnlyNote as Any? ?? NSNull(),
       ])
     if LaunchHooks.current.whiteboard.grid { setGrid(true) }
+    WhiteboardPanelKeys.forgetForTests()
     watchNotices()
     checkMeaningBehind()
     loadMarkAnchors()

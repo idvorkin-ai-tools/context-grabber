@@ -11,6 +11,14 @@ enum WhiteboardPanelKeys {
   static let share = "whiteboard_panel_share"
   static let floating = "whiteboard_panel_floating"
   static let card = "whiteboard_panel_card"
+  private static var forgotten = false
+
+  /// Story 1313: `GRABBER_WHITEBOARD_PANEL=fresh` forgets the kept place once per launch, as the first board opens.
+  @MainActor static func forgetForTests() {
+    guard LaunchHooks.current.whiteboard.panelFresh, !forgotten else { return }
+    forgotten = true
+    for key in [share, floating, card] { UserDefaults.standard.removeObject(forKey: key) }
+  }
 }
 
 /// What the panel's foot offers to move it: *Float* while docked, *Dock* while floating.
@@ -22,16 +30,19 @@ struct WhiteboardPanelDock {
 /// The panel's Float or Dock button, at its foot.
 struct WhiteboardPanelDockButton: View {
   let dock: WhiteboardPanelDock
+  /// Story 1313 (#1416): its icon alone, when the foot is too narrow for the word.
+  var compact = false
 
   var body: some View {
     Button {
       dock.toggle()
     } label: {
-      Label(
+      let label = Label(
         dock.floating ? "Dock" : "Float",
         systemImage: dock.floating ? "rectangle.topthird.inset.filled" : "macwindow.on.rectangle")
+      if compact { label.labelStyle(.iconOnly) } else { label }
     }
-    .font(.footnote).buttonStyle(.borderless)
+    .font(.footnote).buttonStyle(.borderless).lineLimit(1)
     .accessibilityIdentifier(dock.floating ? "whiteboard-conversation-dock" : "whiteboard-conversation-float")
   }
 }

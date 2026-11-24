@@ -1909,6 +1909,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1313:
+
+- **Summary:** Everything at the floating card's foot fits, at any size the card can be
+- **Status:** implemented in [88aa3c94](https://github.com/idvorkin/context-grabber/commit/88aa3c94) (the foot) and [b972209c](https://github.com/idvorkin/context-grabber/commit/b972209c) (the fresh-panel hook); verified by host tests (`just test`, incl. `LaunchHooksTests` for `GRABBER_WHITEBOARD_PANEL=fresh`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`test-ladder --rung 2` on the pre-rebase build 98c77151: `WhiteboardConversationPlaceUITests`, the foot's controls inside the card on one line, and the smoke); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work)
+- **Issues:** [#1416](https://github.com/idvorkin/context-grabber/issues/1416) (Igor, 2026-11-24, iPad: "This dialogue is a little wonky": at the card's first size *Open in Chat* and **Dock** wrapped and the foot was cut off)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Resize, and float or dock*
+
+#### Use Case:
+- **As someone** drawing with Larry's conversation floating as a card
+- **I want to** see the card's whole foot, on one line, however small I make the card
+- **so that** *Open in Chat*, Lines / Bubbles and **Dock** are always there to tap and nothing looks broken
+
+#### Acceptance Criteria:
+- **Scenario:** A narrow card
+- **Given:** the conversation floating as a card, at its first size or the smallest its corner allows
+- **When:** I look at its foot
+- **Then:** *Open in Chat*, Lines / Bubbles and **Dock** sit on one line, *Open in Chat* and **Dock** as icons when their words don't fit, nothing at the card's bottom is cut off, and each still works
+
+---
+
 ### User Story 1307:
 
 - **Summary:** The floating card stays where I left it, at its size
