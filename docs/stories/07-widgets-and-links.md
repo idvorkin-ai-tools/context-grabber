@@ -604,7 +604,7 @@ apart."*
 ### User Story 239:
 
 - **Summary:** The drill's Stats cover today, the last 7 days or the last 30, my pick
-- **Status:** native app only: comes with think-a-card-trainer v0.3.10 (the picker is the library's, trainer story 075, PR #51, verified there by its host tests and its signed device build), pinned here in [d32bde4](https://github.com/idvorkin/context-grabber/commit/d32bde4); verified by host `just native-test` and the Mac build (resolves ThinkACard 0.3.10); *Stats* on the phone not yet (it has no simulator hook)
+- **Status:** native app only: comes with think-a-card-trainer v0.3.10 (the picker is the library's, trainer story 075, PR #51, verified there by its host tests and its signed device build), pinned here in [20e762c5](https://github.com/idvorkin/context-grabber/commit/20e762c5); verified by host `just native-test` and the Mac build (resolves ThinkACard 0.3.10); *Stats* on the phone not yet (it has no simulator hook)
 - **Issues:** [think-a-card-trainer#35](https://github.com/idvorkin/think-a-card-trainer/issues/35) (Igor: *"Add last 1 3 and 7 days. See change over time"*), [think-a-card-trainer#43](https://github.com/idvorkin/think-a-card-trainer/issues/43) (the ledger's ranges)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 
@@ -618,18 +618,15 @@ apart."*
 - **Given:** the drill's *Stats* can read the practice ledger
 - **When:** I pick *Day*, *Week* or *30 days* at its top
 - **Then:** the attempts and the whole difficulty grid reload for that stretch alone, in whole Pacific days ending
-  today, and the heading says *Today*, *Last 7 days* or *Last 30 days* as the ledger names it
-
-- **Scenario:** Week first, then my pick
-- **When:** I open *Stats* for the first time, then pick another stretch and open it again after a relaunch
-- **Then:** it opens on *Week* the first time and on my pick after; the trainer app keeps its own pick
+  today, and the heading says *Today*, *Last 7 days* or *Last 30 days* as the ledger names it; *Stats* opens on
+  *Week* the first time and on my last pick after, across relaunches, and the trainer app keeps its own pick
 
 ---
 
 ### User Story 568:
 
 - **Summary:** The drill's Stats show the last 30 days as a calendar heat map
-- **Status:** native app only: comes with think-a-card-trainer v0.3.10 (the calendar is the library's, trainer story 076, PR #51, verified there by its host tests: sources summed per Pacific day, empty days blank, the clock change, the colour steps), pinned here in [d32bde4](https://github.com/idvorkin/context-grabber/commit/d32bde4); verified by host `just native-test` and the Mac build (resolves ThinkACard 0.3.10); *Stats* on the phone not yet
+- **Status:** native app only: comes with think-a-card-trainer v0.3.10 (the calendar is the library's, trainer story 076, PR #51, verified there by its host tests: sources summed per Pacific day, empty days blank, the clock change, the colour steps), pinned here in [20e762c5](https://github.com/idvorkin/context-grabber/commit/20e762c5); verified by host `just native-test` and the Mac build (resolves ThinkACard 0.3.10); *Stats* on the phone not yet
 - **Issues:** [think-a-card-trainer#35](https://github.com/idvorkin/think-a-card-trainer/issues/35)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 
@@ -647,11 +644,8 @@ a color heat map by how many practiced. Maybe I can flip to right and wrong."*
 - **When:** I open *Stats*, whatever stretch is picked (story 239)
 - **Then:** under the grid the 30 Pacific days ending today sit in week rows, each day coloured in one of four steps
   of the busiest day's answers from every source; a day without answers is blank; tapping a day says its answers,
-  right and wrong
-
-- **Scenario:** Right or wrong
-- **When:** I switch *Practiced / Right / Wrong* above the calendar
-- **Then:** the days are coloured by all answers, the right ones or the misses, each on its own scale
+  right and wrong; a *Practiced / Right / Wrong* switch above the calendar colours the days by all answers, the
+  right ones or the misses, each on its own scale
 
 ---
 
