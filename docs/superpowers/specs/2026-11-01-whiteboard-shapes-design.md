@@ -669,8 +669,9 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
   - **His words go with the next picture**, whatever sends it: the Pencil's pause (*When he has stopped writing*),
     *Send to Larry*, closing the mic, or 5 s of silence after them. Each takes every word heard so far; words still
     coming go with the one after. Nothing is dropped and nothing goes twice.
-  - **The silence counts from his last new word.** Words the recognizer only repeats or revises in place don't
-    restart it; a new word does. Silence after words already sent sends nothing, so a quiet board stays quiet.
+  - **The silence counts from the last change in what the mic heard.** The recognizer handing over the same words
+    again doesn't restart it; a new or revised word does. Silence after words already sent sends nothing, so a quiet
+    board stays quiet.
   - **Words waiting count as new**: while words wait, *Send to Larry* is not dimmed as *Larry already has this*, and
     a tap sends the board with them even when the drawing hasn't changed.
   - **Talking with no drawing** sends after 5 s of silence, or sooner when he taps *Send to Larry* or closes the

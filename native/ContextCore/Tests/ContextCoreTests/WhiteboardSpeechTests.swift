@@ -48,4 +48,21 @@ final class WhiteboardSpeechTests: XCTestCase {
     XCTAssertEqual(WhiteboardSpeech.context(title: "Plan", said: nil), "Plan")
     XCTAssertEqual(WhiteboardSpeech.context(title: "Plan", said: "mark the dip"), "Plan\nIgor just said: mark the dip")
   }
+
+  /// Story 1305 (Igor, 2026-11-24: "Keep a silence send, only after 5 s or more").
+  func testFiveSecondsOfSilenceSendsTheWaitingWordsAndLessSendsNothing() {
+    var speech = WhiteboardSpeech()
+    speech.heard("what about tuesday")
+    XCTAssertEqual(WhiteboardSpeech.silenceSendMs, 5000)
+    XCTAssertFalse(speech.silenceSends(silentMs: 4999))
+    XCTAssertTrue(speech.silenceSends(silentMs: 5000))
+  }
+
+  func testSilenceAfterWordsAlreadyTakenSendsNothing() {
+    var speech = WhiteboardSpeech()
+    XCTAssertFalse(speech.silenceSends(silentMs: 60_000))
+    speech.heard("what about tuesday")
+    _ = speech.takeNew()
+    XCTAssertFalse(speech.silenceSends(silentMs: 60_000))
+  }
 }
