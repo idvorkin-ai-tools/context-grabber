@@ -144,9 +144,13 @@ session gives the same findings on both.
 - **Bug**: his strokes moved that the step wasn't aimed at and no rule moved; or a push moved them by a different
   amount or from a different line than the rules give; or a drag that started inside a selection changed its size
   (story 1201).
-- **Unclear**: the system moved or stretched them from a handle (a corner knob, a reflow handle) with no selection of
-  his own behind it. The review shows the before and after and asks whether he meant it. (The 12-point stretch of
-  2026-11-23 at 05:28 is this case.)
+- **Unclear**: the system moved or stretched his strokes from a handle (a reflow handle) with no selection of his own
+  behind it; or a selection, his or a kept mark of Larry's, changed size under a drag that began on its corner knob,
+  which stretches by design (story 1201) but may not be what he meant. The review shows the before and after and asks
+  whether he meant it. (The 13-point stretch of Larry's kept reply on 2026-11-23 at 05:28, a group tap's selection
+  dragged from its knob, is the second case.)
+- **Judged once the step settles**: a move and the owners-apart step that follows it are one step here, so strokes the
+  rules put back in place (the 05:15 reflow's 18) never read as moved.
 - **Evidence**: the step, who started it, the strokes moved, their move (smallest and largest dx and dy, and whether
   they moved alike or unevenly), what the rules predicted.
 
@@ -164,15 +168,18 @@ session gives the same findings on both.
 - **Rule**: folding a header hides its section and nothing else. Ink written under a folded header after it was folded
   stays outside its fold when it is folded again (story 1231); unfolding and folding with nothing written hides the same
   ink as before (story 1232).
-- **Bug**: a fold step hid ink the rules say is outside the section, in particular ink newer than the header's last
-  fold.
+- **Bug**: a fold step hid ink the rules say is outside the section: ink written under the header while it was
+  folded, or, with nothing written into the section since its last fold, ink that fold didn't hide. Ink written into
+  the section while it was open joins it and is no finding.
 - **Evidence**: the step, the header, the ink the rules say the fold holds and the ink it hid, with the extra ink's
   ids, times and box (the 2026-11-23 case on Igor's board: ten new strokes went into a 145-stroke fold).
 
 ### 6. An Undo that didn't restore
 
-- **Rule**: after an Undo, the board is as it was before the step undone: the same ink showing, in the same places,
-  the same folds. After a Redo, as it was after that step.
+- **Rule**: after an Undo, the ink and folds the undone step touched are as they were before it: the same ink
+  showing, in the same places, the same folds. After a Redo, as they were after that step. Ink the step never
+  touched is not judged: a reply that arrived, or a stroke written, between the step and its Undo stays and is no
+  finding.
 - **Bug**: anything differs past the tolerance: a stroke missing, a stroke left where the step moved it, a fold left
   open or closed. Also an Undo that took back a step other than the one its name said.
 - **Evidence**: the Undo, the step it took back, and what differs (ids, before and after).

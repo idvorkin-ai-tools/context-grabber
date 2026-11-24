@@ -1,0 +1,2 @@
+{"board": "b-check3-vhae", "ink": [{"box": [245, 472, 41, 24], "id": "k", "n": 6, "owner": "larry"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check3-vhae", "surface": "ipad"}
+{"aim": {"ids": ["k"], "start": "inside"}, "by": "finger", "changes": [{"after": [211, 472, 67, 24], "before": [245, 472, 41, 24], "id": "k"}], "kind": "move", "name": "Move", "t": 1000}

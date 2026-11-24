@@ -1,0 +1,2 @@
+{"board": "b-check1-header-line", "folds": [{"folded": true, "header": "h", "held": ["a", "b"]}], "ink": [{"box": [60, 100, 200, 30], "header": true, "id": "h", "owner": "igor"}, {"box": [60, 140, 300, 30], "id": "a", "owner": "igor"}, {"box": [60, 180, 300, 30], "id": "b", "owner": "igor"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check1-header-line", "surface": "ipad"}
+{"by": "pencil", "changes": [{"after": [270, 105, 40, 20], "hidden": true, "id": "n1", "owner": "igor"}], "kind": "ink", "t": 1000}

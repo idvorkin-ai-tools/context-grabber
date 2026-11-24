@@ -1,0 +1,3 @@
+{"board": "b-check6-hide-only", "ink": [{"box": [60, 100, 300, 30], "id": "a", "n": 4, "owner": "igor"}, {"box": [60, 200, 300, 30], "id": "b", "n": 3, "owner": "igor"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check6-hide-only", "surface": "web"}
+{"by": "menu", "changes": [{"hidden": true, "id": "a"}], "kind": "hide", "name": "Hide", "t": 1795000001000}
+{"by": "menu", "changes": [{"hidden": false, "id": "a"}], "kind": "undo", "name": "Hide", "t": 1795000002000}

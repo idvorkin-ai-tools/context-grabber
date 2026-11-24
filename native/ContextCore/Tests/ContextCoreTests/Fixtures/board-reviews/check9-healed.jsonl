@@ -1,0 +1,2 @@
+{"board": "b-check9-healed", "ink": [], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check9-healed", "surface": "ipad"}
+{"by": "menu", "changes": [{"after": [60, 300, 100, 20], "id": "k", "n": 12, "owner": "larry"}], "kind": "keep", "name": "Keep", "seen": {"kept": [{"dark_px": 0, "expected": [66, 25], "ink_px": 133, "shown": [19, 23]}, {"dark_px": 0, "expected": [100, 20], "ink_px": 400, "shown": [100, 20]}], "pen_after": "com.apple.ink.pen #000000 2", "pen_before": "com.apple.ink.pen #000000 2"}, "t": 1000}

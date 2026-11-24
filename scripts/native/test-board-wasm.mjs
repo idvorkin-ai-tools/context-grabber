@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 14, `bw_info abi is 14: ${JSON.stringify(info)}`);
+check(info.abi === 15, `bw_info abi is 15: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -566,6 +566,20 @@ check(same(ask('bw_tidy', { labels: ['l', 'm', 'n', 'g'] }), { moves: { l: 30, n
 check(ask('bw_tidy', {}).error === 'no labels', 'no labels says so');
 check(call('bw_outline_load', 'not json') === -1 && keepAll({ marks: [] }).error === 'no outline is loaded' &&
   ask('bw_tidy', { labels: [] }).error === 'no outline is loaded', 'with no outline, both say so');
+
+// Interface 15 (spec board-interaction-review, story 1261): every recorded session under Fixtures/board-reviews reviews
+// through bw_review to the report BoardReviewTests holds the iPad's rules to, verdict for verdict and word for word.
+const reviews = path.join(root, 'native/ContextCore/Tests/ContextCoreTests/Fixtures/board-reviews');
+const reviewNames = fs.readdirSync(reviews).filter((f) => f.endsWith('.jsonl')).map((f) => f.slice(0, -6)).sort();
+for (const name of reviewNames) {
+  const got = ask('bw_review', fs.readFileSync(path.join(reviews, `${name}.jsonl`), 'utf8'));
+  const golden = JSON.parse(fs.readFileSync(path.join(reviews, `${name}.golden.json`), 'utf8'));
+  check(isDeepStrictEqual(got, golden), `bw_review ${name} matches its golden: ${JSON.stringify(got).slice(0, 400)}`);
+}
+check(reviewNames.length >= 37, `the review fixtures are all there: ${reviewNames.length}`);
+check(ask('bw_review', '').error === 'the record could not be read: a record starts with its header', 'an empty record says why');
+check(ask('bw_review', '{"record":2,"board":"b","session":"s","surface":"web","ink":[]}').error ===
+  'the record could not be read: record version 2, this review reads 1', 'a newer record says why');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

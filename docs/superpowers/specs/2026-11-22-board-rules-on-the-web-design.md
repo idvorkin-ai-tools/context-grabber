@@ -362,6 +362,24 @@ says `"abi": 14`; versions 1 to 13 are unchanged.
 - Moving the web board onto these changes what it does: its Keep all no longer moves later marks down when an earlier
   one moved, and its Tidy no longer pushes the writing down. Both now do what the iPad does.
 
+## The interface, version 15: a session's review
+
+Story 1261. A writing session's record, in the form both surfaces write
+([reviewing each writing session](2026-11-23-board-interaction-review-design.md)), reviewed by the same checks the iPad
+runs, so the web board's findings are the iPad's verdict for verdict. Stateless: the loaded board and outline are
+untouched. `bw_info` says `"abi": 15`; versions 1 to 14 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_review` | pointer, length of a record (JSONL: a header `{"record": 1, "board", "session", "surface", "build"?, "observes"?: {"selection", "pen", "kept"}, "ink": [{"id", "owner", "box": [x, y, w, h], "n"?, "header"?}], "folds"?: [{"header", "held", "folded"?}]}`, then one step per line `{"t", "kind", "by", "name"?, "aim"?: {"ids"?, "start"?}, "changes"?: [{"id", "owner"?, "before"?, "after"?, "n"?, "header"?, "hidden"?}], "room"?: {"cut", "dy"}, "fold"?, "seen"?: {"held_after"?, "pen_before"?, "pen_after"?, "kept"?: [{"shown", "expected", "ink_px"?, "dark_px"?}], "drawn_whole"?}}`) | a reply: `{"record", "board", "session", "surface", "build"?, "steps", "checks": [{"check", "name", "sight", "bug", "as_designed", "unclear"}], "findings": [{"check", "name", "verdict", "step", "t", "kind", "by", "story"?, "ids", "summary", "evidence": [[key, value]]}], "to_look_at"}`; `{"error"}` when the record can't be read |
+
+- `observes` says what the surface saw for the three checks that need its eyes: `"yes"`, `"approx"` (the web board's
+  pen in hand, *Larry's answer* in the review's spec), or absent; a check reads `checked`, `approximate` or
+  `not_checked` as its `sight`.
+- A change with neither `after` nor `hidden` removes the unit; one with `hidden` alone hides or shows it where it
+  stands.
+- Evidence numbers are printed to one decimal, so the 32-bit arithmetic below never changes a report's text.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

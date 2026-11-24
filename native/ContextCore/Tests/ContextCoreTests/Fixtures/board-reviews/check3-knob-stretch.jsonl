@@ -1,0 +1,2 @@
+{"board": "b-check3-knob-stretch", "ink": [{"box": [245, 472, 41, 24], "id": "k", "n": 6, "owner": "larry"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check3-knob-stretch", "surface": "ipad"}
+{"aim": {"ids": ["k"], "start": "knob"}, "by": "finger", "changes": [{"after": [245, 472, 60, 24], "before": [245, 472, 41, 24], "id": "k"}], "kind": "move", "name": "Move", "t": 1000}

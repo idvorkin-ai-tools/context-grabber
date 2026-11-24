@@ -1,0 +1,2 @@
+{"board": "b-check3-room-wrong", "ink": [{"box": [60, 100, 300, 30], "id": "a", "owner": "igor"}, {"box": [60, 200, 300, 30], "id": "b", "owner": "igor"}, {"box": [400, 100, 100, 30], "id": "l", "owner": "larry"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check3-room-wrong", "surface": "ipad"}
+{"by": "menu", "changes": [{"after": [60, 280, 300, 30], "before": [60, 200, 300, 30], "id": "b"}], "kind": "room", "name": "Make room", "room": {"cut": 180, "dy": 40}, "t": 1000}

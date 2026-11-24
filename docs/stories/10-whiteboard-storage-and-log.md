@@ -578,7 +578,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1241:
 
 - **Summary:** A review never changes the board
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Goals*
 
@@ -758,7 +758,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1250:
 
 - **Summary:** New writing hidden inside a fold is a bug
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 1
 
@@ -778,7 +778,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1251:
 
 - **Summary:** Writing the board placed on ink is a bug
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 2
 
@@ -798,7 +798,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1252:
 
 - **Summary:** My ink moved without my aim is a bug, or asked about
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 3
 
@@ -818,7 +818,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1253:
 
 - **Summary:** Both owners' ink left moved together is a bug
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 4
 
@@ -838,7 +838,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1254:
 
 - **Summary:** A fold that swallowed newer ink is a bug
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 5
 
@@ -849,16 +849,17 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Acceptance Criteria:
 - **Scenario:** Refolding
-- **Given:** ink written under a header after its last fold
+- **Given:** ink written under a header while it was folded
 - **When:** a fold step hides it
 - **Then:** the review calls it a bug with the extra ink's ids, times and box
+- **And:** ink written into the section while it was open joins it and is no finding
 
 ---
 
 ### User Story 1255:
 
 - **Summary:** An Undo that didn't put the board back is a bug
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 6
 
@@ -870,7 +871,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** Undo
 - **Given:** a step undone
-- **When:** the board differs from before that step past the tolerance, or the Undo took back another step
+- **When:** the ink or folds that step touched differ from before it past the tolerance, or the Undo took back another step
+- **And:** ink that arrived between the step and its Undo is not counted
 - **Then:** the review calls it a bug naming what differs
 
 ---
@@ -878,7 +880,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1256:
 
 - **Summary:** A selection lost with nothing of mine is a bug
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 7
 
@@ -898,7 +900,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1257:
 
 - **Summary:** Keeping a mark that changed my pen is a bug
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 8
 
@@ -918,7 +920,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1258:
 
 - **Summary:** A kept mark drawn cut or in the wrong colour is a bug
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 9
 
@@ -938,7 +940,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1259:
 
 - **Summary:** Moves within half a point, and edges that only touch, are no finding
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*
 
@@ -958,7 +960,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1260:
 
 - **Summary:** A check a surface can't see reads not checked or approximate
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*; *Larry's answer*
 
@@ -978,7 +980,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1261:
 
 - **Summary:** The same session gives the same findings on the iPad and the web board
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The iPad and the web board, through one core*
 
@@ -998,7 +1000,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1262:
 
 - **Summary:** The 2026-11-23 iPad sessions review to the manual verdict
-- **Status:** not implemented; asks: bead context-grabber-8ao5.1
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad recording and running them is bead context-grabber-8ao5.2, not implemented
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Acceptance criteria*
 
