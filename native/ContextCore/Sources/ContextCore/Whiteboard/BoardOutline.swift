@@ -345,7 +345,7 @@ public struct BoardOutline: Sendable {
   public mutating func unfold(_ id: String) -> Bool { opening(id) != nil }
 
   /// Unfold, saying where: the header row's bottom, and how far everything from there down slid (#1013).
-  mutating func opening(_ id: String) -> (top: CGFloat, slide: CGFloat)? {
+  package mutating func opening(_ id: String) -> (top: CGFloat, slide: CGFloat)? {
     guard let at = headers.firstIndex(where: { $0.id == id }), isFolded(headers[at]), let fold = headers[at].fold,
       let hb = box(headers[at])
     else { return nil }

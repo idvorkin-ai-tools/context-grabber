@@ -1727,6 +1727,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1264:
+
+- **Summary:** The web board asks the app's own rules what opening a fold does, and what ends its section after
+- **Status:** implemented in 95aeef29 (`bw_opening`, BoardWasm interface 11); verified by `just wasm-test` in Docker with Swift 6.4.3 and its wasm SDK (193 checks, a hand-worked fold opened over a line written under it among them), by `BoardWasmTests` on the Mac (60 seeded boards folded, then written under: the same opening as the app's outline), and on the Mac by `just native-test` (SwiftLint, swift-format, host tests), 2026-11-23.
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 11
+- **Issues:** Larry's list of the web board's rules still in JavaScript, 2026-11-23 (unfoldStep's copy of the app's opening)
+
+#### Use Case:
+- **As Igor,** folding and opening headers on the Cockpit's web ink board
+- **I want to** have an opened fold slide, show and remember what I wrote under it as the iPad does
+- **so that** what I wrote under a folded header stays out of its section on the web as on the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** Opening a fold through the module
+- **Given:** an outline loaded into the module with a header folded over an indented line and a line written under the folded header (a hand-worked one, and seeded ones folded and written under)
+- **When:** the module is asked what opening the header does
+- **Then:** it gives the app's own answer: what slides and how far, the folded line shown again, and the line written under it ending the section; a header that is not folded opens nothing, and with no outline or no id it says so
+
+---
+
 ### User Story 1267:
 
 - **Summary:** The web board asks the app's own rules which lines look like headers
