@@ -196,6 +196,8 @@ public struct BoardTurnReport: Equatable, Codable, Sendable {
   public var eventsDropped: Int
   /// The dropped ones by kind, for the session log only (never on the wire); nil in a report from before the count.
   public var droppedKinds: [String: Int]?
+  /// Larry's marks this post takes away, and why (story 1270): beside the events, never dropped under their cap.
+  public var marksDropped: [BoardMarkHolds.Drop]?
 
   public init(
     rev: Int, opResult: BoardOps.Result? = nil, events: [BoardEvent] = [], eventsDropped: Int = 0,
@@ -235,6 +237,7 @@ public struct BoardTurnReport: Equatable, Codable, Sendable {
     if let opResult { out["op_result"] = opResult.wire }
     let dropped = eventsDropped + sized.count - kept.count
     if dropped > 0 { out["events_dropped"] = dropped }
+    if let marksDropped, !marksDropped.isEmpty { out["marks_dropped"] = marksDropped.map(\.wire) }
     return out
   }
 

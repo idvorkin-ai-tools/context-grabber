@@ -324,7 +324,8 @@ Unkept marks still take no room. Instead each holds to what it answers, and when
 goes with his next post.
 
 The rule is the same for every unkept mark, Larry's and Claude's (Claude's fade by themselves in 30 s anyway), and for
-his text from a change shown as a mark. A kept mark is ink and follows the board's rules for ink.
+his text from a change shown as a mark. A kept mark is ink and follows the board's rules for ink. A connector mark
+already follows what its ends join (story 917) and holds to nothing more, though writing over it fades it the same.
 
 - **What a mark holds to (its anchor)** is chosen once, when the mark lands on the board, against the board as it
   shows then (folds closed, and a mark drawn on a picture with folds open first brought to the folded board, as
@@ -335,8 +336,8 @@ his text from a change shown as a mark. A kept mark is ink and follows the board
     boxes; between two as near, the one made later;
   - else nothing: on blank paper with nothing above or beside it, the mark stays where it landed.
 
-  Within that unit the mark holds to the strokes nearest it, so an erased stroke or a reworded word hands it on to
-  the next. A mark shown again when the board opens holds to the anchor it had, not one chosen again; a reply that
+  Within that unit the mark holds to the strokes nearest it, then to the rest of the unit's line (a word of Igor's
+  writing is several units, a stroke each), so an erased stroke or a reworded word hands it on to the next. A mark shown again when the board opens holds to the anchor it had, not one chosen again; a reply that
   lands with the board closed chooses its anchor when it is first shown.
 - **Where the anchor goes, the mark goes, by the same amount.** Through every change of the board:
   - **A move** (a drag, a lasso's move, Larry's own move, a group carried along): the mark moves with its unit.

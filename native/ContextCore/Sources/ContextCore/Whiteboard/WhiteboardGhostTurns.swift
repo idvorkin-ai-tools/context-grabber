@@ -31,6 +31,11 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// The mark whose Keep and Dismiss show (story 825). Gone with its mark, however that goes.
   public var chosen: Ghost? { chosenID.flatMap { id in ghosts.first { $0.id == id } } }
   private var chosenID: String?
+  /// Marks that don't show because the ink they hold to is folded away or erased (stories 1181, 1271): no tap reaches
+  /// them and no keep takes them, until their ink shows again.
+  public var hiddenMarks: Set<String> = [] {
+    didSet { if let chosenID, hiddenMarks.contains(chosenID) { self.chosenID = nil } }
+  }
   /// Story 351's switch, *Ask at my pauses* in the bar (story 1171): off, a pause asks no one, whoever answers.
   public private(set) var on: Bool
   /// Spoken and not yet in a turn that got through.
@@ -287,7 +292,8 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// A finger tap, each mark's distance from it given (nil: out of reach): the nearest mark takes it, and between two as
   /// near the one drawn later, on top (#941).
   public mutating func tapNearest(reach: (Ghost) -> CGFloat?) -> Tap {
-    if let ghost = WhiteboardMarkChoice.nearest(ghosts, reach: reach) {
+    let hidden = hiddenMarks
+    if let ghost = WhiteboardMarkChoice.nearest(ghosts, reach: { hidden.contains($0.id) ? nil : reach($0) }) {
       guard ghost.id != chosenID else { return .nothing }
       chosenID = ghost.id
       return .chose(ghost)
@@ -306,9 +312,11 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// Keep all of `who`'s marks (story 895): they leave the ghosts, in the order they came, and Keep and Dismiss go with
   /// them if one was chosen. The caller turns them into ink.
   public mutating func keepAll(_ who: WhiteboardTurn.Who) -> [Ghost] {
-    let kept = ghosts.filter { $0.who == who }
+    let hidden = hiddenMarks
+    let keeps = { (mark: Ghost) in mark.who == who && !hidden.contains(mark.id) }
+    let kept = ghosts.filter(keeps)
     if let chosen, chosen.who == who { chosenID = nil }
-    ghosts.removeAll { $0.who == who }
+    ghosts.removeAll(where: keeps)
     return kept
   }
 
@@ -321,10 +329,29 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
       return removeChosen().map { [$0] }
     }
     chosenID = nil
-    let ofReply = { (mark: Ghost) in mark.who == .larry && WhiteboardMarks.reply(of: mark.id) == reply }
+    let hidden = hiddenMarks
+    let ofReply = { (mark: Ghost) in
+      mark.who == .larry && WhiteboardMarks.reply(of: mark.id) == reply && !hidden.contains(mark.id)
+    }
     let kept = ghosts.filter(ofReply)
     ghosts.removeAll(where: ofReply)
     return kept
+  }
+
+  /// One mark changed in place: moved with the ink it holds to (story 1180).
+  public mutating func change(_ id: String, _ body: (inout Ghost) -> Void) {
+    guard let index = ghosts.firstIndex(where: { $0.id == id }) else { return }
+    body(&ghosts[index])
+  }
+
+  /// The post took these marks away (story 1270): they go, and Keep and Dismiss with one of them chosen.
+  @discardableResult
+  public mutating func drop(_ ids: Set<String>) -> [Ghost] {
+    if let chosenID, ids.contains(chosenID) { self.chosenID = nil }
+    let gone = ghosts.filter { ids.contains($0.id) }
+    ghosts.removeAll { ids.contains($0.id) }
+    hiddenMarks.subtract(ids)
+    return gone
   }
 
   /// Dismiss: the chosen mark goes, and only it. The rest of an answer on its way still lands.
