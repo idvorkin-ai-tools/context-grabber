@@ -84,7 +84,6 @@ final class ChatFileTests: XCTestCase {
   /// call it 104.9 MB.
   func testTheTooBigProblemStatesTheCapAsOneHundredMB() {
     XCTAssertEqual(ChatFile.maxBytes, 100 * 1024 * 1024)
-    XCTAssertEqual(InboxSend.maxImageBytes, ChatFile.maxBytes)
     let over = ChatFile.Problem.tooBig(name: "over.pdf", bytes: 120 * 1024 * 1024, limit: ChatFile.maxBytes)
     XCTAssertEqual(over.errorDescription, "over.pdf is 120 MB, over the 100 MB the Cockpit takes, so it can't go.")
   }

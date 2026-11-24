@@ -1851,7 +1851,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 493:
 
 - **Summary:** A file over 100 MB says so when it is picked
-- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the limit raised from 10 MB to 100 MB to match the Cockpit (2026-11-24) in [e8cae04c](https://github.com/idvorkin/context-grabber/commit/e8cae04c); verified on the host by `ChatFileTests`; the problem on screen needs the document picker, on the phone, not yet
+- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the limit raised from 10 MB to 100 MB to match the Cockpit (2026-11-24) in [f94efbcc](https://github.com/idvorkin/context-grabber/commit/f94efbcc); verified on the host by `ChatFileTests`; the problem on screen needs the document picker, on the phone, not yet
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633), [#1426](https://github.com/idvorkin/context-grabber/issues/1426)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
