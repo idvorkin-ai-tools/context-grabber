@@ -1743,7 +1743,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1180:
 
 - **Summary:** His marks move with the ink they answer
-- **Status:** planned (bead `context-grabber-p2an`)
+- **Status:** implemented in [28f382f8](https://github.com/idvorkin/context-grabber/commit/28f382f8), [21c6d24e](https://github.com/idvorkin/context-grabber/commit/21c6d24e) and [8093d719](https://github.com/idvorkin/context-grabber/commit/8093d719); verified on the host (`BoardMarkHoldsTests`): the anchor, a drag, room above both and between, Undo, and board 5c232430's label against its logged boxes), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testHisMarkMovesWithTheInkItAnswersAndBackWithUndo`: his circle on my lower line rode Larry's push by as much as the line, and one undo took both back). The iPad itself not yet tried
 - **Issues:** bead `context-grabber-p2an`: Igor, 2026-11-23 16:55, via Larry (ask igor2-88g.1720.1): "Anchor, and fade when written over"; on board 5c232430 his new lines landed on Larry's *got all 33 strokes* label
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
 
@@ -1766,7 +1766,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1181:
 
 - **Summary:** His marks fold and unfold with their section
-- **Status:** planned (bead `context-grabber-p2an`)
+- **Status:** implemented in [28f382f8](https://github.com/idvorkin/context-grabber/commit/28f382f8) and [21c6d24e](https://github.com/idvorkin/context-grabber/commit/21c6d24e); verified on the host (`BoardMarkHoldsTests`): a real fold of `BoardOutline` hides it and unfold brings it back; a hidden mark takes no tap and no keep) and the Mac build. Not yet seen on the simulator or the iPad
 - **Issues:** bead `context-grabber-p2an`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
 
@@ -1787,7 +1787,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1269:
 
 - **Summary:** Writing over one of his marks fades it
-- **Status:** planned (bead `context-grabber-p2an`)
+- **Status:** implemented in [28f382f8](https://github.com/idvorkin/context-grabber/commit/28f382f8), [21c6d24e](https://github.com/idvorkin/context-grabber/commit/21c6d24e) and [8093d719](https://github.com/idvorkin/context-grabber/commit/8093d719); verified on the host (`BoardMarkHoldsTests`): a word on a label, a strike-through and a scribble fade it; an underline, a ring and a crossing line don't; Undo unfades) and the Mac build. Not verifiable on the simulator, where a finger pans while marks show; the iPad's Pencil still to try
 - **Issues:** bead `context-grabber-p2an`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
 
@@ -1810,7 +1810,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1270:
 
 - **Summary:** A faded mark goes on my next post, and Larry is told
-- **Status:** planned (bead `context-grabber-p2an`)
+- **Status:** implemented in [28f382f8](https://github.com/idvorkin/context-grabber/commit/28f382f8) and [21c6d24e](https://github.com/idvorkin/context-grabber/commit/21c6d24e); verified on the host (`BoardMarkHoldsTests`): the post's report names each with its reason beside a full turn of events) and the Mac build. Not yet seen on the iPad
 - **Issues:** bead `context-grabber-p2an`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
 
@@ -1832,7 +1832,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1271:
 
 - **Summary:** A mark whose ink I erase goes with it, and Undo brings both back
-- **Status:** planned (bead `context-grabber-p2an`)
+- **Status:** implemented in [28f382f8](https://github.com/idvorkin/context-grabber/commit/28f382f8) and [21c6d24e](https://github.com/idvorkin/context-grabber/commit/21c6d24e); verified on the host (`BoardMarkHoldsTests`): all erased hides it, part erased hands it on, undo brings it back) and the Mac build. Not yet seen on the iPad
 - **Issues:** bead `context-grabber-p2an`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
 
