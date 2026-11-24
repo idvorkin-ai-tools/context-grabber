@@ -1086,7 +1086,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 950:
 
 - **Summary:** The board's cheat sheet is one tap away
-- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408) and [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c), verified on the host and the Mac build. The *Ask at my pauses* row was added in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac). On the iPad simulator, `WhiteboardHelpFeedbackUITests.testTheCheatSheetIsOneTap` checked that the sheet opens, lists the row and closes (see [story 1171](#user-story-1171) for the pre-rebase run). Not yet seen on the iPad
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408) and [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c), verified on the host and the Mac build. The *Ask at my pauses* row was added in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac). On the iPad simulator, `WhiteboardHelpFeedbackUITests.testTheCheatSheetIsOneTap` checked that the sheet opens, lists the row and closes (see [story 1171](#user-story-1171) for the pre-rebase run). Not yet seen on the iPad. The To text row reads *Hold a finger on writing, then To text* since [d50a3920](https://github.com/idvorkin/context-grabber/commit/d50a3920) (#1386)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 
 #### Use Case:
@@ -1099,7 +1099,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board drawn on this iPad
 - **When:** I tap **?** at the board's top right
 - **Then:** *How this board works* opens and lists the margin tap, the margin hold with a finger or the Pencil, the hold
-  on the page, the Pencil on a word, scratch-out, the lasso's *To text*, the shape snap, *Keep all*, *Fold all* and the
+  on the page, the Pencil on a word, scratch-out, a finger held on writing for *To text*, the shape snap, *Keep all*, *Fold all* and the
   levels, *Ask at my pauses* in the bar (story 1171), and Feedback; *Done* closes it and the board is as it was
 
 ---

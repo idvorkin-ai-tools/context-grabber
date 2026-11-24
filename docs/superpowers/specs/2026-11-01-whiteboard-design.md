@@ -559,7 +559,7 @@ docks along the bottom and takes every tap there.
     header's mark: *Fold all*, *1*, *2*, *3*, *Unfold all*.
   - *On the page:* a finger held still brings the same menu. The Pencil held still on a word picks it up: drag and lift
     to move it, or lift without moving to select it. A line underlined, or started with a #, becomes a header (## and
-    ### make a level-2 and a level-3 header, whose sections nest), and Undo takes the mark and the header; a rule drawn across the page ends a section. A fast zigzag over ink scratches it out. The lasso, then *To text*,
+    ### make a level-2 and a level-3 header, whose sections nest), and Undo takes the mark and the header; a rule drawn across the page ends a section. A fast zigzag over ink scratches it out. A finger held on writing, then *To text*,
     turns handwriting into typed text. The Pencil held still at a stroke's end snaps it to a straight line, a rectangle
     or an ellipse.
   - *Larry's marks:* *Keep all* beside the count of marks keeps every one as ink where it showed, each reply as one group; *Tidy overlaps* in the Board
