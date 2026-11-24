@@ -421,12 +421,13 @@ def claimed(root):
     clashes = {n: [pr for pr, ids in got_by.items() if n in ids] for n in new}
     if any(clashes.values()):
         repo = repo_of(root)
-        mine = set(run(["git", "log", "--format=%s", f"{main_head(root)}..HEAD"], cwd=repo).splitlines())
+        mine = set(run(["git", "log", "--no-merges", "--format=%s", f"{main_head(root)}..HEAD"], cwd=repo).splitlines())
         gh = gh_cmd()
         info = {}
         for pr in sorted({pr for prs in clashes.values() for pr in prs}):
             view = json.loads(run(gh + ["pr", "view", str(pr), "--json", "headRefName,commits"]))
-            subjects = {c.get("messageHeadline", "") for c in view.get("commits") or []}
+            subjects = {c.get("messageHeadline", "") for c in view.get("commits") or []
+                        if not c.get("messageHeadline", "").startswith("Merge ")}
             info[pr] = (view.get("headRefName") or "?", bool(subjects & mine))
         failed = False
         for n, prs in clashes.items():

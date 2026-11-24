@@ -347,6 +347,12 @@ echo other >"$tmp/clprs/51.branch"
 out=$(claimed)
 check "claimed fails a branch that adds an ID another open PR adds, naming the ID, the PR and its branch" \
   "$?|$(grep -c '^FAIL claimed: story 3 is also added by open PR #51 (branch other); take a new ID with scripts/native/story-ids.py reserve' <<<"$out")" "1|1"
+(cd "$cl" && g checkout -q -b side base && g commit -q --allow-empty -m "side work" && g checkout -q mine \
+  && g merge -q --no-ff -m "Merge remote-tracking branch 'origin/main' into HEAD" side) >/dev/null 2>&1
+printf "Story 3: something else\nMerge remote-tracking branch 'origin/main' into HEAD\n" >"$tmp/clprs/51.subjects"
+out=$(claimed)
+check "claimed still fails when the other PR shares only a merge commit's subject with the branch" \
+  "$?|$(grep -c '^FAIL claimed: story 3 is also added by open PR #51' <<<"$out")" "1|1"
 out=$(FAKE_GH_FAIL=1 claimed)
 check "claimed fails rather than guess when the open PRs can't be listed" "$?|$(grep -c '^FAIL claimed: ' <<<"$out")" "1|1"
 
