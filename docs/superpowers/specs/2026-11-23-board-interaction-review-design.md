@@ -98,6 +98,8 @@ background and never holds up writing; a board opened again while a review runs 
 **A session is reviewed once.** The session saved as it goes (so one cut short can be reviewed) is never saved again
 once its review has run, even by a save that was already on its way when the board closed, and the next open never
 reviews a session whose review is already kept. Ending one session never drops the next session's saved record.
+A review that finished after its board closed waits for the board's next open; showing another review's note, even
+one shown late, never takes that wait away.
 
 ## The checks
 
