@@ -1,6 +1,6 @@
 # Story ID reservations and the pre-merge check
 
-Bead `context-grabber-jg3w`. Stories 791 to 794 in [Building and testing](../../stories/11-building-and-testing.md).
+Beads `context-grabber-jg3w` and `context-grabber-py4h` (the ledger shared between machines). Stories 791 to 794 in [Building and testing](../../stories/11-building-and-testing.md).
 
 ## Summary
 
@@ -14,7 +14,8 @@ branch as it would merge, right before merging.
 
 ## Goals
 
-- Two agents on this Mac asking for an ID at the same moment never get the same one.
+- Two agents asking for an ID at the same moment never get the same one, whether they run on this Mac or on two
+  machines (this Mac and the Linux lane, bead `context-grabber-py4h`).
 - An ID another open PR already added, or that main already has, is never handed out, even when that PR came from
   another machine.
 - A collision that slips through (two branches that merged in between) is caught before the second merge, not on
@@ -22,8 +23,8 @@ branch as it would merge, right before merging.
 
 ## Non-goals
 
-- A server or a shared ledger across machines. Open PRs are the cross-machine record; a reservation made on another
-  machine and not yet pushed is not seen.
+- A server. The shared ledger lives in the repository's own remote, beside the code, so any machine that can push a
+  branch can reserve an ID.
 - Making the merge atomic: a PR that merges in the seconds between the pre-merge check and the merge can still
   collide. The host rung on main and the next pre-merge catch it.
 - Renumbering stories that already collide on main.
@@ -39,11 +40,18 @@ An ID is not handed out when it is:
 - a story on main as it is on the remote now (fetched first, not the checkout's possibly stale copy),
 - a story in the tree it runs in (the branch's own new stories),
 - a story heading added by any open PR,
-- reserved on this Mac in the last 24 hours and not yet on main.
+- reserved by any machine in the last 24 hours and not yet on main.
 
-Reservations are kept in a small ledger on this Mac, outside the repository, read and written under a lock so two
-reservations at once are taken one after the other. Each records the ID, its journey, the branch and when. A
+Reservations are kept in one ledger shared by every machine, held in the repository's remote apart from its branches,
+so it never shows up in a checkout or a PR. Each records the ID, its journey, the branch and when (no machine name: the repository is public). A
 reservation lapses after 24 hours, or as soon as its ID is on main (the story merged), whichever is first.
+
+Two reservations at once never get the same ID. On one machine they are taken one after the other. Across machines,
+a reservation reads the ledger as the remote has it, adds its IDs, and writes it back only if nobody else wrote it in
+between; if somebody did, it reads the new ledger and picks again, a few times before giving up. It fails, and hands
+out nothing, when it can't read or write the shared ledger (no network, no push access), the same as when it can't
+fetch main. The ledger on this Mac from before (bead `context-grabber-jg3w`) is no longer read; its live reservations are
+copied into the shared ledger once, when this lands.
 
 One open PR GitHub won't show in full doesn't stop every reservation (bead context-grabber-1338). GitHub refuses the
 whole diff of a very large PR. For such a PR the reservation reads each of its story files' changes instead, and for a
@@ -66,10 +74,9 @@ went back to picking IDs by hand, one of them reusing an ID an open PR already h
 never by an agent or the pipeline's review or document step mid-PR to make room for its own story: they stop and
 report the full journey (bead `context-grabber-1vvb`).
 
-Until a ledger shared between machines lands (bead `context-grabber-py4h`), the Linux lane numbers its stories
-1620–1639 without a row in the journey table. This Mac never reserves one of those IDs, in any journey, and never
-suggests a new block that holds them; the story ID check accepts them in any journey. The exception goes when the
-shared ledger lands.
+Before the shared ledger, the Linux lane numbered its stories 1620–1639 without a row in the journey table, and this
+Mac stepped over them. With the shared ledger that exception is gone: 1620–1639 are Building and testing's, where the
+Linux lane's stories in that range already sit, and every machine reserves its IDs the same way.
 
 ## The pre-merge check
 
@@ -82,7 +89,10 @@ host rung does. It passes, and says so, otherwise.
 
 ## Acceptance criteria
 
-- Two reservations started at once for the same journey print different IDs.
+- Two reservations started at once for the same journey print different IDs, on one machine or on two (two
+  checkouts sharing one remote stand in for two machines).
+- A reservation made on one machine is skipped by a reservation made on another, before either branch is pushed.
+- When the shared ledger can't be read or written, it fails and prints no ID.
 - An ID an open PR adds, an ID on main, an ID in the branch's own stories and an ID reserved earlier are skipped.
 - A reservation older than 24 hours, or whose ID has reached main, no longer holds its ID.
 - With the open PRs unreadable, it fails and prints no ID.
@@ -91,8 +101,8 @@ host rung does. It passes, and says so, otherwise.
   file list GitHub cuts short of its changed files, is named in a warning, and the other IDs are handed out.
 - With too few free IDs, it prints no ID; its message names the journey by its row's name, the next unused block
   above every journey's IDs and the free IDs every journey has left.
-- Until bead `context-grabber-py4h` lands, 1620–1639 are never reserved nor inside a suggested block, and a story
-  numbered in that range passes the story ID check in any journey.
+- 1620–1639 belong to Building and testing like any other block: no ID is left out of reservations, and a story
+  outside its journey's IDs fails the check whatever its number.
 - Two branches that each pass the story ID check alone, but add the same ID, fail the pre-merge check; one that
   doesn't collide passes; one whose pushed commits add the colliding ID fails even when the checkout is behind them.
 - The agent instructions say: new stories take their IDs from the reserve command, and the pre-merge check runs

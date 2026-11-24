@@ -17,12 +17,21 @@ Hands out the next n free IDs (one by default) in a journey's ranges, one per li
 free when it is in none of: the stories on origin/main (fetched first), the stories in stories-dir, the story
 headings an open PR adds (gh pr diff; for a PR whose diff gh refuses as too large, each story file's patch from its
 file list, or the whole file on its head; a PR none of that can read is named in a warning and skipped, bead
-context-grabber-1338), and the reservations in the ledger on this Mac that are under 24 hours old
-and not yet on main. The ledger is read and written under a lock, so two reservations at once get different IDs.
-Fails, handing out nothing, when main can't be fetched or the open PRs can't be listed.
-Overrides, for the tests: STORY_IDS_LEDGER (default ~/tmp/agent/locks/story-ids.json), STORY_IDS_GH (the gh command),
-STORY_IDS_MAIN (a stories dir read as main instead of origin/main), STORY_IDS_NOW (epoch seconds),
-STORY_IDS_BRANCH (the branch the ledger records), STORY_IDS_HOLD (seconds to hold the lock, so the race test overlaps).
+context-grabber-1338), and the reservations in the shared ledger that are under 24 hours old and not yet on main.
+
+The shared ledger (bead context-grabber-py4h) is ledger.json in the commit refs/story-ids/ledger points at on the remote whose
+URL is github.com/idvorkin/context-grabber (picked by URL, since on the Linux lane origin is a fork), so every
+machine sees every reservation. On one machine reservations take a lock one after the other; across machines the
+ledger is written by a plain push of a commit on top of the one read, which the remote refuses if another machine
+pushed in between; then it reads the ledger again and picks again, up to five times. Never a forced push, and
+nothing else on the remote is touched. Main is read from that same remote.
+Fails, handing out nothing, when main can't be fetched, the open PRs can't be listed, or the shared ledger can't be
+read or written.
+Overrides, for the tests: STORY_IDS_REMOTE (the remote, a name or a path, instead of the one found by URL),
+STORY_IDS_REPO (the repository git runs in, default the stories dir's), STORY_IDS_LOCK (default
+~/tmp/agent/locks/story-ids.lock), STORY_IDS_GH (the gh command), STORY_IDS_MAIN (a stories dir read as main instead
+of the remote's main), STORY_IDS_NOW (epoch seconds), STORY_IDS_BRANCH (the branch the ledger records),
+STORY_IDS_HOLD (seconds to wait between reading the ledger and writing it, so the race tests overlap).
 """
 import fcntl
 import json
@@ -32,19 +41,15 @@ import shlex
 import subprocess
 import sys
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 
 HEADING = re.compile(r"^### User Story (\d+):")
 LINK = re.compile(r"\]\(([^)#]+\.md)\)")
 SPAN = re.compile(r"^(\d+)(?:\s*[–-]\s*(\d+))?$")
-# Bead context-grabber-py4h: until py4h's shared ledger lands, the Linux lane takes story IDs 1620–1639 unlisted
-# (Larry, 2026-11-23). This Mac never hands them out or suggests a block holding them, and check accepts them in any
-# journey. Delete this line, and its three uses, when py4h lands.
-LINUX_ONLY = (1620, 1639)
-
-
-def linux_only(sid):
-    return LINUX_ONLY[0] <= sid <= LINUX_ONLY[1]
+UPSTREAM = re.compile(r"github\.com[:/]+idvorkin/context-grabber(\.git)?/?$")
+LEDGER_REF = "refs/story-ids/ledger"
+TRIES = 5
 
 
 def fmt(spans):
@@ -128,7 +133,7 @@ def main(root):
                 count += 1
                 sid = int(m.group(1))
                 seen.setdefault(sid, []).append(f"{name}:{n}")
-                if own is not None and not any(a <= sid <= b for a, b in own) and not linux_only(sid):
+                if own is not None and not any(a <= sid <= b for a, b in own):
                     problems.append(f"{name}:{n}: story {sid} is outside its journey's IDs ({fmt(own)})")
     for sid in sorted(seen):
         if len(seen[sid]) > 1:
@@ -167,18 +172,78 @@ def run(cmd, cwd=None):
     return r.stdout
 
 
+def repo_of(root):
+    return os.environ.get("STORY_IDS_REPO") or run(["git", "rev-parse", "--show-toplevel"], cwd=root).strip()
+
+
+def shared_remote(repo):
+    """The remote holding main and the shared ledger: STORY_IDS_REMOTE, else the one whose URL is
+    github.com/idvorkin/context-grabber (on the Linux lane origin is a fork; Larry, 2026-11-24)."""
+    if os.environ.get("STORY_IDS_REMOTE"):
+        return os.environ["STORY_IDS_REMOTE"]
+    for line in run(["git", "remote", "-v"], cwd=repo).splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and UPSTREAM.search(parts[1]):
+            return parts[0]
+    raise RuntimeError("no git remote points at github.com/idvorkin/context-grabber, which holds main and the shared "
+                       "story ID ledger; add one: git remote add upstream https://github.com/idvorkin/context-grabber.git")
+
+
 def main_ids(root):
-    """The story IDs and the journey table on main: origin/main fetched now, or STORY_IDS_MAIN's dir for the tests."""
+    """The story IDs and the journey table on main: the shared remote's main fetched now, or STORY_IDS_MAIN's dir for
+    the tests."""
     fake = os.environ.get("STORY_IDS_MAIN")
     if fake:
         with open(os.path.join(fake, "README.md"), encoding="utf-8") as fh:
             return tree_ids(fake), fh.read()
     top = run(["git", "rev-parse", "--show-toplevel"], cwd=root).strip()
     rel = os.path.relpath(os.path.realpath(root), os.path.realpath(top))
-    run(["git", "fetch", "-q", "origin", "main"], cwd=top)
-    names = run(["git", "ls-tree", "--name-only", "origin/main", rel + "/"], cwd=top).split()
-    texts = [run(["git", "show", f"origin/main:{n}"], cwd=top) for n in names if n.endswith(".md") and not n.endswith("README.md")]
-    return ids_in(texts), run(["git", "show", f"origin/main:{rel}/README.md"], cwd=top)
+    run(["git", "fetch", "-q", shared_remote(repo_of(root)), "main"], cwd=top)
+    head = run(["git", "rev-parse", "FETCH_HEAD"], cwd=top).strip()
+    names = run(["git", "ls-tree", "--name-only", head, rel + "/"], cwd=top).split()
+    texts = [run(["git", "show", f"{head}:{n}"], cwd=top) for n in names if n.endswith(".md") and not n.endswith("README.md")]
+    return ids_in(texts), run(["git", "show", f"{head}:{rel}/README.md"], cwd=top)
+
+
+def read_ledger(repo, remote):
+    """(the commit refs/story-ids points at on the remote or None, its reservations)."""
+    try:
+        listed = run(["git", "ls-remote", remote, LEDGER_REF], cwd=repo).split()
+        if not listed:
+            return None, []
+        run(["git", "fetch", "-q", remote, LEDGER_REF], cwd=repo)
+        head = run(["git", "rev-parse", "FETCH_HEAD"], cwd=repo).strip()
+        return head, json.loads(run(["git", "show", f"{head}:ledger.json"], cwd=repo)).get("reservations", [])
+    except (RuntimeError, ValueError) as e:
+        raise RuntimeError(f"can't read the shared ledger {LEDGER_REF} on {remote}: {e}") from e
+
+
+def write_ledger(repo, remote, parent, reservations, message):
+    """Pushes the ledger as a commit on top of parent; False when the remote refuses it because another machine wrote
+    the ledger in between (never forced). Fails on anything else."""
+    text = json.dumps({"reservations": reservations}, indent=1) + "\n"
+    try:
+        blob = subprocess.run(["git", "hash-object", "-w", "--stdin"], cwd=repo, input=text, capture_output=True,
+                              text=True, check=True).stdout.strip()
+        tree = subprocess.run(["git", "mktree"], cwd=repo, input=f"100644 blob {blob}\tledger.json\n", capture_output=True,
+                              text=True, check=True).stdout.strip()
+        ident = ["-c", "user.name=story-ids", "-c", "user.email=story-ids@invalid"]
+        # A random token makes each attempt's commit its own: two machines writing the same ledger on the same parent in
+        # the same second would otherwise make one commit, and the second push would pass as already up to date.
+        message += f"\n\ntoken {uuid.uuid4().hex}"
+        commit = run(["git"] + ident + ["commit-tree", tree] + (["-p", parent] if parent else []) + ["-m", message], cwd=repo).strip()
+    except (RuntimeError, subprocess.CalledProcessError) as e:
+        raise RuntimeError(f"can't write the shared ledger: {e}") from e
+    r = subprocess.run(["git", "push", "-q", remote, f"{commit}:{LEDGER_REF}"], cwd=repo, capture_output=True, text=True)
+    if r.returncode == 0:
+        return True
+    err = (r.stderr or r.stdout).strip()
+    # Lost the race (non-fast-forward, or the remote's ref lock taken by the other push) when the ledger moved since it
+    # was read; anything else (no access, no network) is a failure, not a retry.
+    now_at = subprocess.run(["git", "ls-remote", remote, LEDGER_REF], cwd=repo, capture_output=True, text=True)
+    if now_at.returncode == 0 and (now_at.stdout.split() or [None])[0] != parent:
+        return False
+    raise RuntimeError(f"can't write the shared ledger {LEDGER_REF} on {remote}: {err[:300]}")
 
 
 def is_story(path):
@@ -254,8 +319,6 @@ def full(root, name, n, have, ranges, labels, busy, main_ranges):
     """Why a journey can't give n IDs, and how to extend it (bead context-grabber-0e04)."""
     top = max([b for rs in (ranges, main_ranges) for spans in rs.values() for _, b in spans] + list(busy))
     start = (top // 100 + 1) * 100 if top % 100 else top + 1
-    if start <= LINUX_ONLY[1] and start + 99 >= LINUX_ONLY[0]:  # never a block holding the Linux lane's IDs
-        start = (LINUX_ONLY[1] // 100 + 1) * 100
     free = ", ".join(f"{labels[j]} {sum(1 for a, b in ranges[j] for i in range(a, b + 1) if i not in busy)}"
                      for j in sorted(ranges, key=lambda j: min(a for a, _ in ranges[j])))
     return (f"the journey {labels[name]!r} ({name}) has {have} free ID(s) of the {n} asked for in its IDs "
@@ -272,42 +335,40 @@ def reserve(root, query, n):
     main_ranges = table(root, [], main_readme)[0]
     in_prs, n_prs = pr_ids()
     taken = on_main | in_prs | tree_ids(root)
-    ledger = os.path.expanduser(os.environ.get("STORY_IDS_LEDGER", "~/tmp/agent/locks/story-ids.json"))
-    os.makedirs(os.path.dirname(ledger), exist_ok=True)
+    repo = repo_of(root)
+    remote = shared_remote(repo)
     now = float(os.environ.get("STORY_IDS_NOW") or time.time())
     branch = os.environ.get("STORY_IDS_BRANCH")
     if branch is None:
         r = subprocess.run(["git", "branch", "--show-current"], cwd=root, capture_output=True, text=True)
         branch = r.stdout.strip() or "?"
-    # The lock is a file beside the ledger, held from read to write: locking the ledger itself would be lost when
-    # it is replaced.
-    with open(ledger + ".lock", "a") as lock:
+    lock_path = os.path.expanduser(os.environ.get("STORY_IDS_LOCK", "~/tmp/agent/locks/story-ids.lock"))
+    os.makedirs(os.path.dirname(lock_path), exist_ok=True)
+    # On this machine, one reservation at a time; across machines, the push refuses a ledger another machine changed.
+    with open(lock_path, "a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        time.sleep(float(os.environ.get("STORY_IDS_HOLD", "0")))  # the race test widens the window it guards
-        try:
-            with open(ledger, encoding="utf-8") as fh:
-                held = json.load(fh).get("reservations", [])
-        except FileNotFoundError:
-            held = []
-        live = [r for r in held if now - r["at"] < DAY and r["id"] not in on_main]
-        busy = taken | {r["id"] for r in live}
-        got = []
-        for a, b in ranges[name]:
-            for i in range(a, b + 1):
-                if len(got) < n and i not in busy and not linux_only(i):
-                    got.append(i)
-        if len(got) < n:
-            raise RuntimeError(full(root, name, n, len(got), ranges, labels, busy, main_ranges))
-        live += [{"id": i, "journey": name, "branch": branch, "at": now,
-                  "until": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now + DAY))} for i in got]
-        tmp = f"{ledger}.{os.getpid()}.tmp"
-        with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump({"reservations": live}, fh, indent=1)
-        os.replace(tmp, ledger)
+        for _ in range(TRIES):
+            parent, held = read_ledger(repo, remote)
+            time.sleep(float(os.environ.get("STORY_IDS_HOLD", "0")))  # the race tests widen the window the push guards
+            live = [r for r in held if now - r["at"] < DAY and r["id"] not in on_main]
+            busy = taken | {r["id"] for r in live}
+            got = []
+            for a, b in ranges[name]:
+                for i in range(a, b + 1):
+                    if len(got) < n and i not in busy:
+                        got.append(i)
+            if len(got) < n:
+                raise RuntimeError(full(root, name, n, len(got), ranges, labels, busy, main_ranges))
+            live += [{"id": i, "journey": name, "branch": branch, "at": now,
+                      "until": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now + DAY))} for i in got]
+            if write_ledger(repo, remote, parent, live, f"reserve {', '.join(map(str, got))} in {name} for {branch}"):
+                break
+        else:
+            raise RuntimeError(f"the shared ledger {LEDGER_REF} on {remote} changed under each of {TRIES} tries; reserve again")
     for i in got:
         print(i)
-    print(f"reserved {', '.join(map(str, got))} in {name} for {branch} for 24 h (main, {n_prs} open PR(s) and the ledger {ledger} "
-          "checked)", file=sys.stderr)
+    print(f"reserved {', '.join(map(str, got))} in {name} for {branch} for 24 h (main, {n_prs} open PR(s) and the shared "
+          f"ledger {LEDGER_REF} on {remote} checked)", file=sys.stderr)
     return 0
 
 

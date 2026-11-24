@@ -776,13 +776,13 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Use Case:
 - **As Igor,** with several agents adding stories at once, on this Mac and others
-- **I want to** have each new story's ID handed out by one command that looks at main, every open PR and the other agents' reservations here
+- **I want to** have each new story's ID handed out by one command that looks at main, every open PR and every agent's reservations, on any machine
 - **so that** two branches stop taking the same "next free ID" and colliding once both merge
 
 #### Acceptance Criteria:
 - **Scenario:** Two agents reserve IDs in the same journey
-- **Given:** main, the branch's own stories, the story headings open PRs add, and IDs another agent on this Mac reserved in the last day
-- **When:** each runs `scripts/native/story-ids.py reserve <journey> [n]`, at the same moment
+- **Given:** main, the branch's own stories, the story headings open PRs add, and IDs any agent on any machine reserved in the last day
+- **When:** each runs `scripts/native/story-ids.py reserve <journey> [n]`, at the same moment, on this Mac or one on this Mac and one on the Linux lane
 - **Then:** each gets the lowest free IDs of that journey's ranges, one per line, none of them taken by any of those or by the other
 
 - **Scenario:** A journey runs out of IDs (bead context-grabber-0e04)
@@ -811,7 +811,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** An old reservation
-- **Given:** the ledger on this Mac holds one reservation made over 24 hours ago and another whose story has merged
+- **Given:** the shared ledger holds one reservation made over 24 hours ago and another whose story has merged
 - **When:** the next reservation runs
 - **Then:** neither holds its ID any longer: the first ID can be handed out again, and the second is taken because main has it; both leave the ledger
 
@@ -846,12 +846,12 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Use Case:
 - **As Igor,** with agents that reserve IDs from flaky networks
-- **I want to** have a reservation fail rather than guess when it can't read main or the open PRs
+- **I want to** have a reservation fail rather than guess when it can't read main, the open PRs or the shared ledger
 - **so that** an ID chosen blind, the bug reservations exist to stop, is never handed out
 
 #### Acceptance Criteria:
 - **Scenario:** The open PRs can't be listed
-- **Given:** gh can't reach GitHub, or main can't be fetched
+- **Given:** gh can't reach GitHub, main can't be fetched, or the shared ledger can't be read or written
 - **When:** an agent runs the reserve command
 - **Then:** it prints no ID, says what it couldn't read, exits non-zero and reserves nothing; it fails the same way when the journey word names more than one journey or the journey has no free ID left, which names the next unused block to add to its row (story 791)
 
