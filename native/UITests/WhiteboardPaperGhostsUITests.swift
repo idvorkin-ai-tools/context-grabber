@@ -596,7 +596,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
       XCTAssertGreaterThanOrEqual(app.buttons[id].frame.height, 36, "\(id) a finger's height")
     }
     XCTAssertFalse(app.buttons["whiteboard-mark-keep-group"].exists, "one Keep beside the reply, no second button")
-    XCTAssertEqual(app.buttons["whiteboard-mark-keep"].label, "Keep group", "his reply of three, chosen whole (story 1285)")
+    XCTAssertEqual(
+      app.buttons["whiteboard-mark-keep"].label, "Keep group", "his reply of three, chosen whole (story 1285)")
     shot(app, "Keep and Dismiss beside his mark")
     let keepAll = app.buttons["whiteboard-keep-all"]
     XCTAssertTrue(keepAll.appears(within: 5), app.debugDescription)
