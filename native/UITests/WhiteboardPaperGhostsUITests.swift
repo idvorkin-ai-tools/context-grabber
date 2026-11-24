@@ -567,7 +567,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(moved.maxY - mark.maxY, pushed.maxY - before.maxY, accuracy: 0.01, "by as much as the line")
 
     XCTAssertNotNil(ink(app, within: 14) { abs($0.maxY - before.maxY) < 0.01 }, "one undo put the line back")
-    let back = PaperScreen.showing(app, { $0.larryGhost }) { abs($0.maxY - mark.maxY) < 0.01 }
+    let back = PaperScreen.showing(app, { $0.larryGhost }, { abs($0.maxY - mark.maxY) < 0.01 })
     shot(app, "after one undo")
     XCTAssertEqual(
       try XCTUnwrap(back, "his circle still shows").maxY, mark.maxY, accuracy: 0.01, "and his circle with it")
