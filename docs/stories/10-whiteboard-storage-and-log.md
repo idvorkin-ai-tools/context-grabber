@@ -538,7 +538,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1295:
 
 - **Summary:** A session is reviewed once, however the board closes
-- **Status:** in progress (bead context-grabber-04ks)
+- **Status:** implemented in [99d85876](https://github.com/idvorkin/context-grabber/commit/99d85876); verified by host tests (`BoardReviewDiskTests`: a save landing after the review leaves nothing pending, a pending session already reviewed isn't reviewed again, a cut-short session is still reviewed on the next open, one session's clear leaves the next one's pending) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a review started on close shows on the next open. Not yet seen on the iPad (rung 3 owed)
 - **Issues:** context-grabber-04ks (no-mistakes review round 2 on PR #1379: a save of the session in flight could land after the close cleared it)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
