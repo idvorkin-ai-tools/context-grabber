@@ -131,6 +131,9 @@ to that event's own bullet; never join two events on one line.
   - collapse (board, ask: an answered card folded to its chip. With answered: false, the open question's popup folded back to its line, story 1119)
   - answered (board, ask, verb: what the card's decision did, after Chat's own decision_answer or decision_menu line with from: board)
   - erased (board, asks: the answered cards the eraser took, story 886)
+  - hide (board, ask, answered: whether the card hidden to its '?' was answered, story 1273)
+  - show (board, ask: a tap on a '?' brought its card back, story 1169)
+  - moved (board, ask, hidden: whether it was a '?', x, y: where its top-left landed in board points, kept inside the page, story 1274)
 - `error` with where:
   - whiteboard_questions_asks (board, why: what asked for the read, message: the HTTP status or network error — the open asks could not be read, once until a read succeeds)
   - whiteboard_questions_answers (board, message: the answers could not be read, once until a read succeeds)
