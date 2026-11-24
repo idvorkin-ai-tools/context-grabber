@@ -15,12 +15,12 @@ import Foundation
 #endif
 
 public enum InboxSend {
-  /// The Cockpit's cap on a decoded image.
-  public static let maxImageBytes = 10 * 1024 * 1024
+  /// The Cockpit's cap on a decoded image or attachment: 100 MiB since 2026-11-24 (cockpit 7920f19, #1426).
+  public static let maxImageBytes = 100 * 1024 * 1024
 
   #if canImport(ImageIO)
     /// PNG, JPEG, GIF and WebP go as they are; anything else (HEIC) becomes a JPEG, made smaller until it fits the
-    /// Cockpit's 10 MB. Nil when the bytes are not an image ImageIO can read.
+    /// Cockpit's 100 MB. Nil when the bytes are not an image ImageIO can read.
     public static func sendable(_ image: Data, maxBytes: Int = maxImageBytes) -> Data? {
       guard let source = CGImageSourceCreateWithData(image as CFData, nil) else { return nil }
       let type = CGImageSourceGetType(source).map { $0 as String }

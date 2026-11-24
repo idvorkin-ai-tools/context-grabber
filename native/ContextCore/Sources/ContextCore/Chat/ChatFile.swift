@@ -89,7 +89,7 @@ public struct ChatFile: Equatable, Sendable {
   /// What the log says a file is: the name's extension, never the name.
   public static func type(of name: String) -> String { (name as NSString).pathExtension.lowercased() }
 
-  /// In binary units, as the cap is: 10 MiB reads 10 MB rather than a decimal 10.5 MB.
+  /// In binary units, as the cap is: 100 MiB reads 100 MB rather than a decimal 104.9 MB.
   static func size(_ bytes: Int) -> String {
     ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .binary)
   }

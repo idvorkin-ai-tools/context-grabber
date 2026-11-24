@@ -80,11 +80,28 @@ final class ChatFileTests: XCTestCase {
     for (name, mime) in expected { XCTAssertEqual(ChatFile.mime(name: name), mime, name) }
   }
 
-  /// Story 493's limit is 10 MB: the cap is 10 MiB, so a decimal size would call it 10.5 MB.
-  func testTheTooBigProblemStatesTheCapAsTenMB() {
-    let over = ChatFile.Problem.tooBig(name: "over.pdf", bytes: 12 * 1024 * 1024, limit: ChatFile.maxBytes)
-    XCTAssertEqual(over.errorDescription, "over.pdf is 12 MB, over the 10 MB the Cockpit takes, so it can't go.")
-    XCTAssertEqual(ChatFile(name: "cap.pdf", data: Data(count: ChatFile.maxBytes)).size, "10 MB")
+  /// Story 493's limit is 100 MB, the Cockpit's since 2026-11-24 (#1426): the cap is 100 MiB, so a decimal size would
+  /// call it 104.9 MB.
+  func testTheTooBigProblemStatesTheCapAsOneHundredMB() {
+    XCTAssertEqual(ChatFile.maxBytes, 100 * 1024 * 1024)
+    XCTAssertEqual(InboxSend.maxImageBytes, ChatFile.maxBytes)
+    let over = ChatFile.Problem.tooBig(name: "over.pdf", bytes: 120 * 1024 * 1024, limit: ChatFile.maxBytes)
+    XCTAssertEqual(over.errorDescription, "over.pdf is 120 MB, over the 100 MB the Cockpit takes, so it can't go.")
+  }
+
+  /// #1426: a file over the old 10 MB cap but under the Cockpit's 100 MB is picked, not refused; one byte over 100 MB
+  /// is refused before it is read (the size comes from the file system, so the test writes no 100 MB file to refuse).
+  func testAFileBetweenTenAndOneHundredMBIsPickedAndOneByteOverIsRefused() throws {
+    let twelve = Data(count: 12 * 1024 * 1024)
+    XCTAssertEqual(try ChatFile.read(try file("scan.pdf", twelve)), .file(ChatFile(name: "scan.pdf", data: twelve)))
+    let over = try file("huge.pdf", Data())
+    let handle = try FileHandle(forWritingTo: over)
+    try handle.truncate(atOffset: UInt64(ChatFile.maxBytes + 1))
+    try handle.close()
+    XCTAssertThrowsError(try ChatFile.read(over)) {
+      XCTAssertEqual(
+        $0 as? ChatFile.Problem, .tooBig(name: "huge.pdf", bytes: ChatFile.maxBytes + 1, limit: ChatFile.maxBytes))
+    }
   }
 
   func testAProblemLogsItsCaseAndTypeNeverTheName() throws {
