@@ -291,6 +291,15 @@ strip of chips under the thread's title, so the PR Larry opened an hour ago is o
   comment). A gist reads *gist*. Any other link reads its site, with no *www.*, and the last part of its path:
   *idvork.in/ai-journal*; when that last part is only a number, the part before it too (*github.com/issues/736*); a
   site's front page is the site alone. A long path is cut short with an ellipsis.
+- **Site names come from the Cockpit** (Igor, 2026-11-23: server-sent link labels, *"more stuff server-driven and
+  doesn't need client changes"*). A site can have a short name, and its chips read that name in place of the site:
+  *idvorkin-ai-tools.github.io/p04.html* reads *ai-tools/p04.html*, its front page *ai-tools*. The Cockpit holds the
+  list, so a new short name is a Cockpit change with no app release. The app asks for it when a chat opens, keeps the
+  last list it was given across launches, and until it has one (or when the Cockpit has none or can't be reached)
+  uses the names it ships with, which are the same: *idvorkin-ai-tools.github.io* reads *ai-tools*. A name only ever
+  replaces the site part: the PR, gist, Inbox, Install, *Larry* and *Preview* chips read as above whatever the list
+  says, and a site the list does not name reads as itself. A list the app can't read changes nothing. The app's rules
+  here are the spec the Cockpit's own chips copy.
 - **Order and repeats.** Newest message first, links within one message in the order they were written. A link that
   appears again (the same page, with or without a trailing slash, *www.* or a fragment; the same pull request from any
   of its pages) is one chip, where it was newest, and opens the newest one written.

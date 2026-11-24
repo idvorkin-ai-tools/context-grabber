@@ -150,3 +150,8 @@ extension ChatMove {
     }
   }
 }
+
+extension ChatSiteNames {
+  /// GET /link-labels on the chat's Cockpit (story 1135).
+  public static func request(cockpit: String) throws -> URLRequest { try ChatWire.get(cockpit, path) }
+}

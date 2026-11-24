@@ -204,6 +204,15 @@ public enum ChatLinks {
     return ChatLink(url: url, kind: .web, label: webLabel(host: host, parts: parts), id: page)
   }
 
+  /// A link read again under the site names now (story 1135): a web chip's label follows the list, every other chip
+  /// stays as it was.
+  public static func relabeled(_ link: ChatLink) -> ChatLink {
+    guard link.kind == .web, let host = link.url.host?.lowercased(), !host.isEmpty else { return link }
+    var out = self.link(link.url, host: host)
+    out.state = link.state
+    return out
+  }
+
   /// An over-the-air install link, which the detector may not know (story 1133).
   static let installPrefix = "itms-services://"
 
@@ -231,15 +240,17 @@ public enum ChatLinks {
   static let lavishPort = 8444
 
   /// The site and the last part of the path, with the part before it when the last is only a number.
-  /// The Cockpit's long tailnet host reads *Larry* (story 744): *Larry*, *Larry: ai-journal*.
+  /// The Cockpit's long tailnet host reads *Larry* (story 744): *Larry*, *Larry: ai-journal*. Any other site reads its
+  /// short name when the Cockpit's list gives one (story 1135): *ai-tools/p04.html*.
   private static func webLabel(host: String, parts: [String]) -> String {
     let cockpit = host == CockpitPage.host
-    guard let last = parts.last else { return cockpit ? "Larry" : host }
+    let site = cockpit ? host : ChatSiteNames.current.name(for: host) ?? host
+    guard let last = parts.last else { return cockpit ? "Larry" : site }
     var path = last
     if parts.count > 1, last.allSatisfy(\.isNumber) { path = parts[parts.count - 2] + "/" + last }
     path = path.removingPercentEncoding ?? path
     if path.count > pathLimit { path = String(path.prefix(pathLimit - 1)) + "…" }
-    return cockpit ? "Larry: " + path : host + "/" + path
+    return cockpit ? "Larry: " + path : site + "/" + path
   }
 
   /// A link's address where the app spells it out (*All links*): as written, but a Cockpit thread as its short form and

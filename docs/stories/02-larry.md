@@ -3318,6 +3318,66 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 1135:
+
+- **Summary:** A link's chip reads the site's short name the Cockpit gives, so a new name needs no app release
+- **Status:** native app: implemented in 5b7af00c; verified by ContextCore's host tests and the chat UI test classes on the iPad simulator
+- **Issues:** Larry, 2026-11-24, Cockpit thread igor2-88g.1620 (msg 1edde2605703): Igor said yes to server-sent link labels; background in thread igor2-88g.1571
+- **Spec:** [Chat with Larry — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md), *Site names come from the Cockpit*
+
+#### Use Case:
+- **As** Igor, reading a Larry thread full of links to his explainer pages
+- **I want to** see *ai-tools/p04.html* instead of *idvorkin-ai-tools.github.io/p04.html*, and have the next short name appear without an app update
+- **so that** chips stay short and Larry can rename a site from the Cockpit alone
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit names a site
+- **Given:** the Cockpit's site names include *idvorkin-ai-tools.github.io* as *ai-tools* and *example.org* as *ex*
+- **When:** I open a thread linking https://idvorkin-ai-tools.github.io/p04.html, https://example.org/a/b and https://example.org/
+- **Then:** the chips read *ai-tools/p04.html*, *ex/b* and *ex*, on the strip, on the list's rows and in the bubbles, each opening its full address
+
+---
+
+### User Story 1609:
+
+- **Summary:** Before the Cockpit has answered, a link's chip reads the site names the app ships with
+- **Status:** native app: implemented in 5b7af00c; verified by ContextCore's host tests
+- **Issues:** Larry, 2026-11-24, Cockpit thread igor2-88g.1620 (msg 1edde2605703)
+- **Spec:** [Chat with Larry — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md), *Site names come from the Cockpit*
+
+#### Use Case:
+- **As** Igor, opening chat on a fresh install with the Cockpit out of reach
+- **I want to** still see the short names I am used to
+- **so that** a chip never reads the long host just because the list hasn't arrived
+
+#### Acceptance Criteria:
+- **Scenario:** No list from the Cockpit yet
+- **Given:** a first launch with the Cockpit unreachable
+- **When:** I open a thread linking https://idvorkin-ai-tools.github.io/p04.html
+- **Then:** the chip reads *ai-tools/p04.html*, from the names the app ships with
+
+---
+
+### User Story 1610:
+
+- **Summary:** A site name from the Cockpit never renames a PR, gist, Inbox, Install or Larry chip
+- **Status:** native app: implemented in 5b7af00c; verified by ContextCore's host tests
+- **Issues:** Larry, 2026-11-24, Cockpit thread igor2-88g.1620 (msg 1edde2605703)
+- **Spec:** [Chat with Larry — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md), *Site names come from the Cockpit*
+
+#### Use Case:
+- **As** Igor, reading a thread of PRs, gists and Cockpit links
+- **I want to** have those chips keep their own words whatever the Cockpit's list says
+- **so that** *PR #n* and *Inbox* always mean what they did
+
+#### Acceptance Criteria:
+- **Scenario:** A name never changes a special chip
+- **Given:** a list that also names *github.com*, *gist.github.com* and the Cockpit's own host
+- **When:** a thread links a PR, a gist, a Cockpit thread and a Lavish page
+- **Then:** they still read *PR #n*, *gist*, *Inbox* and *Larry: Lavish*
+
+---
+
 ### User Story 1136:
 
 - **Summary:** A Cockpit that blinks files no report
