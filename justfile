@@ -14,9 +14,11 @@ test-ladder *args:
     scripts/native/test-ladder.sh {{args}}
 
 # New story IDs come from `scripts/native/story-ids.py reserve <journey> [n]` (story 791). This, story 793, runs
-# right before `gh pr merge`: the story IDs on the branch as pushed, merged with origin/main as it is now.
+# right before `gh pr merge`: the story IDs on the branch as pushed, merged with origin/main as it is now. Story 1519:
+# then ContextCore compiled in Release, as an archive compiles it, when the branch changes it (release-check.sh).
 pre-merge *branch:
     scripts/native/pre-merge.sh {{branch}}
+    scripts/native/release-check.sh
 
 # --- The native app (native/, docs/superpowers/specs/2026-10-04-swift-native-app-design.md) ---
 
@@ -84,6 +86,8 @@ native-test-host:
     scripts/native/test-host-lane.sh
     # Bead context-grabber-2l07: the lane script tests pass with the caller's SIM and lane settings set.
     scripts/native/test-lane-env.sh
+    # Story 1519 (context-grabber-6ocd): pre-merge's Release build of ContextCore runs when the branch changes it, and fails loudly.
+    scripts/native/test-release-check.sh
     # Where a UI test run's time went, from a real run's log.
     scripts/native/test-ui-timings.sh
     # #1038 (story 1016): the ladder report keeps a retry, a wrong-device skip and a missing deploy apart, on a fixture.

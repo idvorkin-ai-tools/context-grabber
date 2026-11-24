@@ -60,20 +60,7 @@ extension BoardReview {
       }
 
       // Igor's strokes moved that the step wasn't aimed at.
-      var wrongPush: [String] = []
-      var unaimed: [String] = []
-      for id in start.units.keys.sorted() where !aimed.contains(id) {
-        guard let was = start.units[id], was.owner == "igor", let now = end.units[id], moved(was.box, now.box)
-        else { continue }
-        if let rule, was.box.y >= rule.cut - tolerance {
-          let ok =
-            abs(now.box.y - was.box.y - rule.dy) <= tolerance && abs(now.box.x - was.box.x) <= tolerance
-            && !resized(was.box, now.box)
-          if !ok { wrongPush.append(id) }
-        } else {
-          unaimed.append(id)
-        }
-      }
+      let (wrongPush, unaimed) = igorMoves(start, end, aimed: aimed, cut: rule?.cut, dy: rule?.dy)
       if !wrongPush.isEmpty, let rule {
         out.append(
           pass.finding(
@@ -94,6 +81,29 @@ extension BoardReview {
       }
     }
     return out
+  }
+
+  /// Igor's strokes that moved without the step's aim: those under the rule's cut that didn't move as it says, and the
+  /// rest. Kept out of `movedWithoutAim` and given the rule as plain values: Swift 6.4.2's Release optimizer crashes
+  /// (CopyPropagation's ownership verifier) on the optional tuple bound inside that loop (bead context-grabber-6ocd).
+  static func igorMoves(
+    _ start: State, _ end: State, aimed: Set<String>, cut: Double?, dy: Double?
+  ) -> (wrongPush: [String], unaimed: [String]) {
+    var wrongPush: [String] = []
+    var unaimed: [String] = []
+    for id in start.units.keys.sorted() where !aimed.contains(id) {
+      guard let was = start.units[id], was.owner == "igor", let now = end.units[id], moved(was.box, now.box)
+      else { continue }
+      if let cut, let dy, was.box.y >= cut - tolerance {
+        let ok =
+          abs(now.box.y - was.box.y - dy) <= tolerance && abs(now.box.x - was.box.x) <= tolerance
+          && !resized(was.box, now.box)
+        if !ok { wrongPush.append(id) }
+      } else {
+        unaimed.append(id)
+      }
+    }
+    return (wrongPush, unaimed)
   }
 
   /// Check 4: one step never leaves both owners' ink moved together unless he aimed at both; put apart by the rules
