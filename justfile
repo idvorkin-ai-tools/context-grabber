@@ -20,6 +20,11 @@ pre-merge *branch:
     scripts/native/pre-merge.sh {{branch}}
     scripts/native/release-check.sh {{branch}}
 
+# The pipeline's lint step (.no-mistakes.yaml commands.lint; it runs after review and document, before the push): the
+# whole tree's lint, then story 1515's check that no story ID this branch adds is added by another open PR too.
+pipeline-lint: native-lint-format native-lint
+    scripts/native/story-ids.py claimed
+
 # --- The native app (native/, docs/superpowers/specs/2026-10-04-swift-native-app-design.md) ---
 
 native_sim := env("SIM", "iPhone 17")

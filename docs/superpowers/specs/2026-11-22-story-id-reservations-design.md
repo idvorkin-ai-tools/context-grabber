@@ -85,7 +85,10 @@ A recipe, run in the branch's checkout immediately before merging its PR: it fet
 the checkout, and runs the story ID check on the stories of the merged result. When the checkout is behind the pushed
 branch it says so and checks the pushed one, since that is what merges; a branch not pushed yet is checked as it is
 locally. It fails when the merge conflicts or when the merged stories fail the check, naming each problem the way the
-host rung does. It passes, and says so, otherwise.
+host rung does. It passes, and says so, otherwise. Its last line is always `ok   pre-merge: …` or `FAIL pre-merge: …`,
+and its exit status is the verdict: the merge runs only when it succeeds (`just pre-merge && gh pr merge …`), never
+after its output went through a pipe, which hides a failure (on 2026-11-24 `just pre-merge | tail -2` let #1400 merge
+duplicate IDs onto main).
 
 Then, when the branch changes the shared core, the pre-merge check compiles it with the optimizer on, the way an
 archive (the over-the-air build, TestFlight) compiles it. Every other rung builds without the optimizer, so a compiler
@@ -96,6 +99,20 @@ built even when the local ones don't, and a checkout that isn't the pushed branc
 to check it out, rather than building stale code. A branch that leaves the shared core as main has it skips the
 build; it can be forced. It runs in a host slot and
 reuses the checkout's build folder, so it takes about a minute in a slot (about two cold).
+
+## The pipeline's own check, before it pushes
+
+Telling the pipeline's review and document steps to reserve (bead `context-grabber-1vvb`) was not enough: on
+2026-11-24 they still picked IDs themselves three times (1609/1610, and 1292/1293 twice), and two of those collided
+with another open PR, which broke every lane's pre-merge until main was renumbered (bead `context-grabber-6p52`). So
+the pipeline checks it mechanically, in its lint step, which runs after review and document and before the push.
+
+The check looks at every story ID the branch adds over main as it is on the shared remote now. It fails, naming the
+ID, the other PR and its branch, when another open PR adds the same ID. The branch's own PR is not "another": it is the
+open PR that shares a commit subject with the branch's commits over main, which still holds after the pipeline rebases
+(the pipeline's worktree is on no branch, so the name can't be used). Each failure says to take a new ID from the
+reserve command and renumber. An ID no other open PR adds passes, reserved or not, since what breaks main is two
+branches holding one ID. Like reserving, it fails rather than guess when it can't fetch main or list the open PRs.
 
 ## Acceptance criteria
 
@@ -116,7 +133,10 @@ reuses the checkout's build folder, so it takes about a minute in a slot (about 
 - Two branches that each pass the story ID check alone, but add the same ID, fail the pre-merge check; one that
   doesn't collide passes; one whose pushed commits add the colliding ID fails even when the checkout is behind them.
 - The agent instructions say: new stories take their IDs from the reserve command, and the pre-merge check runs
-  right before every merge.
+  right before every merge, chained so the merge runs only when it passes.
 - A branch that changes the shared core is compiled with the optimizer on before it merges; a failing optimized
   build fails the pre-merge check, and a branch that leaves the shared core alone skips it. A checkout behind the
   pushed branch fails the check without building, even when only the pushed commits touch the shared core.
+- The pipeline's lint step fails a branch that adds an ID another open PR adds, naming the ID and that PR, and passes
+  when the only other PR adding it is the branch's own (found by a shared commit subject, even after a rebase); with the
+  open PRs unreadable it fails.
