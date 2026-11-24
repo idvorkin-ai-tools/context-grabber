@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 15, `bw_info abi is 15: ${JSON.stringify(info)}`);
+check(info.abi === 16, `bw_info abi is 16: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -580,6 +580,36 @@ check(reviewNames.length >= 37, `the review fixtures are all there: ${reviewName
 check(ask('bw_review', '').error === 'the record could not be read: a record starts with its header', 'an empty record says why');
 check(ask('bw_review', '{"record":2,"board":"b","session":"s","surface":"web","ink":[]}').error ===
   'the record could not be read: record version 2, this review reads 1', 'a newer record says why');
+
+// Interface 16 (spec, the board's applier): the app's BoardOpApplier kept in the module, stepped. A board at rev 3 lets
+// a batch on its own look through; the board's change bumps it to 4 and its report records it applied, touching all; a
+// batch from look 3 is then stale; one seen before is ignored; two held for the Pencil, the second supersedes the
+// first and applies on the lift; Igor moving a, then a batch from that older look naming a, conflicts on a.
+const applier = (body) => ask('bw_applier', body);
+const larry = (base, ids = ['a'], label = 'l') => ({ board: 'B', base_rev: base, label, list: [{ op: 'translate', ids, dx: 0, dy: 10 }] });
+check(applier({ step: 'load', rev: 3 }).state.rev === 3, 'a board at rev 3');
+check(same(applier({ step: 'receive', key: 'm1', batch: larry(3), board: 'B', ready: true }).decision, 'apply'), 'a batch on its look applies');
+applier({ step: 'changed', ids: [] });
+const reported = applier({ step: 'report', key: 'm1', outcome: 'applied', changes_board: true });
+check(same(reported.report, 'applied') && same(reported.result, { label: 'l', ok: true, rev: 4 }) &&
+  same(reported.state.touches, [{ all: true, ids: [], rev: 4 }]), `its report: applied at 4, touching all: ${JSON.stringify(reported)}`);
+check(same(applier({ step: 'receive', key: 'm2', batch: larry(3), board: 'B' }).result, { label: 'l', ok: false, reason: 'stale', rev: 4 }),
+  'a batch from before his own change is stale');
+check(same(applier({ step: 'receive', key: 'm1', batch: larry(4), board: 'B' }), { decision: 'ignored', state: applier({ step: 'closed' }).state, why: 'handled' }), 'one seen before is ignored');
+check(same(applier({ step: 'receive', key: 'm3', batch: larry(4, ['b'], 'l3'), board: 'B', ready: false }).replaced, null), 'held for the Pencil');
+const second = applier({ step: 'receive', key: 'm4', batch: larry(4, ['b'], 'l4'), board: 'B', ready: false });
+check(second.replaced === 'l3' && second.state.held === 'l4' && second.state.last_result.reason === 'superseded', `the second supersedes the first: ${JSON.stringify(second)}`);
+check(same(applier({ step: 'release', ready: false }).decision, null), 'no lift: nothing');
+const lifted = applier({ step: 'release', ready: true });
+check(lifted.decision === 'apply' && lifted.key === 'm4' && lifted.state.applying === 'm4', `the lift lets it through: ${JSON.stringify(lifted)}`);
+check(applier({ step: 'report', key: 'stray', outcome: 'unavailable' }).report === 'late', 'a report for another batch is late');
+check(same(applier({ step: 'report', key: 'm4', outcome: 'failed', reason: 'edit' }), { canvas: 'failed:edit', report: 'refused',
+  result: { label: 'l4', ok: false, reason: 'not_applied', rev: 4 }, state: applier({ step: 'closed' }).state }), 'a failed canvas: not applied');
+applier({ step: 'changed', ids: ['a'] });
+const conflict = applier({ step: 'receive', key: 'm5', batch: larry(4, ['a', 'c']), board: 'B' });
+check(same(conflict.result, { conflict_ids: ['a'], label: 'l', ok: false, reason: 'stale', rev: 5 }), `a change since names a: ${JSON.stringify(conflict)}`);
+check(applier({ step: 'receive', key: 'm6', batch: larry(5, ['a', 'c']), board: 'B' }).decision === 'apply', 'on the new look it applies');
+check(applier({ step: 'nope' }).error && applier('not json').error && applier({ step: 'report', outcome: 'maybe' }).error, 'a step it can\'t read says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
