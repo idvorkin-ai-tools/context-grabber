@@ -391,7 +391,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       laps.time("tap_dot") { takesBackTapDot(change, markup: markup, frames: frames) }
       || laps.time("margin_hold") { marginHeld(change, markup: markup) }
       || laps.time("pick_up") { pickedUp(change, markup: markup, before: previous) }
-    // Story 1269: a stroke of his, a scratch-out's zigzag too, fades a mark it writes over.
+    // Story 1269: a stroke of his fades a mark it writes over; a scratch-out's zigzag goes and leaves it as it was.
     if !consumed { laps.time("marks") { marksWritten(change, markup: markup, undo: controller.undoManager) } }
     consumed = consumed || laps.time("scratch") { scratchesOut(change, markup) }
     snapNoticed(change, consumed: consumed)

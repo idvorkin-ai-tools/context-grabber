@@ -235,9 +235,7 @@ final class BoardMarkHoldsTests: XCTestCase {
     XCTAssertEqual(anchor.strokes.first?.name, "hdr", "the line above it, not the writing far to the right")
     // The zigzag at 987.9 s, [54, 239, 653, 120], drawn as a zigzag across that box.
     let zag = zigzag("zz", x: 54...707, y: 239...359)
-    XCTAssertEqual(BoardMarkHolds.share(of: zag, on: lbl), 0, "below the label: it stays at full strength")
-    // Had he scratched out over the label instead, it would fade.
-    XCTAssertTrue(BoardMarkHolds.writesOver(zigzag("over", x: 130...290, y: 102...118), lbl))
+    XCTAssertEqual(BoardMarkHolds.share(of: zag, on: lbl), 0, "below the label: it shares nothing with it")
   }
 
   /// Story 1270: the post that takes marks away says which and why, beside the events, however full the turn.

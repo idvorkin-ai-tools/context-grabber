@@ -354,8 +354,9 @@ already follows what its ends join (story 917) and holds to nothing more, though
   a third of its path lies on the mark: inside the box a label's letters fill, or, for a drawn mark (a line, an arrow,
   a box, a circle, a check), within reach of its line (half the two pens' widths and 2 points). So writing a word on
   a label, striking it through, or scribbling over a check writes over it; an underline below a label, a circle round
-  it, a line crossing an arrow, or a word written beside it does not. A scratch-out counts like any other stroke: it
-  erases only ink, and the mark it ran over fades. Nothing else writes over a mark: a finger that pans, taps or
+  it, a line crossing an arrow, or a word written beside it does not. A scratch-out erases only ink and leaves an
+  unkept mark it runs over as it was: its zigzag goes, so nothing is left writing over the mark; Dismiss takes the
+  mark. Nothing else writes over a mark: a finger that pans, taps or
   lassoes, the eraser, a paste, a drop, a keep, and Larry's own changes don't. Ink that was under the mark when it
   landed (Larry drew over it on purpose) never does either.
 - **A written-over mark fades**: it shows at a third of its strength, so his writing reads on top, and stays where it
