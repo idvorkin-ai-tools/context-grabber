@@ -679,7 +679,7 @@ redeem and reads the phone's shared pairing.
 ### User Story 227:
 
 - **Summary:** A Stats load that fails in the drill is a copyable error
-- **Status:** native app only: implemented in [f0f149e](https://github.com/idvorkin/context-grabber/commit/f0f149e) (#563), on the drill of story 220; verified by a simulator build only, the failure itself not yet seen on a simulator or the phone; a refused key (401, 403) says to ask Larry in chat for a pair link in [283f6cf3](https://github.com/idvorkin/context-grabber/commit/283f6cf3) (#1371), verified by host tests (`DrillPairingHintTests`), the Mac build, and the iPad Pro 11-inch (M5) simulator (`CardUITests`; the refusal itself not yet seen on a device)
+- **Status:** native app only: implemented in [f0f149e](https://github.com/idvorkin/context-grabber/commit/f0f149e) (#563), on the drill of story 220; verified by a simulator build only, the failure itself not yet seen on a simulator or the phone; a refused key (401, 403) says to ask Larry in chat for a pair link in [3231680d](https://github.com/idvorkin/context-grabber/commit/3231680d) (#1371), verified by host tests (`DrillPairingHintTests`), the Mac build, and the iPad Pro 11-inch (M5) simulator (`CardUITests`; the refusal itself not yet seen on a device)
 - **Issues:** [#563](https://github.com/idvorkin/context-grabber/issues/563), [#1371](https://github.com/idvorkin/context-grabber/issues/1371)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 
