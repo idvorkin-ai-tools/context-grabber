@@ -90,7 +90,7 @@ extension BoardReview {
       let placedIDs = Array(placed)
       // Story 1318: a drop Igor dragged himself that only grazes ink is as designed; what the board placed is strict.
       let deepest = deepestOverlap(placed, under, in: after)
-      let grazed = byHand.contains(step.by) && step.kind == "drop" && deepest.depth <= deepest.allowance
+      let grazed = byHand.contains(step.by) && step.kind == "drop" && deepest.depth < deepest.allowance
       var evidence = [
         Evidence("placed", "\(many(strokes(placedIDs, in: after))): \(list(placedIDs))"),
         Evidence("at", union(placedIDs.compactMap { after.units[$0]?.box }).map(box) ?? "none"),
