@@ -176,12 +176,27 @@ final class BoardReviewRecorderTests: XCTestCase {
     XCTAssertNil(board.recorder.record)
   }
 
-  func testLarrysWordsStayUnderTheCockpitsEightKilobytes() {
-    let long = (0..<400).map { "line \($0) of a long review, with its evidence" }.joined(separator: "\n")
-    let cut = BoardReviewShown.cut(long, to: BoardReviewShown.larryBytes)
-    XCTAssertLessThanOrEqual(cut.utf8.count, BoardReviewShown.larryBytes)
-    XCTAssertTrue(cut.hasSuffix("more lines are in the copy on the iPad)"), cut.suffix(120).description)
-    XCTAssertEqual(BoardReviewShown.cut("short", to: 7000), "short")
+  /// The Cockpit keeps each event under 8 KB (Larry, 2026-11-23); the event to Larry is held to 6 KB as sent, so a
+  /// review full of characters JSON escapes still fits, and the event says how many lines it cut.
+  func testLarrysEventStaysUnderSixKilobytesAsSentAndSaysWhatItCut() throws {
+    func sent(_ shown: inout BoardReviewShown) throws -> (bytes: Int, wire: [String: Any]) {
+      let wire = try XCTUnwrap(shown.forLarry(t: 1_700_000_000_000)).wire
+      return (try JSONSerialization.data(withJSONObject: wire).count, wire)
+    }
+    var short = try shown("check3-knob-stretch")
+    XCTAssertNil(try sent(&short).wire["cut"], "a review that fits cuts nothing")
+
+    let record = try fixture("check3-knob-stretch")
+    var report = BoardReview.run(record)
+    report.session = #"s "quoted" \back\slash/ ⟨Igor’s 箱⟩ "# + String(repeating: "\"\\/\u{1}\t", count: 30)
+    report.findings = Array(repeating: try XCTUnwrap(report.findings.first), count: 200)
+    var long = BoardReviewShown()
+    long.show(report, of: record, asked: false)
+    let (bytes, wire) = try sent(&long)
+    XCTAssertLessThanOrEqual(bytes, 6000)
+    XCTAssertGreaterThan(try XCTUnwrap(wire["cut"] as? Int), 0)
+    let text = try XCTUnwrap(wire["text"] as? String)
+    XCTAssertTrue(text.hasSuffix("more lines are in the copy on the iPad)"), String(text.suffix(120)))
   }
 
   private func fixture(_ name: String) throws -> BoardSessionRecord {
@@ -208,12 +223,13 @@ final class BoardReviewRecorderTests: XCTestCase {
   func testAnAnswerLeavesTheNoteAndGoesToLarryOnce() throws {
     var shown = try shown("check3-knob-stretch")
     let finding = try XCTUnwrap(shown.findings.first)
-    let first = try XCTUnwrap(shown.forLarry())
+    let words = { (event: BoardEvent?) in event?.wire["text"] as? String }
+    let first = try XCTUnwrap(words(shown.forLarry(t: 1)))
     XCTAssertTrue(first.contains("check 3 moved_without_aim: 0 bug, 1 unclear"), first)
-    XCTAssertNil(shown.forLarry(), "once")
+    XCTAssertNil(shown.forLarry(t: 2), "once")
     shown.answer(finding, .meant)
     XCTAssertNil(shown.note)
-    XCTAssertTrue(try XCTUnwrap(shown.forLarry()).hasSuffix("Igor on step 0 (check 3): I meant that"))
+    XCTAssertTrue(try XCTUnwrap(words(shown.forLarry(t: 3))).hasSuffix("Igor on step 0 (check 3): I meant that"))
   }
 
   func testShowMeHasErasedInkInTheBeforeAndTheMoveInTheAfter() throws {

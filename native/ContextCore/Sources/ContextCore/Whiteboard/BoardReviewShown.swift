@@ -61,12 +61,12 @@ public struct BoardReviewShown: Equatable, Sendable {
   /// The findings as the list shows them, newest first.
   public var findings: [BoardReview.Finding] { (report?.findings ?? []).reversed() }
 
-  /// The most an event to Larry carries: the Cockpit keeps each event under 8 KB (Larry, 2026-11-23).
-  public static let larryBytes = 7000
+  /// The most the event to Larry takes as sent: the Cockpit keeps each event under 8 KB (Larry, 2026-11-23).
+  public static let larryBytes = 6000
 
-  /// What goes to Larry with the board's next picture (story 1247), once: the review's words and his answers, cut
-  /// short with a note saying so past `larryBytes`.
-  public mutating func forLarry() -> String? {
+  /// The event that goes to Larry with the board's next picture (story 1247), once: the review's words and his
+  /// answers, cut short to whole lines so the event stays within `larryBytes`, saying how many lines went.
+  public mutating func forLarry(t: Int64) -> BoardEvent? {
     guard !toLarry, let report else { return nil }
     toLarry = true
     var text = BoardReviewText.larry(report)
@@ -76,23 +76,37 @@ public struct BoardReviewShown: Equatable, Sendable {
         "\nIgor on step \(finding.step) (check \(finding.check)): "
         + (answer == .meant ? "I meant that" : "not what I meant")
     }
-    return Self.cut(text, to: Self.larryBytes)
+    let (words, cut) = Self.cut(text, to: Self.larryBytes - 200)
+    return .review(text: words, cut: cut, t: t)
   }
 
-  /// `text` within `bytes` of UTF-8, whole lines, ending with a line that says it was cut and how much went.
-  public static func cut(_ text: String, to bytes: Int) -> String {
-    guard text.utf8.count > bytes else { return text }
-    var kept: [Substring] = []
-    var size = 0
+  /// `text` within `bytes` once escaped as a JSON string, whole lines, ending with a line that says it was cut; and
+  /// how many lines went, nil when none did.
+  public static func cut(_ text: String, to bytes: Int) -> (text: String, cut: Int?) {
     let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
-    for line in lines {
-      if size + line.utf8.count + 1 > bytes - 120 { break }
-      kept.append(line)
-      size += line.utf8.count + 1
+    let sizes = lines.map { escaped($0) + 2 }
+    guard sizes.reduce(0, +) > bytes else { return (text, nil) }
+    var size = 0
+    var kept = 0
+    while kept < lines.count, size + sizes[kept] <= bytes - 120 {
+      size += sizes[kept]
+      kept += 1
     }
-    let gone = lines.count - kept.count
-    return kept.joined(separator: "\n")
-      + "\n(cut short: the review ran past \(bytes / 1000) KB; \(gone) more lines are in the copy on the iPad)"
+    let gone = lines.count - kept
+    let closing: Substring = "(cut short: \(gone) more lines are in the copy on the iPad)"
+    return ((lines[..<kept] + [closing]).joined(separator: "\n"), gone)
+  }
+
+  /// A line's size in a JSON string at its most escaped: a quote, backslash, slash or control character as two
+  /// bytes, or six as `\u00XX`.
+  private static func escaped(_ line: Substring) -> Int {
+    line.unicodeScalars.reduce(0) { size, c in
+      switch c {
+      case "\"", "\\", "/", "\n", "\r", "\t": return size + 2
+      case _ where c.value < 0x20: return size + 6
+      default: return size + UTF8.width(c)
+      }
+    }
   }
 }
 

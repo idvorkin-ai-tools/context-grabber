@@ -235,6 +235,8 @@ replayed. The last three depend on what a surface saw, and are as good as its re
 - With the next picture of that board he receives (not a post of its own, and not only on the Cockpit's debug page), a short list of the session's findings: counts by check and
   verdict, then each finding that is a bug or unclear, as its copyable text. A clean session is one line.
 - Igor's answers to unclear findings go with them, so Larry learns what Igor meant.
+- One event carries them and stays under 6 KB as sent, well inside the Cockpit's 8 KB per event. A longer review is
+  cut at whole lines, ends with a line saying so, and the event says how many lines were cut.
 - The web board's reviews reach Larry the same way, so a finding is a finding whichever surface found it.
 
 ## False positives

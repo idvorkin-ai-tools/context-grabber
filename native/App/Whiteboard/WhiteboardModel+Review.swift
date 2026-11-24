@@ -162,8 +162,8 @@ extension WhiteboardModel {
 
   /// Story 1247: the review's words, and his answers, ride with the board's next picture.
   func reviewToLarry() {
-    guard let text = review.forLarry() else { return }
-    events.record(.review(text: text, t: Int64(Self.unixMsNow)))
+    guard let event = review.forLarry(t: Int64(Self.unixMsNow)) else { return }
+    events.record(event)
   }
 
   /// Story 1243: he opened the findings.

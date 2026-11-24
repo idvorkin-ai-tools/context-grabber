@@ -40,7 +40,7 @@ public enum BoardEvent: Equatable, Codable, Sendable {
   /// Spoken words' mic-off-to-text timing, for the Cockpit's debug page (story 1112).
   case mic(BoardMicTiming)
   /// A writing session's review, as Larry reads it, with the board's next picture (story 1247).
-  case review(text: String, t: Int64)
+  case review(text: String, cut: Int?, t: Int64)
 
   public var wire: [String: Any] {
     switch self {
@@ -77,8 +77,10 @@ public enum BoardEvent: Equatable, Codable, Sendable {
       return timing.wire
     case .mic(let timing):
       return timing.wire
-    case .review(let text, let t):
-      return ["type": "board_review", "text": text, "t": t]
+    case .review(let text, let cut, let t):
+      var out: [String: Any] = ["type": "board_review", "text": text, "t": t]
+      if let cut { out["cut"] = cut }
+      return out
     }
   }
 }
