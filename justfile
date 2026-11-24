@@ -82,6 +82,8 @@ native-test-host:
     scripts/native/test-sim-lane.sh
     # Stories 795, 797, 798 (context-grabber-mkd0): the host slots, six jobs on four, the wait, a killed holder.
     scripts/native/test-host-lane.sh
+    # Bead context-grabber-2l07: the lane script tests pass with the caller's SIM and lane settings set.
+    scripts/native/test-lane-env.sh
     # Where a UI test run's time went, from a real run's log.
     scripts/native/test-ui-timings.sh
     # #1038 (story 1016): the ladder report keeps a retry, a wrong-device skip and a missing deploy apart, on a fixture.
