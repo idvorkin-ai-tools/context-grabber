@@ -42,14 +42,34 @@ public struct WhiteboardQuestion: Codable, Equatable, Sendable, Identifiable {
   public var y: CGFloat
   public var answered: Answer?
   public var collapsed: Bool
+  /// Story 1273 (#1387): shrunk to a bare '?' at its top-left; a tap brings it back as it was.
+  public var hidden: Bool
 
-  public init(id: String, ask: String, x: CGFloat, y: CGFloat, answered: Answer? = nil, collapsed: Bool = false) {
+  public init(
+    id: String, ask: String, x: CGFloat, y: CGFloat, answered: Answer? = nil, collapsed: Bool = false,
+    hidden: Bool = false
+  ) {
     self.id = id
     self.ask = ask
     self.x = x
     self.y = y
     self.answered = answered
     self.collapsed = collapsed
+    self.hidden = hidden
+  }
+
+  private enum CodingKeys: String, CodingKey { case id, ask, x, y, answered, collapsed, hidden }
+
+  /// A board kept before cards could hide has no `hidden`: its cards are shown.
+  public init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    id = try c.decode(String.self, forKey: .id)
+    ask = try c.decode(String.self, forKey: .ask)
+    x = try c.decode(CGFloat.self, forKey: .x)
+    y = try c.decode(CGFloat.self, forKey: .y)
+    answered = try c.decodeIfPresent(Answer.self, forKey: .answered)
+    collapsed = try c.decodeIfPresent(Bool.self, forKey: .collapsed) ?? false
+    hidden = try c.decodeIfPresent(Bool.self, forKey: .hidden) ?? false
   }
 
   /// Closed, but the board doesn't hold its question and answer yet: none, no question, or the placeholder.
@@ -79,6 +99,8 @@ public struct WhiteboardQuestions: Codable, Equatable, Sendable {
   static let gap: CGFloat = 8
   /// A chip's letters, in board points (the web's CHIP_PX).
   public static let chipLetters: CGFloat = 14
+  /// A hidden card's '?', each way, in board points: a card's height, a finger's size at the board's normal zoom.
+  public static let mark: CGFloat = 40
 
   public func card(_ id: String) -> WhiteboardQuestion? { cards.first { $0.id == id } }
 
@@ -88,8 +110,7 @@ public struct WhiteboardQuestions: Codable, Equatable, Sendable {
   @discardableResult
   public mutating func add(ask: String, x: CGFloat, y: CGFloat, id: String = UUID().uuidString.lowercased()) -> Bool {
     guard !ask.isEmpty, !cards.contains(where: { $0.ask == ask }) else { return false }
-    let x = max(BoardPages.margin + 8, min(x, BoardPages.pageWidth - Self.width - 8))
-    cards.append(WhiteboardQuestion(id: id, ask: ask, x: x, y: max(0, y)))
+    cards.append(WhiteboardQuestion(id: id, ask: ask, x: Self.inPage(x: x, width: Self.width), y: max(0, y)))
     return true
   }
 
@@ -187,10 +208,34 @@ public struct WhiteboardQuestions: Codable, Equatable, Sendable {
     return true
   }
 
+  /// Story 1273: hide a card to its '?', or bring it back as it was, kept inside the page. False for none.
+  @discardableResult
+  public mutating func hide(_ id: String, _ on: Bool) -> Bool {
+    guard let i = cards.firstIndex(where: { $0.id == id }) else { return false }
+    cards[i].hidden = on
+    if !on { cards[i].x = Self.inPage(x: cards[i].x, width: Self.box(cards[i]).width) }
+    return true
+  }
+
+  /// Story 1274: a card, chip or '?' let go with its top-left at `to`, kept inside the page. Where it landed; nil for
+  /// none.
+  @discardableResult
+  public mutating func move(_ id: String, to: CGPoint) -> CGPoint? {
+    guard let i = cards.firstIndex(where: { $0.id == id }) else { return nil }
+    cards[i].x = Self.inPage(x: to.x, width: Self.box(cards[i]).width)
+    cards[i].y = max(0, to.y)
+    return CGPoint(x: cards[i].x, y: cards[i].y)
+  }
+
+  private static func inPage(x: CGFloat, width: CGFloat) -> CGFloat {
+    max(BoardPages.margin + 8, min(x, BoardPages.pageWidth - width - 8))
+  }
+
   // MARK: On the board
 
-  /// The card's box in board points: a chip is only as wide as its words.
+  /// The card's box in board points: a chip is only as wide as its words, a hidden card its '?'.
   public static func box(_ card: WhiteboardQuestion) -> CGRect {
+    if card.hidden { return CGRect(x: card.x, y: card.y, width: mark, height: mark) }
     var w = width
     if card.answered != nil, card.collapsed, let line = lines(card, title: nil).first {
       // ponytail: letters measured as a share of their height, not by the font; a font measure if chips look wrong.
@@ -214,6 +259,7 @@ public struct WhiteboardQuestions: Codable, Equatable, Sendable {
   /// What a card says, line by line: open, its one line; answered, *✓ <question>* over the answer (the label, then the
   /// note); folded, the question alone; one answered with no question known, its answer.
   public static func lines(_ card: WhiteboardQuestion, title: String?) -> [String] {
+    if card.hidden { return ["?"] }
     guard let a = card.answered else { return [openLine(title: title)] }
     guard let question = a.title else { return ["✓ \(a.label.isEmpty ? "answered" : a.label)"] }
     if card.collapsed { return ["✓ \(question)"] }

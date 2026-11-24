@@ -46,7 +46,9 @@ job() {  # <n>
 }
 for n in 1 2 3 4 5 6; do job "$n" & pids+=($!); done
 until_ '[ "$(ls "$run" | wc -l | tr -d " ")" -ge 4 ]' || bad "four jobs started"
-sleep 1  # the other two have polled the slots and are waiting
+# the other two have polled the slots and are waiting: wait for both to say so, not a fixed second (a loaded Mac
+# under the gate's `just test` missed it in one second, 2026-11-24)
+until_ '[ "$(cat "$tmp"/err-* 2>/dev/null | grep -c "waiting for a host slot")" -ge 2 ]'
 is "four slots, four jobs running" "$(ls "$run" | wc -l | tr -d ' ')" 4
 is "the other two said they are waiting for a host slot" "$(cat "$tmp"/err-* | grep -c 'waiting for a host slot')" 2
 : >"$go"

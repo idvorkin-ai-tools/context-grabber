@@ -22,7 +22,7 @@ drawing it was about. An answered card can fold to a one-line chip, and the eras
 ## Non-goals
 
 - Making or editing asks (Larry files them).
-- Moving a card by hand, or a card pushing ink out of its way: a card lies over the board where it landed.
+- A card pushing ink out of its way: a card lies over the board where it landed or where Igor dragged it.
 - Cards on another device's copy of the board, or on a board only looked at: the cards live with the board on the
   device that draws it, as its chat thread does.
 - An option picked together with a note: an option answers in one tap, as in Chat; *your own answer* is the other way.
@@ -76,6 +76,21 @@ yet, the card says *✓ answered* and asks again the next time the board opens.
 with *Collapse* and *Close*. *Collapse* folds the card to a one-line chip, *✓ \<question>*, only as wide as its words.
 A tap on a chip opens it out again.
 
+**Hiding a card** (Igor, 2026-11-24, #1387: *"as well as collapse there should be just sort of Hide, and if I press
+hide there should be a '?', that's just a '?'"*). Every card's popup, open or answered, has *Hide*. It closes the popup
+and shrinks the card to a bare *?* on the board: a small round mark, Larry's purple for an open question, grey for an
+answered one, a finger's size at the board's normal zoom. The *?* sits where the card's left end was, at the place
+Larry put it beside the ink it is about (Larry agreed 2026-11-24; Igor is unsure, and drags it where he wants; the
+margin was the other choice). A tap on the *?* brings the card back as it was, open or answered, folded or not; it opens no popup.
+A hidden card stays hidden when the board is closed and opened again. The eraser takes an answered card's *?* as it
+takes the card; an open question's *?* stays.
+
+**Moving a card** (#1387: *"I should be able to move it around, and move questions"*). A card, a chip or a *?* can be
+dragged anywhere on the board, with a finger or the Pencil: it follows the touch and stays where it is let go, kept
+inside the page, and it stays there when the board is opened again. A drag never opens the popup and never draws; a
+tap without moving still opens it. With the eraser in hand nothing moves: a stroke that starts on a card erases or
+leaves it, as below.
+
 **The eraser.** With the eraser in hand, a stroke across an answered card or chip takes it off the board, as it would
 ink. Only a touch that would erase ink takes it: the Pencil, or a finger while fingers draw; a finger that pans the
 board takes nothing. An open card is still live: the eraser leaves it.
@@ -88,7 +103,8 @@ open card's popup says the Cockpit's asks didn't load.
 
 The session log says when cards landed (how many, from Larry's reply or from the open asks), when a card's answer came
 from the Cockpit, each card opened (open or answered), each answer and its outcome (Chat's own decision events, from
-the board), a fold (an open card's or an answered one's) and an opening-out, a card erased, and a failed read of the asks or the answers, once until one
+the board), a fold (an open card's or an answered one's) and an opening-out, a card hidden and shown again, a card
+moved (where to), a card erased, and a failed read of the asks or the answers, once until one
 works. Never the answer's words.
 
 ## Acceptance criteria
@@ -102,6 +118,9 @@ works. Never the answer's words.
 - A card whose ask was answered elsewhere shows that answer once the Cockpit gives it.
 - An answered card opens read-only, folds to a one-line chip, and a tap opens the chip out.
 - An opened card not yet answered folds back to its one line from the fold control, answering nothing.
+- Any card hides to a bare *?* where its left end was; a tap on the *?* brings it back as it was, and it stays hidden
+  across a reopen.
+- A card, a chip or a *?* drags to anywhere on the page and stays there, across a reopen; a drag opens nothing.
 - The eraser takes an answered card and leaves an open one.
 - Offline or with no address nothing is read, and the board's cards stay as they were.
 

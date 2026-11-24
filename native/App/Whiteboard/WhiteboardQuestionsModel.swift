@@ -22,8 +22,8 @@ final class WhiteboardQuestionsModel: ObservableObject {
     let id: String
   }
 
-  private let boardID: String
-  private let log: SessionLog
+  let boardID: String
+  let log: SessionLog
   private let inbox: InboxModel
   let cockpit: String
   private let threads = WhiteboardThreads()
@@ -46,7 +46,7 @@ final class WhiteboardQuestionsModel: ObservableObject {
 
   private var reachable: Bool { !inbox.offline && cockpit != ChatCockpit.nowhere }
 
-  private func change(_ new: WhiteboardQuestions) {
+  func change(_ new: WhiteboardQuestions) {
     guard new != board else { return }
     board = new
     ledger.setQuestions(new, board: boardID)

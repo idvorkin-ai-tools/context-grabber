@@ -186,3 +186,123 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** an open question card's popup, on iPhone or iPad
 - **When:** I look at *Your own answer*
 - **Then:** the mic is immediately beside *Send*, after the field, each at least 44 points in both directions; the mic records into the field as Chat's does and *Send* answers as before
+
+---
+
+### User Story 1273:
+
+- **Summary:** I hide a question card to a bare '?'
+- **Status:** implemented in 'c8c3adc3', the drag's cancel reset and the eraser's hold in 'ab30e78b'. Verified by host tests (`WhiteboardQuestionsTests`: `testAnyCardHidesToAQuestionMarkAtItsLeftEndAndComesBackAsItWas`, `testTheEraserTakesAnAnsweredQuestionMarkAndLeavesAnOpenOne`, `testABoardKeptBeforeHidingReadsAsShown`; `just test`), the Mac build, and on the iPad simulator (`WhiteboardQuestionUITests.testAQuestionHidesToAMarkAndDrags`, 3/3 with the class, and the whiteboard smoke); not yet on the iPad
+- **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Hiding a card*
+
+#### Use Case:
+- **As someone** drawing on a board with one of Larry's questions on it
+- **I want to** shrink the card to a bare '?' without answering or folding it
+- **so that** the drawing is clear and the question is still there, a tap away
+
+#### Acceptance Criteria:
+- **Scenario:** I hide an open question
+- **Given:** an open question card's popup over the board
+- **When:** I tap *Hide*
+- **Then:** the popup closes, the card is a small round '?' in Larry's purple where the card's left end was, nothing is answered, and the log records a hide
+
+---
+
+### User Story 1169:
+
+- **Summary:** A tap on a hidden card's '?' brings the card back as it was
+- **Status:** implemented in 'c8c3adc3', the drag's cancel reset and the eraser's hold in 'ab30e78b'. Verified by host tests (`WhiteboardQuestionsTests`: `testAnyCardHidesToAQuestionMarkAtItsLeftEndAndComesBackAsItWas`, `testTheEraserTakesAnAnsweredQuestionMarkAndLeavesAnOpenOne`, `testABoardKeptBeforeHidingReadsAsShown`; `just test`), the Mac build, and on the iPad simulator (`WhiteboardQuestionUITests.testAQuestionHidesToAMarkAndDrags`, 3/3 with the class, and the whiteboard smoke); not yet on the iPad
+- **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Hiding a card*
+
+#### Use Case:
+- **As someone** with a question I hid to a '?'
+- **I want to** bring the card back with one tap
+- **so that** the question I set aside is there again without answering it or opening its popup
+
+#### Acceptance Criteria:
+- **Scenario:** I bring a hidden card back
+- **Given:** a hidden card's '?' on the board, open or answered
+- **When:** I tap the '?'
+- **Then:** the card is back as it was (open, answered, or a folded chip) where the '?' was, and no popup opens
+
+---
+
+### User Story 1175:
+
+- **Summary:** A hidden card stays a '?' when the board is opened again
+- **Status:** implemented in 'c8c3adc3', the drag's cancel reset and the eraser's hold in 'ab30e78b'. Verified by host tests (`WhiteboardQuestionsTests`: `testAnyCardHidesToAQuestionMarkAtItsLeftEndAndComesBackAsItWas`, `testTheEraserTakesAnAnsweredQuestionMarkAndLeavesAnOpenOne`, `testABoardKeptBeforeHidingReadsAsShown`; `just test`), the Mac build, and on the iPad simulator (`WhiteboardQuestionUITests.testAQuestionHidesToAMarkAndDrags`, 3/3 with the class, and the whiteboard smoke); not yet on the iPad
+- **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Hiding a card*
+
+#### Use Case:
+- **As someone** who hid a question card
+- **I want to** have it stay hidden across closing and opening the board
+- **so that** the board looks as I left it
+
+#### Acceptance Criteria:
+- **Scenario:** A hidden card stays hidden
+- **Given:** a hidden card
+- **When:** I close the board and open it again
+- **Then:** it is still a '?' in the same place
+
+---
+
+### User Story 1274:
+
+- **Summary:** I drag a question card, a chip or a '?' anywhere on the page
+- **Status:** implemented in 'c8c3adc3', the drag's cancel reset and the eraser's hold in 'ab30e78b'. Verified by host tests (`WhiteboardQuestionsTests.testACardMovesWhereItIsLetGoInsideThePage`; `just test`), the Mac build, and on the iPad simulator (`WhiteboardQuestionUITests.testAQuestionHidesToAMarkAndDrags` drags the '?' and the card, neither opening the popup); with the Pencil, only on the iPad: not yet tried
+- **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Moving a card*
+
+#### Use Case:
+- **As someone** arranging a board around Larry's questions
+- **I want to** move a card where it fits the drawing
+- **so that** a question sits beside what it is about and out of the way of my writing
+
+#### Acceptance Criteria:
+- **Scenario:** I drag a card
+- **Given:** a question card, a chip or a '?' on the board
+- **When:** I drag it with a finger or the Pencil and let go
+- **Then:** it followed the touch and stays where I let go, inside the page; no popup opened and nothing was drawn; the log records where it moved
+
+---
+
+### User Story 1234:
+
+- **Summary:** A question card I moved stays where I put it when the board is opened again
+- **Status:** implemented in 'c8c3adc3', the drag's cancel reset and the eraser's hold in 'ab30e78b'. Verified by host tests (`WhiteboardQuestionsTests.testACardMovesWhereItIsLetGoInsideThePage`; `just test`), the Mac build, and on the iPad simulator (`WhiteboardQuestionUITests.testAQuestionHidesToAMarkAndDrags` drags the '?' and the card, neither opening the popup); with the Pencil, only on the iPad: not yet tried
+- **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Moving a card*
+
+#### Use Case:
+- **As someone** who dragged a question card into place
+- **I want to** find it where I left it after closing and opening the board
+- **so that** my arrangement of the board lasts
+
+#### Acceptance Criteria:
+- **Scenario:** A moved card stays moved
+- **Given:** a card I dragged
+- **When:** I close the board and open it again
+- **Then:** it is where I left it
+
+---
+
+### User Story 1235:
+
+- **Summary:** A question card dragged off the page stops at the page's edge
+- **Status:** implemented in 'c8c3adc3', the drag's cancel reset and the eraser's hold in 'ab30e78b'. Verified by host tests (`WhiteboardQuestionsTests.testACardMovesWhereItIsLetGoInsideThePage`; `just test`), the Mac build, and on the iPad simulator (`WhiteboardQuestionUITests.testAQuestionHidesToAMarkAndDrags` drags the '?' and the card, neither opening the popup); with the Pencil, only on the iPad: not yet tried
+- **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Moving a card*
+
+#### Use Case:
+- **As someone** dragging a question card near the page's edge
+- **I want to** have the card stay on the page however far I drag
+- **so that** a card is never lost off the page
+
+#### Acceptance Criteria:
+- **Scenario:** A drag off the page
+- **Given:** a card on the board
+- **When:** I drag it past the page's edge
+- **Then:** it stops at the page's edge

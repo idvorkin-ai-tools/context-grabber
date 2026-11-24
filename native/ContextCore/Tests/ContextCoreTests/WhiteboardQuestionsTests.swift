@@ -189,4 +189,90 @@ final class WhiteboardQuestionsTests: XCTestCase {
     let back = try JSONDecoder().decode(WhiteboardQuestions.self, from: try JSONEncoder().encode(board))
     XCTAssertEqual(back, board)
   }
+
+  // MARK: Story 1273: a card hides to a bare '?' and comes back
+
+  func testAnyCardHidesToAQuestionMarkAtItsLeftEndAndComesBackAsItWas() {
+    var board = WhiteboardQuestions()
+    board.add(ask: "open", x: 100, y: 200)
+    board.add(ask: "chip", x: 100, y: 400)
+    let open = board.cards[0].id
+    let chip = board.cards[1].id
+    board.answer(chip, .init(title: "Renew?", label: "Renew"))
+    board.collapse(chip, true)
+
+    XCTAssertTrue(board.hide(open, true))
+    XCTAssertTrue(board.hide(chip, true))
+    for card in board.cards {
+      let box = WhiteboardQuestions.box(card)
+      XCTAssertEqual(box.origin, CGPoint(x: card.x, y: card.y), "the '?' sits where the card's left end was")
+      XCTAssertEqual(box.width, WhiteboardQuestions.mark)
+      XCTAssertEqual(box.height, WhiteboardQuestions.mark)
+      XCTAssertEqual(WhiteboardQuestions.lines(card, title: "Renew?"), ["?"])
+    }
+    XCTAssertNil(board.card(open)?.answered, "hiding answers nothing")
+
+    XCTAssertTrue(board.hide(chip, false))
+    XCTAssertEqual(board.card(chip)?.collapsed, true, "back as it was: still a chip")
+    XCTAssertEqual(WhiteboardQuestions.lines(board.card(chip)!, title: nil), ["✓ Renew?"])
+    XCTAssertFalse(board.hide("nobody", true))
+  }
+
+  func testTheEraserTakesAnAnsweredQuestionMarkAndLeavesAnOpenOne() {
+    var board = WhiteboardQuestions()
+    board.add(ask: "open", x: 100, y: 0)
+    board.add(ask: "answered", x: 100, y: 100)
+    board.answer(board.cards[1].id, .init(title: "Q", label: "A"))
+    board.hide(board.cards[0].id, true)
+    board.hide(board.cards[1].id, true)
+    XCTAssertEqual(board.erase(crossing: [CGPoint(x: 400, y: 0), CGPoint(x: 400, y: 140)]).count, 0, "past the '?'")
+    XCTAssertEqual(board.erase(crossing: [CGPoint(x: 110, y: 0), CGPoint(x: 110, y: 140)]).map(\.ask), ["answered"])
+    XCTAssertEqual(board.cards.map(\.ask), ["open"])
+  }
+
+  func testABoardKeptBeforeHidingReadsAsShown() throws {
+    let old = #"{"cards":[{"id":"c","ask":"b-1","x":80,"y":10,"collapsed":false}],"handled":[]}"#
+    let board = try JSONDecoder().decode(WhiteboardQuestions.self, from: Data(old.utf8))
+    XCTAssertEqual(board.cards.first?.hidden, false)
+    var hidden = board
+    hidden.hide("c", true)
+    let back = try JSONDecoder().decode(WhiteboardQuestions.self, from: try JSONEncoder().encode(hidden))
+    XCTAssertEqual(back, hidden)
+    XCTAssertEqual(back.cards.first?.hidden, true)
+  }
+
+  // MARK: Story 1274: a card drags anywhere on the page
+
+  func testACardMovesWhereItIsLetGoInsideThePage() {
+    var board = WhiteboardQuestions()
+    board.add(ask: "b-1", x: 100, y: 100)
+    let id = board.cards[0].id
+    XCTAssertEqual(board.move(id, to: CGPoint(x: 150, y: 900)), CGPoint(x: 150, y: 900))
+    XCTAssertEqual(board.card(id).map { CGPoint(x: $0.x, y: $0.y) }, CGPoint(x: 150, y: 900))
+
+    let right = board.move(id, to: CGPoint(x: 5000, y: -50))
+    XCTAssertEqual(right?.y, 0, "never above the board")
+    XCTAssertEqual(right?.x, BoardPages.pageWidth - WhiteboardQuestions.width - 8, "a card stops at the page's edge")
+    let left = board.move(id, to: CGPoint(x: -300, y: 10))
+    XCTAssertEqual(left?.x, BoardPages.margin + 8)
+
+    board.hide(id, true)
+    let mark = board.move(id, to: CGPoint(x: 5000, y: 10))
+    XCTAssertEqual(
+      mark?.x, BoardPages.pageWidth - WhiteboardQuestions.mark - 8, "a '?' goes as far as its own width allows")
+    XCTAssertNil(board.move("nobody", to: .zero))
+  }
+
+  func testAQuestionMarkDraggedToTheEdgeComesBackAsACardInsideThePage() {
+    var board = WhiteboardQuestions()
+    board.add(ask: "b-1", x: 100, y: 100)
+    let id = board.cards[0].id
+    board.hide(id, true)
+    board.move(id, to: CGPoint(x: 5000, y: 10))
+    XCTAssertTrue(board.hide(id, false))
+    let card = board.card(id)!
+    XCTAssertFalse(card.hidden)
+    XCTAssertEqual(card.x, BoardPages.pageWidth - WhiteboardQuestions.width - 8, "shown again, the card fits the page")
+    XCTAssertLessThanOrEqual(WhiteboardQuestions.box(card).maxX, BoardPages.pageWidth - 8)
+  }
 }
