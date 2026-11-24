@@ -447,6 +447,38 @@ group his own ink and read those groups as his writing: the one rule the two boa
 - Larry's groups, kept texts and cards are nobody's writing, as before.
 - `bw_info` says `"abi": 18`. Every other export's arguments and answers are as in version 17.
 
+## The interface, version 19: Larry's marks hold to the ink they answer
+
+Story 1294 (Larry for the web board, 2026-11-24, cockpit-kp5). On the iPad an unkept mark of Larry's holds to the ink
+it answers: it moves when that ink moves, hides while that ink is folded away or erased, and fades when Igor writes
+over it; the next post takes the faded and orphaned ones away (stories 1180, 1181, 1269–1271). The web board asks the
+app's own rule for each of those answers, so a mark behaves the same on both boards.
+
+The web board keeps each mark's anchor, chosen once when the mark lands, and sends it back with every question. The
+module remembers nothing of the marks. All answers are over the outline `bw_outline_load` keeps, as it is now.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_mark_anchor` | `{"mark": {"id", "lines": [[[x, y]]], "pen"?, "label"?}}`: a mark where it landed | a reply: `{"anchor": {"strokes": [{"name", "x", "y"}], "gap", "written_by": [name]}}` |
+| `bw_mark_place` | `{"marks": [{"id", "anchor"?}]}` | a reply: `{"places": {id: {"dx", "dy", "hidden": null \| "folded" \| "erased", "faded", "drops": null \| "written_over" \| "ink_erased"}}}` |
+| `bw_mark_wrote` | `{"stroke": {"id", "points", "width"}, "marks": [{"mark", "anchor"?}]}`: a stroke Igor just wrote | a reply: `{"anchors": {id: anchor}, "wrote": [{"id", "share"}]}` |
+| `bw_mark_drops` | `{"marks": [{"id", "anchor"?}]}` | a reply: `{"drops": [{"id", "why": "written_over" \| "ink_erased"}]}` |
+
+- The anchor is the unit the mark overlaps most, else the nearest unit above or beside it. It names up to eight of that
+  unit's strokes, nearest first, then the rest of its line, each with where its box began; an empty list when the mark
+  landed with nothing near. A label is written over inside its letters' box, a drawn mark along its line.
+- A mark moves by as much as its first anchor stroke that still shows moved. It is hidden, `folded`, while all of its
+  anchor's strokes are folded away, and `erased` once none is left on the board. A mark with no anchor stays where it
+  landed.
+- A stroke writes over a mark when at least a third of its path lies on it. `bw_mark_wrote` answers only the anchors it
+  changed, each with the stroke's name added to `written_by`, and each mark written over with the share of the stroke
+  on it, to two places. A hidden mark is never written over.
+- A mark is faded while a stroke that wrote over it still shows, so undoing that stroke brings the mark back.
+- `drops`: what a post now takes away and why, in the order the marks were sent: a faded mark that shows, and a mark
+  whose ink is all erased.
+- A mark, anchor or stroke the module can't read is a reply `{"error"}`, as is a question with no outline loaded.
+- `bw_info` says `"abi": 19`. Every other export's arguments and answers are as in version 18.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

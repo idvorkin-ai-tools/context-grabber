@@ -1844,3 +1844,23 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the module built by `just wasm`, with an outline of two lines of ink
 - **When:** `just wasm-test` draws a fast zigzag over the first line, one over clear paper, a slow one and a three-point one, then asks about a rough straight stroke lifted late and early, and a small scribble
 - **Then:** the zigzag over the line takes it with four turns; over clear paper it finds nothing; the slow one is writing and the short one too short; the rough stroke snaps to a line 200 long and is held when lifted late, not when lifted early; the scribble snaps to nothing and, with no times, its hold is unknown
+
+---
+
+### User Story 1294:
+
+- **Summary:** The web board asks the app's own rule where Larry's marks hold, when they hide and fade, and which the next post takes away
+- **Status:** implemented in f3201142 (`bw_mark_anchor`, `bw_mark_place`, `bw_mark_wrote`, `bw_mark_drops`, interface 19); verified by the host tests (`WebMarksTests`: 408 seeded marks on the four recorded boards and 30 seeded ones, folded and with ink erased, and 204 seeded strokes across them, against the app's own `BoardMarkHolds`) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 301 checks, a hand-worked label among them), 2026-11-24
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 19
+- **Issues:** Larry's web parity list (cockpit-kp5), 2026-11-24
+
+#### Use Case:
+- **As Igor,** writing on the Cockpit's web ink board under Larry's unkept marks
+- **I want to** have his marks follow the ink they answer, hide with it, and fade when I write over them, as on the iPad
+- **so that** a mark never floats over the wrong words on the web, and the board behaves the same wherever I write
+
+#### Acceptance Criteria:
+- **Scenario:** A label of Larry's through the module
+- **Given:** the module built by `just wasm`, with an outline of two lines of ink and a label of Larry's landed over the first
+- **When:** `just wasm-test` asks for its anchor, moves the first line down 40, erases it, then writes a stroke of Igor's across the label and loads the board with that stroke on it
+- **Then:** the label holds to the first line where its box began; it moves down 40 with it; with the line erased it hides and the next post drops it as ink erased; the stroke writes over all of it, and with the stroke on the board the label is faded and the next post drops it as written over

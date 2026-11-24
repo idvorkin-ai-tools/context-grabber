@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 18, `bw_info abi is 18: ${JSON.stringify(info)}`);
+check(info.abi === 19, `bw_info abi is 19: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -645,6 +645,30 @@ check(ask('bw_shape_snap', { points: rough, times: [0, 0.02, 0.04, 0.06, 0.08], 
 check(same(ask('bw_shape_snap', { points: [[0, 0], [10, 10], [0, 20], [10, 30]] }), { held: null, shape: null }), 'a small scribble snaps to nothing');
 check(ask('bw_shape_snap', { points: 'x' }).error === 'no points', 'no points says so');
 check(call('bw_outline_load', 'not json') === -1 && scratch([[0, 0]], 1).error === 'no outline is loaded', 'a scratch-out with no outline says so');
+
+// Interface 19 (spec, Larry's marks hold to the ink they answer). A label of Larry's lands over line a (100..300 at y
+// 100, pen 4): it holds to a, where a's box began. a moves down 40: the label moves with it. a is erased: the label
+// hides and the next post drops it. Igor writes across it: it fades, and the next post drops it as written over.
+const marksOn = (...strokes) => call('bw_outline_load', { strokes, boxes: [], groups: {}, headers: [] });
+check(marksOn(seg('a', 100, 300, 100), seg('b', 100, 300, 300)) === 2, `the marks outline ${error() ?? ''}`);
+const label = { id: 'm', lines: [[[120, 90], [200, 110]]], pen: 2, label: true };
+const anchored = ask('bw_mark_anchor', { mark: label }).anchor;
+check(same(anchored, { gap: 0, strokes: [{ name: 'a', x: 98, y: 98 }], written_by: [] }), `the label holds to a: ${JSON.stringify(anchored)}`);
+const placeOf = (anchor) => ask('bw_mark_place', { marks: [{ id: 'm', anchor }] }).places.m;
+marksOn(seg('a', 100, 300, 140), seg('b', 100, 300, 300));
+check(same(placeOf(anchored), { drops: null, dx: 0, dy: 40, faded: false, hidden: null }), `a moved down 40, the label with it: ${JSON.stringify(placeOf(anchored))}`);
+marksOn(seg('b', 100, 300, 300));
+check(same(placeOf(anchored), { drops: 'ink_erased', dx: 0, dy: 0, faded: false, hidden: 'erased' }), `a erased, the label hides: ${JSON.stringify(placeOf(anchored))}`);
+check(same(ask('bw_mark_drops', { marks: [{ id: 'm', anchor: anchored }] }), { drops: [{ id: 'm', why: 'ink_erased' }] }), 'and the next post drops it');
+marksOn(seg('a', 100, 300, 100), seg('b', 100, 300, 300));
+const across = { id: 'igor', points: [[120, 100], [200, 100]], width: 3 };
+const wrote = ask('bw_mark_wrote', { stroke: across, marks: [{ mark: label, anchor: anchored }] });
+check(same(wrote.wrote, [{ id: 'm', share: 1 }]) && same(wrote.anchors.m.written_by, ['igor']), `Igor's stroke writes over it: ${JSON.stringify(wrote)}`);
+marksOn(seg('a', 100, 300, 100), seg('b', 100, 300, 300), across);
+check(same(placeOf(wrote.anchors.m), { drops: 'written_over', dx: 0, dy: 0, faded: true, hidden: null }), `with his stroke on the board it fades: ${JSON.stringify(placeOf(wrote.anchors.m))}`);
+check(ask('bw_mark_anchor', {}).error === 'no mark' && ask('bw_mark_wrote', { marks: [] }).error === 'no stroke' &&
+  ask('bw_mark_place', { marks: [{ id: 'm', anchor: 'x' }] }).error === 'no marks', 'what it can\'t read says so');
+check(call('bw_outline_load', 'not json') === -1 && ask('bw_mark_anchor', { mark: label }).error === 'no outline is loaded', 'a mark with no outline says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
