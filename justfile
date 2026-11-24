@@ -90,6 +90,8 @@ native-test-host:
     scripts/native/test-ladder-report.sh
     # Story 1511 (context-grabber-yfsz): the build a device reports against the last install, and just deploy's ledger.
     scripts/native/test-device-build-check.sh
+    # Story 1311 (context-grabber-7xv6): the pen-latency lines read off the pulled logs.
+    scripts/native/test-pen-latency.sh
     # Story 689: a UI test run gets a time limit per case and one retry of a failed case; a hang after it is stopped.
     # Story 790: the hang stop waits for the result bundle to be written, so failed tests' screenshots survive.
     # Story 783: a run of built tests whose first suite never starts (a dark or locked Mac) is stopped, exit 75.
@@ -296,6 +298,10 @@ touch-fixture *args:
 # ~/tmp/agent/grabber-logs/<phone|ipad>/ (the iPad's id: IPAD=<udid> or scripts/native/ipad-udid.local)
 pull-logs:
     scripts/native/pull-logs.sh
+
+# Story 1311: the board's Pencil-to-frame latency lines from the pulled logs (just pull-logs first)
+pen-latency *args:
+    scripts/native/pen-latency.sh {{args}}
 
 # Story 1511: the network install on Igor's paired devices (BugKit's deploy-all; --only ipad|phone), each install in the
 # deploys ledger, then the device's next session checked against it (docs/DEPLOYING.md). Agents install through this.

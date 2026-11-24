@@ -70,6 +70,12 @@ class PaperHost: UIViewController {
   var heldPinches: [UIPinchGestureRecognizer] = []
   /// Story 1296: when the Pencil last lifted (`CACurrentMediaTime`), nil before it has.
   var pencilLiftedAt: Double?
+  /// Story 1311: the Pencil-to-frame meter, the touch timestamps waiting for their frame, the clock that ends them (only
+  /// while one waits) and the screen's refresh rate as that clock last read it.
+  var penMeter = PenLatency()
+  var penWaiting: [Double] = []
+  var penLink: CADisplayLink?
+  var penHz = 0
 
   private static let features: FeatureSet = {
     var set = FeatureSet.empty
@@ -121,6 +127,7 @@ class PaperHost: UIViewController {
 
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
+    stopPenClock()
     guard drawsHere else { return }
     paper.pencilKitResponderState.toolPickerVisibility = .hidden
     picker.removeObserver(paper)
@@ -172,6 +179,7 @@ class PaperHost: UIViewController {
       touchStarts[id] = (at, CACurrentMediaTime(), touch.timestamp, 0)
       run?.tally.down(id.hashValue, Self.name(touch.type), radius: touch.majorRadius)
       if touch.type == .pencil { pencilDown = true }
+      penMoment(touch)
       if touch.type == .direct {
         fingersDown += 1
         fingersTogether += 1
@@ -179,6 +187,7 @@ class PaperHost: UIViewController {
       touchWentDown(touch)
     case .moved:
       touchMoved(touch)
+      penMoment(touch)
       if let start = touchStarts[id] {
         let went = hypot(at.x - start.at.x, at.y - start.at.y)
         touchStarts[id]?.farthest = max(start.farthest, went)
@@ -204,7 +213,10 @@ class PaperHost: UIViewController {
           travel: max(start.farthest, hypot(at.x - start.at.x, at.y - start.at.y)))
       }
       touchStarts[id] = nil
-      if touch.type == .pencil { pencilDown = false }
+      if touch.type == .pencil {
+        pencilDown = false
+        penLifted()
+      }
       if touch.type == .direct {
         fingersDown = max(fingersDown - 1, 0)
         if fingersDown == 0 { fingersTogether = 0 }
@@ -267,6 +279,9 @@ class PaperHost: UIViewController {
   func fingerTapped(at spot: CGPoint, beganAt: Date) {}
   /// A lone finger came up, from where it went down, in this view's points (story 849).
   func fingerLifted(from start: CGPoint, to end: CGPoint, seconds: Double) {}
+
+  /// Story 1311: a pen-latency line is ready for the log.
+  func penLatencyLine(_ line: PenLatency.Summary, hz: Int) {}
 
   /// What a touch came to, for the log.
   func touchEnded(_ run: TouchRun, visible: CGRect, zoom: CGFloat, dx: CGFloat, dy: CGFloat) {}

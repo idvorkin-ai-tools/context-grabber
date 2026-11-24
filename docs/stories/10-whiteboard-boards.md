@@ -1978,3 +1978,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board at its fitted zoom, and I have just lifted the Pencil
 - **When:** two fingers land and spread apart less than 400 ms after the lift
 - **Then:** the board doesn't zoom, and the log says the pinch was held off for the Pencil's lift
+
+### User Story 1311:
+
+- **Summary:** The board says how fast it answers the Pencil
+- **Status:** implemented in b807d1f4; verified by the host tests (`PenLatencyTests`, `scripts/native/test-pen-latency.sh`), the Mac build and the iPad Pro 11-inch (M5) simulator's OnPaper, ScratchOut, UndoRedraw and Turn whiteboard classes (17 cases, drawing unchanged); the simulator has no Pencil, so the first number comes from the iPad after the next install and a few lines written
+- **Issues:** bead `context-grabber-7xv6` (Igor, 2026-11-24 ~05:00, via Larry: "measure pen latency on both first, then decide")
+- **Spec:** [How fast the board answers the Pencil](../superpowers/specs/2026-11-24-board-pen-latency-design.md)
+
+#### Use Case:
+- **As Igor,** choosing between the native PaperKit board and the web board on the iPad
+- **I want to** have the iPad board measure, while I write, how long it takes from the Pencil touching to the next frame
+- **so that** I can compare it with the web board's 16 ms without anyone filming the screen
+
+#### Acceptance Criteria:
+- **Scenario:** A few lines written with the Pencil
+- **Given:** a board on the iPad
+- **When:** I write a few lines with the Pencil and lift it
+- **Then:** the session log has a pen-latency line with how many moments it measured, the median and 90th percentile in milliseconds, the slowest, and the screen's refresh rate, and one command prints it from the pulled logs
