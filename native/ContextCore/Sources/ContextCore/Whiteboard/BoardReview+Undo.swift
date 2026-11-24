@@ -41,7 +41,7 @@ extension BoardReview {
           what.append("\(diff.count) differ")
           evidence += diff.prefix(5).map { Evidence($0.id, $0.how) }
         }
-        let folds = headers.sorted().filter { want.folds[$0] != got.folds[$0] }
+        let folds = headers.sorted().filter { foldShown(want.folds[$0]) != foldShown(got.folds[$0]) }
         if !folds.isEmpty {
           what.append("folds differ")
           evidence.append(Evidence("folds", folds.joined(separator: ", ")))
@@ -66,6 +66,12 @@ extension BoardReview {
       }
     }
     return out
+  }
+
+  /// What a fold shows: the ink it hides while folded, nil while open.
+  static func foldShown(_ fold: FoldState?) -> Set<String>? {
+    guard let fold, fold.folded else { return nil }
+    return fold.held
   }
 
   /// The units whose presence, place or hiding differ between two boards.
