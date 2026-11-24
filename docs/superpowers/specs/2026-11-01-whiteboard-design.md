@@ -603,7 +603,7 @@ there, when, and what the menu belonged to, the log can't say. Before anything c
 - **Its going says how long it stayed**, so a cover that stayed up while Igor tapped shows as one long stay.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.
 
-### A tap brings up no system menu (story 1276, #1385; Igor, 2026-11-24: "Every time I tap I get paste and select all")
+### A tap brings up no system menu (stories 1276, 1306, #1385; Igor, 2026-11-24: "Every time I tap I get paste and select all")
 
 The log settled what the cover was: a finger tap on the paper brings up the system's own *Paste · Select All* edit menu,
 which the paper answers. Igor: "better would be using my long hold paste". So a plain tap is quiet.
