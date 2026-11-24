@@ -88,7 +88,8 @@ takes the card; an open question's *?* stays.
 **Moving a card** (#1387: *"I should be able to move it around, and move questions"*). A card, a chip or a *?* can be
 dragged anywhere on the board, with a finger or the Pencil: it follows the touch and stays where it is let go, kept
 inside the page, and it stays there when the board is opened again. A drag never opens the popup and never draws; a
-tap without moving still opens it.
+tap without moving still opens it. With the eraser in hand nothing moves: a stroke that starts on a card erases or
+leaves it, as below.
 
 **The eraser.** With the eraser in hand, a stroke across an answered card or chip takes it off the board, as it would
 ink. Only a touch that would erase ink takes it: the Pencil, or a finger while fingers draw; a finger that pans the

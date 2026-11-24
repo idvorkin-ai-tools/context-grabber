@@ -45,7 +45,7 @@ struct WhiteboardQuestionCards: View {
           .frame(width: frame.width, height: frame.height)
         }
         .buttonStyle(.plain)
-        .modifier(WhiteboardQuestionDrag(questions: questions, card: card, scale: place.scale))
+        .modifier(WhiteboardQuestionDrag(questions: questions, card: card, scale: place.scale, erasing: place.erasing))
         .allowsHitTesting(!(place.erasing && card.answered != nil))
         .accessibilityLabel(WhiteboardQuestions.lines(card, title: questions.title(of: card)).joined(separator: ", "))
         .accessibilityIdentifier("whiteboard-question-\(card.ask)")

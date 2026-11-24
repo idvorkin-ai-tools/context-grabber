@@ -25,24 +25,25 @@ struct WhiteboardQuestionMarkFace: View {
 }
 
 /// Story 1274: the card follows a finger or the Pencil and lands where it's let go. The drag goes before the card's tap,
-/// so a drag never opens the popup; a touch that doesn't move still taps.
+/// so a drag never opens the popup; a touch that doesn't move still taps. The eraser never moves a card.
 struct WhiteboardQuestionDrag: ViewModifier {
   let questions: WhiteboardQuestionsModel
   let card: WhiteboardQuestion
   let scale: CGFloat
-  @State private var moved: CGSize = .zero
+  let erasing: Bool
+  @GestureState private var moved: CGSize = .zero
 
   func body(content: Content) -> some View {
     content
       .offset(moved)
       .highPriorityGesture(
         DragGesture(minimumDistance: 10, coordinateSpace: .global)
-          .onChanged { moved = $0.translation }
+          .updating($moved) { drag, moved, _ in moved = drag.translation }
           .onEnded { drag in
             let s = max(scale, 0.01)
             questions.move(card, by: CGSize(width: drag.translation.width / s, height: drag.translation.height / s))
-            moved = .zero
-          }
+          },
+        isEnabled: !erasing
       )
   }
 }

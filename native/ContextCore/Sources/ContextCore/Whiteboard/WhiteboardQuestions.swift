@@ -110,8 +110,7 @@ public struct WhiteboardQuestions: Codable, Equatable, Sendable {
   @discardableResult
   public mutating func add(ask: String, x: CGFloat, y: CGFloat, id: String = UUID().uuidString.lowercased()) -> Bool {
     guard !ask.isEmpty, !cards.contains(where: { $0.ask == ask }) else { return false }
-    let x = max(BoardPages.margin + 8, min(x, BoardPages.pageWidth - Self.width - 8))
-    cards.append(WhiteboardQuestion(id: id, ask: ask, x: x, y: max(0, y)))
+    cards.append(WhiteboardQuestion(id: id, ask: ask, x: Self.inPage(x: x, width: Self.width), y: max(0, y)))
     return true
   }
 
