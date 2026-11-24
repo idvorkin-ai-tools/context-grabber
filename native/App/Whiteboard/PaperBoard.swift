@@ -738,6 +738,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   // MARK: - The log
 
+  /// Story 1311: how fast the board answers the Pencil (`PaperBoard+PenLatency.swift`).
+  override func penLatencyLine(_ line: PenLatency.Summary, hz: Int) { logPenLatency(line, hz: hz) }
+
   /// What a finger does on paper isn't settled (the spec's "On paper"): this line says which it was, Pencil or finger,
   /// and what came of it, so the iPad's next log can settle it. `touch_type`, as `type` is the event's own.
   override func touchEnded(_ run: TouchRun, visible: CGRect, zoom: CGFloat, dx: CGFloat, dy: CGFloat) {
