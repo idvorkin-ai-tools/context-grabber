@@ -157,19 +157,15 @@ extension WhiteboardModel {
 
   /// A label's moment, kept in the board's meaning and saved with its ink (bead context-grabber-p1pl).
   func rememberLabel(_ made: Date) {
-    opLedger.rememberLabels([Int64(made.timeIntervalSince1970 * 1000)], board: board.id)
+    opLedger.rememberLabels([BoardMoment.ms(made)], board: board.id)
   }
 
   /// #894: the moments of ink Larry or Claude made (a mark kept, Larry's ink or text), kept in the board's meaning, so it
   /// never makes room as Igor's (bead context-grabber-p1pl).
-  func rememberTheirs(_ strokes: [PKStroke]) { rememberTheirs(moments: strokes.map(Self.moment)) }
+  func rememberTheirs(_ strokes: [PKStroke]) { rememberTheirs(moments: strokes.map(BoardMoment.of)) }
 
   func rememberTheirs(moments: [Int64]) {
     opLedger.rememberTheirs(moments, board: board.id)
-  }
-
-  private static func moment(_ stroke: PKStroke) -> Int64 {
-    Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
   }
 
   private static func points(_ stroke: PKStroke) -> [CGPoint] {
@@ -288,7 +284,7 @@ extension WhiteboardModel {
     return out
   }
 
-  static func unixMs(_ date: Date = Date()) -> Int64 { Int64(date.timeIntervalSince1970 * 1000) }
+  static func unixMs(_ date: Date = Date()) -> Int64 { BoardMoment.ms(date) }
 
   /// #938 (story 992): where a ghost of Larry's text lands when kept, as his text lands from a batch: clear of the ink,
   /// with the room it opens. `dy` is how far the text itself goes down to sit under a line its top fell in.

@@ -282,7 +282,7 @@ extension WhiteboardModel {
     drawing.strokes.flatMap { stroke -> [WhiteboardStrokes.Stroke] in
       let color = lightHex(stroke.ink.color)
       let width = WhiteboardStrokes.width(sizes: stroke.path.map(\.size.width), transform: stroke.transform)
-      let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
+      let t = BoardMoment.of(stroke)
       // #1083 (story 1063): never `ink.inkType`, which traps on a kind of ink PencilKit's Swift enum doesn't name.
       let tool = WhiteboardStrokes.tool(
         rawValue: WhiteboardInk.name(stroke.ink, at: "strokes", points: stroke.path.count) ?? "pen")
