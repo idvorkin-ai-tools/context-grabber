@@ -132,7 +132,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1288:
 
 - **Summary:** Closing the mic sends the words waiting
-- **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103), words waiting from before a switch since the review fix; verified on the host by `WhiteboardGhostTurnsTests`; on the iPad not yet
+- **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103), words waiting from before a switch since [c8d428f7](https://github.com/idvorkin/context-grabber/commit/c8d428f7); verified on the host by `WhiteboardGhostTurnsTests`; on the iPad not yet
 - **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
 
