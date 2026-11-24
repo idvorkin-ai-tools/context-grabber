@@ -604,7 +604,7 @@ apart."*
 ### User Story 239:
 
 - **Summary:** The drill's Stats cover today, the last 7 days or the last 30, my pick
-- **Status:** native app only: comes with think-a-card-trainer TAG_PENDING (the picker is the library's, trainer story 075, verified there by its host tests), pinned here in PIN_COMMIT; verified by host `just native-test` and the Mac build (resolves ThinkACard VERSION_PENDING); *Stats* on the phone not yet (it has no simulator hook)
+- **Status:** native app only: comes with think-a-card-trainer v0.3.10 (the picker is the library's, trainer story 075, PR #51, verified there by its host tests and its signed device build), pinned here in [d32bde4](https://github.com/idvorkin/context-grabber/commit/d32bde4); verified by host `just native-test` and the Mac build (resolves ThinkACard 0.3.10); *Stats* on the phone not yet (it has no simulator hook)
 - **Issues:** [think-a-card-trainer#35](https://github.com/idvorkin/think-a-card-trainer/issues/35) (Igor: *"Add last 1 3 and 7 days. See change over time"*), [think-a-card-trainer#43](https://github.com/idvorkin/think-a-card-trainer/issues/43) (the ledger's ranges)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 
@@ -629,7 +629,7 @@ apart."*
 ### User Story 568:
 
 - **Summary:** The drill's Stats show the last 30 days as a calendar heat map
-- **Status:** native app only: comes with think-a-card-trainer TAG_PENDING (the calendar is the library's, trainer story 076, verified there by its host tests: sources summed per Pacific day, empty days blank, the clock change, the colour steps), pinned here in PIN_COMMIT; verified by host `just native-test` and the Mac build; *Stats* on the phone not yet
+- **Status:** native app only: comes with think-a-card-trainer v0.3.10 (the calendar is the library's, trainer story 076, PR #51, verified there by its host tests: sources summed per Pacific day, empty days blank, the clock change, the colour steps), pinned here in [d32bde4](https://github.com/idvorkin/context-grabber/commit/d32bde4); verified by host `just native-test` and the Mac build (resolves ThinkACard 0.3.10); *Stats* on the phone not yet
 - **Issues:** [think-a-card-trainer#35](https://github.com/idvorkin/think-a-card-trainer/issues/35)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 
