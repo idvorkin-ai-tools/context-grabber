@@ -1790,7 +1790,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1163:
 
 - **Summary:** The web board asks the app's own rules what Keep all keeps as one group and how much room it opens, and how far Tidy overlaps moves each label
-- **Status:** implemented in COMMIT (`bw_keep_all`, `bw_tidy`, interface 14); verified by the host tests (`WebKeepingTests`: Keep all and Tidy through the export against the app's own Keep all and Tidy on the four recorded boards and 40 seeded ones) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 216 checks, a hand-worked keep and tidy among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
+- **Status:** implemented in ab306bdb (`bw_keep_all`, `bw_tidy`, interface 14); verified by the host tests (`WebKeepingTests`: Keep all and Tidy through the export against the app's own Keep all and Tidy on the four recorded boards and 40 seeded ones) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 216 checks, a hand-worked keep and tidy among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 14
 - **Issues:** bead `context-grabber-7ndr`
 
