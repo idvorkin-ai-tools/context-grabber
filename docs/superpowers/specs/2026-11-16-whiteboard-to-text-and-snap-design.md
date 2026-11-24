@@ -28,7 +28,7 @@ ellipse and hold the Pencil still at its end: it snaps clean.
 - *To text* from the hold menu takes the thing under the finger, as *Select* would pick it, and reads it.
 - A lasso round ink names it *Ink · hold for To text* in the selection's label, pointing at where To text is.
 - Choosing it sends a picture of just that ink (cropped to it, on white, nothing else of the board in it) to the Cockpit,
-  which reads the handwriting. While it reads, *Reading…* shows beside that ink (a status, not a button), and To text can't start again until it answers.
+  which reads the handwriting. While it reads, *Reading…* shows beside that ink (a status, not a button), and To text can't start again until it answers: the hold menu leaves its row out meanwhile.
 - The words come back and take the ink's place: typed in the plain (print) lettering, in the ink's colour, at its top
   left, sized to the lines he wrote, one typed line per written line. The ink goes. It is a kept text, like one of
   Larry's: one thing on the board, moved and erased whole, and Larry gets it back as text under its id.

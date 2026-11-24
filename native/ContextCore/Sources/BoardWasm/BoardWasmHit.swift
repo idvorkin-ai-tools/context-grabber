@@ -63,9 +63,10 @@ enum WebHit {
     guard let json = try? JSONSerialization.jsonObject(with: input(pointer, length)) as? [String: Any],
       let x = JSONNumber(json["x"])?.doubleValue, let y = JSONNumber(json["y"])?.doubleValue
     else { return reply(json: ["error": "no x and y"]) }
+    let inMargin = (json["in_margin"] as? Bool) ?? ((JSONNumber(json["in_margin"])?.doubleValue ?? 0) != 0)
     return reply(
       json: WebHit.holdMenu(
-        loaded, x: x, y: y, inMargin: json["in_margin"] as? Bool ?? false,
+        loaded, x: x, y: y, inMargin: inMargin,
         slop: JSONNumber(json["slop"])?.doubleValue ?? 22, selected: WebApplier.strings(json["selected"])))
   }
 #endif

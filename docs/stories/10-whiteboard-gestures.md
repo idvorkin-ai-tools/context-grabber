@@ -1262,7 +1262,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** To text is in the hold menu, and nowhere else
 - **Issues:** [#1386](https://github.com/idvorkin/context-grabber/issues/1386) (Igor, 2026-11-24 05:19: "To text only in the long-press menu")
-- **Status:** implemented in [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23); verified by host tests (`BoardHoldMenuTests`, `WebHoldMenuTests`: the row after Select on a word, a group and a header's row, none on a kept text; `just native-test`), the Mac build (rung 1.5) and every whiteboard class on the iPad simulator (rung 2: `WhiteboardToTextUITests` reaches To text only through the hold menu, with nothing beside the selection). The wasm smoke (`test-board-wasm.mjs`, abi 20) is updated but did not run here: this Mac has no wasm Swift SDK
+- **Status:** implemented in [1a708e23](https://github.com/idvorkin/context-grabber/commit/1a708e23); verified by host tests (`BoardHoldMenuTests`, `WebHoldMenuTests`: the row after Select on a word, a group and a header's row, none on a kept text; `just native-test`), the Mac build (rung 1.5) and every whiteboard class on the iPad simulator (rung 2: `WhiteboardToTextUITests` reaches To text only through the hold menu, with nothing beside the selection). The wasm smoke (`test-board-wasm.mjs`, abi 21) is updated but did not run here: this Mac has no wasm Swift SDK
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*; [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold*
 
 #### Use Case:

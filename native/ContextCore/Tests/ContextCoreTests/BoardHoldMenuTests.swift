@@ -82,6 +82,30 @@ final class BoardHoldMenuTests: XCTestCase {
     XCTAssertEqual(Array(onMine.choices.prefix(3)), [.select, .toText, .delete], "his own word")
   }
 
+  /// Story 1309: a kept text on a header's row is still text already: held on it, the header's menu has no To text.
+  func testOnAKeptTextThatIsAHeaderThereIsNoToText() {
+    var glyphs = word("t", x: 100, y: 200)
+    for i in glyphs.indices { glyphs[i].t = 1000 }
+    let texts = [BoardText(id: "text-1", t: 1000, text: "hi", font: .plain, size: 24, color: "#000000", glyphs: 3)]
+    let o = BoardOutline(
+      strokes: glyphs, headers: [BoardHeader(id: "h", ids: ["t0", "t1", "t2"])], texts: texts)
+    let menu = o.holdMenu(at: CGPoint(x: 110, y: 212), inMargin: false, slop: 22)
+    XCTAssertEqual(menu.on, "header")
+    XCTAssertEqual(menu.choices, [.select, .makeRoom, .paste, .notHeader("h")])
+  }
+
+  /// Story 1309: a kept text in a group of Larry's, alone, is text already too.
+  func testOnAKeptTextInAGroupThereIsNoToText() {
+    var glyphs = word("t", x: 100, y: 200)
+    for i in glyphs.indices { glyphs[i].t = 1000 }
+    let texts = [BoardText(id: "text-1", t: 1000, text: "hi", font: .plain, size: 24, color: "#000000", glyphs: 3)]
+    let o = BoardOutline(strokes: glyphs, headers: [], texts: texts, groups: ["text-1": "reply-1"])
+    let menu = o.holdMenu(at: CGPoint(x: 110, y: 212), inMargin: false, slop: 22)
+    XCTAssertEqual(menu.on, "group")
+    XCTAssertEqual(Array(menu.choices.prefix(2)), [.select, .delete])
+    XCTAssertFalse(menu.choices.contains(.toText), "no To text on a kept text: \(menu.choices)")
+  }
+
   /// Story 1310 (#1386): a lasso round two lines, then a finger held on one of their words: the menu is about the whole
   /// selection, To text and Delete taking all of it, and no Select, which it already is. Off the selection, as before.
   func testHeldOnTheSelectionTheMenuTakesAllOfIt() {

@@ -524,7 +524,8 @@ the shared core's, so the web board's long-press menu gets the row the same way.
 
 - `bw_hold_menu` and `bw_hold_menu_on` offer `to-text` right after `select`: on a word of his, a group and a header's
   row. Not on a kept text, which is text already.
-- New, `bw_hold_menu_on`, input `{"x", "y", "in_margin", "slop", "selected": [name]}`, the strokes selected now:
+- New, `bw_hold_menu_on`, input `{"x", "y", "in_margin", "slop", "selected": [name]}`, the strokes selected now
+  (`in_margin` a JSON bool or a number, nonzero true, as `bw_hold_menu`'s 0/1):
   held on a thing any of whose strokes are selected, the menu is about the whole selection, `on: "selection"`, with
   `to-text` (unless it is all one kept text) and `delete` and then the line's rows, and no `select`. Held anywhere
   else, or with nothing selected, it answers as `bw_hold_menu`. No `x` or `y` is a reply `{"error": "no x and y"}`.

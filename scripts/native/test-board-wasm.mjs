@@ -330,6 +330,9 @@ check(same(holdOn(105, 200, ['a', 'b', 'c']), { choices: ['to-text', 'delete', '
 check(same(holdOn(105, 200, ['c']), holdAt(105, 200)), `off the selection, the word as before: ${JSON.stringify(holdOn(105, 200, ['c']))}`);
 check(same(holdOn(105, 200, []), holdAt(105, 200)), 'nothing selected: as bw_hold_menu');
 check(holdOn(500, 250, ['a']).on === 'paper', 'blank paper with a selection elsewhere: the paper');
+check(same(ask('bw_hold_menu_on', { x: 30, y: 100, in_margin: 1, slop: 22, selected: [] }), holdAt(30, 100, true)) &&
+  same(ask('bw_hold_menu_on', { x: 30, y: 100, in_margin: true, slop: 22, selected: [] }), holdAt(30, 100, true)),
+  'in_margin as a number or a bool: the margin either way');
 check(ask('bw_hold_menu_on', { y: 1 }).error === 'no x and y', 'no x: says so');
 check(call('bw_outline_load', 'not json') === -1 && reply(x.bw_word_at(0, 0, 10)).error === 'no outline is loaded' &&
   reply(x.bw_hold_menu(0, 0, 0, 22)).error === 'no outline is loaded', 'with no outline, both say so');

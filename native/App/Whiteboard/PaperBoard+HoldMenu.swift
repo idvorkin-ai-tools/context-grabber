@@ -66,12 +66,13 @@ extension PaperBoardController {
     let selected = zip(elements, strokes).filter { paper.selection.contains($0.0.elementID) }.flatMap { $0.1.ids }
     let menu = outline.holdMenu(
       at: point, inMargin: point.x < BoardMargin.width, slop: 22 / max(screenScale, 0.01), selected: selected)
-    holdMenu = HoldMenu(spot: spot, y: point.y, items: menu.choices, names: menu.names, on: menu.on)
+    let items = toText.reading ? menu.choices.filter { $0 != .toText } : menu.choices
+    holdMenu = HoldMenu(spot: spot, y: point.y, items: items, names: menu.names, on: menu.on)
     log.event(
       "board_outline",
       [
         "action": "hold_menu", "board": model.board.id, "y": Double(point.y), "x": Double(point.x),
-        "items": menu.choices.map(\.id), "on": menu.on, "strokes": menu.names.count,
+        "items": items.map(\.id), "on": menu.on, "strokes": menu.names.count,
       ])
   }
 

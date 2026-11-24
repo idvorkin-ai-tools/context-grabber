@@ -91,8 +91,7 @@ extension BoardOutline {
     let menu = thingMenu(at: point, inMargin: inMargin, slop: slop)
     guard !selected.isEmpty, !menu.names.isEmpty, !Set(menu.names).isDisjoint(with: selected) else { return menu }
     let line = menu.choices.filter { ![.select, .toText, .delete].contains($0) }
-    let toText: [BoardHoldChoice] = isKeptText(selected) ? [] : [.toText]
-    return BoardHoldMenu(choices: toText + [.delete] + line, names: selected, on: "selection")
+    return BoardHoldMenu(choices: toText(selected) + [.delete] + line, names: selected, on: "selection")
   }
 
   private func thingMenu(at point: CGPoint, inMargin: Bool, slop: CGFloat) -> BoardHoldMenu {
@@ -110,16 +109,17 @@ extension BoardOutline {
     }
     guard !inMargin else { return BoardHoldMenu(choices: line, names: [], on: "paper") }
     if let hit = group(at: point, slop: slop) {
-      return BoardHoldMenu(choices: [.select, .toText, .delete] + line, names: hit.names, on: "group")
+      return BoardHoldMenu(choices: [.select] + toText(hit.names) + [.delete] + line, names: hit.names, on: "group")
     }
     guard let names = word(at: point, slop: slop), !names.isEmpty else {
       return BoardHoldMenu(choices: line, names: [], on: "paper")
     }
     let chosen = Set(names)
     if headers.contains(where: { !chosen.isDisjoint(with: $0.ids) }) {
-      return BoardHoldMenu(choices: [.select, .toText] + line, names: names, on: "header")
+      return BoardHoldMenu(choices: [.select] + toText(names) + line, names: names, on: "header")
     }
-    let toText: [BoardHoldChoice] = isKeptText(names) ? [] : [.toText]
-    return BoardHoldMenu(choices: [.select] + toText + [.delete] + line, names: names, on: "ink")
+    return BoardHoldMenu(choices: [.select] + toText(names) + [.delete] + line, names: names, on: "ink")
   }
+
+  private func toText(_ names: [String]) -> [BoardHoldChoice] { isKeptText(names) ? [] : [.toText] }
 }
