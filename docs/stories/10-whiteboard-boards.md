@@ -1869,8 +1869,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 1284:
 
-- **Summary:** Writing never zooms the board; only a pinch of two fingertips does
-- **Status:** in progress (bead `context-grabber-hxzv`)
+- **Summary:** Writing never zooms the board, however the palm shifts
+- **Status:** implemented in 821f2e6a; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
 - **Issues:** bead `context-grabber-hxzv` (Igor, 2026-11-24 ~05:00, via Larry: "it zooms while I write")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
 
@@ -1885,11 +1885,37 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I write a line with the Pencil, my palm resting and sliding on the glass beside it
 - **Then:** the zoom is the same when I lift as when I started, and the log says the pinch was held off and why
 
+### User Story 1290:
+
+- **Summary:** A palm and a fingertip together never zoom the board
+- **Status:** implemented in 821f2e6a; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
+- **Issues:** bead `context-grabber-hxzv`
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
+
+#### Use Case:
+- **As Igor,** resting my hand on a board without the Pencil
+- **I want to** have a palm and a fingertip on the glass leave the zoom alone
+- **so that** only a pinch I mean zooms the board
+
+#### Acceptance Criteria:
 - **Scenario:** A palm and a fingertip together, no Pencil
 - **Given:** a board at its fitted zoom
 - **When:** my palm and a fingertip land and move apart
 - **Then:** the board doesn't zoom
 
+### User Story 1291:
+
+- **Summary:** Two fingertips still pinch the board once everything has lifted
+- **Status:** implemented in 821f2e6a; verified by the host tests (`PaperProbeTests.testWritingHoldsThePinchOff`: Igor's logged fingertip and palm radii and the Pencil); the real palm and Pencil on the iPad are still to check
+- **Issues:** bead `context-grabber-hxzv`
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
+
+#### Use Case:
+- **As Igor,** zooming a board on purpose
+- **I want to** pinch with two fingertips as before, once nothing else is on the glass
+- **so that** holding the pinch off while I write never costs me a zoom I mean
+
+#### Acceptance Criteria:
 - **Scenario:** A deliberate pinch
 - **Given:** nothing on the glass
 - **When:** I pinch in with two fingertips

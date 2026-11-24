@@ -18,7 +18,8 @@ extension PaperHost {
       fingerRadii = [:]
       if pinchHold != nil {
         pinchHold = nil
-        for pinch in pinches() { pinch.isEnabled = true }
+        for pinch in heldPinches { pinch.isEnabled = true }
+        heldPinches = []
       }
       return
     }
@@ -27,10 +28,10 @@ extension PaperHost {
     else { return }
     pinchHold = why
     // Turning a pinch off mid-gesture cancels it, so a zoom a palm had begun stops where it is.
-    let found = pinches()
-    for pinch in found { pinch.isEnabled = false }
+    heldPinches = pinches().filter(\.isEnabled)
+    for pinch in heldPinches { pinch.isEnabled = false }
     run?.pinchHeld = why
-    run?.pinchesHeld = found.count
+    run?.pinchesHeld = heldPinches.count
   }
 
   /// PaperKit's pinches: its scroll views' own, and any other pinch in its views.

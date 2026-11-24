@@ -183,7 +183,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - **Writing never zooms the board** (Igor, 2026-11-24: "it zooms while I write"). Only a deliberate pinch of two
     fingertips zooms. While the Pencil is on the glass, or a palm rests on it, the board holds its zoom: a palm shifting
     under the writing hand, or a palm and a fingertip together, never pinches. A palm is a contact far wider than a
-    fingertip (on Igor's iPad a fingertip reads about 30–50 points across, a resting palm 60 or more). Once everything
+    fingertip (on Igor's iPad a fingertip reads about 30–50 points in radius, a resting palm 60 or more). Once everything
     lifts, the next two fingertips pinch as before. Panning is unchanged.
   - Without a Pencil (an iPad with none paired), a finger draws and two fingers move the board.
   - This follows the system's "Only Draw with Apple Pencil" setting, and on paper also the Pencil itself: once it has

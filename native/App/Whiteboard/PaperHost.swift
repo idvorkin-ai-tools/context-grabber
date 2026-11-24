@@ -63,9 +63,11 @@ class PaperHost: UIViewController {
   private var fingersDown = 0
   private var fingersTogether = 0
   private(set) var lastTouchBoardPoint: CGPoint?
-  /// Story 1284: each finger contact down now, at its widest, and why the pinch is held off until everything lifts.
+  /// Story 1284: each finger contact down now, at its widest, why the pinch is held off until everything lifts, and
+  /// the pinches the hold turned off.
   var fingerRadii: [ObjectIdentifier: CGFloat] = [:]
   var pinchHold: String?
+  var heldPinches: [UIPinchGestureRecognizer] = []
 
   private static let features: FeatureSet = {
     var set = FeatureSet.empty
