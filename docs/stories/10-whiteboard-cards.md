@@ -192,7 +192,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1273:
 
 - **Summary:** I hide a question card to a bare '?' and bring it back with a tap
-- **Status:** in progress on branch `native/question-hide-1387`
+- **Status:** implemented in '6767dc56'. Verified by host tests (`WhiteboardQuestionsTests`: `testAnyCardHidesToAQuestionMarkAtItsLeftEndAndComesBackAsItWas`, `testTheEraserTakesAnAnsweredQuestionMarkAndLeavesAnOpenOne`, `testABoardKeptBeforeHidingReadsAsShown`; `just test`), the Mac build, and on the iPad simulator (`WhiteboardQuestionUITests.testAQuestionHidesToAMarkAndDrags`, 3/3 with the class, and the whiteboard smoke); not yet on the iPad
 - **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Hiding a card*
 
@@ -222,7 +222,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1274:
 
 - **Summary:** I drag a question card, a chip or a '?' anywhere on the page
-- **Status:** in progress on branch `native/question-hide-1387`
+- **Status:** implemented in '6767dc56'. Verified by host tests (`WhiteboardQuestionsTests.testACardMovesWhereItIsLetGoInsideThePage`; `just test`), the Mac build, and on the iPad simulator (`WhiteboardQuestionUITests.testAQuestionHidesToAMarkAndDrags` drags the '?' and the card, neither opening the popup); with the Pencil, only on the iPad: not yet tried
 - **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Moving a card*
 
