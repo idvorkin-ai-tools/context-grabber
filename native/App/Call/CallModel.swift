@@ -358,7 +358,12 @@ final class CallModel: ObservableObject {
   }
 
   private func stopWatchingNetwork() {
-    pathMonitor?.cancel()
+    if let monitor = pathMonitor {
+      // #1414 (story 1074): a crash 1.4 s after a hang-up released a freed object on a global queue just as this
+      // monitor was cancelled; the stop line places the cancel against the next crash's last lines.
+      event("call_network", ["action": "stop"])
+      monitor.cancel()
+    }
     pathMonitor = nil
     lastPath = nil
   }
@@ -504,6 +509,8 @@ final class CallModel: ObservableObject {
       return
     }
     let count = records.count
+    // #1414 (story 1074): the send starts here and is logged again when it returns, so a crash between shows.
+    event("call_archive", ["action": "send", "call": call, "records": count])
     Task { [weak self] in
       let outcome: ArchiveSend.Outcome
       do {

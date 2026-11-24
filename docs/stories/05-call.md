@@ -1424,3 +1424,21 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a call started on the iPhone's microphone and speaker, on Wi-Fi
 - **When:** I put my AirPods in mid-call, then walk out of Wi-Fi range
 - **Then:** the call's start told the bridge the device, *iPhone Microphone* and *Speaker*, the audio session and Wi-Fi; one route message followed naming *AirPods Pro* as microphone and output and why iOS changed it; one network message followed naming cellular; a route change that left the same devices sent nothing; and no permission was asked for
+
+### User Story 1074:
+
+- **Summary:** A crash after hanging up leaves, as the session log's last lines, which of the call's teardown steps was still in flight
+- **Status:** implemented (instrumentation only, no fix yet); host-verified by `just test`. The iPhone, where the crash happened, gets it with its next build (the no-iPhone rule holds it for now)
+- **Issues:** #1414, #1413 (iPhone, build 5271406b, 2026-11-24 14:52:36Z: SIGSEGV in objc_release from a block on a global queue, 1.4 s after a 23-minute call was hung up)
+- **Spec:** [Native call — What the call says about itself](../superpowers/specs/2026-08-28-native-call-screen-design.md#what-the-call-says-about-itself)
+
+#### Use Case:
+- **As** the agent reading a crash that came moments after a call ended
+- **I want to** see in the session log when the call's network watch was stopped and when the call's log left for the Cockpit's archive
+- **so that** the next such crash names its cause from evidence instead of a guess
+
+#### Acceptance Criteria:
+- **Scenario:** Hanging up a call
+- **Given:** a live call
+- **When:** I hang up
+- **Then:** the session log shows the network watch stopping and the call's log being sent to the archive before the line that says how that send went; a call that never started watching the network logs no stop
