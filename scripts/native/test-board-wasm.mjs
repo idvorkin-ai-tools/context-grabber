@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 16, `bw_info abi is 16: ${JSON.stringify(info)}`);
+check(info.abi === 17, `bw_info abi is 17: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -610,6 +610,35 @@ const conflict = applier({ step: 'receive', key: 'm5', batch: larry(4, ['a', 'c'
 check(same(conflict.result, { conflict_ids: ['a'], label: 'l', ok: false, reason: 'stale', rev: 5 }), `a change since names a: ${JSON.stringify(conflict)}`);
 check(applier({ step: 'receive', key: 'm6', batch: larry(5, ['a', 'c']), board: 'B' }).decision === 'apply', 'on the new look it applies');
 check(applier({ step: 'nope' }).error && applier('not json').error && applier({ step: 'report', outcome: 'maybe' }).error, 'a step it can\'t read says so');
+
+// Interface 17 (spec, scratch-out and hold-to-shape). A fast zigzag of five sweeps across w (100..300 at y 100), as the
+// app's UI tests draw one: four turns, w goes. Over clear paper it finds nothing; slow, it is writing; under eight
+// points it is too short to be one.
+const zigzag = ([l, t, r, b]) => Array.from({ length: 60 }, (_, i) => {
+  const u = (i / 59) * 5, sweep = Math.floor(u), f = u - sweep, a = (sweep % 2 === 0 ? f : 1 - f) - 0.5;
+  return [(l + r) / 2 + a * (r - l), (t + b) / 2 + (u / 5 - 0.5) * 16];
+});
+check(call('bw_outline_load', { strokes: [seg('w', 100, 300, 100), seg('o', 100, 300, 300)], boxes: [], groups: {}, headers: [] }) === 2,
+  `the scratch outline ${error() ?? ''}`);
+const scratch = (points, ms) => ask('bw_scratch_out', { points, ms });
+const over = scratch(zigzag([100, 90, 300, 110]), 100);
+check(over.ok === true && same(over.gone, ['w']) && over.reversals === 4 && over.why === null && over.finds_nothing === false && over.zigzag === true,
+  `a zigzag over w takes it: ${JSON.stringify(over)}`);
+const clear = scratch(zigzag([100, 490, 300, 510]), 100);
+check(clear.ok === false && clear.why === 'no ink' && clear.finds_nothing === true && clear.zigzag === true && same(clear.gone, []), `over clear paper it finds nothing: ${JSON.stringify(clear)}`);
+check(scratch(zigzag([100, 90, 300, 110]), 10000).why === 'slow' && scratch(zigzag([100, 90, 300, 110]), 10000).zigzag === false, 'slow, it is writing');
+check(scratch([[0, 0], [10, 0], [0, 0]], 10).why === 'short', 'three points are too short');
+check(ask('bw_scratch_out', {}).error === 'no points', 'no points says so');
+// Hold-to-shape: a stroke near a straight line 200 long snaps to a line; still from 0.08 s, lifted at 0.7 it was held
+// (half a second or more), at 0.3 it was not.
+const rough = [[0, 0], [50, 1], [100, 0], [150, 1], [200, 0]];
+const snapped = ask('bw_shape_snap', { points: rough, times: [0, 0.02, 0.04, 0.06, 0.08], lifted: 0.7 });
+check(snapped.held === true && snapped.shape.kind === 'line' && snapped.shape.name === 'line' && same(snapped.shape.points[0], [0, 0]) &&
+  same(snapped.shape.points.at(-1), [200, 0]), `a rough line held still snaps: ${JSON.stringify({ ...snapped, shape: { ...snapped.shape, points: snapped.shape.points.length } })}`);
+check(ask('bw_shape_snap', { points: rough, times: [0, 0.02, 0.04, 0.06, 0.08], lifted: 0.3 }).held === false, 'lifted too soon: not held');
+check(same(ask('bw_shape_snap', { points: [[0, 0], [10, 10], [0, 20], [10, 30]] }), { held: null, shape: null }), 'a small scribble snaps to nothing');
+check(ask('bw_shape_snap', { points: 'x' }).error === 'no points', 'no points says so');
+check(call('bw_outline_load', 'not json') === -1 && scratch([[0, 0]], 1).error === 'no outline is loaded', 'a scratch-out with no outline says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
