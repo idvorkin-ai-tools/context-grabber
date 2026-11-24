@@ -860,7 +860,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1515:
 
 - **Summary:** The pipeline won't push a story ID another open PR holds
-- **Status:** implemented in 81fe03f4 on branch `chore/story-ids-claimed-6p52` (bead context-grabber-6p52); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a throwaway repository: a new ID no open PR adds passes, one another open PR adds fails naming the ID, the PR and its branch, one whose only other PR shares a commit subject with the branch passes, and with the open PRs unlisted it fails; run once against GitHub from this branch it passed (1515, 3 open PRs). The gate runs it as its lint command once this config is on main
+- **Status:** implemented in babe86bc on branch `chore/story-ids-claimed-6p52` (bead context-grabber-6p52); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a throwaway repository: a new ID no open PR adds passes, one another open PR adds fails naming the ID, the PR and its branch, one whose only other PR shares a commit subject with the branch passes, and with the open PRs unlisted it fails; run once against GitHub from this branch it passed (1515, 3 open PRs). The gate runs it as its lint command once this config is on main
 - **Issues:** bead context-grabber-6p52 (on 2026-11-24 the pipeline's review and document steps picked story IDs themselves three times despite the instruction to reserve: 1609/1610, and 1292/1293 twice, the last two colliding with another open PR and failing every lane's pre-merge until main was renumbered in #1408)
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 
