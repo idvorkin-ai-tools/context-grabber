@@ -277,6 +277,24 @@ outline, by the app's rule for it, and the rows they make. `bw_info` says `"abi"
   line, the boxes `bw_load` can be given.
 - Asking changes nothing.
 
+## The interface, version 11: opening a fold
+
+Story 1264. Opening a folded header on the web board does what opening it does on the iPad: what was below slides
+back down, by more whole lines if something was written under the folded header, the folded lines show again, and
+the ink written under the header while it was folded ends its section from then on (story 1231), so the next fold
+leaves it out. `bw_info` says `"abi": 11`; versions 1 to 10 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_opening` | `{"id"}`: a folded header | a reply: `{"opening": null}` when it is not folded, else `{"opening": {"top", "slide", "moves": {name: dy}, "shown": [name], "ends": [name] \| null}}`; `{"error"}` with no outline or no id |
+
+- `top` is the bottom of the header's row and `slide` how far everything from there down went: the fold's shift, plus
+  whole lines when the ink written under it would otherwise sit on the opened lines.
+- `moves` names each stroke and box that slid and how far; `shown` the ones the fold hid that show again.
+- `ends` is the header's list as it now is: what it had, and the ink written under it while folded that the opened
+  section would otherwise take. Null when there is none.
+- Asking changes nothing: the Cockpit opens the fold on its own board with the answer and loads the outline again.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

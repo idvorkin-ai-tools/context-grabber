@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 10, `bw_info abi is 10: ${JSON.stringify(info)}`);
+check(info.abi === 11, `bw_info abi is 11: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -476,6 +476,25 @@ const rowsNow = () => reply(x.bw_rows());
 check(isDeepStrictEqual(rowsNow(), wantRows), `the units and rows: ${JSON.stringify(rowsNow())}`);
 check(isDeepStrictEqual(rowsNow(), wantRows), 'asking leaves the outline as it was');
 check(call('bw_outline_load', 'not json') === -1 && rowsNow().error === 'no outline is loaded', 'rows with no outline say so');
+
+// Interface 11, story 1264 (spec, opening a fold): the outline of interface 2 with H folded (b1 hidden, the line at 300
+// slid up 120 to 180) and a line w written under the folded header at 130, indented. Opening H from its row's bottom
+// (102): w and the line below slide back the fold's 120 (w's 128 + 120 clears the opened b1's 142, so no more), b1
+// shows, and w, which the opened section would now take, ends it.
+const openInk = {
+  strokes: [line('h1', 100), { ...line('b1', 140), points: [[60, 140], [200, 140]], hidden: true },
+    { ...line('w', 130), points: [[60, 130], [200, 130]] }, line('n', 180)],
+  boxes: [], groups: {},
+  headers: [{ id: 'H', ids: ['h1'], fold: { ids: ['b1'], own: ['b1'], shift: 120, lines: 1, bottom: 40 } }],
+};
+check(call('bw_outline_load', openInk) === 4, `the folded outline ${error() ?? ''}`);
+const opening = (body) => ask('bw_opening', body);
+const opened = { opening: { ends: ['w'], moves: { n: 120, w: 120 }, shown: ['b1'], slide: 120, top: 102 } };
+check(isDeepStrictEqual(opening({ id: 'H' }), opened), `opening H: ${JSON.stringify(opening({ id: 'H' }))}`);
+check(isDeepStrictEqual(opening({ id: 'H' }), opened), 'asking leaves the outline as it was');
+check(isDeepStrictEqual(opening({ id: 'X' }), { opening: null }), 'a header that is not there opens nothing');
+check(opening({}).error === 'no header id', 'no id says so');
+check(call('bw_outline_load', 'not json') === -1 && opening({ id: 'H' }).error === 'no outline is loaded', 'opening with no outline says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
