@@ -110,6 +110,12 @@ try:
     call("/fake/larry-draws", {"count": 1})
     held = [m for m in call("/chat/" + key)["messages"] if m["id"] == "p5"][0].get("receipt") or {}
     check(held.get("state") == "seen" and "waiting" not in held, "his next row clears the hold: %s" % held)
+    # Story 1180: a circle on the middle of the last stroke posted, in the picture's pixels.
+    call("/whiteboard/strokes", {"board": "b1", "picture_id": "p5", "frame": frame,
+                                 "strokes": [{"id": "s1", "points": [[150, 300], [250, 320], [350, 340]]}]})
+    call("/fake/larry-draws", {"count": 1, "on_last_stroke": True})
+    circle = larry_rows(key)[-1]["shapes"][0]
+    check(circle["cx"] == 300 and circle["cy"] == 240 and circle["r"] == 24, "a circle on the last stroke: %s" % circle)
     answer = call("/whiteboard/events", {"board": "b1", "rev": 9, "events": [{"type": "tap", "target_id": "x"}]})
     check(answer["ok"] and answer["woke"] is False and answer["rev"] == 9 and "ts_ms" in answer,
           "a plain tap is taken but wakes nobody: %s" % answer)

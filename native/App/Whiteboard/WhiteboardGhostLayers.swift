@@ -23,8 +23,9 @@ struct Ghost: Identifiable, WhiteboardGhost {
   let letters: CGFloat?
   /// A text of Larry's from a batch of his changes (story 817): kept, it becomes one text under its id.
   let text: BoardOps.Text?
-  /// A connector mark (story 917): kept, it becomes a connector joining its ends.
-  let connector: BoardOps.NewConnector?
+  /// A connector mark (story 917): kept, it becomes a connector joining its ends. Moved with the ink it holds to (story
+  /// 1180).
+  var connector: BoardOps.NewConnector?
   /// When the picture this mark answers was taken, unix ms, when this device knows (#894): what Igor made after it
   /// makes room for the mark when it is kept.
   let seen: Int64?
@@ -147,8 +148,39 @@ final class GhostLayers {
       shape.add(drawIn, forKey: "drawIn")
       holder.addSublayer(shape)
       shown[ghost.id] = shape
+      drawnLines[ghost.id] = ghost.lines
     }
     return true
+  }
+
+  /// The lines each layer draws, to redraw one only when its mark moved.
+  private var drawnLines: [String: [[CGPoint]]] = [:]
+
+  /// Stories 1180, 1181, 1269, 1271: each mark where it is now, faded to a third when written over, not shown while the
+  /// ink it holds to is folded away or erased.
+  func restyle(_ ghosts: [Ghost], look: (String) -> BoardMarkHolds.Place?) {
+    drawnLines = drawnLines.filter { shown[$0.key] != nil }
+    for ghost in ghosts {
+      guard let layer = shown[ghost.id] else { continue }
+      if drawnLines[ghost.id] != ghost.lines {
+        let path = CGMutablePath()
+        for line in ghost.lines { path.addLines(between: line) }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.path = path
+        CATransaction.commit()
+        drawnLines[ghost.id] = ghost.lines
+      }
+      let place = look(ghost.id)
+      let opacity = Float(place?.hidden != nil ? 0 : place?.faded == true ? BoardMarkHolds.fadedStrength : 1)
+      guard layer.opacity != opacity, layer.animation(forKey: "fade") == nil else { continue }
+      let change = CABasicAnimation(keyPath: "opacity")
+      change.fromValue = layer.presentation()?.opacity ?? layer.opacity
+      change.toValue = opacity
+      change.duration = 0.2
+      layer.opacity = opacity
+      layer.add(change, forKey: "look")
+    }
   }
 }
 

@@ -43,8 +43,9 @@ extension WhiteboardModel {
     }
     // A finger in the margin is the margin's (story 849).
     guard point.x >= BoardMargin.width else { return }
+    let hidden = turns.hiddenMarks
     let ghost = WhiteboardMarkChoice.nearest(ghosts) {
-      WhiteboardTurn.reach($0.lines, kind: $0.kind, at: point, tolerance: tolerance)
+      hidden.contains($0.id) ? nil : WhiteboardTurn.reach($0.lines, kind: $0.kind, at: point, tolerance: tolerance)
     }
     let target = ghost.map { $0.text?.id ?? $0.id } ?? keptText(at: point, tolerance: tolerance)
     events.tap(at: point, target: target, t: Self.nowMs)
@@ -239,7 +240,11 @@ extension WhiteboardModel {
   /// The board's half of Larry's next turn: the events since the last are taken.
   func turnReport() -> BoardTurnReport {
     let taken = events.take()
-    return BoardTurnReport(rev: ops.rev, opResult: ops.lastResult, taken: taken)
+    var report = BoardTurnReport(rev: ops.rev, opResult: ops.lastResult, taken: taken)
+    // Story 1270: the marks this picture takes away once it reaches him, and why.
+    let drops = marksToDrop()
+    if !drops.isEmpty { report.marksDropped = drops }
+    return report
   }
 
   /// Whatever a source hears goes to every source; each batch they make goes to the one applier.

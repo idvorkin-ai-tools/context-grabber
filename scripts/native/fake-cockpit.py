@@ -10,7 +10,8 @@ GET /attachments/<ref>, POST /whiteboard/strokes (story 419: counted and answere
 accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. GET /fake/strokes says the ids of each POST /whiteboard/strokes so far, and the folds beside each (story 857). GET /fake/turns lists the board of each POST /whiteboard/suggest so far (story 1171). GET and POST /whiteboard/responder keep each board's knob (story 659), Sonnet by default. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n, "separate": bool} is a test's way to have him draw
-unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-says {"count": n,
+unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes; with "on_last_stroke": one circle on the
+middle of the last stroke the board posted, story 1180). POST /fake/larry-says {"count": n,
 "from": k} adds n replies of Larry's words, "Reply k: …" onwards, on the newest board thread (bead context-grabber-97s). POST /fake/larry-ops {"stale": false, "dy": 120}
 is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
 below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
@@ -1015,6 +1016,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(404, {"ok": False, "error": "no board thread"})
             key = list(BOARD_MESSAGES)[-1]
             circles = [{"kind": "circle", "cx": 40 * i, "cy": 40, "r": 20} for i in range(1, data["count"] + 1)]
+            ink = [st["points"] for st in LAST_STROKES if st.get("points")]
+            if data.get("on_last_stroke") and ink:
+                # Story 1180: a circle on the last stroke, which it then holds to.
+                frame = BOARD_MESSAGES[key]["frame"]
+                x, y = ink[-1][len(ink[-1]) // 2][:2]
+                scale = frame.get("scale", 1)
+                circles = [{"kind": "circle", "cx": (x - frame["x"]) * scale, "cy": (y - frame["y"]) * scale,
+                            "r": 12 * scale}]
             if data.get("separate"):
                 # Story 1154: one reply per circle, so Keep beside each keeps it alone.
                 for circle in circles:

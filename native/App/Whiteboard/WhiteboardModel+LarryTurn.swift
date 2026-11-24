@@ -160,6 +160,8 @@ extension WhiteboardModel {
       // Cockpit that marks nothing never reads *Sent* (story 773).
       if larryOut?.picture.pictureID == picture.pictureID { larryOut?.delivered = true }
       turns.larryReached()
+      // Story 1270: the marks this picture told him it takes away go now that it reached him.
+      if let drops = picture.report?.marksDropped { marksDropped(drops) }
       if problem?.context == "WhiteboardView.larry" { problem = nil }
     case .refused(let status, let reason):
       event["ok"] = false

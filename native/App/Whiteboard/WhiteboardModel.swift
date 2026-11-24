@@ -30,8 +30,14 @@ final class WhiteboardModel: ObservableObject {
             "larry": turns.ghosts.filter { $0.who == .larry }.count,
           ])
       }
+      // Stories 1180, 1181: a mark that lands takes its anchor and shows where its ink is.
+      if turns.ghosts.map(\.id) != oldValue.ghosts.map(\.id) { marksFollow() }
     }
   }
+  /// Stories 1180, 1181, 1269–1271: what each mark holds to, where it landed and where it shows now.
+  @Published var markHolds = MarkHoldsState()
+  /// The anchors last kept on this device, so they are written only when they change.
+  var savedMarkAnchors: [String: BoardMarkAnchor] = [:]
   /// Shapes Claude or Larry offered, faint on the board until a tap keeps one (stories 344, 349).
   var ghosts: [Ghost] { turns.ghosts }
   /// The width of the pen Igor last held on this board, in board points; nil until the canvas says. A label with no
@@ -151,7 +157,10 @@ final class WhiteboardModel: ObservableObject {
   let editable: Bool
   /// Why it's only looked at, for the bar; nil on a board drawn on here.
   let lookOnlyNote: String?
-  @Published var drawing: PKDrawing
+  @Published var drawing: PKDrawing {
+    // Stories 1180, 1181, 1271: every change of the ink (a stroke, a move, room, a fold, an erase, Undo) moves the marks.
+    didSet { if !turns.ghosts.isEmpty { marksFollow() } }
+  }
   /// Larry's open asks as cards on the board (stories 880–886).
   let questions: WhiteboardQuestionsModel
   let store: WhiteboardStore
@@ -266,6 +275,7 @@ final class WhiteboardModel: ObservableObject {
     if LaunchHooks.current.whiteboard.grid { setGrid(true) }
     watchNotices()
     checkMeaningBehind()
+    loadMarkAnchors()
     opLedger.onChange = { [weak self] in self?.meaningChanged() }
     // Story 926: Talk's long press reads the dictation from the first frame; made here, its watches' first values land
     // before any view observes the model, not inside a view update.

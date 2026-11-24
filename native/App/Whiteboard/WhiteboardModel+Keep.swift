@@ -39,8 +39,12 @@ extension WhiteboardModel {
 
   /// How far a tap at `point` is from a mark, or nil out of a finger's reach.
   private func markReach(at point: CGPoint, zoom: CGFloat) -> (Ghost) -> CGFloat? {
-    { ghost in
-      WhiteboardTurn.reach(ghost.lines, kind: ghost.kind, at: point, tolerance: WhiteboardTurn.tapReach / zoom)
+    let hidden = turns.hiddenMarks
+    return { ghost in
+      // Story 1181: a mark folded away or with its ink erased takes no tap.
+      hidden.contains(ghost.id)
+        ? nil
+        : WhiteboardTurn.reach(ghost.lines, kind: ghost.kind, at: point, tolerance: WhiteboardTurn.tapReach / zoom)
     }
   }
 

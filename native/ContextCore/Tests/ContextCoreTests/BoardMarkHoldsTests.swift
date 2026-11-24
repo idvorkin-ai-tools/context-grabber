@@ -26,14 +26,18 @@ final class BoardMarkHoldsTests: XCTestCase {
   private func line(_ id: String, from a: CGPoint, to b: CGPoint, pen: CGFloat = 2) -> BoardOps.Stroke {
     let n = max(Int(hypot(b.x - a.x, b.y - a.y) / 2), 1)
     return path(
-      id, (0...n).map { CGPoint(x: a.x + (b.x - a.x) * CGFloat($0) / CGFloat(n), y: a.y + (b.y - a.y) * CGFloat($0) / CGFloat(n)) },
+      id,
+      (0...n).map {
+        CGPoint(x: a.x + (b.x - a.x) * CGFloat($0) / CGFloat(n), y: a.y + (b.y - a.y) * CGFloat($0) / CGFloat(n))
+      },
       pen: pen)
   }
 
   /// A zigzag across `x` between `y`'s ends, 8 teeth, sampled as a Pencil reports one.
   private func zigzag(_ id: String, x: ClosedRange<CGFloat>, y: ClosedRange<CGFloat>) -> BoardOps.Stroke {
     let corners = (0...16).map { i in
-      CGPoint(x: x.lowerBound + (x.upperBound - x.lowerBound) * CGFloat(i) / 16, y: i % 2 == 0 ? y.lowerBound : y.upperBound)
+      CGPoint(
+        x: x.lowerBound + (x.upperBound - x.lowerBound) * CGFloat(i) / 16, y: i % 2 == 0 ? y.lowerBound : y.upperBound)
     }
     let points = zip(corners, corners.dropFirst()).flatMap { a, b in line("", from: a, to: b).points.dropLast() }
     return path(id, points + [corners.last!])
@@ -50,10 +54,13 @@ final class BoardMarkHoldsTests: XCTestCase {
   /// A check of Larry's: two strokes of a tick.
   private func check(_ id: String, at p: CGPoint) -> BoardMark {
     BoardMark(
-      id: id, lines: [[p, CGPoint(x: p.x + 10, y: p.y + 12), CGPoint(x: p.x + 30, y: p.y - 16)]], pen: 2.5, label: false)
+      id: id, lines: [[p, CGPoint(x: p.x + 10, y: p.y + 12), CGPoint(x: p.x + 30, y: p.y - 16)]], pen: 2.5, label: false
+    )
   }
 
-  private func moved(_ strokes: [BoardOps.Stroke], _ ids: Set<String>, dy: CGFloat, dx: CGFloat = 0) -> [BoardOps.Stroke] {
+  private func moved(_ strokes: [BoardOps.Stroke], _ ids: Set<String>, dy: CGFloat, dx: CGFloat = 0) -> [BoardOps
+    .Stroke]
+  {
     strokes.map { s in
       guard ids.contains(s.ids[0]) else { return s }
       var s = s
@@ -80,7 +87,9 @@ final class BoardMarkHoldsTests: XCTestCase {
 
     let top = BoardMarkHolds.anchor(label("l", CGRect(x: 100, y: 20, width: 80, height: 18)), on: ink)
     XCTAssertTrue(top.strokes.isEmpty, "above every line: nothing holds it")
-    XCTAssertTrue(BoardMarkHolds.anchor(label("l", CGRect(x: 0, y: 0, width: 9, height: 9)), on: .init(strokes: [])).strokes.isEmpty)
+    XCTAssertTrue(
+      BoardMarkHolds.anchor(label("l", CGRect(x: 0, y: 0, width: 9, height: 9)), on: .init(strokes: [])).strokes.isEmpty
+    )
   }
 
   func testAGroupIsOneUnitAndFoldedInkIsNoAnchor() {
@@ -112,7 +121,8 @@ final class BoardMarkHoldsTests: XCTestCase {
   }
 
   func testAFoldHidesItAndUnfoldBringsItBackWhereverItsInkIs() throws {
-    let ink = word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("b", x: 140, y: 180)
+    let ink =
+      word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("b", x: 140, y: 180)
       + word("c", x: 100, y: 220)
     let onA = check("onA", at: CGPoint(x: 160, y: 150))
     let onC = label("onC", CGRect(x: 100, y: 248, width: 70, height: 16))
@@ -123,7 +133,8 @@ final class BoardMarkHoldsTests: XCTestCase {
     var outline = BoardOutline(strokes: ink, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"])])
     XCTAssertTrue(outline.fold("h"))
     XCTAssertEqual(BoardMarkHolds.place(anchors[0], on: outline.strokes).hidden, .folded, "folds with its section")
-    XCTAssertEqual(BoardMarkHolds.place(anchors[1], on: outline.strokes), .init(dy: -40), "closes up with the line below")
+    XCTAssertEqual(
+      BoardMarkHolds.place(anchors[1], on: outline.strokes), .init(dy: -40), "closes up with the line below")
     XCTAssertTrue(outline.unfold("h"))
     XCTAssertEqual(BoardMarkHolds.place(anchors[0], on: outline.strokes), .init(), "unfold: back beside its ink")
     XCTAssertEqual(BoardMarkHolds.place(anchors[1], on: outline.strokes), .init())
@@ -151,7 +162,8 @@ final class BoardMarkHoldsTests: XCTestCase {
     let underline = line("u", from: CGPoint(x: 100, y: 164), to: CGPoint(x: 220, y: 164))
     XCTAssertFalse(BoardMarkHolds.writesOver(underline, lbl), "underlined")
     let ring = path(
-      "r", (0...36).map { i in
+      "r",
+      (0...36).map { i in
         let a = CGFloat(i) / 36 * 2 * .pi
         return CGPoint(x: 160 + 80 * cos(a), y: 149 + 24 * sin(a))
       })
@@ -179,7 +191,8 @@ final class BoardMarkHoldsTests: XCTestCase {
     XCTAssertEqual(anchors["l"]?.writtenBy, ["w0", "w1", "w2"])
     XCTAssertTrue(BoardMarkHolds.place(anchors["l"]!, on: board).faded)
     XCTAssertFalse(BoardMarkHolds.place(anchors["l"]!, on: a).faded, "undo of the writing: full strength again")
-    XCTAssertEqual(BoardMarkHolds.drops([lbl, tick], anchors: anchors, strokes: board), [.init(id: "l", why: .writtenOver)])
+    XCTAssertEqual(
+      BoardMarkHolds.drops([lbl, tick], anchors: anchors, strokes: board), [.init(id: "l", why: .writtenOver)])
     XCTAssertEqual(BoardMarkHolds.drops([lbl, tick], anchors: anchors, strokes: a), [])
     XCTAssertEqual(
       BoardMarkHolds.drops([lbl, tick], anchors: anchors, strokes: over),
@@ -210,8 +223,10 @@ final class BoardMarkHoldsTests: XCTestCase {
     // His writing above the label: the header his margin taps folded at y 50 to 75 (its width assumed), and the line
     // he wrote at 202 to 204 s, as logged.
     let writing = [
-      fill("hdr", CGRect(x: 70, y: 48, width: 220, height: 28)), fill("w96", CGRect(x: 514, y: 190, width: 55, height: 26)),
-      fill("w97", CGRect(x: 586, y: 191, width: 33, height: 10)), fill("w98", CGRect(x: 632, y: 187, width: 18, height: 11)),
+      fill("hdr", CGRect(x: 70, y: 48, width: 220, height: 28)),
+      fill("w96", CGRect(x: 514, y: 190, width: 55, height: 26)),
+      fill("w97", CGRect(x: 586, y: 191, width: 33, height: 10)),
+      fill("w98", CGRect(x: 632, y: 187, width: 18, height: 11)),
       fill("w99", CGRect(x: 651, y: 187, width: 34, height: 10)),
     ]
     // Where the label showed: Keep and Dismiss framed it at [130.7, 105.1, 180.5, 21.3] in the view, at 1.05.
