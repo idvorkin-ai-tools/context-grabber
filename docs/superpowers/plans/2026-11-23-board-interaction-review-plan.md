@@ -14,7 +14,7 @@ network, no clock read inside a check; the whiteboard file rule, one file per pi
 
 | File | What |
 |---|---|
-| `BoardSessionRecord.swift` | The record: a header (board id, surface `ipad`/`web`, build, contract version, the starting board in the `bw_outline_load` form), then steps as JSONL. A step: `t` (unix ms), `kind`, `by` (`pencil`, `finger`, `menu`, `larry`, `claude`, `rule`, `system`), `aim` (ids or a box), `changes` (per id: owner, before/after box and transform, hidden), `folds` (before/after per header: held ids), `undo_name`, and `seen` (surface observations: `held_after`, `pen_before`/`pen_after`, `kept` looks {`shown`, `expected`, `ink_px`, `dark_px`}, `drawn_whole`), each absent when not observed; the header's `observes` says per check (`selection`, `pen`, `kept`) whether the surface saw it (`yes`), only roughly (`approx`, the web board's pen), or not at all. Codable, versioned |
+| `BoardSessionRecord.swift` | The record, as JSONL in the form of the board-rules-on-the-web spec's interface version 14: a header line (`record` 1, `board`, `session`, surface `ipad`/`web`, `build`, `observes`, the starting board as `ink` (per unit: `id`, `owner`, `box`, `n`, `header`) and `folds` (per header: `header`, `held`, `folded`)), then one step per line. A step: `t` (unix ms), `kind`, `by` (`pencil`, `finger`, `menu`, `larry`, `claude`, `rule`, `system`), `name` (the Undo name of a step that can be undone, and of the Undo or Redo that takes it back), `aim` (`ids`, and `start`: where the drag began), `changes` (per id: `owner`, `before`/`after` box, `n`, `header`, `hidden`), `room` (`cut`, `dy`), `fold` (the header's fold after the step: `header`, `held`, `folded`), and `seen` (surface observations: `held_after`, `pen_before`/`pen_after`, `kept` looks {`shown`, `expected`, `ink_px`, `dark_px`}, `drawn_whole`), each absent when not observed; the header's `observes` says per check (`selection`, `pen`, `kept`) whether the surface saw it (`yes`), only roughly (`approx`, the web board's pen), or not at all. Codable, versioned |
 | `BoardReview.swift` | `BoardReview.run(record) -> BoardReviewReport`: replays the steps on a `BoardOutline` built from the starting board, asks the existing rules for each step's prediction, and runs the checks. A report: findings (`check`, `verdict` bug/asDesigned/unclear, `step` index and `t`, `story`, `evidence` as ordered key/values) and per check `checked`/`approximate`/`notChecked` (an approximate check's finding is at most `unclear`) |
 | `BoardReview+Placement.swift` | Checks 1 (inside a fold) and 2 (under ink), using `BoardRoom`, paste `place`, `drop` and the late-reply rule for the predicted room |
 | `BoardReview+Moves.swift` | Checks 3 (Igor's ink moved) and 4 (both owners), using the owners-apart rule and the room and fold shift predictions; intent = `aim` ∪ predicted push/slide |
@@ -27,9 +27,8 @@ network, no clock read inside a check; the whiteboard file rule, one file per pi
   Apple way, *Boxes that only touch*). Well above the 1e-4 pt the 32-bit wasm arithmetic differs by.
 - **Dedup**: one finding per (check, step, ids).
 - **`bw_review`** in `Sources/BoardWasm/BoardWasm.swift`: pointer, length of a record (JSONL) → a reply with the
-  report as JSON, or `{"error"}`. Stateless: nothing loaded is touched, so it can run beside a live board. It takes
-  the next `abi` (8 on main today; `bw_rows`, `bw_candidates` and `bw_opening` may take 9 first, so the number is
-  set when it lands) and a row in the board-rules-on-the-web spec's interface tables.
+  report as JSON, or `{"error"}`. Stateless: nothing loaded is touched, so it can run beside a live board. It landed
+  as `abi` 14, with its row in the board-rules-on-the-web spec's interface tables (version 14).
 - Adds the new files to `boardSources` (already the `Whiteboard` folder) and the tests to `boardTests`.
 
 ## Slice 2: the iPad
