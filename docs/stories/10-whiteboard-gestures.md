@@ -1215,3 +1215,28 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a word of mine a connector ends on
 - **When:** I hold the Pencil on it and lift without moving
 - **Then:** the label says *Group · moves as one · a connector follows it*, and a selected connector says *Connector · follows its two ends*
+
+---
+
+### User Story 1276:
+
+- **Summary:** A tap on the board brings up no Paste or Select All menu
+- **Issues:** [#1385](https://github.com/idvorkin/context-grabber/issues/1385) (Igor, 2026-11-24: "Every time I tap I get paste and select all"; then "better would be using my long hold paste")
+- **Status:** in progress
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *A tap brings up no system menu*
+
+#### Use Case:
+- **As someone** tapping around my board with a finger or the Pencil
+- **I want** a tap to bring up no system menu
+- **so that** nothing covers my writing, and paste is where I reach for it, in the hold menu
+
+#### Acceptance Criteria:
+- **Scenario:** A tap on the board
+- **Given:** ink on the board and text on the clipboard
+- **When:** I tap blank paper or my ink with a finger
+- **Then:** no *Paste* or *Select All* menu comes up, and holding a finger still still offers *Paste*
+
+- **Scenario:** A tap on my selection
+- **Given:** some of my ink selected
+- **When:** I tap the selection
+- **Then:** its menu offers what acts on it (Copy, Delete) and never *Paste* or *Select All*

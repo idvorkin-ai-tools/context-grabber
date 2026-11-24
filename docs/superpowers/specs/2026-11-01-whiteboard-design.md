@@ -603,6 +603,19 @@ there, when, and what the menu belonged to, the log can't say. Before anything c
 - **Its going says how long it stayed**, so a cover that stayed up while Igor tapped shows as one long stay.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.
 
+### A tap brings up no system menu (story 1276, #1385; Igor, 2026-11-24: "Every time I tap I get paste and select all")
+
+The log settled what the cover was: a finger tap on the paper brings up the system's own *Paste · Select All* edit menu,
+which the paper answers. Igor: "better would be using my long hold paste". So a plain tap is quiet.
+
+- **No tap brings up *Paste* or *Select All***: a finger or the Pencil, on blank paper, on ink, in the margin, with
+  something on the clipboard or not.
+- **Paste lives in the board's own hold menu** (*Press and hold*, Larry edits the board), and ⌘V with a hardware
+  keyboard pastes as before.
+- **A selection's own menu stays without them**: tapped, a selection still offers what acts on it (Copy, Delete and the
+  rest), never *Paste* or *Select All*.
+- A menu that would hold nothing else doesn't come up at all.
+
 ### The log says what a moving touch held and what moved (story 1143, bead context-grabber-eg7v)
 
 On the iPad a one-finger drag moved 54 strokes at once: a text of Larry's he had just kept and two of Igor's strokes
