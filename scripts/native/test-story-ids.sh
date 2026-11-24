@@ -148,7 +148,11 @@ story tworows 02-b.md 10
 story tworows 01-x.md 2
 expect "a file linked by two journeys fails" tworows 1 "FAIL README.md:2: 01-x.md is listed twice"
 
-# --- reserve (stories 791, 792, 794; bead context-grabber-jg3w): a fake gh, a dir standing in for main, a ledger in $tmp.
+# --- reserve (stories 791, 792, 794; beads context-grabber-jg3w, context-grabber-py4h): a fake gh, a dir standing in
+# for main, and the shared ledger as refs/story-ids/ledger in a bare repository in $tmp standing in for origin. A "machine" is
+# a git repository of its own with its own lock file; two of them sharing one bare remote stand in for this Mac and the
+# Linux lane.
+g() { git -c user.name=t -c user.email=t@t -c core.hooksPath=/dev/null -c init.defaultBranch=main "$@"; }
 mkdir -p "$tmp/prs"
 cat >"$tmp/gh" <<'F'
 #!/usr/bin/env bash
@@ -174,11 +178,28 @@ esac
 F
 chmod +x "$tmp/gh"
 now=1800000000
-reserve() {  # [dir=<stories>] [main=<main>] reserve <ledger> <args>...: stdout only, the IDs
-  local ledger=$1
+machine() { [ -d "$tmp/m-$1" ] || g init -q "$tmp/m-$1"; }
+remote() { [ -d "$tmp/$1.git" ] || g init -q --bare "$tmp/$1.git"; }
+seed() {  # seed <ledger> <json>: the shared ledger as another machine left it
+  remote "$1"
+  local b t c
+  b=$(printf '%s' "$2" | git --git-dir="$tmp/$1.git" hash-object -w --stdin)
+  t=$(printf '100644 blob %s\tledger.json\n' "$b" | git --git-dir="$tmp/$1.git" mktree)
+  c=$(g --git-dir="$tmp/$1.git" commit-tree "$t" -m seed)
+  git --git-dir="$tmp/$1.git" update-ref refs/story-ids/ledger "$c"
+}
+held() {  # held <ledger>: the IDs the shared ledger holds, in its order
+  git --git-dir="$tmp/$1.git" show refs/story-ids/ledger:ledger.json |
+    python3 -c 'import json,sys; print(" ".join(str(r["id"]) for r in json.load(sys.stdin)["reservations"]))'
+}
+reserve() {  # [dir=<stories>] [main=<main>] [on=<machine>] reserve <ledger> <args>...: stdout only, the IDs
+  local ledger=$1 m=${on:-mac}
   shift
-  FAKE_PRS=$tmp/prs STORY_IDS_GH=$tmp/gh STORY_IDS_MAIN=${main:-$tmp/main} STORY_IDS_LEDGER=$ledger STORY_IDS_NOW=$now \
-    STORY_IDS_BRANCH=b scripts/native/story-ids.py reserve "$@" --dir "${dir:-$tmp/res}" 2>"$tmp/reserve.err"
+  remote "$ledger"
+  machine "$m"
+  FAKE_PRS=$tmp/prs STORY_IDS_GH=$tmp/gh STORY_IDS_MAIN=${main:-$tmp/main} STORY_IDS_REPO=$tmp/m-$m \
+    STORY_IDS_REMOTE=$tmp/$ledger.git STORY_IDS_LOCK=$tmp/m-$m.lock STORY_IDS_NOW=$now STORY_IDS_BRANCH=b \
+    scripts/native/story-ids.py reserve "$@" --dir "${dir:-$tmp/res}" 2>"$tmp/reserve${err:-}.err"
 }
 check() {  # check <name> <got> <want>
   if [ "$2" = "$3" ]; then echo "ok   $1"; else echo "FAIL $1: got $(tr '\n' ' ' <<<"$2"), want $(tr '\n' ' ' <<<"$3")"; sed 's/^/     /' "$tmp/reserve.err"; fail=1; fi
@@ -190,37 +211,43 @@ mkdir -p "$tmp/main"
 cp "$tmp/res/README.md" "$tmp/main/"
 story main 01-a.md 3 7
 printf 'diff --git a/docs/stories/01-a.md b/docs/stories/01-a.md\n+### User Story 4:\n ### User Story 11:\n-### User Story 12:\n' >"$tmp/prs/41.diff"
-cat >"$tmp/ledger.json" <<F
-{"reservations": [{"id": 5, "journey": "01-a.md", "branch": "x", "at": $((now - 100))},
- {"id": 6, "journey": "01-a.md", "branch": "x", "at": $((now - 2 * 86400))},
- {"id": 7, "journey": "01-a.md", "branch": "x", "at": $((now - 100))}]}
-F
+json="{\"reservations\": [{\"id\": 5, \"journey\": \"01-a.md\", \"branch\": \"x\", \"at\": $((now - 100))},
+ {\"id\": 6, \"journey\": \"01-a.md\", \"branch\": \"x\", \"at\": $((now - 2 * 86400))},
+ {\"id\": 7, \"journey\": \"01-a.md\", \"branch\": \"x\", \"at\": $((now - 100))}]}"
+seed ledger "$json"
 check "reserve skips the branch's stories, main's, an open PR's and a live reservation; takes an expired one's" \
-  "$(reserve "$tmp/ledger.json" 01-a.md 3)" "6
+  "$(reserve ledger 01-a.md 3)" "6
 8
 9"
-check "the ledger drops a reservation past 24 h and one whose ID is on main, and keeps the new ones" \
-  "$(python3 -c 'import json,sys; print(" ".join(str(r["id"]) for r in json.load(open(sys.argv[1]))["reservations"]))' "$tmp/ledger.json")" "5 6 8 9"
-check "a journey named by a word from its row" "$(reserve "$tmp/ledger2.json" second)" "11"
-check "an open PR's unchanged and removed story lines take no ID" "$(reserve "$tmp/ledger2.json" second 2)" "12
+check "the shared ledger drops a reservation past 24 h and one whose ID is on main, and keeps the new ones" \
+  "$(held ledger)" "5 6 8 9"
+seed xledger "$json"
+on=linux reserve xledger 01-a.md 3 >/dev/null
+check "a reservation one machine made is skipped by the next machine's, before either branch is pushed" \
+  "$(on=mac reserve xledger 01-a.md)" "20"
+check "a journey named by a word from its row" "$(reserve ledger2 second)" "11"
+check "an open PR's unchanged and removed story lines take no ID" "$(reserve ledger2 second 2)" "12
 13"
-out=$(reserve "$tmp/ledger.json" 01-a.md 2)
+out=$(reserve ledger 01-a.md 2)
 check "a journey with too few free IDs hands out none and says to add a block" "$out|$?|$(grep -c 'next unused block, 100–199' "$tmp/reserve.err")" "|1|1"
 check "a full journey's message names the journey as its row does (bead context-grabber-0e04)" \
   "$(grep -c "the journey 'A' (01-a.md) has 1 free ID(s) of the 2 asked for in its IDs (1–9, 20)" "$tmp/reserve.err")" "1"
 check "a full journey's message gives every journey's free IDs" "$(grep -c 'Free IDs per journey: A 1, B 9$' "$tmp/reserve.err")" "1"
 printf 'diff --git a/docs/stories/02-b.md b/docs/stories/02-b.md\n+### User Story 250:\n' >"$tmp/prs/42.diff"
-out=$(reserve "$tmp/ledger.json" 01-a.md 2)
+out=$(reserve ledger 01-a.md 2)
 check "a full journey's next block starts above an ID an open PR adds past every row" "$(grep -c 'next unused block, 300–399' "$tmp/reserve.err")" "1"
 sed -i.bak 's/| 010–019 |/| 010–019, 500–599 |/' "$tmp/main/README.md"
-out=$(reserve "$tmp/ledger.json" 01-a.md 2)
+out=$(reserve ledger 01-a.md 2)
 check "a full journey's next block starts above a block main's table holds that the branch's doesn't" "$(grep -c 'next unused block, 600–699' "$tmp/reserve.err")" "1"
 mv -f "$tmp/main/README.md.bak" "$tmp/main/README.md"
 rm -f "$tmp/prs/42.diff"
-out=$(reserve "$tmp/ledger3.json" the)
+out=$(reserve ledger3 the)
 check "a word that names two journeys fails" "$out|$?|$(grep -c 'names 2 journeys' "$tmp/reserve.err")" "|1|1"
-out=$(FAKE_GH_FAIL=1 reserve "$tmp/ledger3.json" second)
-check "with the open PRs unreadable it hands out nothing" "$out|$?|$([ -e "$tmp/ledger3.json" ] && echo written || echo untouched)" "|1|untouched"
+out=$(FAKE_GH_FAIL=1 reserve ledger3 second)
+check "with the open PRs unreadable it hands out nothing" "$out|$?|$(git --git-dir="$tmp/ledger3.git" rev-parse -q --verify refs/story-ids/ledger || echo untouched)" "|1|untouched"
+remote gone && rm -rf "$tmp/gone.git" && mkdir -p "$tmp/gone.git"
+out=$(reserve gone second)
+check "with the shared ledger unreachable it hands out nothing and says so" "$out|$?|$(grep -c 'FAIL reserve: .*shared ledger' "$tmp/reserve.err")" "|1|1"
 # A PR whose diff gh refuses as too large is read from its file list (bead context-grabber-1338): a story file's
 # patch gives the IDs it adds; a story file with no patch (too large itself) gives every heading on the PR's head.
 echo TOOLARGE >"$tmp/prs/43.diff"
@@ -231,51 +258,64 @@ cat >"$tmp/prs/43.files" <<'J'
 J
 printf '### User Story 10:\n### User Story 12:\n' >"$tmp/prs/43.head.02-b.md"
 check "a too-large PR's story patches and its patchless story file's headings take their IDs; other files don't" \
-  "$(reserve "$tmp/ledger4.json" second 2)" "13
+  "$(reserve ledger4 second 2)" "13
 14"
 check "a too-large PR read from its file list warns about nothing" "$(grep -c WARN "$tmp/reserve.err")" "0"
 echo TOOLARGE >"$tmp/prs/44.diff"
-out=$(reserve "$tmp/ledger5.json" second)
+out=$(reserve ledger5 second)
 check "a PR that can be read neither way is named in a warning and doesn't block the reservation" \
   "$out|$?|$(grep -c 'WARN reserve: open PR #44 could not be read' "$tmp/reserve.err")" "13|0|1"
 echo 3001 >"$tmp/prs/43.changed"
-out=$(reserve "$tmp/ledger6.json" second)
+out=$(reserve ledger6 second)
 check "a too-large PR whose file list is cut short of its changed files is named in a warning" \
   "$out|$?|$(grep -c 'WARN reserve: open PR #43 could not be read.*gives 3 of its 3001 changed files' "$tmp/reserve.err")" "11|0|1"
 rm -f "$tmp/prs"/43.* "$tmp/prs"/44.*
-for k in 1 2 3 4 5 6; do STORY_IDS_HOLD=0.3 reserve "$tmp/race.json" 02-b.md >"$tmp/race.$k" & done
+remote race && remote race2 && machine mac && machine linux
+for k in 1 2 3 4 5 6; do STORY_IDS_HOLD=0.3 err=.race$k reserve race 02-b.md >"$tmp/race.$k" & done
 wait
-check "six reservations at once, each holding the ledger a while, get six different IDs" "$(cat "$tmp"/race.? | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
+check "six reservations at once on one machine, each holding the ledger a while, get six different IDs" "$(cat "$tmp"/race.? | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
+for k in 1 2 3; do
+  STORY_IDS_HOLD=0.3 on=mac err=.mrace$k reserve race2 02-b.md >"$tmp/mrace.mac$k" &
+  STORY_IDS_HOLD=0.3 on=linux err=.lrace$k reserve race2 02-b.md >"$tmp/mrace.linux$k" &
+done
+wait
+check "three reservations at once on each of two machines, each holding the ledger a while, get six different IDs" \
+  "$(cat "$tmp"/mrace.* | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
+check "the shared ledger after the two machines' race holds all six" "$(held race2 | tr ' ' '\n' | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
 
-# --- bead context-grabber-py4h: the Linux lane's IDs 1620–1639, unlisted until py4h's shared ledger lands.
+# The shared remote is picked by its URL, not its name: on the Linux lane origin is a fork (Larry, 2026-11-24).
+pick() {
+  python3 -c 'import importlib.util as u, sys
+s = u.spec_from_file_location("story_ids", sys.argv[1]); m = u.module_from_spec(s); s.loader.exec_module(m)
+try: print(m.shared_remote(sys.argv[2]))
+except RuntimeError as e: print(e)' scripts/native/story-ids.py "$tmp/m-$1"
+}
+machine fork
+g -C "$tmp/m-fork" remote add origin https://github.com/idvorkin-ai-tools/context-grabber.git
+g -C "$tmp/m-fork" remote add upstream git@github.com:idvorkin/context-grabber.git
+check "the shared remote is the one at idvorkin/context-grabber, even when origin is a fork" "$(pick fork)" "upstream"
+machine nofork
+g -C "$tmp/m-nofork" remote add origin https://github.com/idvorkin/context-grabber-old.git
+check "with no remote at idvorkin/context-grabber it names the remote to add" \
+  "$(pick nofork | grep -c 'git remote add upstream https://github.com/idvorkin/context-grabber.git')" "1"
+
+# --- bead context-grabber-py4h: with the shared ledger, 1620–1639 are ordinary IDs (the Linux lane's interim range is gone).
 tree linux
 story linux 01-a.md 1
 story linux 02-b.md 10 1620
-expect "check accepts a story numbered in the Linux lane's 1620–1639 outside every journey's IDs" linux 0 ""
+expect "a story numbered in the old Linux range outside its journey's IDs fails like any other" linux 1 "FAIL 02-b.md:7: story 1620 is outside its journey's IDs (10–19)"
 mkdir -p "$tmp/lres" "$tmp/lmain"
 cat >"$tmp/lres/README.md" <<'F'
 | Journey | What it covers | IDs |
 |---|---|---|
 | [A](01-a.md) | the first | 001–009 |
 | [C](03-c.md) | wide | 1610–1650 |
-| [D](04-d.md) | full | 1590–1599 |
 F
 cp "$tmp/lres/README.md" "$tmp/lmain/"
-story lres 04-d.md 1590 1591 1592 1593 1594 1595 1596 1597 1598 1599
-check "reserve steps over 1620–1639 in a journey whose IDs run through them" \
-  "$(dir=$tmp/lres main=$tmp/lmain reserve "$tmp/lledger.json" 03-c.md 12 | tr '\n' ' ')" "1610 1611 1612 1613 1614 1615 1616 1617 1618 1619 1640 1641 "
-check "reserve never hands out an ID in 1620–1639, however many are asked for" \
-  "$(dir=$tmp/lres main=$tmp/lmain reserve "$tmp/lledger2.json" 03-c.md 20 | awk '$1 >= 1620 && $1 <= 1639' | wc -l | tr -d ' ')" "0"
-mkdir -p "$tmp/lres2"
-printf '| Journey | What it covers | IDs |\n|---|---|---|\n| [A](01-a.md) | the first | 001–009 |\n| [D](04-d.md) | full | 1590–1599 |\n' >"$tmp/lres2/README.md"
-cp "$tmp/lres/04-d.md" "$tmp/lres2/"
-story lres2 01-a.md 1
-out=$(dir=$tmp/lres2 main=$tmp/lres2 reserve "$tmp/lledger3.json" 04-d.md)
-check "a full journey's next block skips 1600–1699, which would hold the Linux lane's IDs" \
-  "$out|$(grep -c 'next unused block, 1700–1799' "$tmp/reserve.err")" "|1"
+check "reserve hands out 1620–1639 like any other IDs" \
+  "$(dir=$tmp/lres main=$tmp/lmain reserve lledger 03-c.md 12 | tr '\n' ' ')" "1610 1611 1612 1613 1614 1615 1616 1617 1618 1619 1620 1621 "
 
 # --- pre-merge (story 793): two branches that each pass alone but add the same ID fail once merged with main.
-g() { git -c user.name=t -c user.email=t@t -c core.hooksPath=/dev/null -c init.defaultBranch=main "$@"; }
 repo=$tmp/repo
 entry() { printf '### User Story %s:\n\n- **Summary:** s%s\n\n---\n\n' "$1" "$1"; }
 g init -q --bare "$tmp/origin.git"
