@@ -198,8 +198,9 @@ def main_ids(root):
             return tree_ids(fake), fh.read()
     top = run(["git", "rev-parse", "--show-toplevel"], cwd=root).strip()
     rel = os.path.relpath(os.path.realpath(root), os.path.realpath(top))
-    run(["git", "fetch", "-q", shared_remote(repo_of(root)), "main"], cwd=top)
-    head = run(["git", "rev-parse", "FETCH_HEAD"], cwd=top).strip()
+    remote = shared_remote(repo_of(root))
+    head = run(["git", "ls-remote", remote, "refs/heads/main"], cwd=top).split()[0]
+    run(["git", "fetch", "-q", remote, "main"], cwd=top)
     names = run(["git", "ls-tree", "--name-only", head, rel + "/"], cwd=top).split()
     texts = [run(["git", "show", f"{head}:{n}"], cwd=top) for n in names if n.endswith(".md") and not n.endswith("README.md")]
     return ids_in(texts), run(["git", "show", f"{head}:{rel}/README.md"], cwd=top)
@@ -211,8 +212,8 @@ def read_ledger(repo, remote):
         listed = run(["git", "ls-remote", remote, LEDGER_REF], cwd=repo).split()
         if not listed:
             return None, []
+        head = listed[0]
         run(["git", "fetch", "-q", remote, LEDGER_REF], cwd=repo)
-        head = run(["git", "rev-parse", "FETCH_HEAD"], cwd=repo).strip()
         return head, json.loads(run(["git", "show", f"{head}:ledger.json"], cwd=repo)).get("reservations", [])
     except (RuntimeError, ValueError) as e:
         raise RuntimeError(f"can't read the shared ledger {LEDGER_REF} on {remote}: {e}") from e

@@ -32,7 +32,7 @@ on its `Issues:` line.
 | [Building and testing](11-building-and-testing.md) | How a change reaches the phone quickly: testing on the Mac, the simulator kept for what needs it, practices shared with the other apps. | 670–676, 683, 686–689, 745, 750, 753–759, 770, 780–799, 827–828, 980–989, 1010–1029, 1500–1519, 1620–1639 |
 
 New stories take their IDs from `scripts/native/story-ids.py reserve <journey> [n]` (story 791), never "the next
-free ID" read from one branch: it skips the IDs on main, in every open PR and reserved by another agent on this Mac,
+free ID" read from one branch: it skips the IDs on main, in every open PR and reserved by any agent on any machine,
 and `just pre-merge` checks them again against main right before merging (story 793). A journey that outgrows its
 range takes the next unused block above every journey's IDs and adds it to the end of its row; reserve's failure names
 the block and every journey's free IDs. That block is added on purpose, never by an agent or the pipeline mid-PR to
