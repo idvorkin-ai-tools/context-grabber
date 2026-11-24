@@ -984,6 +984,30 @@ redeem and reads the phone's shared pairing.
 
 ---
 
+### User Story 569:
+
+- **Summary:** A link to a web ink board opens its page in the browser
+- **Status:** native app only: in progress
+- **Issues:** [#1354](https://github.com/idvorkin/context-grabber/issues/1354)
+- **Spec:** [Native links](../superpowers/specs/2026-10-06-native-links-design.md)
+
+On 2026-11-23 the board debug page's chip opened `grabbernative://whiteboard?board=ink-wasn-t` on the iPad, a board
+drawn on the Cockpit's web ink page, and the app looked for it among its own boards and said it wasn't on the device.
+
+#### Use Case:
+- **As** Igor following a board chip from the Cockpit
+- **I want** a web ink board's link to open that board where it lives
+- **so that** I land on the board, not on a problem saying it isn't here
+
+#### Acceptance Criteria:
+- **Scenario:** A link to a web ink board
+- **Given:** a `grabbernative://whiteboard?board=ink-<name>` link, a board of the Cockpit's web ink page
+- **When:** I open it
+- **Then:** the browser opens that board's page on the Cockpit (`/ink?b=<name>`); the app doesn't look for it among
+  its boards or show a problem; the session log says the web board was opened and from where
+
+---
+
 ### User Story 460:
 
 - **Summary:** Hold a tile and open its screen in a new window on the iPad

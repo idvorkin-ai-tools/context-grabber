@@ -366,6 +366,10 @@ final class AppModel: ObservableObject {
 
   /// `HomeStack.State.open` decides what a link does to the home window; this carries it out.
   private func go(to route: AppRoute, from source: String) {
+    // Story 569 (#1354): a web ink board's link opens its page; the app can't draw it, so no screen changes.
+    if case .whiteboard(let board?) = route, let web = WebInkBoard(board: board) {
+      return openWebBoard(web, from: source)
+    }
     let ownWindow = WindowScreen(route: route).map { windowHolding($0) } ?? false
     apply(screens.open(route, from: source, ownWindow: ownWindow))
   }
@@ -468,6 +472,39 @@ final class AppModel: ObservableObject {
     case .whiteboard(let board):
       whiteboardLink = board
       openWhiteboard(from: source)
+    }
+  }
+
+  /// Story 569 (#1354): a board of the Cockpit's web ink page, in the browser, rather than looked for among the boards.
+  func openWebBoard(_ web: WebInkBoard, from source: String) {
+    homeProblem = nil
+    guard let url = web.url(cockpit: chat.cockpit) else {
+      log.event("ui", ["action": "open_web_board", "board": web.name, "from": source, "ok": false])
+      homeProblem = .grabber(
+        "The web board \(web.name) has no address: the Cockpit's address (\(chat.cockpit)) isn't a URL.",
+        context: "AppModel.open_web_board",
+        extra: ["board": .string(web.name), "cockpit": .string(chat.cockpit), "from": .string(source)])
+      return
+    }
+    let state = UIApplication.shared.applicationState
+    log.event(
+      "ui",
+      [
+        "action": "open_web_board", "board": web.name, "from": source, "link": url.absoluteString,
+        "active": state == .active,
+      ])
+    // A link that launches or wakes the app can arrive before it is active; the open waits until it is.
+    let active = NotificationCenter.default.notifications(named: UIApplication.didBecomeActiveNotification)
+    Task { @MainActor [log] in
+      if UIApplication.shared.applicationState != .active {
+        for await _ in active { break }
+      }
+      let ok = await UIApplication.shared.open(url)
+      log.event("ui", ["action": "opened_web_board", "board": web.name, "ok": ok])
+      guard !ok else { return }
+      self.homeProblem = .grabber(
+        "The web board \(web.name) would not open in the browser.", context: "AppModel.open_web_board",
+        extra: ["board": .string(web.name), "link": .string(url.absoluteString), "from": .string(source)])
     }
   }
 
