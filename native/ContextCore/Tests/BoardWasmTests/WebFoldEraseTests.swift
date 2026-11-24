@@ -41,7 +41,7 @@ final class WebFoldEraseTests: XCTestCase {
   }
 
   func testSeededFoldsAreErasedAsTheAppErasesThem() throws {
-    var (byMarker, byWords, byName) = (0, 0, 0)
+    var (byMarker, byWords, byName, sameAsMarker) = (0, 0, 0, 0)
     for seed in UInt64(1)...60 {
       var board = try WebBoard.seeded(seed)
       for header in board.headers { _ = board.fold(header.id) }
@@ -58,6 +58,10 @@ final class WebFoldEraseTests: XCTestCase {
         let wantNamed = expected(board, hits: [try XCTUnwrap(app.foldHit(marker.header))])
         XCTAssertTrue(sameJSON(named, wantNamed), "\(board.name) \(marker.header) by name: \(named)")
         if named["erased"] is [String: Any] { byName += 1 }
+        if let hits = got["hits"] as? [[String: Any]], hits.count == 1, hits[0]["header"] as? String == marker.header {
+          XCTAssertTrue(sameJSON(named, got), "\(board.name) \(marker.header) by name as by its marker: \(named)")
+          sameAsMarker += 1
+        }
         // Across its first word's stroke: only with onHeader.
         guard let word = app.header(marker.header)?.words.first,
           let stroke = app.strokes.first(where: { $0.ids.contains(word) }), let p = stroke.points.first
@@ -77,5 +81,6 @@ final class WebFoldEraseTests: XCTestCase {
     XCTAssertGreaterThan(byMarker, 10, "folds taken by their marker")
     XCTAssertGreaterThan(byWords, 10, "and by their header's words")
     XCTAssertEqual(byName, byMarker, "and by name, each one")
+    XCTAssertGreaterThan(sameAsMarker, 10, "by name exactly as by its marker")
   }
 }
