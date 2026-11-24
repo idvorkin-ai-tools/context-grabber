@@ -14,7 +14,7 @@ Usage: story-ids.py [stories-dir]   (default docs/stories)
        story-ids.py reserve <journey> [n] [--dir stories-dir]   (story 791, bead context-grabber-jg3w)
 Hands out the next n free IDs (one by default) in a journey's ranges, one per line on stdout and nothing else.
 <journey> is one of its story files or a word from its row ("building", "whiteboard"). An ID is
-free when it is in none of: the stories on origin/main (fetched first), the stories in stories-dir, the story
+free when it is in none of: the stories on the shared remote's main (fetched first), the stories in stories-dir, the story
 headings an open PR adds (gh pr diff; for a PR whose diff gh refuses as too large, each story file's patch from its
 file list, or the whole file on its head; a PR none of that can read is named in a warning and skipped, bead
 context-grabber-1338), and the reservations in the shared ledger that are under 24 hours old and not yet on main.
