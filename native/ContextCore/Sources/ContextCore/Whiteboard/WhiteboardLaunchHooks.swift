@@ -112,6 +112,12 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// iPad's handwriting popover at the paper and empties the selection without a callback, as the iPad did, for the
   /// simulator, which never offers it (stories 945, 946).
   public var fakeHandwritingOffer: Bool
+  /// `GRABBER_WHITEBOARD_REVIEW_IDLE=<seconds>`: how long the board waits after a step before it reviews the session,
+  /// in place of five minutes (story 1237).
+  public var reviewIdle: Double?
+  /// `GRABBER_WHITEBOARD_REVIEW_FINDING=1`: the first stroke's step is followed by a stand-in Keep that changed the pen,
+  /// so the review finds a bug the simulator can show (stories 1243–1245).
+  public var reviewFinding: Bool
 
   public init(_ env: [String: String] = [:]) {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
@@ -145,5 +151,7 @@ public struct WhiteboardHooks: Equatable, Sendable {
     undoLookMiss = env["GRABBER_WHITEBOARD_UNDO_LOOK"] == "miss"
     undoLookLabel = undoLookMiss || env["GRABBER_WHITEBOARD_UNDO_LOOK"] == "label"
     fakeHandwritingOffer = env["GRABBER_WHITEBOARD_FAKE_OFFER"] == "1"
+    reviewIdle = env["GRABBER_WHITEBOARD_REVIEW_IDLE"].flatMap { Double($0) }
+    reviewFinding = env["GRABBER_WHITEBOARD_REVIEW_FINDING"] == "1"
   }
 }

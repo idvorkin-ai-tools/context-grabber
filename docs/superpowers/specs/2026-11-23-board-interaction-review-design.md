@@ -90,7 +90,7 @@ Both:
 - **On its own**, once the board has been idle for five minutes after writing (five minutes with no step), and
   when the board closes after a session with at least one step. A session cut short by the app closing is reviewed
   the next time the board opens.
-- **On demand**, from the board's menu: *Review this session*. It reviews the session so far, and again from its
+- **On demand**, from the board's Board menu: *Review this session*. It reviews the session so far, and again from its
   start if asked later; asking twice gives the same findings.
 
 A session with no step of Igor's (the board only opened and looked at) is not reviewed. A review runs in the
@@ -224,8 +224,9 @@ replayed. The last three depend on what a surface saw, and are as good as its re
   couldn't.
 - **Each finding copyable**, as every error in the app is: the check, the verdict, the step (its time, what it was,
   who started it), the evidence as above, the board and session, the build. Enough to file without the log.
-- **Replay that step.** Each finding has *Show me*: the board's playback opens at that step and shows the board just
-  before, then just after, with the ink the finding names marked. Ink erased by that step shows in the
+- **Replay that step.** Each finding has *Show me*: the step as the review saw it, the board just before and then just
+  after (a Before and After switch), each stroke drawn as the outline the record keeps of it (the record holds
+  geometry, never pixels), with the ink the finding names marked. Ink erased by that step shows in the
   *before*, as it was, because the review is honest about what happened. Unclear findings also offer *I meant that* and
   *Not what I meant*.
 

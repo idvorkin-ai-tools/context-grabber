@@ -212,6 +212,14 @@ final class WhiteboardModel: ObservableObject {
   var asideForChat = false
   var chatCover = BoardCover()
   var lookFailures = 0
+  /// Stories 1237–1249 (spec 2026-11-23-board-interaction-review-design.md): the session's record, kept from the board's
+  /// own log events, the idle wait before its review, the tap on the log, and what the board shows of the last review.
+  lazy var reviewRecorder = BoardReviewRecorder(board: board.id, build: BuildInfo.sha)
+  var reviewIdleTask: Task<Void, Never>?
+  var reviewTap: UUID?
+  var reviewKeptAt: Date?
+  @Published var review = BoardReviewShown()
+  @Published var reviewListOpen = false
 
   static let ghostsKey = "whiteboard_ghosts"
   static let conversationKey = "whiteboard_conversation_open"

@@ -64,6 +64,12 @@ struct WhiteboardBoardMenu: View, Equatable {
       }
       // Story 896: kept labels moved off ink. One row, as the Board menu has room for no more (#848); Keep all is in
       // the note's line, beside the count of marks to keep (story 895).
+      // Story 1240: the session so far, reviewed now.
+      Button("Review this session") {
+        model.reviewSession(why: "asked")
+        model.canvas?.menuChose()
+      }
+      .accessibilityIdentifier("whiteboard-review-session")
       Button("Tidy overlaps") {
         model.tidyOverlaps()
         model.canvas?.menuChose()

@@ -33,6 +33,15 @@ network, no clock read inside a check; the whiteboard file rule, one file per pi
 
 ## Slice 2: the iPad
 
+As built (bead `context-grabber-8ao5.2`): the recorder is `BoardReviewRecorder` in BoardCore, fed the board's own
+session-log events as `SessionLog` writes them (one listener), so the iPad's record is the one a pulled log converts
+to (`BoardReviewRecorderTests` holds it to the converter's fixtures). `WhiteboardModel+Review.swift` runs the idle
+wait, close, next open and the menu's review; `BoardReviewNote.swift` is the note, the list and *Show me*, which draws
+the record's outlines before and after the step rather than opening playback (the record holds geometry, and playback
+can't show moves or erased ink). Larry gets the words as a `board_review` event with the next picture's events.
+
+The first plan for it:
+
 App files, each its own `+Review` extension:
 
 | File | What |
