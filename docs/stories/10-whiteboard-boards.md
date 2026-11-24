@@ -1830,7 +1830,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1165:
 
 - **Summary:** The web board asks the app's own rules what a zigzag scratches out, and what clean shape a stroke held still at its end becomes
-- **Status:** implemented in COMMIT (`bw_scratch_out`, `bw_shape_snap`, interface 17); verified by the host tests (`WebScratchTests`: 720 seeded zigzags over the four recorded boards and 20 seeded ones, and 200 seeded strokes with their times, against the app's own scratch-out, snap and hold) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 290 checks, a hand-worked zigzag and snap among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
+- **Status:** implemented in fd385bc4 (`bw_scratch_out`, `bw_shape_snap`, interface 17); verified by the host tests (`WebScratchTests`: 720 seeded zigzags over the four recorded boards and 20 seeded ones, and 200 seeded strokes with their times, against the app's own scratch-out, snap and hold) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 290 checks, a hand-worked zigzag and snap among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 17
 - **Issues:** bead `context-grabber-wvi9`
 
