@@ -1898,3 +1898,24 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** no build lane is held
 - **When:** I build for a lane's simulator or run tests on a simulator no lane owns
 - **Then:** the command proceeds without requiring a build lane
+
+---
+
+### User Story 1519:
+
+- **Summary:** Right before merging, ContextCore is compiled the way an archive compiles it
+- **Status:** implemented in 5e3718a8, 9b62205d; verified on the host rung by scripts/native/test-release-check.sh in `just test`, and a real Release build of ContextCore (scripts/native/release-check.sh) on this branch
+- **Issues:** bead context-grabber-6ocd
+- **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md), *The pre-merge check*
+
+#### Use Case:
+- **As Igor,** waiting for main's build to reach /builds and TestFlight
+- **I want to** have the agent compile the shared core with the optimizer on before it merges a change to it
+- **so that** a compiler crash only an optimized build hits stops the PR, instead of the next `just ota` after the merge
+
+#### Acceptance Criteria:
+- **Scenario:** A branch that changes the shared core
+- **Given:** a PR that changes ContextCore has passed the pipeline
+- **When:** the agent runs `just pre-merge` immediately before `gh pr merge`
+- **Then:** if ContextCore's Release build fails, pre-merge ends with a FAIL line naming the Release build and a nonzero exit
+

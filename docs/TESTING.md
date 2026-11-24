@@ -29,6 +29,7 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-sim-lane.sh` checks simulator lane selection and refusals, including UUID case and the default lane for Health access and smoke (stories 1516, 1517 and 1518, bead context-grabber-w7nl).
 - `scripts/native/test-host-lane.sh`: the host slots, six jobs on four, the wait, a killed holder (stories 795, 797, 798)
 - `scripts/native/test-lane-env.sh`: the build, simulator and host lane self-tests pass with a caller's `SIM` and lane settings set (story 785, context-grabber-2l07)
+- `scripts/native/test-release-check.sh`: `just pre-merge`'s Release build of ContextCore runs when the branch as pushed changes it, skips otherwise, a failing build ends in a FAIL line and exit 1, and a checkout behind the pushed branch fails without building (story 1519, context-grabber-6ocd). The Release build itself only runs in pre-merge: about 25 s to a minute in a slot, two minutes cold
 - `scripts/native/test-ui-timings.sh`: the UI test timing digest against a real run's log
 - `scripts/native/test-device-build-check.sh`: the build each device last reported against the last install in the deploys ledger (match, mismatch, no session yet, over the air, unknown), and `just deploy` recording each installed device and checking its next session, with fakes (story 1511)
 - `scripts/native/test-pen-latency.sh`: the board's Pencil-to-frame latency lines read off fake pulled logs, oldest session first (story 1311)

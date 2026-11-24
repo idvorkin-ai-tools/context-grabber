@@ -87,6 +87,16 @@ branch it says so and checks the pushed one, since that is what merges; a branch
 locally. It fails when the merge conflicts or when the merged stories fail the check, naming each problem the way the
 host rung does. It passes, and says so, otherwise.
 
+Then, when the branch changes the shared core, the pre-merge check compiles it with the optimizer on, the way an
+archive (the over-the-air build, TestFlight) compiles it. Every other rung builds without the optimizer, so a compiler
+crash only the optimizer hits otherwise surfaces after the merge, in the next over-the-air build (2026-11-24: Swift
+6.4.2 crashed optimizing a board review check). A failing optimized build fails the pre-merge check with a line naming
+it. It judges the branch as pushed, not the local checkout: a branch whose pushed commits change the shared core is
+built even when the local ones don't, and a checkout that isn't the pushed branch fails the check, telling the agent
+to check it out, rather than building stale code. A branch that leaves the shared core as main has it skips the
+build; it can be forced. It runs in a host slot and
+reuses the checkout's build folder, so it takes about a minute in a slot (about two cold).
+
 ## Acceptance criteria
 
 - Two reservations started at once for the same journey print different IDs, on one machine or on two (two
@@ -107,3 +117,6 @@ host rung does. It passes, and says so, otherwise.
   doesn't collide passes; one whose pushed commits add the colliding ID fails even when the checkout is behind them.
 - The agent instructions say: new stories take their IDs from the reserve command, and the pre-merge check runs
   right before every merge.
+- A branch that changes the shared core is compiled with the optimizer on before it merges; a failing optimized
+  build fails the pre-merge check, and a branch that leaves the shared core alone skips it. A checkout behind the
+  pushed branch fails the check without building, even when only the pushed commits touch the shared core.
