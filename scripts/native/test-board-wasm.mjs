@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 13, `bw_info abi is 13: ${JSON.stringify(info)}`);
+check(info.abi === 14, `bw_info abi is 14: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -541,6 +541,31 @@ check(isDeepStrictEqual(foldErase({ path: [[50, 100], [60, 100]] }), { erased: n
 check(isDeepStrictEqual(foldErase({ path: [[50, 600], [60, 600]] }), { erased: null, hits: [] }), 'on clear paper: nothing');
 check(foldErase({}).error === 'no path or headers', 'neither a path nor headers says so');
 check(call('bw_outline_load', 'not json') === -1 && foldErase({ headers: ['H'] }).error === 'no outline is loaded', 'erasing with no outline says so');
+
+// Interface 14 (spec, keeping Larry's marks and Tidy overlaps), over the late outline: w at y 100 (98..102) written at
+// 2000, o at y 200 (198..202) at 500. Two marks of reply r over w, its picture taken at 1000: one group, and from w's
+// top (98) everything goes down whole lines until it is 20 under the lower mark (180): 102 short, three lines, 120. With
+// w among theirs (a millisecond either way) nothing makes room. His text landing on o makes room from o's top: 220 + 20
+// - 198 = 42, two lines, 80, and covers nothing newer.
+check(call('bw_outline_load', lateInk) === 2, `the late outline for keeping ${error() ?? ''}`);
+const keepAll = (body) => ask('bw_keep_all', body);
+const pair = [{ id: 'r#0', box: [100, 90, 300, 130], seen: 1000 }, { id: 'r#1', box: [100, 140, 150, 180], seen: 1000 }];
+check(same(keepAll({ marks: [...pair, { id: 's#0', box: [400, 0, 420, 10] }] }), { covered: 1, groups: { 'r#0': 'reply-r', 'r#1': 'reply-r' }, push: { cut: 98, dy: 120 } }),
+  `Keep all: one group for the reply, a lone mark none, one room: ${JSON.stringify(keepAll({ marks: pair }))}`);
+check(same(keepAll({ marks: pair, theirs: [2001] }), { covered: 0, groups: { 'r#0': 'reply-r', 'r#1': 'reply-r' }, push: null }), 'ink of theirs never makes room');
+check(same(keepAll({ marks: [], landing: [[120, 190, 200, 220]] }), { covered: 0, groups: {}, push: { cut: 198, dy: 80 } }),
+  `his text landing on ink makes room: ${JSON.stringify(keepAll({ marks: [], landing: [[120, 190, 200, 220]] }))}`);
+check(keepAll({ marks: [{ id: 'x' }] }).error === 'no marks', 'a mark with no box says so');
+// Tidy: label l (a zigzag 120..160 across, 90..110 down) sits on a's line at 100 and moves under it, 20 below: 30. m
+// sits clear. n sits in the kept text k (500..560) and moves to 20 under its bottom: 70. g is in a group, so it is ink.
+const tidyOutline = { strokes: [seg('a', 100, 300, 100), { id: 'l', points: [[120, 90], [140, 110], [160, 90]] },
+  { id: 'm', points: [[120, 400], [140, 420], [160, 400]] }, { id: 'n', points: [[50, 510], [70, 530], [90, 510]] },
+  { id: 'g', points: [[200, 95], [220, 105]] }], boxes: [{ id: 'k', box: [0, 500, 300, 560] }], groups: { g: 'G' }, headers: [] };
+check(call('bw_outline_load', tidyOutline) === 6, `the tidy outline ${error() ?? ''}`);
+check(same(ask('bw_tidy', { labels: ['l', 'm', 'n', 'g'] }), { moves: { l: 30, n: 70 } }), `Tidy: ${JSON.stringify(ask('bw_tidy', { labels: ['l', 'm', 'n', 'g'] }))}`);
+check(ask('bw_tidy', {}).error === 'no labels', 'no labels says so');
+check(call('bw_outline_load', 'not json') === -1 && keepAll({ marks: [] }).error === 'no outline is loaded' &&
+  ask('bw_tidy', { labels: [] }).error === 'no outline is loaded', 'with no outline, both say so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);
