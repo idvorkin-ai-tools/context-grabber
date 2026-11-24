@@ -1729,6 +1729,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1514:
+
+- **Summary:** A simulator test run with a failed try keeps the session logs its app wrote, beside the run's log
+- **Status:** implemented on branch `native/keep-session-logs-7un4`; verified on the host rung by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild on a named simulator whose case fails while the app writes a session log: the log is kept in `<run>.session-logs/` and named on screen, an older log in the container isn't taken, and a passed run keeps none)
+- **Issues:** bead `context-grabber-7un4` (`WhiteboardPaperGhostsUITests.testASmallLabelKeptStaysOnTheCanvasAndInThePicture` failed once on 2026-11-24 with the pasted ink and then the kept label never drawn, both on the screenshots; the app's session log of that run was gone by the time it was looked for, cleared by the next run's install)
+
+#### Use Case:
+- **As Igor,** chasing a UI test that failed once on the simulator
+- **I want to** have the session log the app wrote during that run kept with the run's log and screenshots
+- **so that** the board's own events say what happened, instead of a guess from the pixels
+
+#### Acceptance Criteria:
+- **Scenario:** A failed try on the simulator
+- **Given:** a UI test run on a simulator in which a try fails, and the app wrote a session log during the run
+- **When:** the run ends
+- **Then:** the session logs the app wrote during the run are copied beside the run's log and the run says where they are; logs from before the run aren't copied, and a run with no failed try copies nothing
+
+---
+
 ### User Story 1508:
 
 - **Summary:** The web board asks the app's own outline which row of writing a tap is on and what folding a header does

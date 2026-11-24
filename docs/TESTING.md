@@ -130,7 +130,10 @@ last run of that name replacing it), and a failed run names it: the screenshots 
 are there, `xcrun xcresulttool get test-results summary --path <bundle>` for the results, and `xcrun xcresulttool
 export attachments --path <bundle> --output-path <dir>` for the pictures. When xcodebuild sits quiet after the last
 suite closes, the run waits for it to finish writing the bundle (up to 120 s, `XCODEBUILD_BUNDLE_SECONDS`) before it
-stops xcodebuild; stopped sooner, the bundle can't be opened (story 790).
+stops xcodebuild; stopped sooner, the bundle can't be opened (story 790). A simulator run in which any try failed
+also keeps the session logs the app wrote during the run, in `native/Build/logs/<name>.session-logs/`, and names the
+folder: the next run's install clears the app's container, and with it the board's own account of what went wrong
+(story 1514).
 
 Which classes a change gets, from an explicit map that `scripts/native/test-ladder-map.sh` checks against the real
 script's dry run:
