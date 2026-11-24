@@ -538,7 +538,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   /// on the host; a finger can't write over a mark here, as it pans while marks show.
   func testHisMarkMovesWithTheInkItAnswersAndBackWithUndo() throws {
     let cockpit = try cockpit()
-    let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_OPS": "8,undo"])
+    let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_OPS": "8,undo", "GRABBER_WHITEBOARD_FINGER_LABEL": "1"])
     let before = try inkAboveAndBelow(app)
     try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
     send(app).tap()
@@ -549,15 +549,16 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(mark.center.y, before.maxY, accuracy: 0.03, "on the lower line")
     shot(app, "his circle on my lower line")
 
-    // A tap off his mark gives the finger its pen back (story 1152); a short line at the top changes the board, so the
+    // A tap off his mark gives the finger its pen back (story 1152); a line between mine changes the board, so the
     // next Send has something new for him.
-    PaperScreen.tap(app, CGPoint(x: 0.85, y: 0.25))
-    app.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.24))
-      .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.24)))
+    PaperScreen.tap(app, CGPoint(x: 0.1, y: 0.72))
+    wait(finger(app), label: "draws")
+    stroke(app, atHeight: 0.42)
     wait(send(app), label: strokes(3))
     try larryOps(cockpit)
     send(app).tap()
-    XCTAssertTrue(toKeep(app, 2).appears(within: 15), "his text from the push joins his circle: \(app.debugDescription)")
+    XCTAssertTrue(
+      toKeep(app, 2).appears(within: 15), "his text from the push joins his circle: \(app.debugDescription)")
     let pushed = try XCTUnwrap(
       PaperScreen.showing(app, { $0.ink }) { $0.maxY > before.maxY + 0.03 }, "the lower line, pushed down")
     let moved = try XCTUnwrap(
@@ -568,7 +569,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertNotNil(ink(app, within: 14) { abs($0.maxY - before.maxY) < 0.01 }, "one undo put the line back")
     let back = PaperScreen.showing(app, { $0.larryGhost }) { abs($0.maxY - mark.maxY) < 0.01 }
     shot(app, "after one undo")
-    XCTAssertEqual(try XCTUnwrap(back, "his circle still shows").maxY, mark.maxY, accuracy: 0.01, "and his circle with it")
+    XCTAssertEqual(
+      try XCTUnwrap(back, "his circle still shows").maxY, mark.maxY, accuracy: 0.01, "and his circle with it")
   }
 
   /// Stories 995, 999 (#942; bead context-grabber-yqau): beside one of Larry's marks only Keep and Dismiss show, each a

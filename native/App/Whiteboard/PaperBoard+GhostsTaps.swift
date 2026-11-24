@@ -4,6 +4,7 @@
 
 import ContextCore
 import PaperKit
+import PencilKit
 import UIKit
 
 extension PaperBoardController {
@@ -41,7 +42,10 @@ extension PaperBoardController {
   func marksWritten(_ change: PaperProbe.InkChange, markup: PaperMarkup, undo: UndoManager?) {
     guard !change.added.isEmpty, !model.ghosts.isEmpty, undo?.isUndoing != true, undo?.isRedoing != true else { return }
     let added = Set(change.added)
-    let strokes = markup.subelements.strokes.filter { added.contains(PaperHost.key($0.elementID)) }
+    // Remade as `hashes(_:)` does: PencilKit can't put the markup's own element in a drawing of its own.
+    let strokes = markup.subelements.strokes.filter { added.contains(PaperHost.key($0.elementID)) }.map {
+      PKStroke(ink: $0.ink, path: $0.path, transform: $0.transform, mask: $0.mask, randomSeed: $0.randomSeed)
+    }
     model.marksWritten(strokes)
   }
 
