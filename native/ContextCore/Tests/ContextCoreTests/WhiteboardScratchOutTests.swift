@@ -328,6 +328,69 @@ final class WhiteboardScratchOutTests: XCTestCase {
     XCTAssertTrue(Scratch.shape(wandering(12, 95, 104, 90, 400)).ok)
   }
 
+  /// cockpit-9g1, the oracle: Igor's scratch-out on board-nov-23 (2026-11-23 06:42) over ten fresh strokes, which left
+  /// one, a mark its sweeps passed either side of; and the retry over that mark, a 37-point zigzag refused as slow.
+  private func leftOne() throws -> [(name: String, points: [CGPoint], ms: Double, ink: [Scratch.Ink])] {
+    let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+      .appendingPathComponent("Fixtures/scratch-out/igor-left-one-2026-11-23.json")
+    let root = try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+    func points(_ any: Any?) -> [CGPoint] {
+      (any as? [[Double]] ?? []).map { CGPoint(x: $0[0], y: $0[1]) }
+    }
+    return try XCTUnwrap(root["cases"] as? [[String: Any]]).map { c in
+      let ink = (c["ink"] as? [[String: Any]] ?? []).map {
+        Scratch.Ink(id: $0["id"] as? String ?? "", points: points($0["pts"]), width: CGFloat($0["w"] as? Double ?? 3))
+      }
+      return (c["name"] as? String ?? "?", points(c["pts"]), c["ms"] as? Double ?? 0, ink)
+    }
+  }
+
+  /// Story 1282: the mark between two sweeps goes with the word, and the line of writing above stays.
+  func testAMarkInsideTheStruckWordGoesWithIt() throws {
+    let scratch = try XCTUnwrap(try leftOne().first { $0.name == "the scratch-out" })
+    let outcome = Scratch.check(scratch.points, ms: scratch.ms, over: scratch.ink)
+    XCTAssertTrue(outcome.ok, outcome.why ?? "")
+    let word = ["bj", "bl", "bn", "bp", "br", "bt", "bv", "bx", "bz", "c1"].map { "smwtdf6\($0)" }
+    XCTAssertEqual(Set(outcome.gone), Set(word))
+  }
+
+  /// Story 1282: a mark inside a struck word, between two sweeps, goes; the line below stays, however close.
+  func testAMarkBetweenTwoSweepsGoesAndTheLineBelowStays() {
+    // A word with a tall letter, and four sweeps 15 points apart drifting down across it.
+    let word = line("word", 100, 100, 200)
+    let tall = Scratch.Ink(id: "tall", points: [CGPoint(x: 110, y: 100), CGPoint(x: 110, y: 160)], width: 2)
+    let zig = [(95, 100), (305, 115), (95, 130), (305, 145), (95, 160)].map { CGPoint(x: $0.0, y: $0.1) }
+      .reduce(into: [CGPoint]()) { points, end in
+        guard let last = points.last else { return points.append(end) }
+        for k in 1...10 {
+          let t = CGFloat(k) / 10
+          points.append(CGPoint(x: last.x + (end.x - last.x) * t, y: last.y + (end.y - last.y) * t))
+        }
+      }
+    // Midway between the second and the third sweep, seven and a half points from each: no sweep touches it.
+    let between = Scratch.Ink(id: "between", points: [CGPoint(x: 199, y: 130), CGPoint(x: 201, y: 130)], width: 1)
+    let below = line("below", 175, 100, 200)
+    let outcome = Scratch.check(zig, ms: 600, over: [word, tall, between, below])
+    XCTAssertTrue(outcome.ok, outcome.why ?? "")
+    XCTAssertEqual(Set(outcome.gone), ["word", "tall", "between"])
+  }
+
+  /// Story 1283: the retry, 37 points at 0.35 points per millisecond, now scratches the mark out.
+  func testASmallZigzagScratchesOutAtASmallZigzagsSpeed() throws {
+    let retry = try XCTUnwrap(try leftOne().first { $0.name == "the retry" })
+    let outcome = Scratch.check(retry.points, ms: retry.ms, over: retry.ink)
+    XCTAssertTrue(outcome.ok, outcome.why ?? "")
+    XCTAssertEqual(outcome.gone, ["smwtdf6bn"])
+  }
+
+  /// Story 1283: the floor is half a point per millisecond from 60 points, a quarter at 30.
+  func testTheSpeedFloorScalesWithTheZigzagsLength() {
+    XCTAssertEqual(Scratch.speedFloor(length: 120), 0.5)
+    XCTAssertEqual(Scratch.speedFloor(length: 60), 0.5)
+    XCTAssertEqual(Scratch.speedFloor(length: 30), 0.25)
+    XCTAssertEqual(Scratch.speedFloor(length: 45), 0.375)
+  }
+
   private func loggedPaths() throws -> [(name: String, log: String, zigzag: Bool, samples: [BoardTouchPath.Sample])] {
     let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
       .appendingPathComponent("Fixtures/scratch-out/igor-ipad-paths-2026-11-22.json")

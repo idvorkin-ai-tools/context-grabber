@@ -432,7 +432,7 @@ ink it covers, without picking up the eraser.
 
 - **What counts as a scratch-out.** One stroke that turns back on itself at least **three times** along its main direction,
   each sweep crossing most of the zigzag's length; no wider across than it is long; at least 30 points long; drawn fast (at
-  least half a board point per millisecond); and lying mostly over the ink it touches (at least 60% of that ink's points
+  least half a board point per millisecond, or less for a small one, below); and lying mostly over the ink it touches (at least 60% of that ink's points
   inside the zigzag's box). Handwriting never qualifies: an *mmm* or *www* marches along instead of turning back, and a slow
   zigzag stays as ink. A zigzag on bare paper, or one beside a word rather than over it, takes nothing and is
   taken away with a word (*Every pen gesture shows what it did*, below).
@@ -451,7 +451,19 @@ ink it covers, without picking up the eraser.
   scribble, under the same rule as above (it acts only over ink). Handwriting's back-and-forth is a letter wide, well
   under 40 points, and is slow; a row of big loops (*ooo*) goes as far across as along, so it stays ink.
 - **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
-  it doesn't touch stay, however close. What went stays gone as he writes on: only Undo brings it back (#999).
+  it doesn't touch stay, however close. One exception: a small mark wholly inside the struck ink, the dot of an *i*, a *t*'s
+  crossbar, a squiggle a sweep passed over, goes too (stories 1282, 1283). What went stays gone as he writes on: only Undo brings it back (#999).
+- **A mark inside the struck word goes with it** (cockpit-9g1, story 1282; Igor, 2026-11-23). A zigzag sweeps across a
+  word, and a small mark that sits between two sweeps, or inside the word just past where the sweeps turned, can be
+  missed by every sweep. On 2026-11-23 a scratch-out over ten fresh strokes left one, an 18 by 9 point mark the sweeps
+  passed either side of, and the web board's *t* crossbar did the same. Ink that lies wholly within the outline of the
+  zigzag together with the ink it touched (the outline a rubber band around them makes, grown by the same reach a
+  sweep has) goes too. Ink partly outside that outline stays, as does ink beside the word.
+- **A small zigzag may be slower** (cockpit-9g1, story 1283). A short zigzag can't reach a long one's speed: the retry
+  over that left-behind mark, a zigzag 37 points long, went at 0.35 points per millisecond and was refused as slow. The
+  speed floor scales with the zigzag's length up to 60 points (half a point per millisecond at 60 and above, a quarter
+  at 30). Igor's slow writing that looked like a zigzag in his iPad logs (37 points at 0.23, 45 at 0.30) still stays
+  ink.
 - **Only the ink he can see is touched** (context-grabber-p5hy). Where the pixel eraser rubbed part of a stroke away, the
   gap is bare paper: a zigzag over it takes nothing of that stroke, and the rubbed-out part doesn't count toward lying
   over the ink. A zigzag over a part that is still there takes the stroke as before, the rest of what is left of it
