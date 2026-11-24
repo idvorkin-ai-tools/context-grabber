@@ -343,12 +343,46 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** I keep his whole answer in one tap instead of judging it line by line
 
 #### Acceptance Criteria:
-- **Scenario:** A reply of four lines shows as one group
-- **Given:** Larry's reply of four labels shows as marks to keep
-- **When:** I look at the board, then tap the third label with a finger
-- **Then:** a faint dashed outline in his colour sits round all four before the tap, and after it *Keep group* and *Dismiss group* sit beside the outline
-- **And:** a tap on another of the four changes nothing, and *Keep group* keeps all four as one group, one undo named *Keep*
+- **Scenario:** A tap on one label of a reply of four offers Keep group
+- **Given:** Larry's reply of four labels shows as marks to keep, a faint dashed outline in his colour round all four
+- **When:** I tap the third label with a finger
+- **Then:** *Keep group* and *Dismiss group* sit beside the outline round all four
 
+---
+
+### User Story 1292:
+
+- **Summary:** Another mark of the reply I chose changes nothing
+- **Status:** implemented in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9); verified by host tests (`WhiteboardKeepReplyTests.testATapChoosesTheWholeReplyAndAnotherOfItsMarksChangesNothing`; `just test`)
+- **Issues:** #1383
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of several marks shows, is chosen and is turned down as one group*
+
+#### Use Case:
+- **As someone** who chose a reply Larry drew me in several marks
+- **I want to** a tap on another of its marks to leave the choice as it is
+- **so that** a second tap on the same answer doesn't move or reset its buttons
+
+#### Acceptance Criteria:
+- **Scenario:** A tap on another mark of the chosen reply
+- **Given:** Larry's reply of four labels is chosen, *Keep group* and *Dismiss group* beside its outline
+- **When:** I tap another of the four
+- **Then:** nothing changes: the same reply stays chosen, its buttons where they were
+
+---
+
+### User Story 1293:
+
+- **Summary:** One mark is chosen alone, with no outline
+- **Status:** implemented in [46b140a9](https://github.com/idvorkin/context-grabber/commit/46b140a9); verified by host tests (`WhiteboardKeepReplyTests.testALoneMarkHisTextAndClaudesAreKeptAlone`, `testTheOutlinedRepliesAreHisRepliesOfTwoOrMore`; `just test`)
+- **Issues:** #1383
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of several marks shows, is chosen and is turned down as one group*
+
+#### Use Case:
+- **As someone** looking at a single mark Larry or Claude drew
+- **I want to** keep or dismiss it as before
+- **so that** a one-mark answer isn't dressed up as a group
+
+#### Acceptance Criteria:
 - **Scenario:** One mark shows as before
 - **Given:** a reply of Larry's with one mark showing, or one of Claude's marks
 - **When:** I tap it

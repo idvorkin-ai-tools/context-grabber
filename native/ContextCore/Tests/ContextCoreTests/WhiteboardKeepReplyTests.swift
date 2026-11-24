@@ -46,7 +46,7 @@ final class WhiteboardKeepReplyTests: XCTestCase {
     XCTAssertNil(turns.chosen, "Keep and Dismiss went with the marks")
   }
 
-  /// Story 1285 (#1383): a tap on any mark of a reply of several chooses the reply; another of its marks changes nothing.
+  /// Stories 1285, 1292 (#1383): a tap on any mark of a reply chooses the reply; another of its marks changes nothing.
   func testATapChoosesTheWholeReplyAndAnotherOfItsMarksChangesNothing() throws {
     var turns = turns()
     guard case .chose = turns.tap(hitting: { $0.id == "66618df4a0cc#2" }) else { return XCTFail("chose the reply") }
