@@ -407,7 +407,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1075:
 
 - **Summary:** A second handoff during a redial redials again, at most three times a minute
-- **Status:** planned
+- **Status:** native app only: [486d9101](https://github.com/idvorkin/context-grabber/commit/486d9101), verified by `just test` (host: `CallSessionHandoffTests`) and the Mac build (`just native-build-mac`); a real call on the road still to be checked
 - **Issues:** [#1417](https://github.com/idvorkin/context-grabber/issues/1417)
 - **Spec:** [Native call — interruptions](../superpowers/specs/2026-08-28-native-call-screen-design.md#interruptions)
 
