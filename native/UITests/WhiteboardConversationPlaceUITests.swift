@@ -1,4 +1,4 @@
-//  Stories 1278, 1275, 1279, 1292, 1293 (#1384) on an iPad simulator, against the fake Cockpit
+//  Stories 1278, 1275, 1279, 1307, 1308 (#1384) on an iPad simulator, against the fake Cockpit
 //  (scripts/native/test-whiteboard-ui.sh starts it): the board's open conversation grows by its grip and pushes the
 //  page down; floats as a card at the board's top left that a finger moves and sizes; is kept that way for the next
 //  board; and docks back. The bounds are
@@ -93,7 +93,7 @@ final class WhiteboardConversationPlaceUITests: XCTestCase {
     XCTAssertGreaterThan(card.frame.height, moved.height + 60, "taller")
     let sized = card.frame
 
-    // Story 1292: another board, after a relaunch: the card is where it was left.
+    // Story 1307: another board, after a relaunch: the card is where it was left.
     app.terminate()
     app = try launch()
     openPanel(app)
@@ -102,7 +102,7 @@ final class WhiteboardConversationPlaceUITests: XCTestCase {
     XCTAssertEqual(again.frame.minX, sized.minX, accuracy: 4)
     XCTAssertEqual(again.frame.width, sized.width, accuracy: 4)
 
-    // Story 1293: Dock: above the board again, at the height it was dragged to.
+    // Story 1308: Dock: above the board again, at the height it was dragged to.
     app.buttons["whiteboard-conversation-dock"].tap()
     XCTAssertTrue(app.descendants(matching: .any)["whiteboard-conversation-grip"].firstMatch.appears(within: 5))
     XCTAssertFalse(again.exists)

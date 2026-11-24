@@ -1909,7 +1909,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1292:
+### User Story 1307:
 
 - **Summary:** The floating card stays where I left it, at its size
 - **Status:** implemented in [b2da55db](https://github.com/idvorkin/context-grabber/commit/b2da55db); verified by host tests (`WhiteboardPanelPlaceTests`: the card kept as text; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at b2da55db: `WhiteboardConversationPlaceUITests`: a relaunch finds the card where it was left); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
@@ -1929,7 +1929,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1293:
+### User Story 1308:
 
 - **Summary:** Dock puts the floating conversation back above the board
 - **Status:** implemented in [b2da55db](https://github.com/idvorkin/context-grabber/commit/b2da55db); verified by the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at b2da55db: `WhiteboardConversationPlaceUITests`: Dock brings back the grip at its dragged height); the real iPad not yet; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
