@@ -3576,3 +3576,63 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the Cockpit is up, my last new chat landed in its thread, and I left it by Back, by going Home and coming back to Chat, or by opening another thread from the list
 - **When:** I tap the + again
 - **Then:** an empty *New chat* opens each time
+
+---
+
+### User Story 1611:
+
+- **Summary:** Each day of the week goes to Larry as one record: sleep, movement, workouts, places by name, habits
+- **Status:** native app: in progress
+- **Issues:** Igor, 2026-11-24 09:07, via Larry (Cockpit thread igor2-88g.1620, msg faf3017bc6cd); shape agreed in msg 567ab576db57; Cockpit side cockpit-61m
+- **Spec:** [The day, summed up, to Larry](../superpowers/specs/2026-11-24-daily-summary-to-larry-design.md)
+
+#### Use Case:
+- **As** Igor, writing my weekly report with Larry
+- **I want to** have every day of the week already with him, summed up as the app reads it
+- **so that** the report starts from real numbers without either of us working them out again
+
+#### Acceptance Criteria:
+- **Scenario:** The week goes, once
+- **Given:** the switch *Send the day to Larry* is on and the Cockpit takes the records
+- **When:** I open Today, and then open it again with nothing changed
+- **Then:** each of the last seven days was sent once, oldest first, with sleep asleep and in bed kept apart, where the sleep was measured, steps, exercise minutes, heart rate, weight, workouts, the minutes per named place and every strip habit by its own name; the second opening sent nothing
+
+---
+
+### User Story 1612:
+
+- **Summary:** A day that changes later is sent again, and only that day
+- **Status:** native app: in progress
+- **Issues:** Igor, 2026-11-24 09:07, via Larry (Cockpit thread igor2-88g.1620, msg faf3017bc6cd)
+- **Spec:** [The day, summed up, to Larry](../superpowers/specs/2026-11-24-daily-summary-to-larry-design.md), *When it goes*
+
+#### Use Case:
+- **As** Igor, ticking yesterday's journal this morning, or with last night's sleep syncing from the Watch late
+- **I want to** have Larry see the corrected day
+- **so that** the weekly report reads the week as it really was, not as it first looked
+
+#### Acceptance Criteria:
+- **Scenario:** A habit ticked for yesterday
+- **Given:** yesterday's record already went with the journal not done
+- **When:** I tick the journal for yesterday and Today grabs again
+- **Then:** yesterday goes again with the journal done by a tap, and no other day goes
+
+---
+
+### User Story 1613:
+
+- **Summary:** No coordinates, nothing from the iPad, and a reading Health refused leaves only that reading empty
+- **Status:** native app: in progress
+- **Issues:** Igor, 2026-11-24 09:07, via Larry (Cockpit thread igor2-88g.1620, msg faf3017bc6cd)
+- **Spec:** [The day, summed up, to Larry](../superpowers/specs/2026-11-24-daily-summary-to-larry-design.md), *Goals*
+
+#### Use Case:
+- **As** Igor, whose day says where I live and work
+- **I want to** send only place names and only from the phone, and never lose a whole day to one failed reading
+- **so that** what Larry keeps is private, counted once, and as complete as Health allows
+
+#### Acceptance Criteria:
+- **Scenario:** A day with an unnamed stay and a refused reading
+- **Given:** a day with a stay at a place I never named, and Health refusing that day's weight
+- **When:** the day's record goes
+- **Then:** the unnamed stay counts only as minutes, no latitude, longitude or circle is in the record, the weight is empty and every other reading is there; on the iPad nothing is sent at all
