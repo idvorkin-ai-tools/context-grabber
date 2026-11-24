@@ -1410,7 +1410,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1073:
 
 - **Summary:** The Cockpit knows what a call was on: the device, the microphone and output, the audio and the network, and each change
-- **Status:** STATUS_PENDING
+- **Status:** implemented in [d4ce5acc](https://github.com/idvorkin/context-grabber/commit/d4ce5acc); host-verified by `just test` (`CallMetaTests`, `CallSessionMetaTests`); the Mac build (rung 1.5); the iPad simulator's call smoke (rung 2, 2026-11-24): the start frame went with the meta, its route logged as *no microphone · Speaker* on synthetic audio. A real call on the phone, with the Cockpit's /debug/call (cockpit-71g) reading it, not yet
 - **Issues:** context-grabber-2k58 (Igor, 2026-11-24 06:13 via Larry: send call metadata whenever we have it; Cockpit cockpit-71g, /debug/call)
 - **Spec:** [Native call — What the call says about itself](../superpowers/specs/2026-08-28-native-call-screen-design.md#what-the-call-says-about-itself)
 
