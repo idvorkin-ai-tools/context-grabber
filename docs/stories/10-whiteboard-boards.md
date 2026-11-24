@@ -1864,3 +1864,28 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the module built by `just wasm`, with an outline of two lines of ink and a label of Larry's landed over the first
 - **When:** `just wasm-test` asks for its anchor, moves the first line down 40, erases it, then writes a stroke of Igor's across the label and loads the board with that stroke on it
 - **Then:** the label holds to the first line where its box began; it moves down 40 with it; with the line erased it hides and the next post drops it as ink erased; the stroke writes over all of it, and with the stroke on the board the label is faded and the next post drops it as written over
+
+---
+
+### User Story 1295:
+
+- **Summary:** The web board asks the app's own rules for room by hand and for Larry's picture of a folded board
+- **Status:** implemented in COMMIT (`bw_room_by_hand`, `bw_fold_picture`, interface 20); verified by the host tests (`WebByHandTests`: 1,360 seeded drags of the room handle on the four recorded boards and 30 seeded ones, and the opened picture of every seeded board with a header folded, against the app's own room by hand and fold picture) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 310 checks, hand-worked drags and a folded section among them), 2026-11-24
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 20
+- **Issues:** Larry's web parity list (cockpit-kp5), 2026-11-24: the web's push let blank paper absorb it, against the rigid push of 2026-11-22
+
+#### Use Case:
+- **As Igor,** making room with the margin handle and folding sections on the Cockpit's web ink board
+- **I want to** have the handle open and close room as the iPad's does, and Larry see my folded sections opened in full as he does from the iPad
+- **so that** room never closes onto my writing on the web, and Larry reads a folded board the same from either
+
+#### Acceptance Criteria:
+- **Scenario:** Room by hand through the module
+- **Given:** the module built by `just wasm`, with a board of two lines of ink 200 apart
+- **When:** `just wasm-test` drags the handle down 50 between them, down 10, up 300, and down 80 from inside the first line
+- **Then:** down 50 opens one line; down 10 moves nothing; up 300 closes only the four whole lines of blank paper between them; from inside the first line the cut snaps to its bottom; each answer says how much blank paper could close there
+
+- **Scenario:** A folded section in Larry's picture
+- **Given:** an outline with a header whose two lines are folded under it
+- **When:** `just wasm-test` asks for the fold picture, then asks again with nothing folded
+- **Then:** the picture shows the two folded lines, slides what is below back down by the section's height, shades the section and maps the one fold back; with nothing folded there is no picture of its own

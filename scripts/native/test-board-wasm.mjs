@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 19, `bw_info abi is 19: ${JSON.stringify(info)}`);
+check(info.abi === 20, `bw_info abi is 20: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -669,6 +669,32 @@ check(same(placeOf(wrote.anchors.m), { drops: 'written_over', dx: 0, dy: 0, fade
 check(ask('bw_mark_anchor', {}).error === 'no mark' && ask('bw_mark_wrote', { marks: [] }).error === 'no stroke' &&
   ask('bw_mark_place', { marks: [{ id: 'm', anchor: 'x' }] }).error === 'no marks', 'what it can\'t read says so');
 check(call('bw_outline_load', 'not json') === -1 && ask('bw_mark_anchor', { mark: label }).error === 'no outline is loaded', 'a mark with no outline says so');
+
+// Interface 20 (spec, room by hand and Larry's picture of a folded board). Two lines, a (y 98..102) and b (298..302):
+// a drag of 50 at 200 opens one line there; of 10, nothing; up 300, it closes only the four whole lines of blank paper
+// between them (the rigid push). Started inside a, it snaps to a's bottom.
+check(call('bw_load', { board: 'by-hand', strokes: [line('a', 100), line('b', 300)] }) === 2, `the by-hand board ${error() ?? ''}`);
+const byHand = (y, dy) => reply(x.bw_room_by_hand(y, dy));
+check(same(byHand(200, 50), { closable: 160, cut: 200, push: { cut: 200, dy: 40 } }), `down 50 opens a line: ${JSON.stringify(byHand(200, 50))}`);
+check(same(byHand(200, 10), { closable: 160, cut: 200, push: null }), `under half a line moves nothing: ${JSON.stringify(byHand(200, 10))}`);
+check(same(byHand(200, -300), { closable: 160, cut: 200, push: { cut: 200, dy: -160 } }), `up 300 closes only the blank paper: ${JSON.stringify(byHand(200, -300))}`);
+check(same(byHand(101, 80), { closable: 160, cut: 102, push: { cut: 102, dy: 80 } }), `inside a it snaps to a's bottom: ${JSON.stringify(byHand(101, 80))}`);
+// The picture of the outline above with H folded: b1 and b2 tucked under it, n and the box slid up 120. Opened, b1 and
+// b2 show, n and the box slide back down, and the map says one fold opened under H.
+const foldedOutline = {
+  ...outline,
+  strokes: [line('h1', 100), { ...line('b1', 140), points: [[60, 140], [200, 140]], hidden: true },
+    { ...line('b2', 180), points: [[60, 180], [200, 180]], hidden: true }, line('n', 180)],
+  boxes: [{ id: 't', box: [0, 280, 100, 320] }],
+  headers: [{ id: 'H', ids: ['h1'], fold: folded.fold }],
+};
+check(call('bw_outline_load', foldedOutline) === 5, `the folded outline ${error() ?? ''}`);
+const picture = reply(x.bw_fold_picture()).picture;
+check(picture && same(picture.shown, ['b1', 'b2']) && same(picture.offsets.n, [0, 120]) && same(picture.offsets.t, [0, 120]) &&
+  picture.map.length === 1 && picture.map[0].header === 'H' && picture.map[0].h === 120 && picture.bands[0].header === 'H' &&
+  same(picture.folded_marks.map((m) => m.header), ['H']), `the picture opens H: ${JSON.stringify(picture)}`);
+check(call('bw_outline_load', outline) === 5 && same(reply(x.bw_fold_picture()), { picture: null }), 'with nothing folded, no picture of its own');
+check(call('bw_outline_load', 'not json') === -1 && reply(x.bw_fold_picture()).error === 'no outline is loaded', 'a picture with no outline says so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

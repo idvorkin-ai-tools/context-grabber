@@ -479,6 +479,44 @@ module remembers nothing of the marks. All answers are over the outline `bw_outl
 - A mark, anchor or stroke the module can't read is a reply `{"error"}`, as is a question with no outline loaded.
 - `bw_info` says `"abi": 19`. Every other export's arguments and answers are as in version 18.
 
+## The interface, version 20: room by hand, and Larry's picture of a folded board
+
+Story 1295 (Larry for the web board, 2026-11-24, cockpit-kp5). Two answers the web board still worked out in its own
+JavaScript now come from the app's rules.
+
+**Room by hand.** Dragging the left-margin handle opens room in whole lines at the clear line nearest where the drag
+began. Dragging up closes room, but only blank paper, in whole lines: the push is rigid, so ink never closes onto ink
+(Igor, 2026-11-22). The web board's own copy let blank paper absorb a push; with the app's rule it no longer does.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_room_by_hand` | `y`, `dy`: where the drag began, and how far, board points | a reply: `{"push": null \| {"cut", "dy"}, "cut", "closable"}`; `{"error"}` with no board loaded |
+
+- `push` is what moves: everything below `cut` moves `dy`, a whole number of lines. It is null when nothing would move
+  (a drag of under half a line, or closing where there is no blank paper).
+- `cut` is the clear line the drag snaps to, whether or not anything moves, so the handle can show where it is.
+- `closable` is how much blank paper can close at that line, in whole lines, so the handle can show the paper that
+  will close before the drag ends (as the iPad does).
+- It works over the board `bw_load` keeps, as `bw_cut_y` does.
+
+**Larry's picture of a folded board.** The picture Larry sees draws every folded section in full, in place, as the
+board would look with it open, shaded, with its header marked as folded; his marks on that picture map back onto the
+folded board (stories 900, 1046).
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_fold_picture` | none | a reply: `{"picture": null}` when no fold shows; else `{"picture": {"offsets": {name: [dx, dy]}, "shown": [name], "bands": [{"header", "top", "bottom"}], "map": [{"header", "y", "h"}], "folded_marks": [{"header", "y"}], "open_labels": [{"header", "text", "box": [left, top, right, bottom]}]}}`; `{"error"}` with no outline loaded |
+
+- `offsets`: each stroke or box that moves in the opened picture, by name, and how far; `shown`: the ones a fold hid
+  that the picture shows.
+- `bands`: each opened section's stretch of the page in the picture, for its shading.
+- `map`: the folds opened, in order, each as the place `y` from which the picture slid `h` further down. It is what goes
+  with the picture as `picture_folds`, and the way a mark on the picture maps back to the folded board.
+- `folded_marks`: where each folded header's marker goes; `open_labels`: the label each open header gets.
+- It works over the outline `bw_outline_load` keeps, as it is now; it changes nothing.
+
+`bw_info` says `"abi": 20`. Every other export's arguments and answers are as in version 19.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
