@@ -217,7 +217,7 @@ covers the screen with the trainer's own drill, the same one as in the trainer a
   Keychain item shared by Grabber Native and the trainer, so pairing in either app pairs both. While paired, the drill
   sends with the phone's own key to the ledger the pairing names and the pasted URL and key wait under *Advanced*.
   *Stats* says *Paired as … until* the day, or, when unpaired, expired or refused, *Ask Larry to pair again* with a
-  *Pair with code* field: paste Larry's pairing link or type its 26-character code, press *Pair*, and the phone
+  *Pair with code* field, and says how: Larry sends a pair link in chat when asked, and it lasts 10 minutes (#1356): paste Larry's pairing link or type its 26-character code, press *Pair*, and the phone
   redeems it with the keyring on Larry's box (never a host named in what was pasted); the sheet then shows the
   pairing and the stats, or the failure as a copyable error that never carries the code. The 4-letter Cockpit
   approval code is turned away with a message.
