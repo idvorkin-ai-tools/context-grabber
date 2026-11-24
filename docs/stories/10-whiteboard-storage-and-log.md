@@ -558,7 +558,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1297:
 
 - **Summary:** A review finished after the board closed still shows on its next open
-- **Status:** in progress (bead context-grabber-om6m)
+- **Status:** implemented in [b755b220](https://github.com/idvorkin/context-grabber/commit/b755b220); verified by host tests (`BoardReviewDiskTests`: a note shown late for an earlier review leaves a later review unseen). Not yet seen on the iPad (rung 3 owed)
 - **Issues:** context-grabber-om6m (no-mistakes review round 2 on PR #1379: a note shown late could clear a later review's unseen mark)
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
