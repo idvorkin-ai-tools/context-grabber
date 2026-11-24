@@ -45,6 +45,7 @@ final class BoardReviewTests: XCTestCase {
     "check6-clean": [],
     "check6-9bll": [(6, .bug)],
     "check6-hide-only": [],
+    "check6-reply-between": [],
     "check7-4nnh": [(7, .bug)],
     "check7-put-back": [(7, .asDesigned)],
     "check7-not-observed": [],

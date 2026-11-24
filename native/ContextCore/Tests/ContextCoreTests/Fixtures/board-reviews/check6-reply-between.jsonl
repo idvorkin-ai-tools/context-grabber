@@ -1,0 +1,4 @@
+{"board": "b-check6-reply-between", "ink": [{"box": [60, 300, 100, 30], "id": "g", "n": 3, "owner": "larry"}, {"box": [60, 100, 300, 30], "id": "a", "owner": "igor"}], "observes": {"kept": "yes", "pen": "yes", "selection": "yes"}, "record": 1, "session": "check6-reply-between", "surface": "ipad"}
+{"aim": {"ids": ["g"], "start": "inside"}, "by": "finger", "changes": [{"after": [60, 95, 100, 30], "before": [60, 300, 100, 30], "id": "g"}, {"after": [60, 180, 300, 30], "before": [60, 100, 300, 30], "id": "a"}], "kind": "drop", "name": "Move", "t": 1000}
+{"by": "larry", "changes": [{"after": [60, 600, 200, 30], "id": "r", "n": 5, "owner": "larry"}], "kind": "late", "t": 1500}
+{"by": "menu", "changes": [{"after": [60, 300, 100, 30], "before": [60, 95, 100, 30], "id": "g"}, {"after": [60, 100, 300, 30], "before": [60, 180, 300, 30], "id": "a"}], "kind": "undo", "name": "Move", "t": 2000}

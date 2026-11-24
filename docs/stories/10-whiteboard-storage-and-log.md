@@ -870,7 +870,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** Undo
 - **Given:** a step undone
-- **When:** the board differs from before that step past the tolerance, or the Undo took back another step
+- **When:** the ink or folds that step touched differ from before it past the tolerance, or the Undo took back another step
+- **And:** ink that arrived between the step and its Undo is not counted
 - **Then:** the review calls it a bug naming what differs
 
 ---

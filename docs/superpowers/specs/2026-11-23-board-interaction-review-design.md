@@ -175,8 +175,10 @@ session gives the same findings on both.
 
 ### 6. An Undo that didn't restore
 
-- **Rule**: after an Undo, the board is as it was before the step undone: the same ink showing, in the same places,
-  the same folds. After a Redo, as it was after that step.
+- **Rule**: after an Undo, the ink and folds the undone step touched are as they were before it: the same ink
+  showing, in the same places, the same folds. After a Redo, as they were after that step. Ink the step never
+  touched is not judged: a reply that arrived, or a stroke written, between the step and its Undo stays and is no
+  finding.
 - **Bug**: anything differs past the tolerance: a stroke missing, a stroke left where the step moved it, a fold left
   open or closed. Also an Undo that took back a step other than the one its name said.
 - **Evidence**: the Undo, the step it took back, and what differs (ids, before and after).

@@ -1,7 +1,8 @@
-//  Check 6 (spec 2026-11-23-board-interaction-review-design.md, *The checks*; story 1255): after an Undo the board is as
-//  it was before the step it took back, and after a Redo as it was after it. Undo takes back the newest named step not
-//  yet taken back; a name that differs is an Undo of another step. The surface's own observation that what it put
-//  back drew whole is judged here too (bead 9bll).
+//  Check 6 (spec 2026-11-23-board-interaction-review-design.md, *The checks*; story 1255): after an Undo the ink and
+//  folds the step it took back touched are as they were before it, and after a Redo as they were after it; ink it
+//  never touched is not judged. Undo takes back the newest named step not yet taken back; a name that differs is an
+//  Undo of another step. The surface's own observation that what it put back drew whole is judged here too (bead
+//  9bll).
 
 #if FOUNDATION_ESSENTIALS_ONLY
   import FoundationEssentials
@@ -31,13 +32,16 @@ extension BoardReview {
         if let name = step.name, let named = targetStep.name, name != named {
           what.append("its name \(name) is not the step's \(named)")
         }
-        let diff = differs(want, got)
+        let touched = Set(target.flatMap { pass.steps[$0].changes ?? [] }.map(\.id))
+          .union(target.flatMap { pass.steps[$0].fold.map { [$0.header] + $0.held } ?? [] })
+        let headers = Set(target.compactMap { pass.steps[$0].fold?.header })
+        let diff = differs(want, got).filter { touched.contains($0.id) }
         if !diff.isEmpty {
           ids += diff.map(\.id)
           what.append("\(diff.count) differ")
           evidence += diff.prefix(5).map { Evidence($0.id, $0.how) }
         }
-        let folds = Set(want.folds.keys).union(got.folds.keys).sorted().filter { want.folds[$0] != got.folds[$0] }
+        let folds = headers.sorted().filter { want.folds[$0] != got.folds[$0] }
         if !folds.isEmpty {
           what.append("folds differ")
           evidence.append(Evidence("folds", folds.joined(separator: ", ")))
