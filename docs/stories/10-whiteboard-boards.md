@@ -1730,7 +1730,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1264:
 
 - **Summary:** The web board asks the app's own rules what opening a fold does, and what ends its section after
-- **Status:** in progress
+- **Status:** implemented in 95aeef29 (`bw_opening`, BoardWasm interface 11); verified by `just wasm-test` in Docker with Swift 6.4.3 and its wasm SDK (193 checks, a hand-worked fold opened over a line written under it among them), by `BoardWasmTests` on the Mac (60 seeded boards folded, then written under: the same opening as the app's outline), and on the Mac by `just native-test` (SwiftLint, swift-format, host tests), 2026-11-23.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 11
 - **Issues:** Larry's list of the web board's rules still in JavaScript, 2026-11-23 (unfoldStep's copy of the app's opening)
 
