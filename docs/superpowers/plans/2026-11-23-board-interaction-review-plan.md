@@ -42,7 +42,7 @@ strokes' change; the events say only the kind, who and the aim, and the board's 
 step (a drop's room, a keep's room, a paste coming in) joins it. A review runs on values alone, logs `board_review`
 and is kept with an *unseen* mark, so one started on close finishes after the board's model is gone and the next open
 shows it. On the iPad every check is observed, so none reads *not checked*. `WhiteboardModel+Review.swift` runs the idle
-wait, close, next open and the menu's review; `BoardReviewNote.swift` is the note, the list and *Show me*, which draws
+wait, close and next open; `BoardReviewNote.swift` is the note, the list and *Show me*, which draws
 the record's outlines before and after the step rather than opening playback (the record holds geometry, and playback
 can't show moves or erased ink). Larry gets the words as a `board_review` event with the next picture's events.
 

@@ -1,7 +1,7 @@
 //  Reviewing each writing session (spec 2026-11-23-board-interaction-review-design.md; stories 1237–1249, bead
 //  context-grabber-8ao5.2). The board's own log events feed `BoardReviewRecorder` as they are written, so the record
-//  holds exactly what a pulled log would. Five minutes after a step of his with none since, on close, or from the Board
-//  menu, `BoardReview` runs off the main actor; the board shows a quiet note only when there is something to look at,
+//  holds exactly what a pulled log would. Five minutes after a step of his with none since, or on close, `BoardReview`
+//  runs off the main actor; the board shows a quiet note only when there is something to look at,
 //  the review's words go to Larry with the next picture, and the record and report stay on this device for 14 days.
 
 import ContextCore
@@ -90,9 +90,19 @@ extension WhiteboardModel {
 
   /// The session so far, every few seconds at most, so one the app's closing cuts short is reviewed on the next open.
   private func keepPending() {
-    if let at = reviewKeptAt, Date().timeIntervalSince(at) < 5 { return }
-    reviewKeptAt = Date()
     guard let record = reviewRecorder.record, record.hasIgorsStep else { return }
+    let since = reviewKeptAt.map { Date().timeIntervalSince($0) } ?? .infinity
+    if since < 5 {
+      guard reviewKeepTask == nil else { return }
+      reviewKeepTask = Task { [weak self] in
+        try? await Task.sleep(for: .seconds(5 - since))
+        guard !Task.isCancelled, let self else { return }
+        self.reviewKeepTask = nil
+        self.keepPending()
+      }
+      return
+    }
+    reviewKeptAt = Date()
     let store = BoardReviewDisk(board: board.id)
     Task.detached(priority: .utility) { store.keepPending(record) }
   }
@@ -103,6 +113,8 @@ extension WhiteboardModel {
   func reviewSession(why: String) {
     reviewIdleTask?.cancel()
     reviewIdleTask = nil
+    reviewKeepTask?.cancel()
+    reviewKeepTask = nil
     guard reviewRecorder.hasIgorsStep, let record = reviewRecorder.record else {
       let store = BoardReviewDisk(board: board.id)
       Task.detached(priority: .utility) { store.clearPending() }

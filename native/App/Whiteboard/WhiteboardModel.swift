@@ -218,6 +218,7 @@ final class WhiteboardModel: ObservableObject {
   var reviewIdleTask: Task<Void, Never>?
   var reviewTap: UUID?
   var reviewKeptAt: Date?
+  var reviewKeepTask: Task<Void, Never>?
   @Published var review = BoardReviewShown()
   @Published var reviewListOpen = false
 

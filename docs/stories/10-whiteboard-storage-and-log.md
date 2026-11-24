@@ -498,7 +498,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1237:
 
 - **Summary:** A board idle for five minutes after writing is reviewed
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): the note after a shortened idle. Not yet seen on the iPad (rung 3 owed): a real session, `board_review` why idle in the pulled log
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): the note after a shortened idle. Not yet seen on the iPad (rung 3 owed): a real session, `board_review` why idle in the pulled log
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
@@ -518,7 +518,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1238:
 
 - **Summary:** Closing a board reviews its session
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a board left right after writing shows its review on the next open, the review having finished after the board was gone. Not yet seen on the iPad (rung 3 owed)
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a board left right after writing shows its review on the next open, the review having finished after the board was gone. Not yet seen on the iPad (rung 3 owed)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
@@ -538,7 +538,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1239:
 
 - **Summary:** A board only looked at is not reviewed
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me)
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
 
@@ -558,7 +558,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1240:
 
 - **Summary:** No review row in the Board menu: reviews run on idle and close only
-- **Status:** implemented in [3e3c32a7](https://github.com/idvorkin/context-grabber/commit/3e3c32a7); verified by host tests (`BoardReviewRecorderTests`, `BoardReviewTests`) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): the Board menu has no review row
+- **Status:** implemented in [85fcaf40](https://github.com/idvorkin/context-grabber/commit/85fcaf40); verified by host tests (`BoardReviewRecorderTests`, `BoardReviewTests`) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): the Board menu has no review row
 - **Issues:** Igor, 2026-11-24 (via Larry): "NO 'Review this session' row; reviews run on idle and close only"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*, *Decisions* 7
 
@@ -578,7 +578,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1241:
 
 - **Summary:** A review never changes the board
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Goals*
 
@@ -598,7 +598,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1242:
 
 - **Summary:** A clean review shows nothing
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a clean session after idle shows no note; no review on demand since [3e3c32a7](https://github.com/idvorkin/context-grabber/commit/3e3c32a7)
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a clean session after idle shows no note; no review on demand since [85fcaf40](https://github.com/idvorkin/context-grabber/commit/85fcaf40)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 6
 
@@ -618,7 +618,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1243:
 
 - **Summary:** A finding puts a quiet note on the board
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): opened, or his next stroke, puts it away
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): opened, or his next stroke, puts it away
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*
 
@@ -638,7 +638,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1244:
 
 - **Summary:** Each finding is listed and copyable
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c); verified by `BoardReviewTests` (the copy's text) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)) (*Copy*)
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9); verified by `BoardReviewTests` (the copy's text) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)) (*Copy*)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*
 
@@ -658,7 +658,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1245:
 
 - **Summary:** Show me replays the step, erased ink included
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c): *Show me* draws the record's outlines before and after the step, not playback (Igor, 2026-11-24: outlines are fine); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5))
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9): *Show me* draws the record's outlines before and after the step, not playback (Igor, 2026-11-24: outlines are fine); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5))
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *Decisions*, 5
 
@@ -678,7 +678,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1246:
 
 - **Summary:** Answering an unclear finding
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me). The buttons are not yet tapped by a UI test
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me). The buttons are not yet tapped by a UI test
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What Igor sees*; *False positives*
 
@@ -698,7 +698,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1247:
 
 - **Summary:** Larry gets the findings with the board's next picture
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c): the words go as a `board_review` event with the next picture's events, the whole event kept at or under 6 KB encoded, well inside the Cockpit's 8 KB per event, and saying how many lines it cut (Larry, 2026-11-23: the Cockpit keeps unknown event types); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me)
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9): the words go as a `board_review` event with the next picture's events, the whole event kept at or under 6 KB encoded, well inside the Cockpit's 8 KB per event, and saying how many lines it cut (Larry, 2026-11-23: the Cockpit keeps unknown event types); verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *How Larry gets findings*; *Decisions*, 4
 
@@ -723,7 +723,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1248:
 
 - **Summary:** A session's record stays on its device for 14 days
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c): Application Support/board-reviews, pruned at 14 days, removed with the board; verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) (a record read back) and the Mac build
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9): Application Support/board-reviews, pruned at 14 days, removed with the board; verified by host tests (`BoardReviewRecorderTests`: a board opening with ink, erase, Undo and Redo, folds, paste, Larry's ops, a drop's room, owners put apart, each from the strokes as the board hands them over; the note, answers, Larry's event under 6 KB encoded with its `cut`, Show me) (a record read back) and the Mac build
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *What a session is*; *Decisions*, 2
 
@@ -743,7 +743,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1249:
 
 - **Summary:** A finding never files anything by itself
-- **Status:** implemented in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c): nothing files; verified by reading (the review only logs, shows and sends to Larry)
+- **Status:** implemented in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9): nothing files; verified by reading (the review only logs, shows and sends to Larry)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Decisions*, 3
 
@@ -763,7 +763,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1250:
 
 - **Summary:** New writing hidden inside a fold is a bug
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 1
 
@@ -783,7 +783,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1251:
 
 - **Summary:** Writing the board placed on ink is a bug
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 2
 
@@ -803,7 +803,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1252:
 
 - **Summary:** My ink moved without my aim is a bug, or asked about
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 3
 
@@ -823,7 +823,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1253:
 
 - **Summary:** Both owners' ink left moved together is a bug
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 4
 
@@ -843,7 +843,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1254:
 
 - **Summary:** A fold that swallowed newer ink is a bug
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 5
 
@@ -864,7 +864,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1255:
 
 - **Summary:** An Undo that didn't put the board back is a bug
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 6
 
@@ -885,7 +885,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1256:
 
 - **Summary:** A selection lost with nothing of mine is a bug
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 7
 
@@ -905,7 +905,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1257:
 
 - **Summary:** Keeping a mark that changed my pen is a bug
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 8
 
@@ -925,7 +925,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1258:
 
 - **Summary:** A kept mark drawn cut or in the wrong colour is a bug
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*, 9
 
@@ -945,7 +945,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1259:
 
 - **Summary:** Moves within half a point, and edges that only touch, are no finding
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*
 
@@ -965,7 +965,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1260:
 
 - **Summary:** A check a surface can't see reads not checked or approximate
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The checks*; *Larry's answer*
 
@@ -985,7 +985,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1261:
 
 - **Summary:** The same session gives the same findings on the iPad and the web board
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *The iPad and the web board, through one core*
 
@@ -1005,7 +1005,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1262:
 
 - **Summary:** The 2026-11-23 iPad sessions review to the manual verdict
-- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [f4d48798](https://github.com/idvorkin/context-grabber/commit/f4d48798) and [2f4e855c](https://github.com/idvorkin/context-grabber/commit/2f4e855c)
+- **Status:** the review's checks implemented in [8d32af77](https://github.com/idvorkin/context-grabber/commit/8d32af77) (bead context-grabber-8ao5.1); verified by host tests (`BoardReviewTests`: every fixture's findings and golden, the same report twice) and the wasm build (`test-board-wasm.mjs`: `bw_review` gives every golden, swift 6.4.3 wasm SDK in Docker). The iPad runs them off the main actor on values alone in [93d2e75f](https://github.com/idvorkin/context-grabber/commit/93d2e75f) and [65e68bc9](https://github.com/idvorkin/context-grabber/commit/65e68bc9)
 - **Issues:** Igor, 2026-11-23: "That design is approved, and it should work on the web board as well"
 - **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *Acceptance criteria*
 
