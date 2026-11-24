@@ -387,7 +387,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 324:
 
 - **Summary:** A handoff redial that cannot get through ends the call instead of looping
-- **Status:** native app only: [8984bad](https://github.com/idvorkin/context-grabber/commit/8984bad), verified by `just test` (host: `CallSessionHandoffTests`); the phone in the next build turn. Narrowed by story 1075 (#1417): only a loss with no fresh network change ends the call
+- **Status:** native app only: [8984bad](https://github.com/idvorkin/context-grabber/commit/8984bad), verified by `just test` (host: `CallSessionHandoffTests`); the phone in the next build turn. Narrowed by story 1075 (#1417) in [0c95985a](https://github.com/idvorkin/context-grabber/commit/0c95985a): only a loss with no fresh network change ends the call
 - **Issues:** [#440](https://github.com/idvorkin/context-grabber/issues/440), [#1417](https://github.com/idvorkin/context-grabber/issues/1417)
 - **Spec:** [Native call — interruptions](../superpowers/specs/2026-08-28-native-call-screen-design.md#interruptions)
 
@@ -406,8 +406,8 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 1075:
 
-- **Summary:** A second handoff during a redial redials again, at most three times a minute
-- **Status:** native app only: [486d9101](https://github.com/idvorkin/context-grabber/commit/486d9101), verified by `just test` (host: `CallSessionHandoffTests`) and the Mac build (`just native-build-mac`); a real call on the road still to be checked
+- **Summary:** A second handoff during a redial redials again
+- **Status:** native app only: [0c95985a](https://github.com/idvorkin/context-grabber/commit/0c95985a), verified by `just test` (host: `CallSessionHandoffTests`) and the Mac build (`just native-build-mac`); a real call on the road still to be checked
 - **Issues:** [#1417](https://github.com/idvorkin/context-grabber/issues/1417)
 - **Spec:** [Native call — interruptions](../superpowers/specs/2026-08-28-native-call-screen-design.md#interruptions)
 
@@ -422,6 +422,21 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** the phone's network changes again and the redial's connection is lost before any of Larry's audio arrives
 - **Then:** the call redials again on the same backend and voice, and the log names it as redial 2 in the minute
 
+---
+
+### User Story 1076:
+
+- **Summary:** Handoff redials stop after three in a minute
+- **Status:** native app only: [0c95985a](https://github.com/idvorkin/context-grabber/commit/0c95985a), verified by `just test` (host: `CallSessionHandoffTests`) and the Mac build (`just native-build-mac`); a real call on the road still to be checked
+- **Issues:** [#1417](https://github.com/idvorkin/context-grabber/issues/1417)
+- **Spec:** [Native call — interruptions](../superpowers/specs/2026-08-28-native-call-screen-design.md#interruptions)
+
+#### Use Case:
+- **As a** Larry's client on a call whose network keeps flapping
+- **I want to** have the call end once it has redialed three times in a minute
+- **so that** the app does not dial Larry over and over on a network that will not settle
+
+#### Acceptance Criteria:
 - **Scenario:** Too many handoffs in a minute
 - **Given:** a call that has redialed after a handoff three times in the last sixty seconds
 - **When:** the network changes and the connection is lost a fourth time within that minute

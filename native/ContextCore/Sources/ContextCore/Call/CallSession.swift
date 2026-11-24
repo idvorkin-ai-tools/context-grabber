@@ -187,7 +187,7 @@ public final class CallSession {
   public static let zeroBuffersBeforeRearm = 10
   /// #440, story 322: a connection lost this soon after the phone's network changed is a handoff, and redials.
   public static let handoffWindowMs = 10_000.0
-  /// #1417, story 1075: a drive trades cellular and Wi-Fi often; three handoff redials a minute, no more.
+  /// #1417, stories 1075, 1076: a drive trades cellular and Wi-Fi often; three handoff redials a minute, no more.
   public static let handoffRedialsPerMinute = 3
   public static let handoffRedialMinuteMs = 60_000.0
   /// #577: Larry's audio still this far ahead of the speaker holds a zero-run rearm on a mic that was live.
@@ -256,7 +256,7 @@ public final class CallSession {
   private var networkChangedAt = 0.0
   /// When each handoff redial of this call went out, kept across the redials' own starts. A redial needs a network
   /// change since it began (#1417), and at most `handoffRedialsPerMinute` go in any sixty seconds, so a network that
-  /// cannot carry a call is not dialled in a loop (story 324, story 1075).
+  /// cannot carry a call is not dialled in a loop (stories 324, 1075, 1076).
   private var handoffRedialTimes: [Double] = []
   /// The session's own redial is calling `start`; a start from anywhere else is a new call (Fable on #440).
   private var redialStart = false

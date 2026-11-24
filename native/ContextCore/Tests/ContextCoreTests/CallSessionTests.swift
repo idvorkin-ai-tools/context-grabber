@@ -444,7 +444,7 @@ final class CallSessionHandoffTests: XCTestCase {
     XCTAssertEqual(t.session.snapshot.voice, .igor)
   }
 
-  /// #1417, story 1075: at most three handoff redials in any sixty seconds; the fourth handoff ends the call.
+  /// #1417, story 1076: at most three handoff redials in any sixty seconds; the fourth handoff ends the call.
   func testAFourthHandoffInAMinuteEndsTheCall() {
     let t = CallHarness()
     t.goLive()
@@ -468,7 +468,7 @@ final class CallSessionHandoffTests: XCTestCase {
     XCTAssertEqual(t.session.snapshot.endedReason, CallProtocol.connectionLost)
   }
 
-  /// #1417, story 1075: the minute slides; handoffs spread wider than that keep redialing.
+  /// #1417, story 1076: the minute slides; handoffs spread wider than that keep redialing.
   func testHandoffRedialsOlderThanAMinuteStopCounting() {
     let t = CallHarness()
     t.goLive()
