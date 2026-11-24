@@ -535,7 +535,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1295:
+### User Story 1312:
 
 - **Summary:** A session is reviewed once, however the board closes
 - **Status:** implemented in [a9d0cd39](https://github.com/idvorkin/context-grabber/commit/a9d0cd39); verified by host tests (`BoardReviewDiskTests`: a save landing after the review leaves nothing pending, a pending session already reviewed isn't reviewed again, a cut-short session is still reviewed on the next open, one session's clear leaves the next one's pending) and the iPad simulator (`WhiteboardReviewUITests`, iPad Pro 11-inch (M5)): a review started on close shows on the next open. Not yet seen on the iPad (rung 3 owed)

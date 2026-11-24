@@ -1,5 +1,5 @@
 //  Where a board's session records and reviews stay (spec 2026-11-23-board-interaction-review-design.md; stories 1238,
-//  1248, 1295): this device's Application Support, never iCloud. Ported from the app so the host can test it.
+//  1248, 1312): this device's Application Support, never iCloud. Ported from the app so the host can test it.
 
 import Foundation
 
@@ -31,13 +31,13 @@ public struct BoardReviewDisk: Sendable {
 
   private func recordURL(_ session: String) -> URL { folder.appendingPathComponent("\(session).jsonl") }
 
-  /// Whether this session's review is already kept (story 1295: a session is reviewed once).
+  /// Whether this session's review is already kept (story 1312: a session is reviewed once).
   public func reviewed(_ session: String) -> Bool {
     FileManager.default.fileExists(atPath: recordURL(session).path)
   }
 
   /// The session so far, so one the app's closing cuts short is reviewed on the next open; never a session already
-  /// reviewed, so a write that was on its way when the board closed can't bring it back (story 1295).
+  /// reviewed, so a write that was on its way when the board closed can't bring it back (story 1312).
   public func keepPending(_ record: BoardSessionRecord) {
     guard !reviewed(record.header.session) else { return }
     ready()
@@ -50,7 +50,7 @@ public struct BoardReviewDisk: Sendable {
   }
 
   /// The pending session for the next open to review, cleared as it is taken; nil when there is none, or when it
-  /// was reviewed after all (story 1295).
+  /// was reviewed after all (story 1312).
   public func takePending() -> BoardSessionRecord? {
     let cut = pending()
     clearPending()

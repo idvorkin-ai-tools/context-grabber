@@ -33,7 +33,7 @@ extension WhiteboardModel {
     let log = log
     BoardReviewDisk.queue.async { [weak self] in
       BoardReviewDisk.prune()
-      // Story 1295: a session already reviewed (the app closed between its review and the clear) isn't again.
+      // Story 1312: a session already reviewed (the app closed between its review and the clear) isn't again.
       if let cut = store.takePending(), cut.hasIgorsStep {
         _ = Self.runReview(cut, why: "next_open", store: store, log: log)
       }
@@ -61,7 +61,7 @@ extension WhiteboardModel {
   /// One of the board's events, as the log wrote it, with the board's strokes and folds as they are now when it can
   /// change them (bead context-grabber-8ao5.3: what changed is the real strokes' change).
   func reviewTook(type: String, t: Double, fields: [String: Any]) {
-    // Story 1295: an event handed on before the board closed, arriving after, starts no session of its own.
+    // Story 1312: an event handed on before the board closed, arriving after, starts no session of its own.
     guard reviewTap != nil, let action = fields["action"] as? String, BoardReviewRecorder.reads.contains(action) else {
       return
     }

@@ -3,7 +3,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// Story 1295 (bead context-grabber-04ks): a session is reviewed once.
+/// Story 1312 (bead context-grabber-04ks): a session is reviewed once.
 final class BoardReviewDiskTests: XCTestCase {
   private var root: URL!
 
@@ -32,7 +32,7 @@ final class BoardReviewDiskTests: XCTestCase {
 
   private var disk: BoardReviewDisk { BoardReviewDisk(board: "b", root: root) }
 
-  /// Story 1295: a write of the session that was already on its way when the board closed lands after the close's
+  /// Story 1312: a write of the session that was already on its way when the board closed lands after the close's
   /// review, and leaves nothing for the next open to review again.
   func testAWriteLandingAfterTheReviewLeavesNothingPending() {
     let record = session(began: 1000)
@@ -43,7 +43,7 @@ final class BoardReviewDiskTests: XCTestCase {
     XCTAssertNil(disk.pending(), "a session already reviewed is never pending again")
   }
 
-  /// Story 1295: a pending session that was reviewed after all (the app closed between the review and the clear) is
+  /// Story 1312: a pending session that was reviewed after all (the app closed between the review and the clear) is
   /// dropped on the next open, not reviewed a second time.
   func testAPendingSessionAlreadyReviewedIsNotReviewedAgain() {
     let record = session(began: 1000)
@@ -54,7 +54,7 @@ final class BoardReviewDiskTests: XCTestCase {
     XCTAssertNil(disk.pending(), "and it is cleared")
   }
 
-  /// Story 1295: the next open still reviews a session the app's closing cut short.
+  /// Story 1312: the next open still reviews a session the app's closing cut short.
   func testACutShortSessionIsReviewedOnTheNextOpen() {
     let record = session(began: 1000)
     disk.keepPending(record)
@@ -62,7 +62,7 @@ final class BoardReviewDiskTests: XCTestCase {
     XCTAssertNil(disk.pending(), "taken once")
   }
 
-  /// Story 1295: closing one session's review never clears the next session's pending record.
+  /// Story 1312: closing one session's review never clears the next session's pending record.
   func testClearingOneSessionLeavesTheNextSessionPending() {
     let first = session(began: 1000)
     let next = session(began: 9000)
