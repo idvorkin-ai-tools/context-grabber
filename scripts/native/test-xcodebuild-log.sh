@@ -23,6 +23,9 @@ cat >"$dir/bin/xcodebuild" <<'FAKE'
 #!/usr/bin/env bash
 echo "$*" >"$FAKE_ARGS"
 [ -n "${FAKE_SLOW:-}" ] && sleep "$FAKE_SLOW"  # a compile, or a start that takes this long
+if [ -n "${FAKE_SESSION_LOG:-}" ]; then  # the app writes its session log during the run
+  mkdir -p "${FAKE_SESSION_LOG%/*}" && echo '{"event":"session_start"}' >"$FAKE_SESSION_LOG"
+fi
 if [ -n "${FAKE_NO_START:-}" ]; then  # a dark or locked Mac: the runner waits, and no test starts
   while :; do sleep 1; done
 fi
@@ -97,7 +100,10 @@ echo "** TEST SUCCEEDED **"
 FAKE
 chmod +x "$dir/bin/xcodebuild"
 # Story 1022: simctl, to see which apps a lock ends on which simulator.
-printf '#!/usr/bin/env bash\necho "$*" >>"%s"\n' "$dir/xcrun" >"$dir/bin/xcrun"
+# Bead 7un4: and the app's container, where its session logs are, when FAKE_CONTAINER names one.
+printf '#!/usr/bin/env bash\necho "$*" >>"%s"\n%s\n' "$dir/xcrun" \
+  'case $* in "simctl get_app_container"*) [ -n "${FAKE_CONTAINER:-}" ] && echo "$FAKE_CONTAINER" || exit 1 ;; esac' \
+  >"$dir/bin/xcrun"
 chmod +x "$dir/bin/xcrun"
 run() { PATH="$dir/bin:$PATH" NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
   scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" "$@" >/dev/null 2>&1; }
@@ -409,4 +415,20 @@ out=$(simrun FAKE_REOPEN=1 FAKE_LOCK_AFTER="$dir/lock" -- xcodebuild -scheme X "
 status=$?
 [ "$status" -eq 0 ] && [ ! -s "$dir/xcrun" ] && ok "a suite opened twice and closed once is finished: a lock after it stands" ||
   bad "a lock after a reopened suite: $status $out"
+# Bead context-grabber-7un4: a simulator run with a failed try keeps the session logs its app wrote during the run,
+# beside its log, before the next run's install clears them; one that passed keeps none, and an older log isn't taken.
+box="$dir/container"
+mkdir -p "$box/Documents/logs" && echo old >"$box/Documents/logs/before.jsonl"
+rm -rf "$dir/logs/fake.session-logs"
+out=$(simrun FAKE_RESULT=failed FAKE_EXIT=65 FAKE_EARLY_FAIL=1 FAKE_CONTAINER="$box" LOCK_PROBE="echo unlocked" \
+  FAKE_SESSION_LOG="$box/Documents/logs/during.jsonl" -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+[ -s "$dir/logs/fake.session-logs/during.jsonl" ] && [ ! -e "$dir/logs/fake.session-logs/before.jsonl" ] &&
+  ok "a failed simulator run keeps the session log its app wrote, not an older one" ||
+  bad "the session logs kept: $(ls "$dir/logs/fake.session-logs" 2>&1) $out"
+case $out in *"the session logs the app wrote during the run: $dir/logs/fake.session-logs"*) ok "and says where";;
+  *) bad "a failed run said: $out";; esac
+rm -rf "$dir/logs/fake.session-logs"
+simrun FAKE_PASS_CASE=1 FAKE_CONTAINER="$box" LOCK_PROBE="echo unlocked" FAKE_SESSION_LOG="$box/Documents/logs/pass.jsonl" -- \
+  xcodebuild -scheme X "${sim[@]}" test-without-building >/dev/null
+[ ! -e "$dir/logs/fake.session-logs" ] && ok "a passed run keeps none" || bad "a passed run kept $(ls "$dir/logs/fake.session-logs")"
 exit $fail

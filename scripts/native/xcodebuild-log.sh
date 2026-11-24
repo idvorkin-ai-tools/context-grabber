@@ -106,6 +106,27 @@ if [ "$is_test" -eq 1 ]; then
     prev=$a
   done
 fi
+# Bead context-grabber-7un4: the session logs the app wrote during a run with a failed try, kept beside the log, as the
+# next run's install clears the app's container (a flake's evidence was gone by the time it was looked at).
+run_started=$(mktemp "${TMPDIR:-/tmp}/xcodebuild-started.XXXXXX")
+trap 'rm -f "$run_started"' EXIT
+keep_session_logs() {
+  [ "$sim_test" -eq 1 ] && [ -n "$sim_udid" ] || return 0
+  grep -qE "^Test Case '.+' failed" "$log" || return 0
+  local b data dest=${log%.log}.session-logs
+  rm -rf "$dest" && mkdir -p "$dest" || return 0
+  for b in $sim_apps; do
+    case $b in *.xctrunner) continue ;; esac
+    data=$(xcrun simctl get_app_container "$sim_udid" "$b" data 2>/dev/null) || continue
+    find "$data/Documents/logs" -name '*.jsonl' -newer "$run_started" -exec cp -f {} "$dest/" \; 2>/dev/null
+  done
+  if [ -n "$(ls -A "$dest" 2>/dev/null)" ]; then
+    echo "the session logs the app wrote during the run: $dest" >&2
+  else
+    rmdir "$dest" 2>/dev/null
+  fi
+  return 0
+}
 # The app and its UI test runner, ended on the simulator when a lock stops the run, before a test can open the mic.
 sim_apps=${SIM_TEST_BUNDLES:-com.idvorkin.grabbernative com.idvorkin.grabbernative.uitests.xctrunner com.idvorkin.grabbernative.boardlab com.idvorkin.grabbernative.boardlab.uitests.xctrunner}
 end_sim_apps() {
@@ -296,7 +317,8 @@ fi
 # Where a test run's time went, per case, on screen and as JSON lines to compare runs (ui-timings.py), and the cases that
 # passed only on their retry and aren't quarantined (story 1017).
 flaky=$(mktemp "${TMPDIR:-/tmp}/ui-flaky.XXXXXX")
-trap 'rm -f "$flaky" "$locked_at" "$lock_seen" "$lock_stopped" "$unstarted" "$stopped" "$unfinished"' EXIT
+trap 'rm -f "$flaky" "$locked_at" "$lock_seen" "$lock_stopped" "$unstarted" "$stopped" "$unfinished" "$run_started"' EXIT
+keep_session_logs
 flakes_checked=
 if grep -q "^Test Case '" "$log"; then
   [ -n "$flaky" ] && "$(dirname "$0")/ui-timings.py" "$log" --run "$name" \
