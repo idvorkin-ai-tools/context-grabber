@@ -3540,6 +3540,29 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** no banner is on screen and the fresh messages are in place, and a later failure counts from one again, as does one more than five minutes after the thread's last failed read
 ---
 
+### User Story 1608:
+
+- **Summary:** A thread says it is loading while its first read is on its way
+- **Issues:** [#1362](https://github.com/idvorkin/context-grabber/issues/1362)
+- **Status:** in progress on branch native/chat-loading-1362
+- **Spec:** [Chat with Larry — Saying plainly when the Cockpit is down](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor opening a chat while the Cockpit is slow to answer
+- **I want to** see that the chat is loading rather than a blank page
+- **so that** I know it is on its way and do not take an empty screen for a lost chat
+
+#### Acceptance Criteria:
+- **Scenario:** A slow first read says it is loading
+- **Given:** a thread that has not been read since the app opened, and a Cockpit that takes several seconds to answer it
+- **When:** Igor opens the thread
+- **Then:** the thread says *Loading this chat…* with a spinner at once, and when the read lands the messages replace it
+- **Scenario:** Nothing to load says nothing
+- **Given:** a new chat from the +, or a thread whose messages are already on screen, or the device offline
+- **When:** the thread is on screen
+- **Then:** no *Loading this chat…* line shows
+---
+
 ### User Story 1607:
 
 - **Summary:** The + opens a new chat again after the last one landed

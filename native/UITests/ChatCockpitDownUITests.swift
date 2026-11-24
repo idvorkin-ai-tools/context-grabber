@@ -9,7 +9,10 @@ final class ChatCockpitDownUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
   override func tearDown() {
-    if let cockpit { try? down(cockpit, nil) }
+    if let cockpit {
+      try? down(cockpit, nil)
+      try? slow(cockpit, 0)
+    }
   }
 
   private var cockpit: String? {
@@ -27,6 +30,19 @@ final class ChatCockpitDownUITests: XCTestCase {
     request.httpMethod = "POST"
     request.httpBody = try JSONSerialization.data(withJSONObject: status.map { ["status": $0] } ?? [:])
     let done = expectation(description: "the fake Cockpit took /fake/down")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
+  /// Story 1608: the fake's thread reads wait `seconds` before they answer (0: at once).
+  private func slow(_ cockpit: String, _ seconds: Double) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/slow")))
+    request.httpMethod = "POST"
+    request.httpBody = try JSONSerialization.data(withJSONObject: ["seconds": seconds])
+    let done = expectation(description: "the fake Cockpit took /fake/slow")
     URLSession.shared.dataTask(with: request) { _, response, _ in
       XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
       done.fulfill()
@@ -83,5 +99,18 @@ final class ChatCockpitDownUITests: XCTestCase {
     try down(cockpit, nil)
     XCTAssertTrue(said.disappears(within: 20), app.debugDescription)
     XCTAssertTrue(larrys.exists)
+  }
+
+  /// Story 1608 (#1362): a thread whose first read is slow says it is loading, then shows its messages in its place.
+  func testASlowFirstReadSaysItIsLoading() throws {
+    let cockpit = try fakeCockpit()
+    try slow(cockpit, 6)
+    let app = launch(cockpit, ["GRABBER_LINK": "grabbernative://chat?thread=igor2-88g.900"])
+    let loading = app.descendants(matching: .any)["chat-thread-loading"]
+    XCTAssertTrue(loading.appears(within: 10), app.debugDescription)
+    let larrys = app.descendants(matching: .any)
+      .matching(NSPredicate(format: "label CONTAINS %@", "Every four seconds, and the list on each return")).firstMatch
+    XCTAssertTrue(larrys.appears(within: 20), app.debugDescription)
+    XCTAssertFalse(loading.exists, "the messages replace the loading line")
   }
 }

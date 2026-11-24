@@ -737,6 +737,22 @@ struct ChatThreadView: View {
                 autoFile: !chat.threadQuiet.contains(key)),
               logger: logger)
           }
+          if let key,
+            ChatThreadLoading.shows(
+              thread: true, read: chat.messages[key] != nil, pending: pending.count,
+              problem: chat.threadProblem[key] != nil, offline: inbox.offline)
+          {
+            // Story 1608 (#1362): a slow first read showed a blank page for as long as it took to time out.
+            HStack(spacing: 8) {
+              ProgressView()
+              Text(ChatThreadLoading.words).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("chat-thread-loading")
+            .onAppear { logger("chat", ["action": "thread_loading_shown", "thread": .string(key)]) }
+          }
           let answerFailed = ChatWire.answerFailed(messages)
           ForEach(messages) { message in
             MessageBubble(
