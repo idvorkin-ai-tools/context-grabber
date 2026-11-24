@@ -662,9 +662,9 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
     once. Closing the mic or leaving the board sends what was heard at once, as before.
   - While Larry holds for more (*Larry: waiting*, the ear), nothing changes: his words still wait for the next pause,
     tap or close, and that picture ends the hold as any turn does.
-  - The session log's `spoke` line says what sent the words (`pause`, `send`, `closed`, `switch_mic`) and how many
-    characters went. (Open, waiting on Igor via Larry, 2026-11-24: whether talking alone should still send after a
-    long silence, about 8 s. Until he says, it doesn't.)
+  - The session log says what sent the words and how many characters went ([debugging](../../debugging/whiteboard.md)).
+    (Open, waiting on Igor via Larry, 2026-11-24: whether talking alone should still send after a long silence, about
+    8 s. Until he says, it doesn't.)
   "draw a box around this" brings faint orange ghosts once the next picture goes, kept or dismissed like any others.
   They are still suggestions: nothing becomes ink without a Keep.
 - It works on an empty board: "draw a circle" shows ghosts in the part of the board on screen.
