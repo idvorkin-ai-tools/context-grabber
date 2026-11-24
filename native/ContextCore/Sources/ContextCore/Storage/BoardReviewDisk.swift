@@ -72,7 +72,12 @@ public struct BoardReviewDisk: Sendable {
     try? Data(session.utf8).write(to: unseenURL, options: .atomic)
   }
 
-  public func markSeen() { try? FileManager.default.removeItem(at: unseenURL) }
+  /// A board showed this session's review: its unseen mark goes, but only if it is still this session's, so a note
+  /// shown late for an earlier review never takes away a later one's (story 1297).
+  public func markSeen(_ session: String) {
+    guard unseenSession == session else { return }
+    try? FileManager.default.removeItem(at: unseenURL)
+  }
 
   /// The session whose review no board has shown yet.
   public var unseenSession: String? { try? String(contentsOf: unseenURL, encoding: .utf8) }

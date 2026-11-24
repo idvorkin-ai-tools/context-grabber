@@ -555,6 +555,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1297:
+
+- **Summary:** A review finished after the board closed still shows on its next open
+- **Status:** implemented in [b755b220](https://github.com/idvorkin/context-grabber/commit/b755b220); verified by host tests (`BoardReviewDiskTests`: a note shown late for an earlier review leaves a later review unseen). Not yet seen on the iPad (rung 3 owed)
+- **Issues:** context-grabber-om6m (no-mistakes review round 2 on PR #1379: a note shown late could clear a later review's unseen mark)
+- **Spec:** [Reviewing each writing session](../superpowers/specs/2026-11-23-board-interaction-review-design.md), *When a review runs*
+
+#### Use Case:
+- **As someone** who closes a board just after an earlier review's note showed
+- **I want to** still see the review of the session I just closed
+- **so that** no finding is lost because two reviews finished close together
+
+#### Acceptance Criteria:
+- **Scenario:** An earlier note shown late
+- **Given:** a session reviewed after I closed the board, and an earlier review's note shown just before
+- **When:** I open the board again
+- **Then:** the later review's note shows
+
+---
+
 ### User Story 1239:
 
 - **Summary:** A board only looked at is not reviewed

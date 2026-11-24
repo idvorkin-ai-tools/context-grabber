@@ -3,7 +3,8 @@ import XCTest
 
 @testable import ContextCore
 
-/// Story 1312 (bead context-grabber-04ks): a session is reviewed once.
+/// Stories 1312 and 1297 (beads context-grabber-04ks, context-grabber-om6m): a session is reviewed once, and a review
+/// that finished after its board closed is never lost to another review's note being shown.
 final class BoardReviewDiskTests: XCTestCase {
   private var root: URL!
 
@@ -69,5 +70,14 @@ final class BoardReviewDiskTests: XCTestCase {
     disk.keepPending(next)
     disk.clearPending(session: first.header.session)
     XCTAssertEqual(disk.pending()?.header.session, next.header.session)
+  }
+
+  /// Story 1297: a note shown late, for an earlier review, never takes away a later review's unseen mark.
+  func testShowingOneReviewLeavesAnotherUnseen() {
+    disk.markUnseen("b-2")
+    disk.markSeen("b-1")
+    XCTAssertEqual(disk.unseenSession, "b-2")
+    disk.markSeen("b-2")
+    XCTAssertNil(disk.unseenSession)
   }
 }

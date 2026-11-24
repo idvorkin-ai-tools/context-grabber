@@ -168,7 +168,8 @@ extension WhiteboardModel {
   func reviewShown(_ report: BoardReview.Report, of record: BoardSessionRecord) {
     review.show(report, of: record)
     let store = BoardReviewDisk(board: board.id)
-    BoardReviewDisk.queue.async { store.markSeen() }
+    let session = report.session
+    BoardReviewDisk.queue.async { store.markSeen(session) }
     reviewToLarry()
   }
 
