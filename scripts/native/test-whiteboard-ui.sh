@@ -33,6 +33,7 @@ kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port
 classes=(
   -only-testing:GrabberNativeUITests/WhiteboardBubblesUITests
   -only-testing:GrabberNativeUITests/WhiteboardConnectUITests
+  -only-testing:GrabberNativeUITests/WhiteboardConversationPlaceUITests
   -only-testing:GrabberNativeUITests/WhiteboardDropRoomUITests
   -only-testing:BoardLabUITests/WhiteboardEraserUITests
   -only-testing:GrabberNativeUITests/WhiteboardGroupTapUITests

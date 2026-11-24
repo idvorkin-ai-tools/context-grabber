@@ -23,6 +23,8 @@ struct WhiteboardView: View {
   @State private var clipboardHasText = false
   /// Bead context-grabber-dbku, story 1206: the board's thread, slid in over the board by *Open in Chat* or the note.
   @State private var chatJump: ChatJump?
+  /// Story 1279 (#1384): the conversation floats over the board as a card, or docks above it.
+  @AppStorage(WhiteboardPanelKeys.floating) private var panelFloating = false
   @Environment(\.dismiss) private var dismiss
   /// Story 1225: the thread this board was slid in over, so *Open in Chat* on it goes back rather than piling up.
   private let cameFromThread: String?
@@ -116,11 +118,22 @@ struct WhiteboardView: View {
       }
       // Story 1048 (#1003): the conversation sits above the paper and pushes it down, so it never covers ink. Story 837
       // (#917): a fifth of the page at most; past that it scrolls rather than grows.
-      if model.conversationOpen, !onPhone {
-        conversationPanel.fixedSize(horizontal: false, vertical: true)
+      // Story 1278 (#1384): a grip under it drags it taller or shorter, and the page moves with it.
+      if model.conversationOpen, !onPhone, !panelFloating {
+        WhiteboardConversationDocked(pageHeight: pageHeight) { height in
+          conversationPanel(height: height)
+        }
       }
       Group {
         PaperBoardCanvas(model: model, log: log)
+      }
+      // Story 1279 (#1384): floating, the conversation is a card over the board, where Igor last left it.
+      .overlay(alignment: .topLeading) {
+        if model.conversationOpen, !onPhone, panelFloating {
+          GeometryReader { area in
+            WhiteboardConversationCard(area: area.size) { height in conversationPanel(height: height) }
+          }
+        }
       }
       // Stories 950–953: ? and Feedback under the page number; off the top bar (#848) and the tool palette's bottom.
       // Stories 970–972: Larry's change was refused; a chip below them, over the board, so the paper never moves.
@@ -314,6 +327,12 @@ struct WhiteboardView: View {
     }
   }
 
+  /// Story 1279 (#1384): float the conversation over the board, or dock it above, and say so in the log.
+  private func placePanel(floating: Bool) {
+    panelFloating = floating
+    log.event("whiteboard", ["action": "conversation_place", "board": model.board.id, "floating": floating])
+  }
+
   /// Stories 970–972: Larry's refused change, with Retry and ×. Each takes a finger's worth of the chip, all of it its
   /// own: on main the bare glyphs let a tap through to the paper, which drew a dot (story 970's Issues).
   private var blockedChip: some View {
@@ -368,8 +387,9 @@ struct WhiteboardView: View {
       tapNote: { model.tapNote(onPhone: onPhone, openChat: openChat) })
   }
 
-  /// The open note over the board on an iPad (story 768), from the model's values (#1039).
-  private var conversationPanel: some View {
+  /// The open note over the board on an iPad (story 768), from the model's values (#1039), at `height` when dragged to
+  /// one (stories 1278, 1279).
+  private func conversationPanel(height: CGFloat?) -> some View {
     let model = model
     let openChat: (String) -> Void = { openThread($0, from: "board_panel") }
     let live: (ContinuousClock.Instant) -> [WhiteboardNote.Row] = { now in
@@ -381,7 +401,8 @@ struct WhiteboardView: View {
     return WhiteboardConversationPanel(
       rows: WhiteboardNote.recent(model.thread), ticks: WhiteboardNote.ticks(larry: model.larry, notice: nil),
       current: live(.now), live: live, pageHeight: pageHeight, openInChat: openInChat,
-      linkOpened: { model.logLinkOpened($0) }, chat: chat, threadKey: model.threadKey)
+      linkOpened: { model.logLinkOpened($0) }, chat: chat, threadKey: model.threadKey, height: height,
+      dock: WhiteboardPanelDock(floating: panelFloating) { placePanel(floating: !panelFloating) })
   }
 }
 

@@ -256,13 +256,17 @@ migrate chat so it's like a popover that I can move over the page, or can be doc
 - **A long press on a bubble copies its words.** There is no reacting, quoting or sending on from here: that is
   Chat's, one tap away through *Open in Chat*.
 
-### Resize, and float or dock (next)
+### Resize, and float or dock
 
 - **Resize, as on the web.** A grip on the panel's lower edge drags it taller or shorter, between about four lines and
-  most of the board. The height is remembered for the next board. Docked, the page moves with it, so ink is still
+  most of the board. The height is remembered for the next board. A double tap on the grip gives the panel back its
+  own size, a fifth at most, as before any drag. Docked, the page moves with it, so ink is still
   never under the panel.
-- **Float or dock.** A control on the panel undocks it into a card floating over the board, which a finger drags by
-  its top edge anywhere on the screen and resizes by its corner. Floating, the page moves back up and the card lies
+- **Float or dock.** **Float** at the panel's foot undocks it into a card floating over the board, which a finger
+  drags by its top edge anywhere on the board and resizes by its corner, never past the board's edges and never smaller
+  than a few lines and its controls. It first floats at the board's top left, a third of it wide, clear of *?* and
+  *Feedback* at its top right. The card holds the whole panel: the thread, the chip, what the mic hears, *Open in
+  Chat*, the Lines / Bubbles switch and **Dock**. Floating, the page moves back up and the card lies
   over the ink, so it is Igor's choice to cover ink, never the board's. Dock puts it back above the board. Floating or
   docked, and where the card was, are remembered.
 - **The Pencil never acts on the card either**: a stroke that starts on the card does nothing; one that starts on the
@@ -277,6 +281,14 @@ migrate chat so it's like a popover that I can move over the page, or can be doc
 - In Bubbles, a reply with a link: the link is a chip, and a finger tap opens it.
 - In Bubbles, a Pencil stroke on the panel neither scrolls it nor draws.
 - Tap **Lines**: the panel is as it was before this change.
+- Drag the grip under the docked panel down: the panel grows with the finger and the page moves down with it; let go,
+  close the board and open another: the panel is that tall there. Drag it up past about four lines: it stops there.
+  Double-tap the grip: it is its own size again.
+- Tap **Float**: the page moves back up and the conversation is a card at the board's top left. Drag its top edge:
+  it follows the finger and stops at the board's edges. Drag its corner: it grows and shrinks, never smaller than a
+  few lines. Close the board and open another: the card is where it was left. Tap **Dock**: it is above the board
+  again, at its docked height.
+- With the card floating, a Pencil stroke that starts on the card draws nothing; one that starts beside it draws.
 
 ## Larry is listening (Igor, 2026-11-22, context-grabber-4fww)
 

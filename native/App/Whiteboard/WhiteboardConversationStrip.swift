@@ -160,6 +160,10 @@ struct WhiteboardConversationPanel: View {
   /// Story 1277 (#1384): Chat's model and the board's thread, for the bubbles' links and tables; nil shows no switch.
   var chat: ChatModel?
   var threadKey: String?
+  /// Stories 1278, 1279 (#1384): the whole panel's height, dragged by its grip or the card's; nil for its own (story 837).
+  var height: CGFloat?
+  /// Stories 1279 (#1384): *Float* or *Dock* at the foot; nil offers neither.
+  var dock: WhiteboardPanelDock?
   /// Story 1277 (#1384): Lines or Bubbles, remembered for the next board.
   @AppStorage(WhiteboardPanelLook.storageKey) private var look: WhiteboardPanelLook = .lines
   /// Story 1045 (#1003): the conversation's text stops at about seventy characters of its own type.
@@ -169,20 +173,28 @@ struct WhiteboardConversationPanel: View {
   @ScaledMetric(relativeTo: .footnote) private var threadFloor: CGFloat = 64
 
   private var threadCap: CGFloat {
+    if let height { return max(height - panelChrome, threadFloor) }
     let page = pageHeight > 0 ? WhiteboardNote.panelHeight(board: Double(pageHeight)) : WhiteboardNote.panelFloor
     return max(CGFloat(page) - panelChrome, threadFloor)
   }
 
+  /// The thread: Lines or Bubbles.
+  @ViewBuilder private var thread: some View {
+    if look == .bubbles, let chat {
+      WhiteboardConversationBubbles(
+        bubbles: WhiteboardPanelLook.bubbles(rows), maxHeight: threadCap, chat: chat, thread: threadKey ?? ""
+      )
+      .environment(\.bubbleLinkOpened, linkOpened)
+    } else {
+      WhiteboardConversationText(rows: rows, maxHeight: threadCap, linkOpened: linkOpened)
+    }
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      if look == .bubbles, let chat {
-        WhiteboardConversationBubbles(
-          bubbles: WhiteboardPanelLook.bubbles(rows), maxHeight: threadCap, chat: chat, thread: threadKey ?? ""
-        )
-        .environment(\.bubbleLinkOpened, linkOpened)
-      } else {
-        WhiteboardConversationText(rows: rows, maxHeight: threadCap, linkOpened: linkOpened)
-      }
+      thread
+        // A dragged height is the thread's whether its messages fill it or not, as on the web.
+        .frame(height: height == nil ? nil : threadCap, alignment: .top)
       if ticks {
         TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(live(.now)) }
       } else {
@@ -195,6 +207,7 @@ struct WhiteboardConversationPanel: View {
             .accessibilityIdentifier("whiteboard-conversation-chat")
         }
         if chat != nil { WhiteboardPanelLookSwitch(look: $look) }
+        if let dock { WhiteboardPanelDockButton(dock: dock) }
       }
     }
     .frame(maxWidth: readableWidth, alignment: .leading)
