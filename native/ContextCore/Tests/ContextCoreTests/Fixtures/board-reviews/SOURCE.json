@@ -9,8 +9,7 @@
       "ipad-2026-11-23-6bae-b": "board 6bae4457, log 2, t 2200000..2300000 ms (the Keep and the 05:28 knob stretch), after a 12-minute idle gap"
     },
     "scrub": "board events only; no words are in them. Units are synthesized: the log has counts, boxes and move ranges, not stroke ids. Each stroke Igor wrote is a unit at its added_box; the board as first opened is one unit at its ink box; a kept reply is one unit (its group). An uneven move maps each unit from the move's from box onto its at box. Only observations are carried, never the log's verdicts (apart, verdict, pickup).",
-    "verdict": "~/tmp/agent/notes/ipad-writing-review-2026-11-23.md: no bug; the reflow as designed (story 1145); the knob stretch unclear; keeps clean; selections lost to the popover as designed",
-    "events": "ipad-2026-11-22-4d71.events and ipad-2026-11-23-6bae.events: the same logs' board events for those boards, only the actions and fields BoardReviewRecorder reads (no words), for BoardReviewRecorderTests"
+    "verdict": "~/tmp/agent/notes/ipad-writing-review-2026-11-23.md: no bug; the reflow as designed (story 1145); the knob stretch unclear; keeps clean; selections lost to the popover as designed"
   },
   "beads": {
     "check1-fires": "new ink hidden in a fold as it lands",

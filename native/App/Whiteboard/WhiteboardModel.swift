@@ -288,6 +288,8 @@ final class WhiteboardModel: ObservableObject {
     // Story 926: Talk's long press reads the dictation from the first frame; made here, its watches' first values land
     // before any view observes the model, not inside a view update.
     _ = dictation
+    // Stories 1237, 1238: the review hears the board's events from its first, the board as it opens included.
+    reviewListen()
   }
 
   /// The meaning was saved with a drawing of another size: a save was cut off between the two files, so a batch of

@@ -61,7 +61,11 @@ public struct BoardReviewShown: Equatable, Sendable {
   /// The findings as the list shows them, newest first.
   public var findings: [BoardReview.Finding] { (report?.findings ?? []).reversed() }
 
-  /// What goes to Larry with the board's next picture (story 1247), once: the review's words and his answers.
+  /// The most an event to Larry carries: the Cockpit keeps each event under 8 KB (Larry, 2026-11-23).
+  public static let larryBytes = 7000
+
+  /// What goes to Larry with the board's next picture (story 1247), once: the review's words and his answers, cut
+  /// short with a note saying so past `larryBytes`.
   public mutating func forLarry() -> String? {
     guard !toLarry, let report else { return nil }
     toLarry = true
@@ -72,7 +76,23 @@ public struct BoardReviewShown: Equatable, Sendable {
         "\nIgor on step \(finding.step) (check \(finding.check)): "
         + (answer == .meant ? "I meant that" : "not what I meant")
     }
-    return text
+    return Self.cut(text, to: Self.larryBytes)
+  }
+
+  /// `text` within `bytes` of UTF-8, whole lines, ending with a line that says it was cut and how much went.
+  public static func cut(_ text: String, to bytes: Int) -> String {
+    guard text.utf8.count > bytes else { return text }
+    var kept: [Substring] = []
+    var size = 0
+    let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+    for line in lines {
+      if size + line.utf8.count + 1 > bytes - 120 { break }
+      kept.append(line)
+      size += line.utf8.count + 1
+    }
+    let gone = lines.count - kept.count
+    return kept.joined(separator: "\n")
+      + "\n(cut short: the review ran past \(bytes / 1000) KB; \(gone) more lines are in the copy on the iPad)"
   }
 }
 

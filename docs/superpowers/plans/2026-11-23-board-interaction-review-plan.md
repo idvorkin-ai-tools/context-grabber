@@ -33,9 +33,15 @@ network, no clock read inside a check; the whiteboard file rule, one file per pi
 
 ## Slice 2: the iPad
 
-As built (bead `context-grabber-8ao5.2`): the recorder is `BoardReviewRecorder` in BoardCore, fed the board's own
-session-log events as `SessionLog` writes them (one listener), so the iPad's record is the one a pulled log converts
-to (`BoardReviewRecorderTests` holds it to the converter's fixtures). `WhiteboardModel+Review.swift` runs the idle
+As built (beads `context-grabber-8ao5.2`, `.3`): the recorder is `BoardReviewRecorder` in BoardCore. It hears the
+board's own session-log events as `SessionLog` writes them (one listener), and with each event that can change ink the
+board hands over every stroke as it is now (`PaperBoard+Review.swift`: element key, whose by the ledger's moments, box,
+hidden) and, with outline changes and Undo, every header's fold by the same keys. What a step changed is the diff of
+those, so a board that opens with ink, an erase, Undo and Redo, folds, a paste and Larry's ops are all the real
+strokes' change; the events say only the kind, who and the aim, and the board's own change within two seconds of a
+step (a drop's room, a keep's room, a paste coming in) joins it. A review runs on values alone, logs `board_review`
+and is kept with an *unseen* mark, so one started on close finishes after the board's model is gone and the next open
+shows it. On the iPad every check is observed, so none reads *not checked*. `WhiteboardModel+Review.swift` runs the idle
 wait, close, next open and the menu's review; `BoardReviewNote.swift` is the note, the list and *Show me*, which draws
 the record's outlines before and after the step rather than opening playback (the record holds geometry, and playback
 can't show moves or erased ink). Larry gets the words as a `board_review` event with the next picture's events.

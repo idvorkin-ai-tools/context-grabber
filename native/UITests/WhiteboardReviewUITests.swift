@@ -90,4 +90,39 @@ final class WhiteboardReviewUITests: XCTestCase {
     XCTAssertEqual(note.label, "Reviewed · clean", "story 1242: clean, because he asked")
     keep(app, "a clean review he asked for")
   }
+
+  /// Stories 1237, 1238 (bead context-grabber-8ao5.3): a board left right after writing is reviewed as it closes, and
+  /// the note shows when it opens again, though the board that started the review was gone; the board opens with its
+  /// ink, the next stroke puts the note away, and that session, reviewed from the menu, is clean.
+  func testAReviewStartedOnCloseShowsOnTheNextOpenAndTheReopenedBoardIsClean() {
+    let app = launch(["GRABBER_WHITEBOARD_REVIEW_IDLE": "600", "GRABBER_WHITEBOARD_REVIEW_FINDING": "1"])
+    strokeOnANewBoard(app)
+    sleep(1)
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+    card.tap()
+    let note = app.buttons["whiteboard-review-note"]
+    XCTAssertTrue(note.appears(within: 15), "the close's review on the next open: \(app.debugDescription)")
+    XCTAssertEqual(note.label, "Reviewed · 1 to look at")
+    keep(app, "the close's review, shown on the next open")
+    let send = app.buttons["whiteboard-send"]
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.6))
+      .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.6)))
+    waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 2 strokes"), send, timeout: 10)
+    // The helper waits for an element to be there; this waits for it to go.
+    let gone = Date().addingTimeInterval(5)
+    while note.exists, Date() < gone { RunLoop.current.run(until: Date().addingTimeInterval(0.1)) }
+    XCTAssertFalse(note.exists, "story 1243: his next stroke puts the note away")
+    app.buttons["whiteboard-board"].tap()
+    let review = app.descendants(matching: .any)["whiteboard-review-session"].firstMatch
+    XCTAssertTrue(review.appears(within: 5), app.debugDescription)
+    for _ in 0..<3 {
+      review.tapWhenSettled()
+      if note.appears(within: 3) || !review.exists { break }
+    }
+    XCTAssertTrue(note.appears(within: 10), app.debugDescription)
+    XCTAssertEqual(
+      note.label, "Reviewed · clean", "a board that opens with ink starts from it: its old stroke isn't new")
+  }
 }
