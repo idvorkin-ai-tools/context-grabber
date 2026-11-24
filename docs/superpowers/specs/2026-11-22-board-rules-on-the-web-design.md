@@ -315,6 +315,26 @@ versions 1 to 11 are unchanged.
   up. Null when the path takes no fold.
 - Asking changes nothing: the Cockpit erases on its own board with the answer and loads the outline again.
 
+## The interface, version 13: units the web board can use as its own
+
+Story 1263. Larry, 2026-11-23: the web board's own units have about fifteen callers, each needing a unit's key, its
+strokes and its objects apart, and its edges exactly as the page worked them out, since a cut compares them exactly.
+`bw_rows` now gives each unit those, so the page's own rule for units can go. `bw_info` says `"abi": 13`; versions 1
+to 12 are unchanged but for `bw_rows`.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_rows` | none | a reply: `{"units": [{"key", "names", "strokeIds", "objectIds", "object", "tag", "header", "box"}], "rows": [{"top", "bottom"}]}`; `{"error"}` with no outline |
+
+- `key` is `h:<header>` for a header's row, `o:<object>` for a kept text, a card or a group, and `s:<stroke>` for a
+  lone stroke; it stays the same while the unit does.
+- `strokeIds` are its ink, `objectIds` its kept texts and cards (a folded header's include the ones it hides) and the
+  group that makes it one; `object` is the text, card or group, null for a header or a lone stroke.
+- `box` and the rows are the page's own numbers: a stroke's edges are its points' extremes widened by half its pen
+  and a box's are the numbers sent, worked out in 64 bits from what the page sent. Which units there are and what
+  shows of each is still the rules' answer; on the web the rules' own geometry is 32-bit (Precision, below), so their
+  boxes would come back a hair off the page's.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

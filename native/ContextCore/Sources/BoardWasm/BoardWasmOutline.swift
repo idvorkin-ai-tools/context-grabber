@@ -128,6 +128,8 @@ enum WebOutline {
   /// The loaded outline's kept texts and groups, which it keeps to itself.
   var outlineTexts: [BoardText] = []
   var outlineGroups: [String: String] = [:]
+  /// The loaded outline's edges as the host sent them, in 64 bits (`bw_rows`).
+  var outlineEdges: [String: [Double]] = [:]
 
   /// Replaces the loaded outline. The number of strokes and boxes read, or -1 with nothing loaded.
   @_expose(wasm, "bw_outline_load")
@@ -136,10 +138,12 @@ enum WebOutline {
     outline = nil
     lastError = nil
     do {
-      let read = try WebOutline.parts(json: JSONSerialization.jsonObject(with: input(pointer, length)))
+      let json = try JSONSerialization.jsonObject(with: input(pointer, length))
+      let read = try WebOutline.parts(json: json)
       outline = read.outline
       outlineTexts = read.texts
       outlineGroups = read.groups
+      outlineEdges = WebEdges.of(json: json)
       return Int32(read.outline.strokes.count)
     } catch {
       return failed("the outline could not be read: \(error)")
@@ -154,8 +158,10 @@ enum WebOutline {
     lastError = nil
     guard var loaded = outline else { return failed("no outline is loaded") }
     do {
-      loaded.strokes += try WebOutline.strokes(json: JSONSerialization.jsonObject(with: input(pointer, length)))
+      let json = try JSONSerialization.jsonObject(with: input(pointer, length))
+      loaded.strokes += try WebOutline.strokes(json: json)
       outline = loaded
+      outlineEdges.merge(WebEdges.of(json: json)) { $1 }
       return Int32(loaded.strokes.count)
     } catch {
       return failed("the strokes could not be read: \(error)")
