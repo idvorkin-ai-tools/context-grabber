@@ -15,6 +15,9 @@ final class SessionLog: @unchecked Sendable {
   private var boardSent = 0
   /// This launch's name in the archive.
   let launch: String
+  /// Who hears each event as it is written: a board's review recorder (story 1237). Called on the caller's thread.
+  private let listenersLock = NSLock()
+  private var listeners: [UUID: (String, [String: Any]) -> Void] = [:]
 
   init() {
     let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -52,7 +55,26 @@ final class SessionLog: @unchecked Sendable {
     queue.sync { try? handle?.synchronize() }
   }
 
+  /// Hears every event from now on, until `stopListening` with the id this returns.
+  func listen(_ listener: @escaping (String, [String: Any]) -> Void) -> UUID {
+    let id = UUID()
+    listenersLock.lock()
+    listeners[id] = listener
+    listenersLock.unlock()
+    return id
+  }
+
+  func stopListening(_ id: UUID) {
+    listenersLock.lock()
+    listeners[id] = nil
+    listenersLock.unlock()
+  }
+
   func event(_ type: String, _ fields: [String: Any] = [:]) {
+    listenersLock.lock()
+    let hearing = Array(listeners.values)
+    listenersLock.unlock()
+    for listener in hearing { listener(type, fields) }
     let t = Int(Date().timeIntervalSince(startedAt) * 1000)
     let boards = WhiteboardLogArchive.Ring.takes(type: type, fields: fields)
     queue.async { [self] in

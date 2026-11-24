@@ -228,6 +228,13 @@ public struct BoardSessionRecord: Equatable, Sendable {
     self.steps = steps
   }
 
+  /// Whether the session has a step of Igor's own (story 1239): one only looked at is never reviewed.
+  public var hasIgorsStep: Bool { Self.hasIgorsStep(steps) }
+
+  static func hasIgorsStep(_ steps: [Step]) -> Bool {
+    steps.contains { ["pencil", "finger", "menu"].contains($0.by) && !["select", "deselect"].contains($0.kind) }
+  }
+
   /// A record's JSONL: its header, then one step per line.
   public init(jsonl data: Data) throws {
     let lines = String(decoding: data, as: UTF8.self).split(separator: "\n").filter {

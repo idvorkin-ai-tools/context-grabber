@@ -130,6 +130,10 @@ struct WhiteboardView: View {
             editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved,
             play: model.isEmpty ? nil : { model.startPlayback() })
           if model.blocked.showing { blockedChip.padding(.trailing, 20) }
+          // Stories 1242, 1243: a session's review, only when there is something to look at.
+          if let note = model.review.note {
+            BoardReviewChip(note: note) { model.openReview() }.padding(.trailing, 20)
+          }
         }
         // Story 1000: the chosen mark's buttons keep clear of this corner.
         .onGeometryChange(for: CGRect.self) {
@@ -155,6 +159,7 @@ struct WhiteboardView: View {
     .navigationBarTitleDisplayMode(.inline)
     // Stories 954, 956–958: playback over the whole board, its bars hidden.
     .modifier(WhiteboardPlaybackHost(model: model))
+    .sheet(isPresented: $model.reviewListOpen) { BoardReviewList(model: model) }
     .toolbar {
       // #965 (stories 1008, 1009): Undo and Redo where a finger reaches them, after the way back, whatever the tool picker
       // is doing.
@@ -267,6 +272,7 @@ struct WhiteboardView: View {
       under.appeared(screenID)
       model.backFromChat()
       model.opened()
+      model.reviewOpened()
       model.startWatchingLarry()
     }
     .onDisappear {
@@ -278,6 +284,7 @@ struct WhiteboardView: View {
       }
       model.endPlayback()  // story 957: closing the board ends playback, changing nothing
       model.stopMic(why: "closed")
+      model.reviewClosed()
       model.close()
     }
     .navigationDestination(item: $chatJump) { jump in

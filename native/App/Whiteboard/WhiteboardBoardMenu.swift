@@ -64,6 +64,7 @@ struct WhiteboardBoardMenu: View, Equatable {
       }
       // Story 896: kept labels moved off ink. One row, as the Board menu has room for no more (#848); Keep all is in
       // the note's line, beside the count of marks to keep (story 895).
+      // Story 1240: no review row; reviews run on idle and close only (Igor, 2026-11-24).
       Button("Tidy overlaps") {
         model.tidyOverlaps()
         model.canvas?.menuChose()

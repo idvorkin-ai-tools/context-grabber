@@ -325,6 +325,7 @@ final class WhiteboardStore: ObservableObject {
     keeping.removeFiles(id)
     BoardLines().forget(id)
     BoardLetteringChoice().forget(id)
+    BoardReviewDisk.forget(board: id)  // story 1248: its review records go with it
     let keys = BoardDeviceKeys.forget(id)
     pictures += 1
     log.event("whiteboard", ["action": "delete", "board": id, "why": reason, "own": own, "keys": keys])

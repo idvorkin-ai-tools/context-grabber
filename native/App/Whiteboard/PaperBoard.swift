@@ -519,7 +519,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// no Undo or Redo), what the watcher holds and what is on top where the ink changed.
   private func unheard(_ change: PaperProbe.InkChange, frames: [String: CGRect], undo: UndoManager?) -> [String: Any] {
     let undoing = undo?.isUndoing == true || undo?.isRedoing == true
-    var fields: [String: Any] = ["in_touch": run != nil, "selected": paper.selection.count, "undoing": undoing]
+    var fields: [String: Any] = [
+      "in_touch": run != nil, "selected": paper.selection.count, "undoing": undoing,
+      "redoing": undo?.isRedoing == true,
+    ]
     guard run == nil, !undoing, !change.isEmpty else { return fields }
     let box = (change.added + change.moved.map(\.id)).compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }
     fields.merge(watchState(at: box.isNull ? nil : viewSpot(box))) { $1 }
