@@ -1867,6 +1867,46 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1295:
+
+- **Summary:** The web board asks the app's own rules for room by hand
+- **Status:** implemented in f18f7b7b (`bw_room_by_hand`, interface 20); verified by the host tests (`WebByHandTests`: 1,360 seeded drags of the room handle on the four recorded boards and 30 seeded ones, against the app's own room by hand) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 310 checks, hand-worked drags among them), 2026-11-24
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 20
+- **Issues:** Larry's web parity list (cockpit-kp5), 2026-11-24: the web's push let blank paper absorb it, against the rigid push of 2026-11-22
+
+#### Use Case:
+- **As Igor,** making room with the margin handle on the Cockpit's web ink board
+- **I want to** have the handle open and close room as the iPad's does
+- **so that** room never closes onto my writing on the web
+
+#### Acceptance Criteria:
+- **Scenario:** Room by hand through the module
+- **Given:** the module built by `just wasm`, with a board of two lines of ink 200 apart
+- **When:** `just wasm-test` drags the handle down 50 between them, down 10, up 300, and down 80 from inside the first line
+- **Then:** down 50 opens one line; down 10 moves nothing; up 300 closes only the four whole lines of blank paper between them; from inside the first line the cut snaps to its bottom; each answer says how much blank paper could close there
+
+---
+
+### User Story 1298:
+
+- **Summary:** The web board asks the app's own rules for Larry's picture of a folded board
+- **Status:** implemented in f18f7b7b (`bw_fold_picture`, interface 20); verified by the host tests (`WebByHandTests`: the opened picture of every seeded board with a header folded, against the app's own fold picture) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 310 checks, a folded section among them), 2026-11-24
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 20
+- **Issues:** Larry's web parity list (cockpit-kp5), 2026-11-24
+
+#### Use Case:
+- **As Igor,** folding sections on the Cockpit's web ink board
+- **I want to** have Larry see my folded sections opened in full as he does from the iPad
+- **so that** Larry reads a folded board the same from either
+
+#### Acceptance Criteria:
+- **Scenario:** A folded section in Larry's picture
+- **Given:** an outline with a header whose two lines are folded under it
+- **When:** `just wasm-test` asks for the fold picture, then asks again with nothing folded
+- **Then:** the picture shows the two folded lines, slides what is below back down by the section's height, shades the section and maps the one fold back; with nothing folded there is no picture of its own
+
+---
+
 ### User Story 1284:
 
 - **Summary:** Writing never zooms the board, however the palm shifts
