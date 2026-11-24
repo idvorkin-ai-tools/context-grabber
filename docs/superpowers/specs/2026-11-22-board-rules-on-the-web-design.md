@@ -481,7 +481,7 @@ module remembers nothing of the marks. All answers are over the outline `bw_outl
 
 ## The interface, version 20: room by hand, and Larry's picture of a folded board
 
-Story 1295 (Larry for the web board, 2026-11-24, cockpit-kp5). Two answers the web board still worked out in its own
+Stories 1295 and 1298 (Larry for the web board, 2026-11-24, cockpit-kp5). Two answers the web board still worked out in its own
 JavaScript now come from the app's rules.
 
 **Room by hand.** Dragging the left-margin handle opens room in whole lines at the clear line nearest where the drag

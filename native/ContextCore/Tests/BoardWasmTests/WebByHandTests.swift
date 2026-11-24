@@ -4,9 +4,9 @@ import XCTest
 
 @testable import BoardWasm
 
-/// Story 1295 (spec 2026-11-22-board-rules-on-the-web-design.md, The interface, version 20): `bw_room_by_hand` and
-/// `bw_fold_picture` answer what the app's own room by hand and Larry's picture of a folded board decide, on the
-/// Cockpit's recorded boards and on seeded ones.
+/// Stories 1295 and 1298 (spec 2026-11-22-board-rules-on-the-web-design.md, The interface, version 20):
+/// `bw_room_by_hand` and `bw_fold_picture` answer what the app's own room by hand and Larry's picture of a folded
+/// board decide, on the Cockpit's recorded boards and on seeded ones.
 final class WebByHandTests: XCTestCase {
   private func boards() throws -> [WebBoard] {
     try WebBoard.recorded() + (UInt64(1)...30).map { try WebBoard.seeded($0) }
