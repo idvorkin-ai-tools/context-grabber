@@ -52,7 +52,7 @@ fail=0
 echo "== $(swift --version 2>&1 | head -1)"
 echo "== Linux: swift test ($(uname -m))"
 log=$build/linux-test.log
-low swift test -j "$jobs" --scratch-path "$build/linux" "${flags[@]}" >"$log" 2>&1
+low swift test -j "$jobs" --scratch-path "$build/linux" ${flags[@]+"${flags[@]}"} >"$log" 2>&1
 status=$?
 grep -E "error:|Fatal error" "$log" | head -20
 summary=$(grep -E "Executed [0-9]+ tests" "$log" | tail -1 | sed 's/^[[:space:]]*//')
@@ -67,7 +67,7 @@ fi
 echo "== Linux: board-ops harness"
 log=$build/board-ops.log
 fixtures=Tests/ContextCoreTests/Fixtures/board-ops
-if low swift run -j "$jobs" --scratch-path "$build/linux" "${flags[@]}" board-ops-harness \
+if low swift run -j "$jobs" --scratch-path "$build/linux" ${flags[@]+"${flags[@]}"} board-ops-harness \
   --board "$fixtures/judge-board.json" --ops "$fixtures/judge-ops.json" --out "$build/board-ops/judge" >"$log" 2>&1 \
   && grep -q '<svg' "$build/board-ops/judge.svg" && grep -Eq '"action" ?: ?"applied"' "$build/board-ops/judge.result.json"; then
   echo "ok   board-ops harness: the Judge batch replayed, $build/board-ops/judge.svg written"
