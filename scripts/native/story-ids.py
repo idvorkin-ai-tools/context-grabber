@@ -27,11 +27,18 @@ pushed in between; then it reads the ledger again and picks again, up to five ti
 nothing else on the remote is touched. Main is read from that same remote.
 Fails, handing out nothing, when main can't be fetched, the open PRs can't be listed, or the shared ledger can't be
 read or written.
+
+       story-ids.py claimed [--dir stories-dir]   (story 1515, bead context-grabber-6p52; the gate's lint step, as
+                                                    just pipeline-lint)
+Fails naming each story ID the tree adds over the shared remote's main that another open PR adds too; the branch's own
+PR (the open one sharing a non-merge commit subject with the branch's commits over main) doesn't count. Fails rather
+than guess when main can't be fetched or the open PRs can't be listed.
 Overrides, for the tests: STORY_IDS_REMOTE (the remote, a name or a path, instead of the one found by URL),
 STORY_IDS_REPO (the repository git runs in, default the stories dir's), STORY_IDS_LOCK (default
 ~/tmp/agent/locks/story-ids.lock), STORY_IDS_GH (the gh command), STORY_IDS_MAIN (a stories dir read as main instead
 of the remote's main), STORY_IDS_NOW (epoch seconds), STORY_IDS_BRANCH (the branch the ledger records),
-STORY_IDS_HOLD (seconds to wait between reading the ledger and writing it, so the race tests overlap).
+STORY_IDS_HOLD (seconds to wait between reading the ledger and writing it, so the race tests overlap), STORY_IDS_BASE
+(a ref claimed reads as main's head instead of fetching it).
 """
 import fcntl
 import json
