@@ -660,7 +660,7 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 - A **microphone** in the board's bar stays open while he draws, until he taps it again or leaves the board.
 - **The mic listens continuously; only a long silence sends** (Igor, 2026-11-24, his whiteboard picks: "continuous
   listening with the words showing live, replacing the 1.5 s pause-to-send"; then, the same day: "Keep a silence
-  send, only after 5 s or more"; stories 1281, 1289). It stays open while he talks, thinks and draws. A pause in his
+  send, only after 5 s or more"; stories 1281, 1305). It stays open while he talks, thinks and draws. A pause in his
   speech under **5 s** sends nothing; **5 s or more** of silence after words he hasn't sent yet sends them with the
   board as it is then, and the mic stays open. This replaces the end-of-phrase wait (1.5 s after a sentence, 3 s
   after a plain phrase, 5 s after a hanging word; story 1118, bead `context-grabber-u1yy`), which still cut him off
@@ -679,7 +679,7 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
   - **Switching microphones keeps listening**: the words heard so far wait for the next picture instead of going at
     once. Closing the mic or leaving the board sends what was heard at once, as before.
   - While Larry holds for more (*Larry: waiting*, the ear), nothing changes: his words still wait for the next pause,
-    tap or close, and that picture ends the hold as any turn does.
+    tap, close or 5 s of silence, and that picture ends the hold as any turn does.
   - The session log says what sent the words (the silence among them) and how many characters went
     ([debugging](../../debugging/whiteboard.md)).
   "draw a box around this" brings faint orange ghosts once the next picture goes, kept or dismissed like any others.
