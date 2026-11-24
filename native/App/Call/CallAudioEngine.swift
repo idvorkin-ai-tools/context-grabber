@@ -82,6 +82,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var oddFrames = 0
   private var underruns = 0
   private var publishedMicDeadline = MicStartupDeadline()
+  /// Story 1073: the engine's echo cancellation, published for the main thread; nil with no engine.
+  private var publishedVoiceProcessing: Bool?
 
   /// #441, #582: whether the app was in front when a start was tried, read on the audio queue without waiting on main.
   private var appState = "unknown"
@@ -328,6 +330,10 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     lock.withLock { publishedMicDeadline }
   }
 
+  func voiceProcessing() -> Bool? {
+    lock.withLock { publishedVoiceProcessing }
+  }
+
   private func currentMicDeadline() -> MicStartupDeadline {
     let route = session.currentRoute
     let bluetooth = (route.inputs + route.outputs).contains {
@@ -371,6 +377,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       // The call still works, with echo; say so where a bad call's log will show it.
       log("call_audio", ["action": "voice_processing", "ok": false, "message": describe(error)])
     }
+    let enabled = engine.inputNode.isVoiceProcessingEnabled
+    lock.withLock { publishedVoiceProcessing = enabled }
     let player = AVAudioPlayerNode()
     engine.attach(player)
     self.engine = engine
@@ -832,6 +840,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     tapInstalled = false
     mixTapInstalled = false
     engine = nil
+    lock.withLock { publishedVoiceProcessing = nil }
     player = nil
     playerFormat = nil
   }

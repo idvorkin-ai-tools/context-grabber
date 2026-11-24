@@ -63,6 +63,8 @@ final class CallModel: ObservableObject {
   /// #440, #439, story 209: the network under the call, logged at its start and at every change while it is up.
   private var pathMonitor: NWPathMonitor?
   private var lastPath: CallNetworkPath?
+  /// Story 1073: the call's audio, asked whether echo cancellation is on for what the bridge is told.
+  private var callAudio: CallAudio?
   /// BugKit's automatic report, set by AppModel once its reporter exists: (reason, context, files).
   var autoReport: ((String, [String: JSONValue], [URL]) -> Void)?
   /// One stable reason, so BugKit's ten-minute window holds across calls and relaunches.
@@ -116,6 +118,15 @@ final class CallModel: ObservableObject {
     }
     deps.appState = { Self.appState() }
     deps.holdNotice = { [weak self] notice in self?.holdNotice(notice) }
+    callAudio = audio
+    // Story 1073: the device, route, audio and network, read as the bridge answers.
+    deps.meta = { [weak self] in
+      MainActor.assumeIsolated {
+        CallMeta(
+          device: .current(), route: .current(), audio: .current(voiceProcessing: self?.callAudio?.voiceProcessing()),
+          network: self?.lastPath)
+      }
+    }
     session = CallSession(deps: deps, url: bridgeURL)
     session.onChange = { [weak self] snap in self?.onChange(snap) }
     session.onLevel = { [weak self] level in self?.level = level }
@@ -130,10 +141,15 @@ final class CallModel: ObservableObject {
     }
     NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
-    ) { [weak self] _ in
+    ) { [weak self] note in
+      let raw = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt ?? 0
       MainActor.assumeIsolated {
         self?.route = CallAudioEngine.describeRoute()
         self?.refreshDevices()
+        // Story 1073: the bridge hears of a route that changed devices; the session drops the same devices.
+        self?.session.routeChanged(
+          .current(), audio: .current(voiceProcessing: self?.callAudio?.voiceProcessing()),
+          reason: AudioRouting.reasonName(raw))
       }
     }
   }
@@ -354,6 +370,8 @@ final class CallModel: ObservableObject {
     event("call_network", path.fields.merging(["action": first ? "start" : "change"]) { _, new in new })
     // #440: a lost connection soon after redials, but only onto a network that is up: no network is not a handoff.
     if !first, path.status == "satisfied" { session.networkChanged() }
+    // Story 1073: the bridge is told each change; the first reading rides the start frame's meta.
+    if !first { session.networkPathChanged(path) }
   }
 
   private nonisolated static func networkPath(_ path: NWPath) -> CallNetworkPath {

@@ -148,6 +148,8 @@ final class CallHarness {
   /// #582: the app's state as the session reads it; a refused mic start holds unless it is "active".
   var appState = "active"
   var notices: [CallHoldNotice] = []
+  /// Story 1073: what the call says about itself, read when the socket opens; nil sends no meta.
+  var meta: CallMeta?
   var session: CallSession!
 
   init(build: String = "", diagnostics: Bool = false) {
@@ -169,6 +171,7 @@ final class CallHarness {
     deps.callSettings = { [unowned self] in self.settings }
     deps.appState = { [unowned self] in self.appState }
     deps.holdNotice = { [unowned self] in self.notices.append($0) }
+    deps.meta = { [unowned self] in self.meta }
     let s = CallSession(deps: deps, url: "wss://h/bridge")
     s.onChange = { [unowned self] in self.states.append($0) }
     s.onLevel = { [unowned self] in self.levels.append($0) }
