@@ -559,7 +559,7 @@ docks along the bottom and takes every tap there.
     header's mark: *Fold all*, *1*, *2*, *3*, *Unfold all*.
   - *On the page:* a finger held still brings the same menu. The Pencil held still on a word picks it up: drag and lift
     to move it, or lift without moving to select it. A line underlined, or started with a #, becomes a header (## and
-    ### make a level-2 and a level-3 header, whose sections nest), and Undo takes the mark and the header; a rule drawn across the page ends a section. A fast zigzag over ink scratches it out. The lasso, then *To text*,
+    ### make a level-2 and a level-3 header, whose sections nest), and Undo takes the mark and the header; a rule drawn across the page ends a section. A fast zigzag over ink scratches it out. A finger held on writing, then *To text*,
     turns handwriting into typed text. The Pencil held still at a stroke's end snaps it to a straight line, a rectangle
     or an ellipse.
   - *Larry's marks:* *Keep all* beside the count of marks keeps every one as ink where it showed, each reply as one group; *Tidy overlaps* in the Board
@@ -622,6 +622,24 @@ which the paper answers. Igor: "better would be using my long hold paste". So a 
 - **A selection's own menu stays without them**: tapped, a selection still offers what acts on it (Copy, Delete and the
   rest), never *Paste* or *Select All*.
 - A menu that would hold nothing else doesn't come up at all.
+
+### What a tap selects (#1386; Igor, 2026-11-24: "what gets selected when I tap in the box is a bit confusing")
+
+Principle 3 of the vision: one touch, one meaning; a tap picks up one thing, and he can tell beforehand what. Decided
+(Igor, 05:19): **To text only in the hold menu**, never beside a selection (stories 1309, 1310); with *A tap brings up
+no system menu*, nothing pops up on a plain tap. A hold on his selection acts on all of it.
+
+Still open, for Igor: what a single finger tap selects. Today it depends on what is under it: a group of Larry's whole
+(story 947), one thing of Larry's (story 1140), a kept text (story 1197), inside his selection the selection (story
+1196), and on his own plain writing whatever PaperKit's own tap picks, which is the surprise.
+
+- **A (recommended): a tap picks up the thing the hold menu would name, and shows it first.** The thing under the finger
+  is the same one *Select* in the hold menu takes (a word of his, a group, a kept text, a header's row, one thing of
+  Larry's), outlined faintly the moment the finger lands, and selected when it lifts. Inside his selection, the
+  selection. On blank paper, nothing.
+- **B: a tap never selects.** Selecting is the lasso or the hold menu's *Select*; a tap only clears a selection. The
+  most predictable, but a group of Larry's no longer comes up whole on a tap (story 947).
+- **C: as today, with only the outline added.** The least change; his own writing still selects what PaperKit picks.
 
 ### The log says what a moving touch held and what moved (story 1143, bead context-grabber-eg7v)
 

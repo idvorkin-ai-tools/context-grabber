@@ -163,7 +163,9 @@ struct ConnectButton: View {
   var body: some View {
     GeometryReader { geometry in
       if let arrow {
-        let place = Self.place(arrow: arrow, toText: toText.frame, in: CGRect(origin: .zero, size: geometry.size))
+        // Clear of *Reading…* while To text reads (#1386: nothing else of To text shows beside a selection).
+        let place = Self.place(
+          arrow: arrow, toText: toText.reading ? toText.frame : nil, in: CGRect(origin: .zero, size: geometry.size))
         Button("Connect", systemImage: "arrow.right.circle") { controller.connect() }
           .accessibilityIdentifier("whiteboard-connect")
           .font(.subheadline.weight(.semibold))

@@ -389,8 +389,11 @@ existing text, I want it to move just like if I was to select text" (stories 969
   was chosen 3 times: held on his own writing, it offered nothing about that writing. So a finger held still **on ink**
   on the page (within a fingertip of it: the word under it, a group of Larry's, a kept text or a header's row whole,
   as the Pencil's pick-up finds it) puts the rows for that thing first:
-  - *Select*: that thing is selected, as if lassoed, with its label and *To text* beside it, ready to drag or for the
+  - *Select*: that thing is selected, as if lassoed, with its label above it, ready to drag or for the
     selection's own menu (Copy, Delete and the rest).
+  - *To text* (stories 1309, 1310; #1386): that thing read and typed in its place, as To text does (*Handwriting to
+    text*). It is the only place To text is offered: nothing shows beside a selection. The web board's hold menu has
+    the same row, as the rule is the shared core's.
   - *Delete*: it goes, one Undo named *Delete*, and Larry hears it erased. Not offered on a header's row: rubbing a
     header out has its own rules, above.
   - then *Make room here*, *Paste* and *Make header* (or *Not a header*), as before.

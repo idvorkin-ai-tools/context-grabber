@@ -183,7 +183,8 @@ extension PaperBoardController {
   }
 }
 
-/// Story 920: To text beside the lasso's ink. Over the board, not in it, so it is in no picture.
+/// Story 920: *Reading…* beside the ink while the Cockpit reads it. Over the board, not in it, so it is in no picture.
+/// To text itself is offered only in the hold menu (stories 1309, 1310; #1386): nothing shows beside a selection.
 struct ToTextButton: View {
   let controller: PaperBoardController
   @ObservedObject var state: BoardToTextState
@@ -191,18 +192,16 @@ struct ToTextButton: View {
 
   var body: some View {
     GeometryReader { geometry in
-      if let frame = state.frame {
+      if let frame = state.frame, state.reading {
         let place = WhiteboardMarkChoice.place(
           mark: frame, buttons: Self.size, in: CGRect(origin: .zero, size: geometry.size))
-        Button(state.reading ? "Reading…" : "To text", systemImage: "character.textbox") { controller.toTextTapped() }
-          .disabled(state.reading)
-          .accessibilityIdentifier("whiteboard-to-text")
+        Label("Reading…", systemImage: "character.textbox")
+          .accessibilityIdentifier("whiteboard-to-text-reading")
           .font(.subheadline.weight(.semibold))
-          .buttonStyle(.bordered)
-          .controlSize(.small)
           .frame(width: Self.size.width, height: Self.size.height)
           .background(.regularMaterial, in: Capsule())
           .position(x: place.midX, y: place.midY)
+          .allowsHitTesting(false)
       }
     }
   }

@@ -59,15 +59,20 @@ extension PaperBoardController {
 
   /// Stories 874, 1186, 1187: the rows are ContextCore's, by what the finger is on.
   private func showHoldMenu(at point: CGPoint, spot: CGPoint) {
-    let outline = model.outline(of: paper.markup.map { opStrokes($0).strokes } ?? [])
+    let strokes = paper.markup.map { opStrokes($0).strokes } ?? []
+    let outline = model.outline(of: strokes)
+    // Story 1310: held on his selection, the menu is about all of it (a lasso, then To text from the hold).
+    let elements = paper.markup?.subelements.strokes ?? []
+    let selected = zip(elements, strokes).filter { paper.selection.contains($0.0.elementID) }.flatMap { $0.1.ids }
     let menu = outline.holdMenu(
-      at: point, inMargin: point.x < BoardMargin.width, slop: 22 / max(screenScale, 0.01))
-    holdMenu = HoldMenu(spot: spot, y: point.y, items: menu.choices, names: menu.names, on: menu.on)
+      at: point, inMargin: point.x < BoardMargin.width, slop: 22 / max(screenScale, 0.01), selected: selected)
+    let items = toText.reading ? menu.choices.filter { $0 != .toText } : menu.choices
+    holdMenu = HoldMenu(spot: spot, y: point.y, items: items, names: menu.names, on: menu.on)
     log.event(
       "board_outline",
       [
         "action": "hold_menu", "board": model.board.id, "y": Double(point.y), "x": Double(point.x),
-        "items": menu.choices.map(\.id), "on": menu.on, "strokes": menu.names.count,
+        "items": items.map(\.id), "on": menu.on, "strokes": menu.names.count,
       ])
   }
 
@@ -80,6 +85,7 @@ extension PaperBoardController {
       ["action": "hold_chose", "board": model.board.id, "item": item.id, "on": menu.on, "strokes": menu.names.count])
     switch item {
     case .select: holdSelect(menu.names)
+    case .toText: holdToText(menu.names)
     case .delete: holdDelete(menu.names)
     case .makeRoom: room(at: menu.y, dy: 3 * BoardRoom.line, why: "menu")
     case .paste: paste(from: "hold")

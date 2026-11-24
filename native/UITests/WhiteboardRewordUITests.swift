@@ -30,9 +30,8 @@ final class WhiteboardRewordUITests: XCTestCase {
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)))
     let send = app.buttons["whiteboard-send"]
     waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 1 strokes"), send, timeout: 10)
-    let toText = app.buttons["whiteboard-to-text"]
-    XCTAssertTrue(toText.appears(within: 10), "To text beside the selection: \(app.debugDescription)")
-    toText.tap()
+    XCTAssertTrue(app.selectionLabel.appears(within: 10), "the ink selected: \(app.debugDescription)")
+    app.toTextFromHold(at: CGVector(dx: 0.45, dy: 0.5))
     waitUntil(
       NSPredicate(format: "label BEGINSWITH 'Send to Larry, ' AND label != 'Send to Larry, 1 strokes'"), send,
       timeout: 15)
@@ -166,7 +165,7 @@ final class WhiteboardRewordUITests: XCTestCase {
     // A diagonal, selected a second after it is drawn: its box's bottom-right corner is about (0.6, 0.55).
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.4))
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.55)))
-    XCTAssertTrue(app.buttons["whiteboard-to-text"].appears(within: 10), "selected: \(app.debugDescription)")
+    XCTAssertTrue(app.selectionLabel.appears(within: 10), "selected: \(app.debugDescription)")
     sleep(1)
     // Below the selection's label, above its box.
     let below = PaperScreen.Box(minX: 0.2, minY: 0.45, maxX: 0.9, maxY: 0.74)

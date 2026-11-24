@@ -7,7 +7,7 @@ labels, whose one-word-plus-what-it-does naming this follows).
 ## The idea in one line
 
 When something on the board is selected, a small label beside it says what it is and what applies to it: *Text · tap
-to reword*, *Ink · To text*, *Connector · follows its two ends*.
+to reword*, *Ink · hold for To text*, *Connector · follows its two ends*.
 
 ## Why
 
@@ -36,13 +36,13 @@ said how much was selected.
     group holds kept texts (a box and its label, or two labels, are one group, not *2 things*). Part of one:
     *Part of a group · erasing it leaves ink*; a kept text inside a group, selected alone, is part of that group.
   - A text or group a connector ends on adds *· a connector follows it*.
-  - Only plain ink: *Ink · To text*.
+  - Only plain ink: *Ink · hold for To text* (To text is only in the hold menu, #1386).
   - Several texts and groups, no plain ink: *2 things · move together* (the count is how many).
   - Plain ink with texts, groups or connectors: *Ink and a text*, *Ink and a group*, *Ink and 3 things*.
 - **It says it again after a change of Igor's**: after the eraser takes part of a selected text (it is ink now), and
   after an undo or redo, the label says what the selection is then.
 - **Not shown** on a look-only board, beside a paste (it has its own Delete), or while a text is open for rewording.
-- **The buttons don't change.** To text and Connect show exactly as before; the label only names them.
+- **The buttons don't change.** Connect shows as before; To text is only in the hold menu (#1386), and the label points there.
 - **VoiceOver** reads it as *Selected: Text, tap to reword*, and it is reachable as one element.
 - **The board's ? sheet** has a row for it: *Select something: a label above it says what it is and what applies*, with a
   few of the labels as examples.
@@ -50,9 +50,9 @@ said how much was selected.
 
 ## Acceptance criteria
 
-- A lasso round Igor's handwriting shows *Ink · To text* above it, and To text beside it as before.
-- A selected kept text shows *Text · tap to reword*; erasing part of it and selecting the rest shows *Ink · To text*;
-  Undo brings the erased strokes back as ink, so the label on them still says *Ink · To text*.
+- A lasso round Igor's handwriting shows *Ink · hold for To text* above it, and nothing beside it (#1386).
+- A selected kept text shows *Text · tap to reword*; erasing part of it and selecting the rest shows *Ink · hold for To text*;
+  Undo brings the erased strokes back as ink, so the label on them still says *Ink · hold for To text*.
 - A group of Larry's that holds kept texts (a box and its label, or two labels), all selected, shows *Group · moves as
   one*; a kept text in no group still shows *Text · tap to reword*.
 - A selected connector shows *Connector · follows its two ends*; a word a connector ends on, selected, says *Group ·

@@ -76,7 +76,7 @@ public enum BoardSelectionLabel {
         : Label(kind: .connector, words: ["\(connectors) connectors", "follow their ends"])
     }
     if connectReady { return Label(kind: .arrow, words: ["Arrow", "Connect"]) }
-    if found.isEmpty { return Label(kind: .ink, words: ["Ink", "To text"]) }
+    if found.isEmpty { return Label(kind: .ink, words: ["Ink", "hold for To text"]) }
     if plain > 0 {
       guard found.count == 1, let one = found.first else {
         return Label(kind: .mixed, words: ["Ink and \(found.count) things"])

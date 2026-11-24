@@ -178,6 +178,18 @@ public struct BoardOutline: Sendable {
 
   private func isText(_ tag: String?) -> Bool { tag.map { id in texts.contains { $0.id == id } } ?? false }
 
+  /// Story 1309: these strokes' names are one kept text, whole, even where a header's row or a group holds it.
+  func isKeptText(_ chosen: [String]) -> Bool {
+    let wanted = Set(chosen)
+    let byTime = BoardText.byTime(texts)
+    let live = strokes.indices.filter { !erased.contains($0) }
+    func text(_ m: Int) -> String? { BoardText.owning(strokes[m].t, in: byTime)?.id }
+    guard let first = live.first(where: { !wanted.isDisjoint(with: strokes[$0].ids) }), let id = text(first) else {
+      return false
+    }
+    return Set(names(live.filter { text($0) == id })) == wanted
+  }
+
   // MARK: - Headers
 
   /// A fold that still holds: what it hid is still hidden. An Undo that shows it again opens the fold.

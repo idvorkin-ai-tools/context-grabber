@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 20, `bw_info abi is 20: ${JSON.stringify(info)}`);
+check(info.abi === 21, `bw_info abi is 21: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -312,16 +312,28 @@ check(wordAt(500, 200) === null, 'off ink: nothing');
 check(same(wordAt(150, 420), ['t']), `on the kept text: the text: ${JSON.stringify(wordAt(150, 420))}`);
 check(same(wordAt(120, 100), ['h1']), "on the header: its row");
 const holdAt = (px, py, margin = false) => reply(x.bw_hold_menu(px, py, margin ? 1 : 0, 22));
-check(same(holdAt(105, 200), { choices: ['select', 'delete', 'make-room', 'paste', 'make-header'], names: ['a', 'b'], on: 'ink' }),
-  `a finger on a word: Select, Delete, then the line's rows: ${JSON.stringify(holdAt(105, 200))}`);
-check(same(holdAt(120, 100), { choices: ['select', 'make-room', 'paste', 'not-header'], header: 'H', names: ['h1'], on: 'header' }),
+check(same(holdAt(105, 200), { choices: ['select', 'to-text', 'delete', 'make-room', 'paste', 'make-header'], names: ['a', 'b'], on: 'ink' }),
+  `a finger on a word: Select, To text, Delete, then the line's rows: ${JSON.stringify(holdAt(105, 200))}`);
+check(same(holdAt(120, 100), { choices: ['select', 'to-text', 'make-room', 'paste', 'not-header'], header: 'H', names: ['h1'], on: 'header' }),
   `on a header: no Delete, and Not a header: ${JSON.stringify(holdAt(120, 100))}`);
-check(same(holdAt(120, 300), { choices: ['select', 'delete', 'make-room', 'paste'], names: ['g1'], on: 'group' }),
+check(same(holdAt(120, 300), { choices: ['select', 'to-text', 'delete', 'make-room', 'paste'], names: ['g1'], on: 'group' }),
   `on a group of Larry's: the group, and no Make header (it is no one's writing): ${JSON.stringify(holdAt(120, 300))}`);
 check(same(holdAt(500, 250), { choices: ['make-room', 'paste'], names: [], on: 'paper' }), `on blank paper: ${JSON.stringify(holdAt(500, 250))}`);
 check(same(holdAt(30, 100, true), { choices: ['fold-all', 'level-1', 'level-2', 'level-3', 'unfold-all'], names: [], on: 'header-mark' }),
   `in the margin beside a header: the outline: ${JSON.stringify(holdAt(30, 100, true))}`);
 check(same(holdAt(30, 200, true), { choices: ['make-room', 'paste', 'make-header'], names: [], on: 'paper' }), 'in the margin beside a line: its rows');
+// Interface 21 (story 1310): held on the selection, the menu takes all of it, To text and Delete, no Select; held
+// off it, the thing under the finger as before.
+const holdOn = (px, py, selected) => ask('bw_hold_menu_on', { x: px, y: py, in_margin: false, slop: 22, selected });
+check(same(holdOn(105, 200, ['a', 'b', 'c']), { choices: ['to-text', 'delete', 'make-room', 'paste', 'make-header'], names: ['a', 'b', 'c'], on: 'selection' }),
+  `on the selection, all of it: ${JSON.stringify(holdOn(105, 200, ['a', 'b', 'c']))}`);
+check(same(holdOn(105, 200, ['c']), holdAt(105, 200)), `off the selection, the word as before: ${JSON.stringify(holdOn(105, 200, ['c']))}`);
+check(same(holdOn(105, 200, []), holdAt(105, 200)), 'nothing selected: as bw_hold_menu');
+check(holdOn(500, 250, ['a']).on === 'paper', 'blank paper with a selection elsewhere: the paper');
+check(same(ask('bw_hold_menu_on', { x: 30, y: 100, in_margin: 1, slop: 22, selected: [] }), holdAt(30, 100, true)) &&
+  same(ask('bw_hold_menu_on', { x: 30, y: 100, in_margin: true, slop: 22, selected: [] }), holdAt(30, 100, true)),
+  'in_margin as a number or a bool: the margin either way');
+check(ask('bw_hold_menu_on', { y: 1 }).error === 'no x and y', 'no x: says so');
 check(call('bw_outline_load', 'not json') === -1 && reply(x.bw_word_at(0, 0, 10)).error === 'no outline is loaded' &&
   reply(x.bw_hold_menu(0, 0, 0, 22)).error === 'no outline is loaded', 'with no outline, both say so');
 

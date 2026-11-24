@@ -53,13 +53,13 @@ final class WhiteboardToTextUITests: XCTestCase {
     let cockpit = try cockpit()
     try arm(cockpit, "{}")
     let app = try openBoard(cockpit)
-    let toText = app.buttons["whiteboard-to-text"]
-    XCTAssertTrue(toText.appears(within: 10), "To text beside the selection: \(app.debugDescription)")
-    // Story 1095: the label above the selection names it as ink, with what applies.
-    let named = app.descendants(matching: .any)["whiteboard-selection-label"]
-    XCTAssertTrue(named.appears(within: 5), "the selection's label: \(app.debugDescription)")
-    XCTAssertEqual(named.label, "Selected: Ink, To text")
-    toText.tap()
+    // Story 1095: the label above the selection names it as ink, and where To text is.
+    let named = app.selectionLabel
+    XCTAssertTrue(named.appears(within: 10), "the selection's label: \(app.debugDescription)")
+    XCTAssertEqual(named.label, "Selected: Ink, hold for To text")
+    // Stories 1309, 1310 (#1386): nothing beside the selection; To text is in the hold menu, held on the selection.
+    XCTAssertFalse(app.buttons["whiteboard-to-text"].exists, "no To text beside the selection")
+    app.toTextFromHold(at: CGVector(dx: 0.45, dy: 0.5))
     waitUntil(
       NSPredicate(format: "label BEGINSWITH 'Send to Larry, ' AND label != 'Send to Larry, 1 strokes'"),
       app.buttons["whiteboard-send"], timeout: 15)
@@ -73,9 +73,8 @@ final class WhiteboardToTextUITests: XCTestCase {
     try arm(cockpit, #"{"status": 502, "error": "the model failed"}"#)
     defer { try? arm(cockpit, "{}") }
     let app = try openBoard(cockpit)
-    let toText = app.buttons["whiteboard-to-text"]
-    XCTAssertTrue(toText.appears(within: 10), app.debugDescription)
-    toText.tap()
+    XCTAssertTrue(app.selectionLabel.appears(within: 10), app.debugDescription)
+    app.toTextFromHold(at: CGVector(dx: 0.45, dy: 0.5))
     XCTAssertTrue(app.buttons["copy-error"].appears(within: 15), "copyable: \(app.debugDescription)")
     let said = app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS %@", "To text failed: the model failed")

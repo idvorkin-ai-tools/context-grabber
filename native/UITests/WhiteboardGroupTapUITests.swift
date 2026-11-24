@@ -1,7 +1,7 @@
 //  Story 947 (#947) on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): a finger
 //  tap on one stroke of a kept group selects the whole group, a finger drags it as one, and one Undo puts it back. Where
 //  the group sits is read from the screen's pixels (`PaperScreen`, in WhiteboardPaperGhostsUITests.swift); what is
-//  selected, from To text, which shows beside the selected ink. Which strokes a tap reaches is `BoardOutlineTests`.
+//  selected, from the selection's label (story 1095). Which strokes a tap reaches is `BoardOutlineTests`.
 
 import XCTest
 
@@ -100,21 +100,19 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     let marks = try keptGroup(app)
     let send = app.buttons["whiteboard-send"]
     let kept = try XCTUnwrap(visibleGroup(app, at: marks), "all three circles kept at their ghost positions")
-    let toText = app.buttons["whiteboard-to-text"]
-    XCTAssertFalse(toText.exists, "nothing selected yet")
+    let selected = app.selectionLabel
+    XCTAssertFalse(selected.exists, "nothing selected yet")
     shot(app, "kept group")
 
     // The first circle's left side: one stroke of the three.
     PaperScreen.tap(app, CGPoint(x: kept.minX + 0.003, y: kept.center.y))
-    XCTAssertTrue(toText.appears(within: 5), "the tap selected ink: \(app.debugDescription)")
+    XCTAssertTrue(selected.appears(within: 5), "the tap selected ink: \(app.debugDescription)")
     sleep(2)  // past the selection PaperKit makes of the same tap, and its dot
-    XCTAssertTrue(toText.exists, "still selected a beat later")
-    let window = app.windows.firstMatch.frame
-    let selected = toText.frame
+    XCTAssertTrue(selected.exists, "still selected a beat later")
     shot(app, "the group selected by a tap")
     XCTAssertEqual(send.label, "Send to Larry, 4 strokes", "no dot drawn for the tap")
-    // To text sits beside the selection, so it spans the whole group, not one circle.
-    XCTAssertGreaterThan(selected.maxX / window.width, kept.maxX - 0.05, "the whole group selected: \(selected)")
+    // The label names what is selected (story 1095): the whole group, not one circle.
+    XCTAssertTrue(selected.label.hasPrefix("Selected: Group"), "the whole group selected: \(selected.label)")
 
     // A finger drags it down by a tenth of the window, from inside the selection (its edges are PaperKit's handles).
     let from = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y))
@@ -144,7 +142,7 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     let marks = try keptGroup(app)
     let kept = try XCTUnwrap(visibleGroup(app, at: marks), "all three circles kept at their ghost positions")
     PaperScreen.tap(app, CGPoint(x: kept.minX + 0.003, y: kept.center.y))
-    XCTAssertTrue(app.buttons["whiteboard-to-text"].appears(within: 5), "the tap selected ink: \(app.debugDescription)")
+    XCTAssertTrue(app.selectionLabel.appears(within: 5), "the tap selected ink: \(app.debugDescription)")
     sleep(2)  // past the stand-in offer, shown 0.6 s after the tap
     shot(app, "after the offer")
     XCTAssertFalse(
@@ -164,6 +162,6 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his reply in his purple")
     PaperScreen.tap(app, CGPoint(x: kept.center.x, y: kept.maxY + 0.08))
     sleep(2)
-    XCTAssertFalse(app.buttons["whiteboard-to-text"].exists, "blank paper beside it selects nothing")
+    XCTAssertFalse(app.selectionLabel.exists, "blank paper beside it selects nothing")
   }
 }

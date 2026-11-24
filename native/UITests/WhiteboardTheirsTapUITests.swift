@@ -1,7 +1,7 @@
 //  Story 1140 (#1171) on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): Larry's
 //  three circles, each its own reply, kept one at a time with Keep, each its own thing; a finger tap on the first selects that circle alone (its Delete
 //  takes it and leaves the other two), and one Undo puts it back. A finger drag of a selection is story 947's test. Where the circles sit is read from the screen's pixels (`PaperScreen`,
-//  in WhiteboardPaperGhostsUITests.swift); what is selected, from To text, which shows beside the selected ink. Which
+//  in WhiteboardPaperGhostsUITests.swift); what is selected, from the selection's label (story 1095). Which
 //  strokes a tap reaches is `BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`.
 
 import XCTest
@@ -83,15 +83,15 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     waitUntil(NSPredicate(format: "label != %@", "Send to Larry, 1 strokes"), send, timeout: 10)
     let label = send.label
     let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his three circles in his purple")
-    let toText = app.buttons["whiteboard-to-text"]
-    XCTAssertFalse(toText.exists, "nothing selected yet")
+    let selected = app.selectionLabel
+    XCTAssertFalse(selected.exists, "nothing selected yet")
     shot(app, "kept all")
 
     // The first circle's left side: the circles are 40 board points wide, touching, so the first is the left third.
     PaperScreen.tap(app, CGPoint(x: kept.minX + 0.003, y: kept.center.y))
-    XCTAssertTrue(toText.appears(within: 5), "the tap selected ink: \(app.debugDescription)")
+    XCTAssertTrue(selected.appears(within: 5), "the tap selected ink: \(app.debugDescription)")
     sleep(2)  // past the selection PaperKit makes of the same tap, and its dot
-    XCTAssertTrue(toText.exists, "still selected a beat later")
+    XCTAssertTrue(selected.exists, "still selected a beat later")
     XCTAssertEqual(send.label, label, "no dot drawn for the tap")
     shot(app, "one circle selected by a tap")
 
