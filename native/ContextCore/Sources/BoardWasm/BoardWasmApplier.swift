@@ -75,7 +75,8 @@ struct WebApplier {
       }
       applier = BoardOpApplier(
         rev: JSONNumber(json["rev"])?.intValue ?? 0, handled: Self.strings(json["handled"]),
-        lastResult: BoardOps.Result(wire: json["last_result"]), touches: touches, since: JSONNumber(json["since"])?.intValue)
+        lastResult: BoardOps.Result(wire: json["last_result"]), touches: touches,
+        since: JSONNumber(json["since"])?.intValue)
       letThrough = nil
     case "changed":
       applier.changed()
