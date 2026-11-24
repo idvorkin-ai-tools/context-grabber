@@ -32,7 +32,7 @@ with the reason), and deletes. A `.json` the app cannot decode is left alone and
     Cockpit's https origin (no token is set up), `shared_at` as ISO 8601.
   - `outcome(status:body:)` reads the answer: 200 ok (with `duplicate`) means sent; 4xx means refused with the
     reason, never retried; 5xx or no answer means retry.
-  - `sendable(_:maxBytes:)`: PNG, JPEG, GIF and WebP go as they are when they fit 10 MB; anything else (HEIC), or
+  - `sendable(_:maxBytes:)`: PNG, JPEG, GIF and WebP go as they are when they fit `maxBytes` (the Cockpit's cap); anything else (HEIC), or
     one too big, is re-encoded to JPEG with ImageIO, which runs on the host too. It starts at the image's own long
     side (at most 4096 px) and steps down by a quarter each time, to 512, until the JPEG fits.
   - `thumbnail(_:maxPixels:)`: a bounded ImageIO preview, decoded once per item (the extension's card, the Inbox
