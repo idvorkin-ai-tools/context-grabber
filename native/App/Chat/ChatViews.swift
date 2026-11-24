@@ -739,7 +739,7 @@ struct ChatThreadView: View {
           }
           if let key,
             ChatThreadLoading.shows(
-              thread: true, read: chat.messages[key] != nil, pending: pending.count,
+              read: chat.messages[key] != nil, pending: pending.count,
               problem: chat.threadProblem[key] != nil, offline: inbox.offline)
           {
             // Story 1608 (#1362): a slow first read showed a blank page for as long as it took to time out.

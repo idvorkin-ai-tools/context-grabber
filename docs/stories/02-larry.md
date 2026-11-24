@@ -3544,7 +3544,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A thread says it is loading while its first read is on its way
 - **Issues:** [#1362](https://github.com/idvorkin/context-grabber/issues/1362)
-- **Status:** implemented in [86c5457e](https://github.com/idvorkin/context-grabber/commit/86c5457e); verified by the host rung (`ChatThreadLoadingTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests.testASlowFirstReadSaysItIsLoading` against the fake Cockpit's `/fake/slow`, with the other chat classes); the devices are not yet verified
+- **Status:** implemented in [13706a3b](https://github.com/idvorkin/context-grabber/commit/13706a3b); verified by the host rung (`ChatThreadLoadingTests`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`ChatCockpitDownUITests.testASlowFirstReadSaysItIsLoading` against the fake Cockpit's `/fake/slow`, with the other chat classes); the devices are not yet verified
 - **Spec:** [Chat with Larry — Saying plainly when the Cockpit is down](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -3556,11 +3556,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A slow first read says it is loading
 - **Given:** a thread that has not been read since the app opened, and a Cockpit that takes several seconds to answer it
 - **When:** Igor opens the thread
-- **Then:** the thread says *Loading this chat…* with a spinner at once, and when the read lands the messages replace it
-- **Scenario:** Nothing to load says nothing
-- **Given:** a new chat from the +, or a thread whose messages are already on screen, or the device offline
-- **When:** the thread is on screen
-- **Then:** no *Loading this chat…* line shows
+- **Then:** the thread says *Loading this chat…* with a spinner at once, and when the read lands the messages replace it; a new chat from the +, a thread whose messages are already on screen, or the device offline never shows the line
 ---
 
 ### User Story 1607:
