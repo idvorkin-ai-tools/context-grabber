@@ -375,6 +375,30 @@ final class WhiteboardScratchOutTests: XCTestCase {
     XCTAssertEqual(Set(outcome.gone), ["word", "tall", "between"])
   }
 
+  /// Story 1266: a zigzag that also touches the start of an arrow running down from the word takes the word and the
+  /// arrow, never the small letters beside the arrow on the line below, though they lie within the outline round all
+  /// three.
+  func testATouchedArrowNeverStretchesTheScratchOutOverTheLineBelow() {
+    let word = Scratch.Ink(
+      id: "word",
+      points: stride(from: 100, through: 300, by: 2).map { CGPoint(x: $0, y: Int($0) % 4 == 0 ? 105 : 125) },
+      width: 2)
+    let arrow = Scratch.Ink(
+      id: "arrow", points: (0..<30).map { CGPoint(x: 150, y: 115 + CGFloat($0) * 135 / 29) }, width: 2)
+    let below = Scratch.Ink(id: "below", points: [CGPoint(x: 135, y: 140), CGPoint(x: 143, y: 150)], width: 1)
+    let zig = [(95, 100), (305, 108), (95, 115), (305, 122), (95, 130)].map { CGPoint(x: $0.0, y: $0.1) }
+      .reduce(into: [CGPoint]()) { points, end in
+        guard let last = points.last else { return points.append(end) }
+        for k in 1...10 {
+          let t = CGFloat(k) / 10
+          points.append(CGPoint(x: last.x + (end.x - last.x) * t, y: last.y + (end.y - last.y) * t))
+        }
+      }
+    let outcome = Scratch.check(zig, ms: 600, over: [word, arrow, below])
+    XCTAssertTrue(outcome.ok, outcome.why ?? "")
+    XCTAssertEqual(Set(outcome.gone), ["word", "arrow"])
+  }
+
   /// Story 1283: the retry, 37 points at 0.35 points per millisecond, now scratches the mark out.
   func testASmallZigzagScratchesOutAtASmallZigzagsSpeed() throws {
     let retry = try XCTUnwrap(try leftOne().first { $0.name == "the retry" })

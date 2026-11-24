@@ -299,20 +299,23 @@ public enum WhiteboardScratchOut {
     }
     if all > 0, Double(inside) / Double(all) < over { return no(shape.wanders ? "wanders, beside ink" : "beside ink") }
     return Outcome(
-      ok: true, gone: hits + enclosed(by: points, taking: taken, of: ink), reversals: shape.reversals, speed: speed,
+      ok: true, gone: hits + enclosed(by: points, in: zone, taking: taken, of: ink), reversals: shape.reversals,
+      speed: speed,
       why: nil)
   }
 
   /// The strokes the zigzag doesn't touch that lie wholly within the outline round it and the ink it `taken` (their
-  /// convex hull, grown by the reach a sweep has): a mark between two sweeps, a dot or a crossbar inside the struck
-  /// word (cockpit-9g1, story 1282). In the board's order.
-  static func enclosed(by points: [CGPoint], taking taken: Set<String>, of ink: [Ink]) -> [String] {
+  /// convex hull) and within the zigzag's own `zone`, both grown by the reach a sweep has: a mark between two sweeps,
+  /// a dot or a crossbar inside the struck word, never ink a long touched stroke stretched the outline over
+  /// (cockpit-9g1, stories 1282, 1266). In the board's order.
+  static func enclosed(by points: [CGPoint], in zone: CGRect, taking taken: Set<String>, of ink: [Ink]) -> [String] {
     let outline = hull(points + ink.filter { taken.contains($0.id) }.flatMap(\.points))
     guard outline.count >= 3 else { return [] }
     return ink.filter { stroke in
       guard !taken.contains(stroke.id), !stroke.points.isEmpty else { return false }
       let pad = reach + stroke.width / 2
-      return stroke.points.allSatisfy { inHull($0, outline, grownBy: pad) }
+      let near = zone.insetBy(dx: -pad, dy: -pad)
+      return stroke.points.allSatisfy { within($0, near) && inHull($0, outline, grownBy: pad) }
     }.map(\.id)
   }
 
