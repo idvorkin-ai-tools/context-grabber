@@ -210,7 +210,9 @@ covers the screen with the trainer's own drill, the same one as in the trainer a
   day by how many answers it had, with a *Practiced / Right / Wrong* switch; a day with no answers is blank, and
   tapping a day says its numbers (story 568, trainer story 076). *Misses first* still reads all time.
   A Stats load that fails shows as a copyable error in the sheet, with the days asked for and the answers waiting
-  (#563).
+  (#563). When the ledger refuses the phone's key (it answers 401 or 403), the error also says what to do: the
+  phone's pairing has lapsed or was refused, so ask Larry in chat for a pair link and paste it into *Pair with code*
+  (#1371).
 - **Pairing** (story 238, the trainer's stories 070, 071 and 074): the phone's pairing with Larry's box is one
   Keychain item shared by Grabber Native and the trainer, so pairing in either app pairs both. While paired, the drill
   sends with the phone's own key to the ledger the pairing names and the pasted URL and key wait under *Advanced*.

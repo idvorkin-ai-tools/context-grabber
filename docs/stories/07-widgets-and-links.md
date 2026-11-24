@@ -679,9 +679,12 @@ redeem and reads the phone's shared pairing.
 ### User Story 227:
 
 - **Summary:** A Stats load that fails in the drill is a copyable error
-- **Status:** native app only: implemented in [f0f149e](https://github.com/idvorkin/context-grabber/commit/f0f149e) (#563), on the drill of story 220; verified by a simulator build only, the failure itself not yet seen on a simulator or the phone
-- **Issues:** [#563](https://github.com/idvorkin/context-grabber/issues/563)
+- **Status:** native app only: implemented in [f0f149e](https://github.com/idvorkin/context-grabber/commit/f0f149e) (#563), on the drill of story 220; verified by a simulator build only, the failure itself not yet seen on a simulator or the phone; a refused key (401, 403) says to ask Larry in chat for a pair link in [3231680d](https://github.com/idvorkin/context-grabber/commit/3231680d) (#1371), verified by host tests (`DrillPairingHintTests`), the Mac build, and the iPad Pro 11-inch (M5) simulator (`CardUITests`; the refusal itself not yet seen on a device)
+- **Issues:** [#563](https://github.com/idvorkin/context-grabber/issues/563), [#1371](https://github.com/idvorkin/context-grabber/issues/1371)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+On 2026-11-23 the iPhone's Stats said only *Could not load the stats: the ledger answered 401*: the phone's key had
+lapsed, and nothing said so or what to do (#1371).
 
 #### Use Case:
 - **As a** man practising his stack, who reports what goes wrong by pasting it
@@ -693,6 +696,12 @@ redeem and reads the phone's shared pairing.
 - **Given:** the ledger can't be reached or refuses the key
 - **When:** I open *Stats* in the drill
 - **Then:** the sheet shows the failure as a copyable error carrying the days asked for and the answers waiting, never the key
+
+- **Scenario:** The ledger refuses the phone's key
+- **Given:** the phone's pairing has lapsed or the ledger refuses its key
+- **When:** I open *Stats* and the ledger answers 401 or 403
+- **Then:** the copyable error says the pairing has lapsed or was refused and to ask Larry in chat for a pair link to
+  paste into *Pair with code*; any other failure reads as before
 
 ---
 

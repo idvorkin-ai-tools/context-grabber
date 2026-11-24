@@ -5,6 +5,7 @@
 //  *Drill the stack* (story 220) covers it with the trainer's drill, graded into this app's own ledger.
 
 import BugKit
+import ContextCore
 import SwiftUI
 import ThinkACardCore
 import ThinkACardUI
@@ -53,7 +54,8 @@ struct CardView: View {
                   extra["where"] = .string(failure.context)
                   return AnyView(
                     BugProblemView(
-                      problem: .grabber(failure.message, context: "CardView.drillStats", extra: extra),
+                      problem: .grabber(
+                        DrillPairingHint.explained(failure.message), context: "CardView.drillStats", extra: extra),
                       logger: app.bugLogger))
                 }
               )
