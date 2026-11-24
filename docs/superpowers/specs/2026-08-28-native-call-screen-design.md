@@ -756,6 +756,42 @@ Home (±12 m)*). No fix is ever a reason for a call not to start: without
 location permission, or with no fix in time, the call simply carries no
 location. What Larry does with it is the bridge's.
 
+### What the call says about itself
+
+Igor, on a call, 2026-11-24 06:13 (via Larry): Grabber should send call
+metadata whenever it has it: where he is, the microphone and the output
+it is on, route changes mid-call, and anything else useful. The Cockpit
+keeps it beside the call and shows it on its call debug page, so a bad
+call can be read without the phone in hand.
+
+When a call starts, the bridge is told, alongside where Igor is:
+
+- **the device**: its model (*iPhone17,2*, *iPad16,3*) and system
+  (*iOS 27.2*);
+- **the route**: the microphone and every output by the names iOS shows
+  for them (*AirPods Pro*, *iPhone Microphone*, *Speaker*) and what kind
+  each is (built-in microphone, speaker, Bluetooth headset, USB, car…), or
+  no microphone;
+- **the audio**: the audio session's category and mode, its sample rate
+  and buffer length, and whether echo cancellation is on;
+- **the network**: whether it is up, whether the call is on Wi-Fi,
+  cellular or wired, what else is available, and whether it is metered or
+  in Low Data Mode, once the phone has a first reading.
+
+During the call, each time the microphone or the outputs actually change
+(AirPods put in or taken out, a pick in the devices menu, a car taking
+the call), one small message says why iOS changed the route, what it is
+now and the audio as it is now. A change that leaves the same microphone
+and outputs sends nothing, so a call is a handful of these, not a stream.
+Each time the network changes under the call (Wi-Fi to cellular, the
+network dropping), one small message says what it is now.
+
+Nothing is asked for: no permission prompt, no extra wait. What the
+phone does not know is left out, never guessed: no Bluetooth codec (iOS
+does not say), and never a device's hardware identifier (a Bluetooth
+headset's carries its hardware address). A bridge that does not read
+these ignores them. Where Igor is keeps its own rules (above).
+
 ### What the day has held
 
 From the 2026-10-26 review (proposal P-1, picked by Igor): Direct Larry
@@ -1117,6 +1153,12 @@ delivers is separate and unchanged: once per dead burst.
     hears Igor and Igor still hears Larry; the devices line does not change. Back out: the call carries on. Same
     with the Gym Timer: START a round mid-call, its face counts and stays silent, RESET, the call carries on. Hang
     up with a workout running: within a couple of seconds the next cue sounds and the note is gone.
+
+49. **The Cockpit knows what the call was on** (context-grabber-2k58). Start a call on the speaker over Wi-Fi:
+    the Cockpit's call debug page shows the device, *iPhone Microphone* and *Speaker* with their kinds, the
+    audio session and Wi-Fi. Put AirPods in: one route change appears naming them and why iOS changed it. Pick
+    the same AirPods again in the devices menu: nothing new appears. Turn Wi-Fi off: one network change appears
+    naming cellular. No permission prompt at any point, and no device hardware identifier anywhere.
 
 ## Rationale and risks
 **Why native rather than fixing the web view.** WebKit on iOS suspends

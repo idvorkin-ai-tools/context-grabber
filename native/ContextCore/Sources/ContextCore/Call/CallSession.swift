@@ -136,10 +136,14 @@ public protocol CallAudio: AnyObject {
   func stats() -> PlaybackStats?
   /// Current route and input format, for the no-first-buffer watch (#423).
   func micStartupDeadline() -> MicStartupDeadline
+  /// Story 1073: echo cancellation on the call's microphone, for the bridge; nil before the engine exists.
+  func voiceProcessing() -> Bool?
 }
 
 extension CallAudio {
   public func micStartupDeadline() -> MicStartupDeadline { MicStartupDeadline() }
+  /// Story 1073: echo cancellation on the call's microphone; nil when the audio layer can't say.
+  public func voiceProcessing() -> Bool? { nil }
 }
 
 public struct CallSessionDeps {
@@ -159,6 +163,9 @@ public struct CallSessionDeps {
   public var appState: () -> String = { "active" }
   /// #582: the held call's notification, posted once per call and removed when the hold ends.
   public var holdNotice: (CallHoldNotice) -> Void = { _ in }
+  /// Story 1073: what the call says about itself (device, route, audio, network), read when the socket opens, for
+  /// the start frame; nil sends none.
+  public var meta: () -> CallMeta? = { nil }
 
   public init(
     connect: @escaping (String) throws -> BridgeSocket, audio: CallAudio, scheduler: CallScheduler,
@@ -264,6 +271,8 @@ public final class CallSession {
   private var probeSent = false
   private var probeTimer: CallTimer?
   private var socketOpen = false
+  /// Story 1073: the route the bridge was last told of (the start frame's, then each `route` frame's).
+  private var sentRoute: CallRoute?
   /// The last fix the app gave; rides the start frame, and a `location` frame when it changes (#107).
   private var location: CallLocation?
   /// Story 217: today so far, set just before a call starts.
@@ -334,10 +343,13 @@ public final class CallSession {
       var logged: [String: Any] = [:]
       if let location = self.location { logged["location"] = location.description }
       if let today { logged["today"] = today.description }
+      let meta = self.deps.meta()
+      self.sentRoute = meta?.route
+      if let meta { logged["route"] = meta.route.description }
       self.send(
         CallProtocol.startFrame(
           backend: backend, build: self.deps.build, voice: fields.voice, model: fields.model, location: self.location,
-          today: today, stt: fields.stt),
+          today: today, stt: fields.stt, meta: meta),
         frame: "start", logged)
     }
     socket.onText = { [weak self] text in self?.onText(text) }
@@ -375,6 +387,25 @@ public final class CallSession {
     self.location = location
     guard snapshot.isActive, socketOpen else { return }
     send(CallProtocol.locationFrame(location), frame: "location", ["location": location.description])
+  }
+
+  /// Story 1073: iOS changed the audio route. Once the socket is open, while connecting or live, a microphone or
+  /// outputs different from the last ones the bridge was told go as a `route` frame; the same devices send nothing.
+  public func routeChanged(_ route: CallRoute, audio: CallAudioState?, reason: String) {
+    guard snapshot.isActive, socketOpen, route != sentRoute else { return }
+    sentRoute = route
+    send(
+      CallProtocol.routeFrame(route, audio: audio, reason: reason, at: isoString(deps.scheduler.now)), frame: "route",
+      ["reason": reason, "route": route.description])
+  }
+
+  /// Story 1073: the network under the call changed (not its first reading); once the socket is open, the bridge is
+  /// told what it is now.
+  public func networkPathChanged(_ path: CallNetworkPath) {
+    guard snapshot.isActive, socketOpen else { return }
+    send(
+      CallProtocol.networkFrame(path, at: isoString(deps.scheduler.now)), frame: "network",
+      ["interfaces": path.fields["interfaces"] ?? "none"])
   }
 
   /// #440: the phone's network changed under the call (not its first reading).
@@ -1078,6 +1109,7 @@ public final class CallSession {
     probeTimer?.cancel()
     probeTimer = nil
     socketOpen = false
+    sentRoute = nil
     framesSent = 0
     framesReceived = 0
     bytesReceived = 0
