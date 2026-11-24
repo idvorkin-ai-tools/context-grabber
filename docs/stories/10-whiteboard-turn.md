@@ -1707,7 +1707,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1277:
 
 - **Summary:** The open conversation reads as chat bubbles, like Chat and the web chat
-- **Status:** implemented in PENDING; verified by host tests (`WhiteboardPanelLookTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`WhiteboardBubblesUITests`); the Pencil on the bubbles and their look beside the web chat are the real iPad's, not yet seen; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
+- **Status:** implemented in [cd47c873](https://github.com/idvorkin/context-grabber/commit/cd47c873); verified by host tests (`WhiteboardPanelLookTests`; `just native-test`), the Mac build (`just native-build-mac`) and the iPad Pro 11-inch (M5) simulator (`just test-ladder --rung 2` at cd47c873: `WhiteboardBubblesUITests` with `WhiteboardPanelScrollUITests`, `WhiteboardLinkChipUITests` and `WhiteboardTurnUITests`, 12/12, one of Turn's on its retry, bead filed); the Pencil on the bubbles and their look beside the web chat are the real iPad's, not yet seen; no iPhone run (Igor's no-iPhone rule during the whiteboard work, 2026-11-22)
 - **Issues:** [#1384](https://github.com/idvorkin/context-grabber/issues/1384) ("Give me an alternate chat view so I can move chat to be like bubbles"; "I like the web view of chat")
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The conversation as chat*
 
