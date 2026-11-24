@@ -186,3 +186,63 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** an open question card's popup, on iPhone or iPad
 - **When:** I look at *Your own answer*
 - **Then:** the mic is immediately beside *Send*, after the field, each at least 44 points in both directions; the mic records into the field as Chat's does and *Send* answers as before
+
+---
+
+### User Story 1273:
+
+- **Summary:** I hide a question card to a bare '?' and bring it back with a tap
+- **Status:** in progress on branch `native/question-hide-1387`
+- **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Hiding a card*
+
+#### Use Case:
+- **As someone** drawing on a board with one of Larry's questions on it
+- **I want to** shrink the card to a bare '?' without answering or folding it
+- **so that** the drawing is clear and the question is still there, a tap away
+
+#### Acceptance Criteria:
+- **Scenario:** I hide an open question
+- **Given:** an open question card's popup over the board
+- **When:** I tap *Hide*
+- **Then:** the popup closes, the card is a small round '?' in Larry's purple where the card's left end was, nothing is answered, and the log records a hide
+
+- **Scenario:** I bring a hidden card back
+- **Given:** a hidden card's '?' on the board, open or answered
+- **When:** I tap the '?'
+- **Then:** the card is back as it was (open, answered, or a folded chip) where the '?' was, and no popup opens
+
+- **Scenario:** A hidden card stays hidden
+- **Given:** a hidden card
+- **When:** I close the board and open it again
+- **Then:** it is still a '?' in the same place
+
+---
+
+### User Story 1274:
+
+- **Summary:** I drag a question card, a chip or a '?' anywhere on the page
+- **Status:** in progress on branch `native/question-hide-1387`
+- **Issues:** [#1387](https://github.com/idvorkin/context-grabber/issues/1387)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Moving a card*
+
+#### Use Case:
+- **As someone** arranging a board around Larry's questions
+- **I want to** move a card where it fits the drawing
+- **so that** a question sits beside what it is about and out of the way of my writing
+
+#### Acceptance Criteria:
+- **Scenario:** I drag a card
+- **Given:** a question card, a chip or a '?' on the board
+- **When:** I drag it with a finger or the Pencil and let go
+- **Then:** it followed the touch and stays where I let go, inside the page; no popup opened and nothing was drawn; the log records where it moved
+
+- **Scenario:** A moved card stays moved
+- **Given:** a card I dragged
+- **When:** I close the board and open it again
+- **Then:** it is where I left it
+
+- **Scenario:** A drag off the page
+- **Given:** a card on the board
+- **When:** I drag it past the page's edge
+- **Then:** it stops at the page's edge
