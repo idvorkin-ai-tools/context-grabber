@@ -1750,7 +1750,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1265:
 
 - **Summary:** The web board asks the app's own rules which folds an eraser takes whole, and what erasing them does
-- **Status:** in progress
+- **Status:** implemented in 303af6eb (`bw_fold_erase`, BoardWasm interface 12); verified by `just wasm-test` in Docker with Swift 6.4.3 and its wasm SDK (202 checks, a hand-worked fold erased by its marker, by its header's words and by name among them), by `BoardWasmTests` on the Mac (60 seeded boards folded: the same folds taken and erased as the app's outline), and on the Mac by `just native-test` (SwiftLint, swift-format, host tests), 2026-11-23.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 12
 - **Issues:** Larry's list of the web board's rules still in JavaScript, 2026-11-23 (fold erase)
 
