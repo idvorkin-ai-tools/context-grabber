@@ -7,24 +7,6 @@ import XCTest
 #endif
 
 final class WhiteboardFrameTests: XCTestCase {
-  let iPad = CGSize(width: 1000, height: 800)
-
-  func testAnEmptyBoardOpensOnItsMiddle() {
-    let o = WhiteboardFrame.openingOffset(drawing: nil, viewport: iPad)
-    XCTAssertEqual(o, CGPoint(x: 9_500, y: 9_600))
-    XCTAssertEqual(WhiteboardFrame.openingOffset(drawing: .null, viewport: iPad), o)
-  }
-
-  func testADrawingOpensCentredOnIt() {
-    let o = WhiteboardFrame.openingOffset(drawing: CGRect(x: 12_000, y: 3_000, width: 400, height: 200), viewport: iPad)
-    XCTAssertEqual(o, CGPoint(x: 11_700, y: 2_700))
-  }
-
-  func testTheViewNeverOpensOffTheBoard() {
-    let corner = WhiteboardFrame.openingOffset(drawing: CGRect(x: 10, y: 19_990, width: 5, height: 5), viewport: iPad)
-    XCTAssertEqual(corner, CGPoint(x: 0, y: 19_200))
-  }
-
   func testLarrysPictureHasAMarginAndStaysSharpButSmall() throws {
     let small = try XCTUnwrap(WhiteboardFrame.export(CGRect(x: 100, y: 100, width: 200, height: 100)))
     XCTAssertEqual(small.rect, CGRect(x: 60, y: 60, width: 280, height: 180))
@@ -54,7 +36,7 @@ final class WhiteboardFrameTests: XCTestCase {
     XCTAssertNil(WhiteboardFrame.export(.zero))
   }
 
-  // Stories 414, 415.
+  // Stories 414, 415: the board points between lines at each zoom, which the grid and the ruled lines on paper share.
   func testTheGridDoublesItsStepOnlyWhenLinesWouldCrowd() {
     let worked: [(zoom: CGFloat, gap: CGFloat)] = [
       (3, 120), (1, 40), (0.75, 30), (0.7, 28),
@@ -63,46 +45,18 @@ final class WhiteboardFrameTests: XCTestCase {
       (0.1, 32),
     ]
     for (zoom, gap) in worked {
-      let grid = WhiteboardFrame.grid(offset: .zero, viewport: iPad, zoom: zoom)
-      XCTAssertEqual(grid.gap, gap, accuracy: 0.0001, "zoom \(zoom)")
+      XCTAssertEqual(WhiteboardFrame.lineStep(zoom: zoom) * zoom, gap, accuracy: 0.0001, "zoom \(zoom)")
     }
   }
 
-  // Story 415: at half size the lines left are every 80 board points, 2_000 and 1_440 here.
-  func testAThinnedGridKeepsOnlyLinesOfTheCoarserStep() {
-    let grid = WhiteboardFrame.grid(offset: CGPoint(x: 1_030, y: 755), viewport: iPad, zoom: 0.5)
-    XCTAssertEqual(grid.origin, CGPoint(x: 1_000, y: 720))
-  }
-
-  // Story 415.
-  func testGridLinesStayApartAndFewAtAnyZoom() {
-    let viewport = CGSize(width: 1366, height: 1024)
+  // Story 415: the lines stay apart on screen at any zoom, and every line left is a line of the finest grid, so
+  // pinching out only ever removes lines.
+  func testGridLinesStayApartAtAnyZoomAndKeepOnlyLinesThatWereThere() {
     for zoom in stride(from: CGFloat(0.1), through: 3, by: 0.05) {
-      let grid = WhiteboardFrame.grid(offset: .zero, viewport: viewport, zoom: zoom)
-      XCTAssertGreaterThanOrEqual(grid.gap, WhiteboardFrame.gridMinGap)
-      XCTAssertLessThanOrEqual(grid.across + grid.down, 106, "zoom \(zoom)")
-      // Every line is a line of the finest grid, so pinching only ever removes lines.
-      let step = grid.gap / zoom / WhiteboardFrame.gridStep
-      XCTAssertEqual(step, step.rounded(), accuracy: 0.0001)
+      let step = WhiteboardFrame.lineStep(zoom: zoom)
+      XCTAssertGreaterThanOrEqual(step * zoom, WhiteboardFrame.gridMinGap, "zoom \(zoom)")
+      XCTAssertEqual(step / WhiteboardFrame.gridStep, (step / WhiteboardFrame.gridStep).rounded(), accuracy: 0.0001)
     }
-  }
-
-  // Story 413.
-  func testTheGridCoversTheViewportAndHoldsStillBetweenLines() {
-    let viewport = CGSize(width: 800, height: 600)
-    let grid = WhiteboardFrame.grid(offset: CGPoint(x: 10_010, y: 7_205), viewport: viewport, zoom: 1)
-    XCTAssertEqual(grid.origin, CGPoint(x: 10_000, y: 7_200))
-    XCTAssertLessThanOrEqual(grid.origin.x, 10_010)
-    XCTAssertGreaterThanOrEqual(grid.origin.x + CGFloat(grid.across - 1) * grid.gap, 10_010 + viewport.width)
-    XCTAssertGreaterThanOrEqual(grid.origin.y + CGFloat(grid.down - 1) * grid.gap, 7_205 + viewport.height)
-    XCTAssertEqual(grid, WhiteboardFrame.grid(offset: CGPoint(x: 10_030, y: 7_230), viewport: viewport, zoom: 1))
-    XCTAssertNotEqual(grid, WhiteboardFrame.grid(offset: CGPoint(x: 10_040, y: 7_230), viewport: viewport, zoom: 1))
-  }
-
-  func testTheGridCoversABounceOffTheBoard() {
-    let grid = WhiteboardFrame.grid(offset: CGPoint(x: -30, y: -30), viewport: CGSize(width: 400, height: 400), zoom: 1)
-    XCTAssertLessThanOrEqual(grid.origin.x, -30)
-    XCTAssertLessThanOrEqual(grid.origin.y, -30)
   }
 
   // #624: the board's ink below a line moved down 173 points in one go.

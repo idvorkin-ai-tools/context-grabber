@@ -51,7 +51,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 342:
 
 - **Summary:** The board is still there next time
-- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); saving on close, on a link and in the background in [ab9c1e8](https://github.com/idvorkin/context-grabber/commit/ab9c1e8); verified by host tests (`WhiteboardFrameTests`: centred on the drawing) and the simulator build; a relaunch not yet tried on the iPad; that the view opens at the place I left it is the pages change, not implemented (it still opens centred on the drawing); asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); saving on close, on a link and in the background in [ab9c1e8](https://github.com/idvorkin/context-grabber/commit/ab9c1e8); verified by host tests (`WhiteboardFrameTests`: centred on the drawing) and the simulator build; a relaunch not yet tried on the iPad; that the view opens at the place I left it is the pages change, not implemented (it still opens centred on the drawing); asks: [#636](https://github.com/idvorkin/context-grabber/issues/636); the old canvas's opening-scroll rule and its `WhiteboardFrameTests` (centred on the drawing) were removed in the board cleanup (bead context-grabber-egdh), so the opening view is no longer host-tested
 
 #### Use Case:
 - **As someone** who comes back to a sketch later
@@ -820,7 +820,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 413:
 
 - **Summary:** The grid pans with the board
-- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`: the lines cover the view wherever it is, and hold still until it crosses one); a real pan is not verified by a test, for the iPad
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`: the lines cover the view wherever it is, and hold still until it crosses one); a real pan is not verified by a test, for the iPad; since the board went onto paper the grid is story 652's, laid in board points on the pages, so it pans with them by construction (`BoardPagesTests`), and the old canvas's grid-cell rule and its tests were removed in the board cleanup (bead context-grabber-egdh)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
 
@@ -840,7 +840,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 414:
 
 - **Summary:** The grid spreads as I pinch in
-- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`: the spacing at 3×); a real pinch is not verified by a test, for the iPad
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`: the spacing at 3×); a real pinch is not verified by a test, for the iPad; since the board cleanup (bead context-grabber-egdh) `WhiteboardFrameTests` checks the spacing rule itself, the one the grid and the ruled lines on paper share
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
 
@@ -860,7 +860,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 415:
 
 - **Summary:** The grid thins as I pinch out
-- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`: worked spacings down to 0.1×, a thinned grid's lines on the coarser step, the line count at every zoom); a real pinch is not verified by a test, for the iPad
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`: worked spacings down to 0.1×, a thinned grid's lines on the coarser step, the line count at every zoom); a real pinch is not verified by a test, for the iPad; since the board cleanup (bead context-grabber-egdh) `WhiteboardFrameTests` checks the shared spacing rule (worked spacings, apart on screen and on the finest grid's lines at every zoom) and `BoardPagesTests` that a thinned grid on paper keeps only lines that were there (story 652)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
 

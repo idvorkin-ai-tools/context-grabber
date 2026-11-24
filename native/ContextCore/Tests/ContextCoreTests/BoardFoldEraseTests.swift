@@ -54,13 +54,13 @@ final class BoardFoldEraseTests: XCTestCase {
     let o = folded()
     let marker = o.foldHits(along: [CGPoint(x: 200, y: 110), CGPoint(x: 260, y: 112)], onHeader: true)
     XCTAssertEqual(marker.map(\.header), ["h"])
-    XCTAssertTrue(o.foldsTakenByCancelledStroke(marker, live: o.liveNames).isEmpty, "called off, the fold stays")
+    XCTAssertTrue(o.foldsTaken(marker, by: .cancelled, live: o.liveNames).isEmpty, "called off, the fold stays")
     let ink = o.foldHits(along: [CGPoint(x: 105, y: 112), CGPoint(x: 165, y: 112)], onHeader: true)
-    XCTAssertTrue(o.foldsTakenByCancelledStroke(ink, live: o.liveNames).isEmpty, "its ink stayed, so does it")
+    XCTAssertTrue(o.foldsTaken(ink, by: .cancelled, live: o.liveNames).isEmpty, "its ink stayed, so does it")
     let partly = o.liveNames.subtracting(["h0", "h1"])
-    XCTAssertTrue(o.foldsTakenByCancelledStroke(ink, live: partly).isEmpty, "some of the header is left to unfold by")
+    XCTAssertTrue(o.foldsTaken(ink, by: .cancelled, live: partly).isEmpty, "some of the header is left to unfold by")
     let gone = o.liveNames.subtracting(["h0", "h1", "h2"])
-    XCTAssertEqual(o.foldsTakenByCancelledStroke(ink, live: gone), ink, "its ink went anyway: the section goes with it")
+    XCTAssertEqual(o.foldsTaken(ink, by: .cancelled, live: gone), ink, "its ink went anyway: the section goes with it")
   }
 
   func testTheHeadersInkTakesTheFoldOnlyWhenAsked() {

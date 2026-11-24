@@ -311,20 +311,6 @@ public enum WhiteboardTurn {
     max(8, (shape.size ?? 28) / scale)
   }
 
-  /// Whether `point` is within `tolerance` of any of `lines`: a tap on a ghost.
-  public static func hit(_ lines: [[CGPoint]], at point: CGPoint, tolerance: CGFloat) -> Bool {
-    for line in lines {
-      for (a, b) in zip(line, line.dropFirst()) {
-        let dx = b.x - a.x
-        let dy = b.y - a.y
-        let span = dx * dx + dy * dy
-        let t = span == 0 ? 0 : max(0, min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / span))
-        if hypot(a.x + t * dx - point.x, a.y + t * dy - point.y) <= tolerance { return true }
-      }
-    }
-    return false
-  }
-
   /// How far from a mark a finger tap still reaches it, in screen points (the board's points at a zoom of 1).
   public static let tapReach: CGFloat = 22
 
