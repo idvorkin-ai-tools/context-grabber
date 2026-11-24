@@ -432,6 +432,21 @@ rectangle or ellipse it nearly is, by the app's thresholds. `bw_info` says `"abi
 - The web board's strike-through (a saw across a line of writing) and a scratch-out's tail (its last sweeps lifted as
   a stroke of their own) have no counterpart in the app's rules, so they stay the web board's own.
 
+## The interface, version 18: groups Igor made
+
+Story 1280. Igor, 2026-11-24 (bead context-grabber-xzmc): "only Larry's groups count as not your writing; my own grouped
+strokes stay my writing." Until now the module read every group in the outline as Larry's, while the web board let Igor
+group his own ink and read those groups as his writing: the one rule the two boards still differed on (story 1512).
+
+- The outline may name the groups Igor made himself: `"mine": [group]`. Left out, every group is Larry's, as on the
+  iPad, where only Larry groups.
+- A group of Igor's still moves whole, everywhere a group does: its box, its row, its unit, a cut never splitting it.
+- It is his writing: its strokes make lines of writing, a row's names include them (so a margin tap or *Make header*
+  can make it a header), an underline under it or a # at its start makes it a header, ink written on its line joins
+  that header's row, a long flat line in it can be a rule, and it can be offered as a line that looks like a header.
+- Larry's groups, kept texts and cards are nobody's writing, as before.
+- `bw_info` says `"abi": 18`. Every other export's arguments and answers are as in version 17.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

@@ -25,7 +25,7 @@ enum WebCandidates {
       ? outline
       : BoardOutline(
         strokes: outline.strokes, headers: outline.headers, texts: texts, groups: groups,
-        declined: outline.declined.union(declined))
+        declined: outline.declined.union(declined), mine: outline.mine)
     let found: [[String: Any]] = asked.candidates().map { c in
       [
         "y": Double(c.y), "top": Double(c.box.minY), "bottom": Double(c.box.maxY), "left": Double(c.box.minX),
