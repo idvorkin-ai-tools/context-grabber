@@ -23,7 +23,7 @@ final class DrillPairingHintTests: XCTestCase {
     }
   }
 
-  /// Story 238 (#1356): while the phone needs pairing, Stats says where a code comes from.
+  /// Story 571 (#1356): while the phone needs pairing, Stats says where a code comes from.
   func testWhilePairingIsNeededItSaysWhereALinkComesFrom() {
     let said = DrillPairingHint.pairingMessage("Not paired. Ask Larry to pair this device.", needsPairing: true)
     XCTAssertEqual(
