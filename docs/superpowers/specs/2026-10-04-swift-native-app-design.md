@@ -199,10 +199,16 @@ covers the screen with the trainer's own drill, the same one as in the trainer a
 - It follows *Skip easy cards* as it was when the drill opened: on, only the hard positions are drilled.
 - **Every graded answer goes to Igor's practice ledger**, the same one the trainer and Card Picker write to. Offline,
   answers wait on the phone and go when the ledger can be reached; nothing is lost by closing the app.
-- **Stats**, at the top of the drill, shows what the ledger knows over 30 days from every source as a difficulty
+- **Stats**, at the top of the drill, shows what the ledger knows from every source as a difficulty
   grid, one cell per position in stack order with its card face, with a *Taps / Voice* picker for which answers it
   counts (trainer 705345d, v0.3.3; no most-missed list any more), and holds the ledger's URL and write key. They are pasted once in Grabber Native; the build never
   carries them, and the trainer app keeps its own copy.
+  A *Day / Week / 30 days* picker above the grid sets the stretch every number covers, in whole Pacific days ending
+  today, and the heading says the ledger's own name for it (*Today*, *Last 7 days*, *Last 30 days*); it opens on
+  *Week* until another is picked, then on the last one picked, kept per app (story 239, trainer story 075, #35).
+  Under the grid, the trailing 30 days are a calendar in week rows, each day coloured in four steps of the busiest
+  day by how many answers it had, with a *Practiced / Right / Wrong* switch; a day with no answers is blank, and
+  tapping a day says its numbers (story 568, trainer story 076). *Misses first* still reads all time.
   A Stats load that fails shows as a copyable error in the sheet, with the days asked for and the answers waiting
   (#563).
 - **Pairing** (story 238, the trainer's stories 070, 071 and 074): the phone's pairing with Larry's box is one

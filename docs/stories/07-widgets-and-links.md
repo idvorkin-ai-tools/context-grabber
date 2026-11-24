@@ -515,7 +515,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 220:
 
 - **Summary:** Drill the stack from the card screen, graded, and it reaches my practice ledger
-- **Status:** native app only: implemented in [07433d7](https://github.com/idvorkin/context-grabber/commit/07433d7) (the `GRABBER_DRILL` hook in [244fa20](https://github.com/idvorkin/context-grabber/commit/244fa20); a shake reports from inside the drill since [5f7df26](https://github.com/idvorkin/context-grabber/commit/5f7df26), naming the drill as its screen since [631daff](https://github.com/idvorkin/context-grabber/commit/631daff), when the hook opens it too since [240a405](https://github.com/idvorkin/context-grabber/commit/240a405)), on think-a-card-trainer v0.3.0 (the drill, its grading, Mixed, the ledger and Stats are the library's, verified by its host tests); verified by host `just native-test`; the simulator build, `CardUITests` testDrillTheStackOpensTheTrainersDrill and the `GRABBER_DRILL=mixed` smoke check not yet; grading and the ledger on the phone not yet; on think-a-card-trainer v0.3.5 in [8876808](https://github.com/idvorkin/context-grabber/commit/8876808): the drill's *Wrong* is a large target at the right edge (think-a-card-trainer issue 33) and *Mixed* no longer runs too many numbers in a row (think-a-card-trainer issue 34), both the library's and verified by its tests; host `just native-test`; the app build and the drill on the phone not yet; on think-a-card-trainer v0.3.6 in [8d5ae94](https://github.com/idvorkin/context-grabber/commit/8d5ae94) (#569, #570): the answer centred under the question and *Wrong* a small half-clear button in its own row at the bottom right, replacing the large strip above; verified by the library's tests and a simulator build here; the drill on the phone not yet; a failed Stats load is a copyable error (story 227) in [f0f149e](https://github.com/idvorkin/context-grabber/commit/f0f149e) (#563): simulator build only, the failure itself not yet seen on a simulator or the phone; `CardUITests` testDrillTheStackOpensTheTrainersDrill passes on the simulator with its fix in [29f4561](https://github.com/idvorkin/context-grabber/commit/29f4561) (#400: it taps the drill's own Done and finds the prompt as a button; no app change); a hand simulator run at [ea7e334](https://github.com/idvorkin/context-grabber/commit/ea7e334) passed 4 tests with 0 failures, but its record does not name them, so whether it ran the later closing check that the drill has gone is unconfirmed
+- **Status:** native app only: implemented in [07433d7](https://github.com/idvorkin/context-grabber/commit/07433d7) (the `GRABBER_DRILL` hook in [244fa20](https://github.com/idvorkin/context-grabber/commit/244fa20); a shake reports from inside the drill since [5f7df26](https://github.com/idvorkin/context-grabber/commit/5f7df26), naming the drill as its screen since [631daff](https://github.com/idvorkin/context-grabber/commit/631daff), when the hook opens it too since [240a405](https://github.com/idvorkin/context-grabber/commit/240a405)), on think-a-card-trainer v0.3.0 (the drill, its grading, Mixed, the ledger and Stats are the library's, verified by its host tests); verified by host `just native-test`; the simulator build, `CardUITests` testDrillTheStackOpensTheTrainersDrill and the `GRABBER_DRILL=mixed` smoke check not yet; grading and the ledger on the phone not yet; on think-a-card-trainer v0.3.5 in [8876808](https://github.com/idvorkin/context-grabber/commit/8876808): the drill's *Wrong* is a large target at the right edge (think-a-card-trainer issue 33) and *Mixed* no longer runs too many numbers in a row (think-a-card-trainer issue 34), both the library's and verified by its tests; host `just native-test`; the app build and the drill on the phone not yet; on think-a-card-trainer v0.3.6 in [8d5ae94](https://github.com/idvorkin/context-grabber/commit/8d5ae94) (#569, #570): the answer centred under the question and *Wrong* a small half-clear button in its own row at the bottom right, replacing the large strip above; verified by the library's tests and a simulator build here; the drill on the phone not yet; a failed Stats load is a copyable error (story 227) in [f0f149e](https://github.com/idvorkin/context-grabber/commit/f0f149e) (#563): simulator build only, the failure itself not yet seen on a simulator or the phone; `CardUITests` testDrillTheStackOpensTheTrainersDrill passes on the simulator with its fix in [29f4561](https://github.com/idvorkin/context-grabber/commit/29f4561) (#400: it taps the drill's own Done and finds the prompt as a button; no app change); a hand simulator run at [ea7e334](https://github.com/idvorkin/context-grabber/commit/ea7e334) passed 4 tests with 0 failures, but its record does not name them, so whether it ran the later closing check that the drill has gone is unconfirmed; *Stats* covers the picked stretch instead of a fixed 30 days (story 239) on think-a-card-trainer v0.3.10 in [20e762c5](https://github.com/idvorkin/context-grabber/commit/20e762c5): host `just native-test` and the Mac build; *Stats* on the phone not yet
 - **Issues:** [#400](https://github.com/idvorkin/context-grabber/issues/400) (the UI test tapped the wrong Done), [#569](https://github.com/idvorkin/context-grabber/issues/569), [#570](https://github.com/idvorkin/context-grabber/issues/570) (the answer centred, Wrong smaller and half-clear at the bottom: ThinkACardUI 0.3.6, think-a-card-trainer#38), [#563](https://github.com/idvorkin/context-grabber/issues/563) (a failed Stats load is a copyable error, story 227: the library lets the host present it since think-a-card-trainer#22, v0.3.1), [think-a-card-trainer#33](https://github.com/idvorkin/think-a-card-trainer/issues/33) (the Wrong button), [think-a-card-trainer#34](https://github.com/idvorkin/think-a-card-trainer/issues/34) (Mixed)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 
@@ -528,7 +528,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A graded drill that lands in the ledger
 - **Given:** the build has my stack, and the ledger's URL and write key are pasted in the drill's *Stats*
 - **When:** I tap *Drill the stack* under the card, pick *Mixed*, tap to see an answer, tap again for one I knew and press *Wrong* for one I missed, then open *Stats*
-- **Then:** the drill asks both ways round from my stack (only the hard positions with *Skip easy cards* on), a tap shows the answer as the position alone, centred under the question, and *Wrong* is a small half-clear button at the bottom right, each answer is sent to the ledger (kept and sent later when offline), *Stats* shows the last 30 days from every source as a difficulty grid, one cell per position in stack order with its card face, with a *Taps / Voice* picker, the log never pairs a card with its position or shows the key, and *Done* returns to the card
+- **Then:** the drill asks both ways round from my stack (only the hard positions with *Skip easy cards* on), a tap shows the answer as the position alone, centred under the question, and *Wrong* is a small half-clear button at the bottom right, each answer is sent to the ledger (kept and sent later when offline), *Stats* shows the picked stretch (story 239) from every source as a difficulty grid, one cell per position in stack order with its card face, with a *Taps / Voice* picker, the log never pairs a card with its position or shows the key, and *Done* returns to the card
 
 
 ---
@@ -598,6 +598,55 @@ apart."*
 - **Given:** the drill is open and the practice ledger cannot be reached
 - **When:** I set *Order* to *Misses first*
 - **Then:** the drill stays shuffled and says so
+
+---
+
+### User Story 239:
+
+- **Summary:** The drill's Stats cover today, the last 7 days or the last 30, my pick
+- **Status:** native app only: comes with think-a-card-trainer v0.3.10 (the picker is the library's, trainer story 075, PR #51, verified there by its host tests and its signed device build), pinned here in [20e762c5](https://github.com/idvorkin/context-grabber/commit/20e762c5); verified by host `just native-test` and the Mac build (resolves ThinkACard 0.3.10); *Stats* on the phone not yet (it has no simulator hook)
+- **Issues:** [think-a-card-trainer#35](https://github.com/idvorkin/think-a-card-trainer/issues/35) (Igor: *"Add last 1 3 and 7 days. See change over time"*), [think-a-card-trainer#43](https://github.com/idvorkin/think-a-card-trainer/issues/43) (the ledger's ranges)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+#### Use Case:
+- **As a** man drilling his stack
+- **I want to** switch the drill's *Stats* between today, the last 7 days and the last 30
+- **so that** I can see how I am doing now and how it changes, not only over the month
+
+#### Acceptance Criteria:
+- **Scenario:** Pick a stretch
+- **Given:** the drill's *Stats* can read the practice ledger
+- **When:** I pick *Day*, *Week* or *30 days* at its top
+- **Then:** the attempts and the whole difficulty grid reload for that stretch alone, in whole Pacific days ending
+  today, and the heading says *Today*, *Last 7 days* or *Last 30 days* as the ledger names it; *Stats* opens on
+  *Week* the first time and on my last pick after, across relaunches, and the trainer app keeps its own pick
+
+---
+
+### User Story 568:
+
+- **Summary:** The drill's Stats show the last 30 days as a calendar heat map
+- **Status:** native app only: comes with think-a-card-trainer v0.3.10 (the calendar is the library's, trainer story 076, PR #51, verified there by its host tests: sources summed per Pacific day, empty days blank, the clock change, the colour steps), pinned here in [20e762c5](https://github.com/idvorkin/context-grabber/commit/20e762c5); verified by host `just native-test` and the Mac build (resolves ThinkACard 0.3.10); *Stats* on the phone not yet
+- **Issues:** [think-a-card-trainer#35](https://github.com/idvorkin/think-a-card-trainer/issues/35)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+Igor, 2026-11-23: *"a calendar view with a heat map of the days of the month: the last trailing 30 days by day, and
+a color heat map by how many practiced. Maybe I can flip to right and wrong."*
+
+#### Use Case:
+- **As a** man drilling his stack
+- **I want to** see the last 30 days as a calendar coloured by how much I practised, and flip it to right or wrong
+- **so that** I can see which days I drilled and how they went at a glance
+
+#### Acceptance Criteria:
+- **Scenario:** The calendar
+- **Given:** the drill's *Stats* can read the practice ledger
+- **When:** I open *Stats*, whatever stretch is picked (story 239)
+- **Then:** under the grid the 30 Pacific days ending today sit in week rows, each day coloured in one of four steps
+  of the busiest day's answers from every source; a day without answers is blank; tapping a day says its answers,
+  right and wrong; a *Practiced / Right / Wrong* switch above the calendar colours the days by all answers, the
+  right ones or the misses, each on its own scale
+
 ---
 
 ### User Story 238:
