@@ -1743,7 +1743,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1180:
 
 - **Summary:** His marks move with the ink they answer
-- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16), [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4) and [09c2d33b](https://github.com/idvorkin/context-grabber/commit/09c2d33b); verified on the host (`BoardMarkHoldsTests`): the anchor, a drag, room above both and between, Undo, and board 5c232430's label against its logged boxes), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testHisMarkMovesWithTheInkItAnswersAndBackWithUndo`: his circle on my lower line rode Larry's push by as much as the line, and one undo took both back). The iPad itself not yet tried
+- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16), [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4) and [09c2d33b](https://github.com/idvorkin/context-grabber/commit/09c2d33b); verified on the host (`BoardMarkHoldsTests`): the anchor, a drag, room above both and between, Undo, and board 5c232430's label against its logged boxes), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testHisMarkMovesWithTheInkItAnswersAndBackWithUndo`: his circle on my lower line rode Larry's push by as much as the line, and one undo took both back). A drag of my own ink (a lasso's move) keeps the mark with it since [c198b95c](https://github.com/idvorkin/context-grabber/commit/c198b95c), verified on the host and the Mac build only. The iPad itself not yet tried
 - **Issues:** bead `context-grabber-p2an`: Igor, 2026-11-23 16:55, via Larry (ask igor2-88g.1720.1): "Anchor, and fade when written over"; on board 5c232430 his new lines landed on Larry's *got all 33 strokes* label
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
 
@@ -1787,7 +1787,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1269:
 
 - **Summary:** Writing over one of his marks fades it
-- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16), [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4) and [09c2d33b](https://github.com/idvorkin/context-grabber/commit/09c2d33b); verified on the host (`BoardMarkHoldsTests`): a word on a label, a strike-through and a scribble fade it; an underline, a ring and a crossing line don't; Undo unfades) and the Mac build. Not verifiable on the simulator, where a finger pans while marks show; the iPad's Pencil still to try
+- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16), [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4) and [09c2d33b](https://github.com/idvorkin/context-grabber/commit/09c2d33b); verified on the host (`BoardMarkHoldsTests`): a word on a label, a strike-through and a scribble fade it; an underline, a ring and a crossing line don't; Undo unfades) and the Mac build. A scratch-out leaves the mark at full strength since [7178775e](https://github.com/idvorkin/context-grabber/commit/7178775e), verified on the host. Not verifiable on the simulator, where a finger pans while marks show; the iPad's Pencil still to try
 - **Issues:** bead `context-grabber-p2an`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
 
@@ -1801,7 +1801,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a mark of Larry's, not kept, shows on the board
 - **When:** I draw a stroke, with the Pencil or a drawing finger, with at least a third of its path inside a label's letter box or on a drawn mark's line
 - **Then:** the mark fades to a third of its strength and stays where it was, still able to be kept or dismissed
-- **And:** an underline below a label, a circle round it, a line crossing an arrow, ink already under the mark when it landed, a paste, a drop, a keep and the eraser leave it at full strength
+- **And:** an underline below a label, a circle round it, a line crossing an arrow, ink already under the mark when it landed, a scratch-out, a paste, a drop, a keep and the eraser leave it at full strength
 - **And:** Undo of that stroke, or erasing it, brings the mark back to full strength
 - **And:** the session log says which mark the stroke wrote over and how much of the stroke lay on it
 
