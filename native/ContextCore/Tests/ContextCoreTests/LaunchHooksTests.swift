@@ -288,6 +288,9 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertFalse(board.newBoardsBare)
     let bare = WhiteboardHooks(["GRABBER_WHITEBOARD_GRID": "off"])
     XCTAssertTrue(bare.newBoardsBare, "story 410: new boards without the grid, for the UI tests")
+    XCTAssertTrue(
+      WhiteboardHooks(["GRABBER_WHITEBOARD_PANEL": "fresh"]).panelFresh, "story 1313: the panel's own place")
+    XCTAssertFalse(bare.panelFresh)
     XCTAssertFalse(bare.grid)
   }
 

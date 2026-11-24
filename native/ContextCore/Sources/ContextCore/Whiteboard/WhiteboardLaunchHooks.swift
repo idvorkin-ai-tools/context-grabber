@@ -108,6 +108,9 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// the simulator, which misses only now and then (story 1203, bead context-grabber-9bll).
   public var undoLookLabel: Bool
   public var undoLookMiss: Bool
+  /// `GRABBER_WHITEBOARD_PANEL=fresh`: the conversation's kept height, float and card are forgotten as the first board
+  /// opens, so a UI test starts from the panel's own place (story 1313, #1416).
+  public var panelFresh: Bool
   /// `GRABBER_WHITEBOARD_FAKE_OFFER=1`: a beat after a finger tap selects a group, the board shows a stand-in for the
   /// iPad's handwriting popover at the paper and empties the selection without a callback, as the iPad did, for the
   /// simulator, which never offers it (stories 945, 946).
@@ -149,6 +152,7 @@ public struct WhiteboardHooks: Equatable, Sendable {
     fingerLabel = env["GRABBER_WHITEBOARD_FINGER_LABEL"] == "1"
     keptInkLabel = env["GRABBER_WHITEBOARD_KEPT_INK_LABEL"] == "1"
     undoLookMiss = env["GRABBER_WHITEBOARD_UNDO_LOOK"] == "miss"
+    panelFresh = env["GRABBER_WHITEBOARD_PANEL"] == "fresh"
     undoLookLabel = undoLookMiss || env["GRABBER_WHITEBOARD_UNDO_LOOK"] == "label"
     fakeHandwritingOffer = env["GRABBER_WHITEBOARD_FAKE_OFFER"] == "1"
     reviewIdle = env["GRABBER_WHITEBOARD_REVIEW_IDLE"].flatMap { Double($0) }

@@ -11,6 +11,14 @@ enum WhiteboardPanelKeys {
   static let share = "whiteboard_panel_share"
   static let floating = "whiteboard_panel_floating"
   static let card = "whiteboard_panel_card"
+  private static var forgotten = false
+
+  /// Story 1313: `GRABBER_WHITEBOARD_PANEL=fresh` forgets the kept place once per launch, as the first board opens.
+  @MainActor static func forgetForTests() {
+    guard LaunchHooks.current.whiteboard.panelFresh, !forgotten else { return }
+    forgotten = true
+    for key in [share, floating, card] { UserDefaults.standard.removeObject(forKey: key) }
+  }
 }
 
 /// What the panel's foot offers to move it: *Float* while docked, *Dock* while floating.

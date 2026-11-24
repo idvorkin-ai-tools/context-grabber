@@ -16,8 +16,10 @@ final class WhiteboardConversationPlaceUITests: XCTestCase {
     }
   }
 
-  private func launch() throws -> XCUIApplication {
+  /// `fresh`: the panel's kept place forgotten first (story 1313), so a run after another starts from its own place.
+  private func launch(fresh: Bool = false) throws -> XCUIApplication {
     let app = XCUIApplication.forTests(animated: true)
+    if fresh { app.launchEnvironment["GRABBER_WHITEBOARD_PANEL"] = "fresh" }
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = try cockpit
@@ -44,7 +46,7 @@ final class WhiteboardConversationPlaceUITests: XCTestCase {
   }
 
   func testTheConversationResizesFloatsAndDocks() throws {
-    var app = try launch()
+    var app = try launch(fresh: true)
     openPanel(app)
     addTeardownBlock {
       // Docked, its own height and closed, for the next test: these all outlive the launch.
