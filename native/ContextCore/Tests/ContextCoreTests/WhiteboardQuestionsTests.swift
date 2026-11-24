@@ -262,4 +262,17 @@ final class WhiteboardQuestionsTests: XCTestCase {
       mark?.x, BoardPages.pageWidth - WhiteboardQuestions.mark - 8, "a '?' goes as far as its own width allows")
     XCTAssertNil(board.move("nobody", to: .zero))
   }
+
+  func testAQuestionMarkDraggedToTheEdgeComesBackAsACardInsideThePage() {
+    var board = WhiteboardQuestions()
+    board.add(ask: "b-1", x: 100, y: 100)
+    let id = board.cards[0].id
+    board.hide(id, true)
+    board.move(id, to: CGPoint(x: 5000, y: 10))
+    XCTAssertTrue(board.hide(id, false))
+    let card = board.card(id)!
+    XCTAssertFalse(card.hidden)
+    XCTAssertEqual(card.x, BoardPages.pageWidth - WhiteboardQuestions.width - 8, "shown again, the card fits the page")
+    XCTAssertLessThanOrEqual(WhiteboardQuestions.box(card).maxX, BoardPages.pageWidth - 8)
+  }
 }
