@@ -92,7 +92,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1281:
 
 - **Summary:** The board's mic listens continuously, and a pause to think under 5 s sends nothing
-- **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103), a pause of 5 s or more sending since [00544908](https://github.com/idvorkin/context-grabber/commit/00544908) (story 1305); the waiting words verified on the host by `WhiteboardGhostTurnsTests`; real dictation on the iPad not yet
+- **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103), a pause of 5 s or more sending since [162a6cf5](https://github.com/idvorkin/context-grabber/commit/162a6cf5) (story 1305); the waiting words verified on the host by `WhiteboardGhostTurnsTests`; real dictation on the iPad not yet
 - **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry); a pause of 5 s or more sends since Igor's answer the same day (story 1305)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
 
@@ -172,7 +172,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1305:
 
 - **Summary:** Five seconds of silence sends what I said
-- **Status:** implemented in [00544908](https://github.com/idvorkin/context-grabber/commit/00544908); the 5 s rule verified on the host by `WhiteboardSpeechTests`, and the board's UI tests pass on the iPad Pro 11-inch (M5) simulator; real dictation's silence to try on the iPad
+- **Status:** implemented in [162a6cf5](https://github.com/idvorkin/context-grabber/commit/162a6cf5); the 5 s rule verified on the host by `WhiteboardSpeechTests`, and the board's UI tests pass on the iPad Pro 11-inch (M5) simulator; real dictation's silence to try on the iPad
 - **Issues:** Igor, 2026-11-24, answering Larry's board card igor2-88g.1724.4: "Keep a silence send, only after 5 s or more"
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
 
