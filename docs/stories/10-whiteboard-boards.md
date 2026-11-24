@@ -1784,3 +1784,23 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** an outline loaded into the module: a hand-worked one of usual lines, a line written big, an underlined line and a header, and the Cockpit's recorded boards and seeded ones
 - **When:** the module is asked for the candidates, with and without some lines' strokes declined
 - **Then:** it offers the same lines as the app's own outline, in the same order with the same boxes (the big line as `big` at its middle, the underlined one as `underline`, never the header or a declined line), and with no outline loaded it says so
+
+---
+
+### User Story 1163:
+
+- **Summary:** The web board asks the app's own rules what Keep all keeps as one group and how much room it opens, and how far Tidy overlaps moves each label
+- **Status:** implemented in COMMIT (`bw_keep_all`, `bw_tidy`, interface 14); verified by the host tests (`WebKeepingTests`: Keep all and Tidy through the export against the app's own Keep all and Tidy on the four recorded boards and 40 seeded ones) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 216 checks, a hand-worked keep and tidy among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
+- **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 14
+- **Issues:** bead `context-grabber-7ndr`
+
+#### Use Case:
+- **As Igor,** keeping Larry's marks and tidying labels on the Cockpit's web ink board
+- **I want to** have the web board ask the app's own rules which marks keep as one group, how far my newer writing moves out from under them, and where each label that sits on ink goes
+- **so that** Keep all and Tidy overlaps leave the web board as they leave the iPad
+
+#### Acceptance Criteria:
+- **Scenario:** Keep all and Tidy through the module
+- **Given:** the module built by `just wasm`, with an outline of a line written after a reply's picture, a line written before it, labels on ink, on clear paper, in a kept text and in a group
+- **When:** `just wasm-test` keeps the reply's two marks with a lone mark, keeps them with the newer line among Larry's own ink, keeps a text of his landing on the older line, and tidies the labels
+- **Then:** the reply's two marks are one group and the lone mark none; the newer line and all below go down three whole lines, to half a line under the lower mark; among his own ink nothing moves; the landing text moves the older line down two lines; the label on the line moves 30 under it, the one in the kept text 70 to half a line under its box, and the clear one and the grouped one stay

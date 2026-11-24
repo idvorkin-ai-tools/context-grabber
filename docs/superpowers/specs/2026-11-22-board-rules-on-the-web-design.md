@@ -335,6 +335,33 @@ to 12 are unchanged but for `bw_rows`.
   shows of each is still the rules' answer; on the web the rules' own geometry is 32-bit (Precision, below), so their
   boxes would come back a hair off the page's.
 
+## The interface, version 14: keeping Larry's marks, and Tidy overlaps
+
+Story 1163. Keep all and Tidy overlaps on the web board decide as the app does. Keep all keeps each reply of two or more
+marks as one group, named as the app names it, and a lone mark on its own. It opens one room for everything kept: what
+Igor wrote after a mark's own picture under that mark, and whatever a text of Larry's being kept sits on, goes down
+whole lines until it is half a line under the lowest mark. The marks stay where they showed. Tidy overlaps moves each
+kept label that sits on ink down under it, top to bottom, with half a line of air. The writing never moves. `bw_info`
+says `"abi": 14`; versions 1 to 13 are unchanged.
+
+| Export | Arguments | Returns |
+|---|---|---|
+| `bw_keep_all` | `{"marks": [{"id", "box": [left, top, right, bottom], "seen"?}], "landing"?: [box], "theirs"?: [ms]}`: each mark by its name (`<reply>#<n>`), its box with half its pen round it, and when its reply's picture was taken, unix ms; the boxes of Larry's texts kept with them; the times of ink Larry or Claude made | a reply: `{"groups": {mark: group}, "push": {"cut", "dy"} \| null, "covered"}`; `{"error"}` with no outline or a mark it can't read |
+| `bw_tidy` | `{"labels": [name]}`: the kept labels, by their names in the outline | a reply: `{"moves": {name: dy}}`, only the labels that move; `{"error"}` with no outline or no labels |
+
+- Both work over the outline `bw_outline_load` keeps, its strokes' `t` telling ink newer than a picture.
+- A mark whose picture time is unknown makes no room of its own, but the room still reaches half a line under it.
+- Ink made a millisecond either side of a time in `theirs` never makes room. A kept text or card never does either.
+- A known difference: a kept text or card on the web board is a box with no time, so it never makes room as newer
+  writing. On the iPad a text Igor pasted after a reply's picture is his and does make room under that reply's marks.
+- Where the rules came from: the app keeps a mark by its keep-all grouping, the late-reply room for several replies and
+  Tidy overlaps. The board's storage on disk and the check that a kept mark drew whole are not placement rules and have
+  no export.
+- Tidy takes everything that shows and is not a label as ink, a kept text or card over its whole box. What is hidden is
+  neither. A label in one of Larry's groups stays with its group, as ink.
+- Moving the web board onto these changes what it does: its Keep all no longer moves later marks down when an earlier
+  one moved, and its Tidy no longer pushes the writing down. Both now do what the iPad does.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes
