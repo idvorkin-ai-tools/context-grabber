@@ -36,6 +36,9 @@ class PaperHost: UIViewController {
     /// Story 1143: each change the board put on the ink while it was down, by name, and the turns logged as it began.
     var boardSets: [String] = []
     var turnsAtStart = 0
+    /// Story 1284: why the pinch was held off in this run ("pencil" or "palm"), and how many pinches there were to hold.
+    var pinchHeld: String?
+    var pinchesHeld = 0
   }
 
   let paper: PaperMarkupViewController
@@ -60,6 +63,9 @@ class PaperHost: UIViewController {
   private var fingersDown = 0
   private var fingersTogether = 0
   private(set) var lastTouchBoardPoint: CGPoint?
+  /// Story 1284: each finger contact down now, at its widest, and why the pinch is held off until everything lifts.
+  var fingerRadii: [ObjectIdentifier: CGFloat] = [:]
+  var pinchHold: String?
 
   private static let features: FeatureSet = {
     var set = FeatureSet.empty
@@ -201,6 +207,7 @@ class PaperHost: UIViewController {
       }
     }
     touchesDown = down
+    holdPinch(touch, phase, down: down)
     if let fingers = run?.facts.fingers { run?.facts.fingers = max(fingers, down) }
     if phase == .ended || phase == .cancelled { touchLifted(touch, down: down) }
     if phase == .ended || phase == .cancelled, down == 0 {

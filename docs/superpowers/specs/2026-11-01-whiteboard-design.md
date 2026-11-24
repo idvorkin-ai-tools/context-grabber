@@ -180,6 +180,11 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Who draws:**
   - With a Pencil paired, only the Pencil draws, and a finger moves the board. A palm resting on the glass never
     leaves a mark.
+  - **Writing never zooms the board** (Igor, 2026-11-24: "it zooms while I write"). Only a deliberate pinch of two
+    fingertips zooms. While the Pencil is on the glass, or a palm rests on it, the board holds its zoom: a palm shifting
+    under the writing hand, or a palm and a fingertip together, never pinches. A palm is a contact far wider than a
+    fingertip (on Igor's iPad a fingertip reads about 30–50 points across, a resting palm 60 or more). Once everything
+    lifts, the next two fingertips pinch as before. Panning is unchanged.
   - Without a Pencil (an iPad with none paired), a finger draws and two fingers move the board.
   - This follows the system's "Only Draw with Apple Pencil" setting, and on paper also the Pencil itself: once it has
     touched a board, a finger only pans, selects and taps until the app is next launched (context-grabber-2eml; the
@@ -863,6 +868,8 @@ that ghosts need the tailnet.
 - A new board is one page wide and scrolls only up and down. Draw to the bottom of a page and keep scrolling: a blank
   page is always there. The ink keeps Notes' feel past 4,000 and past 9,600 points down the column.
 - Pinching out stops at the page's width. The page number reads right while scrolling, and isn't in any picture.
+- Writing a page with the hand resting on the glass leaves the zoom where it was; so does a palm and a fingertip landing
+  together. Two fingertips, with nothing else down, still pinch in and out.
 - A board drawn on the old canvas is not in the boards list, and a link to one shows the copyable problem that says why.
 - There is no *New boards on paper* switch and no *Try on paper*: every new board is on paper.
 - A new board made after the default ships is on paper, shows no test cross or ring, and an older build still opens it.

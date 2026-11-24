@@ -1864,3 +1864,33 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** the module built by `just wasm`, with an outline of two lines of ink and a label of Larry's landed over the first
 - **When:** `just wasm-test` asks for its anchor, moves the first line down 40, erases it, then writes a stroke of Igor's across the label and loads the board with that stroke on it
 - **Then:** the label holds to the first line where its box began; it moves down 40 with it; with the line erased it hides and the next post drops it as ink erased; the stroke writes over all of it, and with the stroke on the board the label is faded and the next post drops it as written over
+
+---
+
+### User Story 1284:
+
+- **Summary:** Writing never zooms the board; only a pinch of two fingertips does
+- **Status:** in progress (bead `context-grabber-hxzv`)
+- **Issues:** bead `context-grabber-hxzv` (Igor, 2026-11-24 ~05:00, via Larry: "it zooms while I write")
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
+
+#### Use Case:
+- **As Igor,** writing on a board with the Pencil, my hand resting on the glass
+- **I want to** have the board keep its zoom however my palm shifts while I write
+- **so that** the page stays still under the pen and only a pinch I mean zooms it
+
+#### Acceptance Criteria:
+- **Scenario:** A palm shifting while I write
+- **Given:** a board at its fitted zoom
+- **When:** I write a line with the Pencil, my palm resting and sliding on the glass beside it
+- **Then:** the zoom is the same when I lift as when I started, and the log says the pinch was held off and why
+
+- **Scenario:** A palm and a fingertip together, no Pencil
+- **Given:** a board at its fitted zoom
+- **When:** my palm and a fingertip land and move apart
+- **Then:** the board doesn't zoom
+
+- **Scenario:** A deliberate pinch
+- **Given:** nothing on the glass
+- **When:** I pinch in with two fingertips
+- **Then:** the board zooms in, as before
