@@ -412,11 +412,12 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     wait(for: [done], timeout: 5)
   }
 
-  /// The fake Cockpit draws `count` circles in a row on the board's thread, unprompted, as one reply of Larry's.
-  private func larryDraws(_ count: Int, _ cockpit: String) throws {
+  /// The fake Cockpit draws `count` circles in a row on the board's thread, unprompted, as one reply of Larry's; with
+  /// `onLastStroke`, one circle on the middle of the last stroke the board sent (story 1180).
+  private func larryDraws(_ count: Int, _ cockpit: String, onLastStroke: Bool = false) throws {
     var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-draws")))
     request.httpMethod = "POST"
-    request.httpBody = Data(#"{"count": \#(count)}"#.utf8)
+    request.httpBody = Data(#"{"count": \#(count), "on_last_stroke": \#(onLastStroke)}"#.utf8)
     let done = expectation(description: "the fake Cockpit took it")
     URLSession.shared.dataTask(with: request) { _, response, _ in
       XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
@@ -530,6 +531,46 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let redone = ink(app, within: 8) { $0.maxY > before.maxY + 0.03 }
     XCTAssertNotNil(redone, "redo pushed it down again")
     XCTAssertEqual(send(app).label, strokes(2))
+  }
+
+  /// Story 1180 (bead context-grabber-p2an): Larry's mark on my lower line moves down with it when his push moves it,
+  /// and one undo of the push takes both back up. The anchor, folds, erasing and writing over are `BoardMarkHoldsTests`,
+  /// on the host; a finger can't write over a mark here, as it pans while marks show.
+  func testHisMarkMovesWithTheInkItAnswersAndBackWithUndo() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_OPS": "8,undo", "GRABBER_WHITEBOARD_FINGER_LABEL": "1"])
+    let before = try inkAboveAndBelow(app)
+    try WhiteboardWordsOnlyFixture.prepare(cockpit, for: self)
+    send(app).tap()
+    XCTAssertTrue(WhiteboardWordsOnlyFixture.reply(in: app).appears(within: 15), app.debugDescription)
+    try larryDraws(1, cockpit, onLastStroke: true)
+    XCTAssertTrue(toKeep(app, 1).appears(within: 10), app.debugDescription)
+    let mark = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his circle on my lower line, faint")
+    XCTAssertEqual(mark.center.y, before.maxY, accuracy: 0.03, "on the lower line")
+    shot(app, "his circle on my lower line")
+
+    // A tap off his mark gives the finger its pen back (story 1152); a line between mine changes the board, so the
+    // next Send has something new for him.
+    PaperScreen.tap(app, CGPoint(x: 0.1, y: 0.72))
+    wait(finger(app), label: "draws")
+    stroke(app, atHeight: 0.42)
+    wait(send(app), label: strokes(3))
+    try larryOps(cockpit)
+    send(app).tap()
+    XCTAssertTrue(
+      toKeep(app, 2).appears(within: 15), "his text from the push joins his circle: \(app.debugDescription)")
+    let pushed = try XCTUnwrap(
+      PaperScreen.showing(app, { $0.ink }) { $0.maxY > before.maxY + 0.03 }, "the lower line, pushed down")
+    let moved = try XCTUnwrap(
+      PaperScreen.showing(app, { $0.larryGhost }) { $0.maxY > mark.maxY + 0.03 }, "his circle, moved")
+    shot(app, "pushed, his circle with it")
+    XCTAssertEqual(moved.maxY - mark.maxY, pushed.maxY - before.maxY, accuracy: 0.01, "by as much as the line")
+
+    XCTAssertNotNil(ink(app, within: 14) { abs($0.maxY - before.maxY) < 0.01 }, "one undo put the line back")
+    let back = PaperScreen.showing(app, { $0.larryGhost }, { abs($0.maxY - mark.maxY) < 0.01 })
+    shot(app, "after one undo")
+    XCTAssertEqual(
+      try XCTUnwrap(back, "his circle still shows").maxY, mark.maxY, accuracy: 0.01, "and his circle with it")
   }
 
   /// Stories 995, 999 (#942; bead context-grabber-yqau): beside one of Larry's marks only Keep and Dismiss show, each a

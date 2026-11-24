@@ -4,6 +4,7 @@
 
 import ContextCore
 import PaperKit
+import PencilKit
 import UIKit
 
 extension PaperBoardController {
@@ -16,9 +17,11 @@ extension PaperBoardController {
     var kept: Set<MarkupOrderedSet.ElementID>?
   }
 
-  /// The ghosts on the sheet, and a finger that taps while they show.
+  /// The ghosts on the sheet, and a finger that taps while they show. Each shows where the ink it holds to is, faded
+  /// when written over and not at all while its ink is folded away or erased (stories 1180, 1181, 1269, 1271).
   func show(_ ghosts: [Ghost]) {
     Task { @MainActor [weak self] in self?.showChoice() }
+    defer { lines.ghostLayers.restyle(ghosts, look: { self.model.markHolds.places[$0] }) }
     guard lines.ghostLayers.show(ghosts) else { return }
     fingerTaps(marks: !ghosts.isEmpty, controls: !model.overlays.list.isEmpty)
     let drawn = ghosts.flatMap(\.lines)
@@ -33,6 +36,17 @@ extension PaperBoardController {
         "screen_scale": Double(screenScale),
       ])
     checkSeat()
+  }
+
+  /// Story 1269: Igor's new strokes, never an Undo's or a Redo's, each fading a mark it writes over.
+  func marksWritten(_ change: PaperProbe.InkChange, markup: PaperMarkup, undo: UndoManager?) {
+    guard !change.added.isEmpty, !model.ghosts.isEmpty, undo?.isUndoing != true, undo?.isRedoing != true else { return }
+    let added = Set(change.added)
+    // Remade as `hashes(_:)` does: PencilKit can't put the markup's own element in a drawing of its own.
+    let strokes = markup.subelements.strokes.filter { added.contains(PaperHost.key($0.elementID)) }.map {
+      PKStroke(ink: $0.ink, path: $0.path, transform: $0.transform, mask: $0.mask, randomSeed: $0.randomSeed)
+    }
+    model.marksWritten(strokes)
   }
 
   /// Where the chosen mark is on screen now, for its Keep and Dismiss. The board's points map to the view's by a scale and

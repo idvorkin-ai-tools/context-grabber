@@ -183,8 +183,8 @@ suggest changes the board until Igor keeps it.
       makes no room of its own, but the room made for the others goes under it too. His text from a change kept with
       them makes room in that same one room, as it does with Keep: whatever it lands on goes down under it, a frame
       it sits wholly inside aside, and the text stays where it showed.
-    - Not yet (#912's *Reflow rules*): his other unkept marks don't slide with the ink, and blank paper further down
-      doesn't take up the push: the push moves everything below the line, as a paste's room does, marks of Larry's
+    - His other unkept marks move with the ink they hold to (*His marks hold to the ink they answer*, below). Not yet
+      (#912's *Reflow rules*): blank paper further down doesn't take up the push: the push moves everything below the line, as a paste's room does, marks of Larry's
       kept earlier from the same reply included (Keep all keeps each reply whole, so this only bites when Igor keeps a
       reply mark by mark).
     - The session log's keep line says whether it made room, where and how far, how many things it landed on that Igor
@@ -198,7 +198,8 @@ suggest changes the board until Igor keeps it.
   leaves them, and an answer that lands while he draws still shows. Each new answer from Claude replaces his unkept
   ghosts and leaves Larry's: the old set stays until the first new mark lands, so the board is never blank between
   them, and an answer with nothing to add clears them when it ends. Claude's fade by themselves **30 s** after the last
-  of them appears; Larry's stay until kept or dismissed.
+  of them appears; Larry's stay until kept or dismissed, or until Igor writes over one and posts (*His marks hold to
+  the ink they answer, and fade when written over*, below).
 - **A tap off the marks dismisses nothing** (#823, then #883): one stray tap must never lose a mark, least of all
   Larry's, which don't come back. Clearing a mark takes its own Dismiss.
 - **A tap on his own selection is still his, marks showing or not** (#1170; Igor, 2026-11-22: "Click, select, then
@@ -312,6 +313,68 @@ the first clear space, which the first Keep all did).
 - A tidy or a keep that moves ink past the last page brings the pages it needs, as any keep does.
 - The session log says what each did: how many marks were kept and how many moved, how many labels the tidy found and
   moved.
+
+### His marks hold to the ink they answer, and fade when written over (stories 1180, 1181, 1269–1271; bead context-grabber-p2an; Igor, 2026-11-23, 16:55: "Anchor, and fade when written over")
+
+A mark of Larry's that Igor hasn't kept or dismissed answers something on the board: a check on a word, a label beside
+a line, an arrow to a box. Until now it sat at the place it landed while the board moved under it: a fold, a drag or
+room for a reply slid his ink away and left the mark on blank paper or on someone else's ink, and Igor's new lines
+could run straight over it (board 5c232430, 2026-11-23: his new lines landed on Larry's *got all 33 strokes* label).
+Unkept marks still take no room. Instead each holds to what it answers, and when Igor writes over one it fades and
+goes with his next post.
+
+The rule is the same for every unkept mark, Larry's and Claude's (Claude's fade by themselves in 30 s anyway), and for
+his text from a change shown as a mark. A kept mark is ink and follows the board's rules for ink. A connector mark
+already follows what its ends join (story 917) and holds to nothing more, though writing over it fades it the same.
+
+- **What a mark holds to (its anchor)** is chosen once, when the mark lands on the board, against the board as it
+  shows then (folds closed, and a mark drawn on a picture with folds open first brought to the folded board, as
+  story 1046 does). The board's units are what moves whole: a stroke, a kept text, a group, a header's row. Of the
+  units that show:
+  - the one the mark overlaps most, if it overlaps any;
+  - else the nearest unit above it or beside it (one whose top is above the mark's middle), by the gap between their
+    boxes; between two as near, the one made later;
+  - else nothing: on blank paper with nothing above or beside it, the mark stays where it landed.
+
+  Within that unit the mark holds to the strokes nearest it, then to the rest of the unit's line (a word of Igor's
+  writing is several units, a stroke each), so an erased stroke or a reworded word hands it on to the next. A mark shown again when the board opens holds to the anchor it had, not one chosen again; a reply that
+  lands with the board closed chooses its anchor when it is first shown.
+- **Where the anchor goes, the mark goes, by the same amount.** Through every change of the board:
+  - **A move** (a drag, a lasso's move, Larry's own move, a group carried along): the mark moves with its unit.
+  - **Room** (the margin's room handle, *Insert space*, a paste's or a drop's room, a late reply pushing his newer
+    writing down, Larry's room): the mark moves exactly when its unit moves. Room opened between a mark and the unit
+    it holds to leaves the mark beside its unit; room through the mark itself does too. A mark never splits.
+  - **Fold**: a mark whose unit folds away folds with it and doesn't show; a mark that holds to the header's own row
+    stays with the row. **Unfold** brings it back beside its unit, wherever the unit now is.
+  - **Erase**: a mark whose unit is all erased doesn't show (it answered ink that is gone).
+  - **Undo and Redo** put the unit back, and the mark with it: undoing an erase shows the mark again, beside it.
+  - Hidden marks (folded away, or their ink erased) can't be tapped and aren't kept by *Keep all*; they show again
+    when their unit does.
+- **Written over.** A stroke Igor draws, with the Pencil or with a finger that draws, writes over a mark when at least
+  a third of its path lies on the mark: inside the box a label's letters fill, or, for a drawn mark (a line, an arrow,
+  a box, a circle, a check), within reach of its line (half the two pens' widths and 2 points). So writing a word on
+  a label, striking it through, or scribbling over a check writes over it; an underline below a label, a circle round
+  it, a line crossing an arrow, or a word written beside it does not. A scratch-out erases only ink and leaves an
+  unkept mark it runs over as it was: its zigzag goes, so nothing is left writing over the mark; Dismiss takes the
+  mark. Nothing else writes over a mark: a finger that pans, taps or
+  lassoes, the eraser, a paste, a drop, a keep, and Larry's own changes don't. Ink that was under the mark when it
+  landed (Larry drew over it on purpose) never does either.
+- **A written-over mark fades**: it shows at a third of its strength, so his writing reads on top, and stays where it
+  was. It can still be tapped, kept and dismissed until it goes. Undo of the stroke that wrote over it (or erasing
+  that stroke) brings it back to full strength.
+- **It goes on his next post.** The next picture of the board that reaches Larry (a pause's turn, *Send to Larry*, or
+  the outbox sending one that waited) takes away every faded mark, and every mark whose ink was erased, and tells
+  Larry which, in the same send: the turn's report names each mark by its id with *written over* or *ink erased*. A
+  send that fails, or waits in the outbox, takes nothing away. A mark taken away this way is settled as a dismissed
+  one is: it doesn't come back on the next look or the next open.
+- **Unkept marks take no room**, as before: a paste, a drop, room and new writing land on them as on blank paper. Only
+  ink lands under ink. (The board's interaction review checks writing that lands under ink; a stroke on an unkept mark
+  is not that, it is this rule's *written over*.)
+- **The web board follows the same rule** (a follow-up, with its own story): the anchor, where each mark shows, whether it is folded away
+  or its ink erased, and whether new strokes wrote over it come from the board's own rules, so a mark on the Cockpit's
+  web board holds to the same ink and fades for the same stroke as on the iPad.
+- The session log says, for each mark that lands, what it holds to (or nothing) and how far away; for each stroke that
+  writes over a mark, which mark and how much of the stroke lay on it; for each post, which marks went and why.
 
 ### How a mark looks: pen, colour, lettering (#698)
 

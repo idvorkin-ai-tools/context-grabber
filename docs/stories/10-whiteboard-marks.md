@@ -14,7 +14,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 350:
 
 - **Summary:** Ghosts stay while I draw
-- **Status:** first implemented as drawing dismissing the ghosts in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to staying in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) (Igor, 2026-11-02); not verifiable on the simulator, which has no Pencil and no canvas in the accessibility tree; to try on the iPad, including a finger tap on a ghost while the Pencil is down
+- **Status:** first implemented as drawing dismissing the ghosts in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to staying in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) (Igor, 2026-11-02); not verifiable on the simulator, which has no Pencil and no canvas in the accessibility tree; to try on the iPad, including a finger tap on a ghost while the Pencil is down; a mark my stroke writes over fades and goes on my next post since [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4) (stories 1269, 1270), verified on the host (`BoardMarkHoldsTests`) and the Mac build
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -26,7 +26,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** The Pencil touches down
 - **Given:** ghosts are showing, or a ghost turn is still on its way
 - **When:** I touch the Pencil down and draw on
-- **Then:** the ghosts already showing stay; Claude's quick answer still on its way is dropped and asked again after my next pause (story 894); a reply of Larry's is never dropped, however much I wrote since he looked: it lands, and the one rule for making room (story 1148) moves my newer writing down rather than his reply giving way (Igor, 2026-11-22)
+- **Then:** the ghosts already showing stay (one my stroke writes over fades, and goes on my next post: stories 1269, 1270); Claude's quick answer still on its way is dropped and asked again after my next pause (story 894); a reply of Larry's is never dropped, however much I wrote since he looked: it lands, and the one rule for making room (story 1148) moves my newer writing down rather than his reply giving way (Igor, 2026-11-22)
 
 ---
 
@@ -1737,3 +1737,114 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** I have just tapped *Keep all* (or *Keep* or *Tidy overlaps*), and the board then takes back a step of PaperKit's of its own, for a tap's dot, a zigzag or a dropped selection, before PaperKit's step is on top
 - **When:** I press Undo until the keep is reached
 - **Then:** the keep is still a step of its own, named for it, and one Undo takes every mark it kept back off the board
+
+---
+
+### User Story 1180:
+
+- **Summary:** His marks move with the ink they answer
+- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16), [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4) and [09c2d33b](https://github.com/idvorkin/context-grabber/commit/09c2d33b); verified on the host (`BoardMarkHoldsTests`): the anchor, a drag, room above both and between, Undo, and board 5c232430's label against its logged boxes), the Mac build, and the iPad simulator (`WhiteboardPaperGhostsUITests.testHisMarkMovesWithTheInkItAnswersAndBackWithUndo`: his circle on my lower line rode Larry's push by as much as the line, and one undo took both back). A drag of my own ink (a lasso's move) keeps the mark with it since [c198b95c](https://github.com/idvorkin/context-grabber/commit/c198b95c), verified on the host and the Mac build only. The iPad itself not yet tried
+- **Issues:** bead `context-grabber-p2an`: Igor, 2026-11-23 16:55, via Larry (ask igor2-88g.1720.1): "Anchor, and fade when written over"; on board 5c232430 his new lines landed on Larry's *got all 33 strokes* label
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
+
+#### Use Case:
+- **As someone** reworking the board while Larry's marks still show
+- **I want to** see each mark of his stay beside the ink it answers when that ink moves
+- **so that** a check stays on its word and a label beside its line, wherever I push them
+
+#### Acceptance Criteria:
+- **Scenario:** The ink a mark answers moves
+- **Given:** a mark of Larry's, not kept, landed on or just below a line of my writing
+- **When:** I drag that line, push it down with the room handle or *Insert space*, a paste's or a drop's room pushes it, or Larry moves it
+- **Then:** the mark moves by the same amount and stays beside it; room opened between the line and its mark, or through the mark, leaves the mark beside the line
+- **And:** Undo and Redo of that move take the mark back and forth with the line
+- **And:** a mark on blank paper with nothing above or beside it stays where it landed
+- **And:** the session log says, when the mark lands, what it holds to (or nothing) and how far away
+
+---
+
+### User Story 1181:
+
+- **Summary:** His marks fold and unfold with their section
+- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16) and [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4); verified on the host (`BoardMarkHoldsTests`): a real fold of `BoardOutline` hides it and unfold brings it back; a hidden mark takes no tap and no keep) and the Mac build. Not yet seen on the simulator or the iPad
+- **Issues:** bead `context-grabber-p2an`
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
+
+#### Use Case:
+- **As someone** folding sections to see the board's shape
+- **I want to** have Larry's marks on a section fold away with it and come back when I open it
+- **so that** a folded board shows no stray marks over other sections
+
+#### Acceptance Criteria:
+- **Scenario:** Folding the section a mark answers
+- **Given:** a mark of Larry's, not kept, answers ink under a header
+- **When:** I fold that header
+- **Then:** the mark doesn't show and can't be tapped, and *Keep all* leaves it
+- **And:** when I unfold the header the mark shows again beside its ink, wherever the ink now is
+
+---
+
+### User Story 1269:
+
+- **Summary:** Writing over one of his marks fades it
+- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16), [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4) and [09c2d33b](https://github.com/idvorkin/context-grabber/commit/09c2d33b); verified on the host (`BoardMarkHoldsTests`): a word on a label, a strike-through and a scribble fade it; an underline, a ring and a crossing line don't; Undo unfades) and the Mac build. A scratch-out leaves the mark at full strength since [7178775e](https://github.com/idvorkin/context-grabber/commit/7178775e), verified on the host. Not verifiable on the simulator, where a finger pans while marks show; the iPad's Pencil still to try
+- **Issues:** bead `context-grabber-p2an`
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
+
+#### Use Case:
+- **As someone** writing on, through Larry's marks
+- **I want to** have a mark I write over fade under my writing
+- **so that** my writing reads on top and I needn't dismiss what I've written past
+
+#### Acceptance Criteria:
+- **Scenario:** A stroke on a mark
+- **Given:** a mark of Larry's, not kept, shows on the board
+- **When:** I draw a stroke, with the Pencil or a drawing finger, with at least a third of its path inside a label's letter box or on a drawn mark's line
+- **Then:** the mark fades to a third of its strength and stays where it was, still able to be kept or dismissed
+- **And:** an underline below a label, a circle round it, a line crossing an arrow, ink already under the mark when it landed, a scratch-out, a paste, a drop, a keep and the eraser leave it at full strength
+- **And:** Undo of that stroke, or erasing it, brings the mark back to full strength
+- **And:** the session log says which mark the stroke wrote over and how much of the stroke lay on it
+
+---
+
+### User Story 1270:
+
+- **Summary:** A faded mark goes on my next post, and Larry is told
+- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16) and [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4); verified on the host (`BoardMarkHoldsTests`): the post's report names each with its reason beside a full turn of events) and the Mac build. Not yet seen on the iPad
+- **Issues:** bead `context-grabber-p2an`
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
+
+#### Use Case:
+- **As someone** who wrote over Larry's suggestion
+- **I want to** have it go when the board next reaches Larry, and him know why
+- **so that** the board stays clear and he doesn't wonder where his mark went
+
+#### Acceptance Criteria:
+- **Scenario:** The next picture reaches Larry
+- **Given:** a mark of Larry's is faded because I wrote over it, or doesn't show because the ink it answered is erased
+- **When:** the next picture of the board reaches Larry (a pause's turn, *Send to Larry*, or the outbox sending one)
+- **Then:** the mark goes, and that send's report names it by id with *written over* or *ink erased*
+- **And:** it doesn't come back on the next look or the next open
+- **And:** a send that fails or waits in the outbox leaves it as it was
+
+---
+
+### User Story 1271:
+
+- **Summary:** A mark whose ink I erase goes with it, and Undo brings both back
+- **Status:** implemented in [559b7e16](https://github.com/idvorkin/context-grabber/commit/559b7e16) and [6de8abc4](https://github.com/idvorkin/context-grabber/commit/6de8abc4); verified on the host (`BoardMarkHoldsTests`): all erased hides it, part erased hands it on, undo brings it back) and the Mac build. Not yet seen on the iPad
+- **Issues:** bead `context-grabber-p2an`
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *His marks hold to the ink they answer, and fade when written over*
+
+#### Use Case:
+- **As someone** erasing what Larry commented on
+- **I want to** have his comment on it go too, and come back if I undo the erase
+- **so that** no mark is left pointing at nothing
+
+#### Acceptance Criteria:
+- **Scenario:** Erasing what a mark answers
+- **Given:** a mark of Larry's, not kept, answers a word of mine
+- **When:** I erase all of that word
+- **Then:** the mark doesn't show and can't be tapped
+- **And:** Undo of the erase shows the mark again beside the word
+- **And:** erasing part of the word leaves the mark beside what is left

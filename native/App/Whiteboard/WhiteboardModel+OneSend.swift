@@ -145,6 +145,8 @@ extension WhiteboardModel {
         larryOut?.delivered = true
       }
       turns.larryReached()
+      // Story 1270: the marks the picture told him it takes away go once the outbox sent it.
+      if let drops = item.whiteboard?.report?.marksDropped { marksDropped(drops) }
       if problem?.context == "WhiteboardView.larry" { problem = nil }
       log.event("whiteboard", ["action": "send_went", "board": board.id, "picture": id, "clock": started])
       checkLarryWait()
