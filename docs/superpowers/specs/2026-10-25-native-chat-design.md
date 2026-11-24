@@ -423,11 +423,11 @@ file picker, for a PDF or any other document. The file sits above the field by n
 with whatever is typed as one message, which reads as the file's name and then the words; a new chat's title is the
 words' first line, else the file's name. One attachment to a message: picking a file replaces a pasted image, and
 pasting an image replaces a picked file. A picture chosen in the picker is treated as a pasted one: it previews and
-sends as a picture, except that one over 10 MB is refused at the pick where a pasted one is made to fit. Send works
+sends as a picture, except that one over 100 MB is refused at the pick where a pasted one is made to fit. Send works
 with a file alone. It waits on the phone and lands once like any message.
 
-Limits are said when the file is picked, in a copyable problem, and the draft stays as it was: over 10 MB (the Cockpit's
-limit), empty, or unreadable. Nothing is sent and the original file is untouched.
+Limits are said when the file is picked, in a copyable problem, and the draft stays as it was: over 100 MB (the Cockpit's
+limit, raised from 10 MB on 2026-11-24, #1426), empty, or unreadable. Nothing is sent and the original file is untouched.
 
 **A file the Cockpit won't take.** Since 2026-11-20 the Cockpit takes PDFs, plain text, and Word, Excel and PowerPoint
 files as well as pictures, judging each by what it holds rather than by its name (Cockpit story 167); anything else,
@@ -864,7 +864,7 @@ asked him to confirm the build and he couldn't tell; only board pictures said).
   Edit > Paste in the bar's field attaches it with its preview, the typed words kept. Words on the clipboard still
   paste as words. A phone and an iPad are unchanged.
 - The paperclip picks a PDF or any document; it shows by name and size, *Remove file* takes it off, and Send sends it with
-  or without words. A picture picked there goes as a picture. Over 10 MB, empty or unreadable says so copyably at the
+  or without words. A picture picked there goes as a picture. Over 100 MB, empty or unreadable says so copyably at the
   pick and leaves the draft alone.
 - A file the Cockpit refuses is still on the phone, with a copyable problem naming it and the Cockpit's reason; *Send
   again* retries the same message, and delivers it once the Cockpit takes files. A kept file the phone can't read says
@@ -919,7 +919,7 @@ Two small changes there (a PR to idvorkin-ai-tools/cockpit), before the phone ha
 Files (#633) needed one more, built in the Cockpit on 2026-11-20 (cockpit-hdz, Cockpit story 167); a file of a kind
 it still doesn't take is refused and kept, as above:
 
-- The Cockpit's attachments accept PDFs and other documents, not only pictures, under the same 10 MB limit and the same
+- The Cockpit's attachments accept PDFs and other documents, not only pictures, under the same limit as pictures (100 MB since 2026-11-24) and the same
   rule that it names what it stores; a message can name one, Larry is told where it is, and asking for it returns it.
   The file's own name reaches Larry in the message's words. The Cockpit's web page shows such an attachment as something
   to open, not as a broken picture.

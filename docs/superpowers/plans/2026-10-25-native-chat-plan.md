@@ -17,7 +17,7 @@ So the spec's migration is free: an item still waiting at upgrade has no `thread
 
 Per waiting item, oldest first, stop at the first retry (as now):
 
-1. An image: `InboxSend.sendable` (HEIC → JPEG, ≤ 10 MB), then `POST /attachments` with the raw bytes → `ref`. A 4xx is
+1. An image: `InboxSend.sendable` (HEIC → JPEG, within the Cockpit's cap, `InboxSend.maxImageBytes`), then `POST /attachments` with the raw bytes → `ref`. A 4xx is
    *refused*; anything else is a retry. A retried upload leaves an orphan file on the box (ponytail: harmless, the
    Cockpit's attachments are day directories).
 2. `thread == nil`: `POST /chat {id, title, text, source: app, attachments}`; else `POST /chat/<key> {id, text, source,
