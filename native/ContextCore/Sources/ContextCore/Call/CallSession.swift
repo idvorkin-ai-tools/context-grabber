@@ -187,6 +187,9 @@ public final class CallSession {
   public static let zeroBuffersBeforeRearm = 10
   /// #440, story 322: a connection lost this soon after the phone's network changed is a handoff, and redials.
   public static let handoffWindowMs = 10_000.0
+  /// #1417, stories 1075, 1076: a drive trades cellular and Wi-Fi often; three handoff redials a minute, no more.
+  public static let handoffRedialsPerMinute = 3
+  public static let handoffRedialMinuteMs = 60_000.0
   /// #577: Larry's audio still this far ahead of the speaker holds a zero-run rearm on a mic that was live.
   public static let rearmHoldQueuedS = 0.3
   public static let micSilent = "the microphone is delivering silence"
@@ -251,9 +254,10 @@ public final class CallSession {
   private var redialed = false
   /// #440: when the phone's network last changed under this call (0: not since it started).
   private var networkChangedAt = 0.0
-  /// One handoff redial until a call's audio comes through, so a network that cannot carry a call is not dialled
-  /// in a loop; kept across the redial's own start.
-  private var handoffRedialed = false
+  /// When each handoff redial of this call went out, kept across the redials' own starts. A redial needs a network
+  /// change since it began (#1417), and at most `handoffRedialsPerMinute` go in any sixty seconds, so a network that
+  /// cannot carry a call is not dialled in a loop (stories 324, 1075, 1076).
+  private var handoffRedialTimes: [Double] = []
   /// The session's own redial is calling `start`; a start from anywhere else is a new call (Fable on #440).
   private var redialStart = false
   private var micBuffers = 0
@@ -294,7 +298,7 @@ public final class CallSession {
       log("call_ignored", ["action": "start", "backend": backend.rawValue, "state": snapshot.state.rawValue])
       return
     }
-    if !redialStart { handoffRedialed = false }  // a call Igor placed may redial on its first handoff
+    if !redialStart { handoffRedialTimes = [] }  // a call Igor placed may redial on its first handoff
     redialStart = false
     resetForCall(backend: backend, voice: voice, stt: stt)
     let fields = deps.callSettings().fields(for: backend, voice: voice)
@@ -444,7 +448,6 @@ public final class CallSession {
     lastAudioAt = deps.scheduler.now
     if framesReceived == 1 {
       log("call_rx", ["action": "first_audio", "bytes": data.count])
-      handoffRedialed = false  // this call carried audio; the next handoff may redial again
     }
     setProblems { $0.audioNotArriving = false }
   }
@@ -460,18 +463,20 @@ public final class CallSession {
         "live_ms": since(snapshot.startedAt ?? 0),
       ])
     // #440, #575: the phone moving the call between cellular and Wi-Fi takes the socket with it (0.2 s after the
-    // path moved, 2026-10-29). Lost that soon after a change, the call dials again on its own, once.
-    if !handoffRedialed, networkChangedAt > 0, now - networkChangedAt <= Self.handoffWindowMs,
-      let backend = snapshot.backend
+    // path moved, 2026-10-29). Lost that soon after a change, the call dials again on its own. #1417: a change since
+    // the last redial began (each start forgets older ones) may redial again, up to three times a minute.
+    handoffRedialTimes.removeAll { now - $0 >= Self.handoffRedialMinuteMs }
+    if handoffRedialTimes.count < Self.handoffRedialsPerMinute, networkChangedAt > 0,
+      now - networkChangedAt <= Self.handoffWindowMs, let backend = snapshot.backend
     {
-      handoffRedialed = true
+      handoffRedialTimes.append(now)
       let voice = snapshot.voice
       let stt = snapshot.stt
       log(
         "call_heal",
         [
           "action": "redial", "why": "connection lost after a network change",
-          "since_change_ms": since(networkChangedAt),
+          "since_change_ms": since(networkChangedAt), "handoff_redials": handoffRedialTimes.count,
         ])
       finish(CallProtocol.connectionLost, badly: true, redialing: true)
       redialStart = true
