@@ -56,7 +56,7 @@ function check(ok, what) {
 
 // The interface's version and sizes.
 const info = JSON.parse(read(x.bw_info()));
-check(info.abi === 9, `bw_info abi is 9: ${JSON.stringify(info)}`);
+check(info.abi === 10, `bw_info abi is 10: ${JSON.stringify(info)}`);
 check(info.contract === 1 && info.line === 40 && info.near === 80, `bw_info contract, line, near: ${JSON.stringify(info)}`);
 check(info.cgfloat_bits === 32, `bw_info says the rules' arithmetic is 32-bit: ${info.cgfloat_bits}`);
 
@@ -450,6 +450,32 @@ check(isDeepStrictEqual(candidates({ declined: ['b1'] }), { candidates: [underli
 check(isDeepStrictEqual(candidates({}), { candidates: [big, underlined] }), 'asking leaves the outline as it was');
 check(candidates('[1]').error === 'the request is not a JSON object', 'a request that is no object says so');
 check(call('bw_outline_load', 'not json') === -1 && candidates({}).error === 'no outline is loaded', 'with no outline it says so');
+
+// Interface 10, story 1263 (spec, what moves whole and its rows): a header H at 100 folded over a hidden line at 140, a
+// line at 300, two strokes Larry grouped at 400 and 420 and a kept text at 500. Four units in board order: H's row with
+// what it hides (its box its own row, -2..202 by 98..102, pen 4), the line, the group whole (one box across both) and
+// the text; four rows.
+const rowsInk = {
+  strokes: [line('h1', 100), { ...line('b1', 140), points: [[60, 140], [200, 140]], hidden: true }, line('n', 300),
+    seg('g1', 0, 100, 400), seg('g2', 150, 200, 420)],
+  boxes: [{ id: 't', box: [0, 500, 100, 540] }],
+  groups: { g1: 'g', g2: 'g', t: 't' },
+  headers: [{ id: 'H', ids: ['h1'], fold: { ids: ['b1'], own: ['b1'], shift: 0, lines: 1, bottom: 40 } }],
+};
+check(call('bw_outline_load', rowsInk) === 6, `the rows outline ${error() ?? ''}`);
+const wantRows = {
+  rows: [{ bottom: 102, top: 98 }, { bottom: 302, top: 298 }, { bottom: 422, top: 398 }, { bottom: 540, top: 500 }],
+  units: [
+    { box: [-2, 98, 202, 102], header: 'H', names: ['h1', 'b1'], tag: 'h:H' },
+    { box: [-2, 298, 202, 302], header: null, names: ['n'], tag: null },
+    { box: [-2, 398, 202, 422], header: null, names: ['g1', 'g2'], tag: 'g' },
+    { box: [0, 500, 100, 540], header: null, names: ['t'], tag: 't' },
+  ],
+};
+const rowsNow = () => reply(x.bw_rows());
+check(isDeepStrictEqual(rowsNow(), wantRows), `the units and rows: ${JSON.stringify(rowsNow())}`);
+check(isDeepStrictEqual(rowsNow(), wantRows), 'asking leaves the outline as it was');
+check(call('bw_outline_load', 'not json') === -1 && rowsNow().error === 'no outline is loaded', 'rows with no outline say so');
 
 for (const f of failures) console.log(`FAIL ${f}`);
 console.log(`${failures.length ? 'FAIL' : 'ok  '} board wasm: ${passed} checks passed, ${failures.length} failed (${names.length} recorded sessions, ${(fs.statSync(wasmPath).size / 1e6).toFixed(1)} MB module)`);

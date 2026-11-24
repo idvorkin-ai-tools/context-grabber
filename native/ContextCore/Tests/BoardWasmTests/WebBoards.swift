@@ -49,7 +49,18 @@ struct WebBoard {
       }
     }
     // A text the app groups by its glyphs' time is grouped by its own name on the web.
-    let headers = (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(self.headers))) ?? []
+    let renamed = self.headers.map { h -> BoardHeader in
+      var h = h
+      h.ids = h.ids.map(Self.webName)
+      if var fold = h.fold {
+        fold.ids = fold.ids.map(Self.webName)
+        fold.own = fold.own.map(Self.webName)
+        h.fold = fold
+      }
+      h.ends = h.ends?.map(Self.webName)
+      return h
+    }
+    let headers = (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(renamed))) ?? []
     let wire: [String: Any] = ["strokes": ink, "boxes": boxes, "groups": groups, "headers": headers]
     // swiftlint:disable:next force_try
     return try! JSONSerialization.jsonObject(with: JSONSerialization.data(withJSONObject: wire))
