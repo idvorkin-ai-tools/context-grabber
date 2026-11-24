@@ -1982,7 +1982,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1311:
 
 - **Summary:** The board says how fast it answers the Pencil
-- **Status:** in progress
+- **Status:** implemented in a98734af; verified by the host tests (`PenLatencyTests`, `scripts/native/test-pen-latency.sh`), the Mac build and the iPad Pro 11-inch (M5) simulator's OnPaper, ScratchOut, UndoRedraw and Turn whiteboard classes (17 cases, drawing unchanged); the simulator has no Pencil, so the first number comes from the iPad after the next install and a few lines written
 - **Issues:** bead `context-grabber-7xv6` (Igor, 2026-11-24 ~05:00, via Larry: "measure pen latency on both first, then decide")
 - **Spec:** [How fast the board answers the Pencil](../superpowers/specs/2026-11-24-board-pen-latency-design.md)
 
