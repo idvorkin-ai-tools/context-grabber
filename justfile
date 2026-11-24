@@ -18,7 +18,7 @@ test-ladder *args:
 # then ContextCore compiled in Release, as an archive compiles it, when the branch changes it (release-check.sh).
 pre-merge *branch:
     scripts/native/pre-merge.sh {{branch}}
-    scripts/native/release-check.sh
+    scripts/native/release-check.sh {{branch}}
 
 # --- The native app (native/, docs/superpowers/specs/2026-10-04-swift-native-app-design.md) ---
 

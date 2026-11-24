@@ -1904,7 +1904,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1519:
 
 - **Summary:** Right before merging, ContextCore is compiled the way an archive compiles it
-- **Status:** in progress on branch `native/release-crash-moves` (bead context-grabber-6ocd)
+- **Status:** implemented in 5e3718a8, 9b62205d; verified on the host rung by scripts/native/test-release-check.sh in `just test`, and a real Release build of ContextCore (scripts/native/release-check.sh) on this branch
 - **Issues:** bead context-grabber-6ocd
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md), *The pre-merge check*
 
@@ -1917,5 +1917,5 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A branch that changes the shared core
 - **Given:** a PR that changes ContextCore has passed the pipeline
 - **When:** the agent runs `just pre-merge` immediately before `gh pr merge`
-- **Then:** ContextCore is built in Release; if that build fails, pre-merge ends with a FAIL line naming the Release build and a nonzero exit, and a branch that leaves ContextCore alone skips the build
+- **Then:** if ContextCore's Release build fails, pre-merge ends with a FAIL line naming the Release build and a nonzero exit
 
