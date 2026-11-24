@@ -85,15 +85,15 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Spoken direction
 - **Given:** the mic is open on the board, and I drew a curve
 - **When:** I say "this is my energy over the week, mark the dip"
-- **Then:** once the next picture goes (the Pencil's pause, *Send to Larry*, or closing the mic; story 1281), faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point
+- **Then:** once the next picture goes (the Pencil's pause, *Send to Larry*, closing the mic, or 5 s of silence; stories 1281, 1305), faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point
 
 ---
 
 ### User Story 1281:
 
-- **Summary:** The board's mic listens continuously, and a pause to think sends nothing
+- **Summary:** The board's mic listens continuously, and a pause to think under 5 s sends nothing
 - **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103); the waiting words verified on the host by `WhiteboardGhostTurnsTests`; real dictation on the iPad not yet
-- **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry)
+- **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry); a pause of 5 s or more sends since Igor's answer the same day (story 1305)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
 
 #### Use Case:
@@ -104,7 +104,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** Thinking out loud
 - **Given:** the mic is open on the board
-- **When:** I say "I see a chip that says", stop for ten seconds, and go on
+- **When:** I say "I see a chip that says", stop for four seconds, and go on
 - **Then:** nothing is sent, and the note's line shows my words as I say them
 
 ---
@@ -169,10 +169,30 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1305:
+
+- **Summary:** Five seconds of silence sends what I said
+- **Status:** not yet implemented
+- **Issues:** Igor, 2026-11-24, answering Larry's board card igor2-88g.1724.4: "Keep a silence send, only after 5 s or more"
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
+
+#### Use Case:
+- **As someone** who talks to the board without drawing or tapping anything
+- **I want to** have my words go once I've been quiet for 5 s
+- **so that** a spoken question reaches Larry without a tap, and a shorter pause to think still sends nothing
+
+#### Acceptance Criteria:
+- **Scenario:** Quiet for five seconds
+- **Given:** the mic is open on the board and heard "what about Tuesday", which no picture has taken
+- **When:** I say nothing more for 5 s
+- **Then:** the board goes with "what about Tuesday", the mic stays open, and the session log says the silence sent it
+
+---
+
 ### User Story 1118:
 
 - **Summary:** A spoken turn waits until I have finished my sentence
-- **Status:** superseded by story 1281 (Igor, 2026-11-24: silence never sends; the words go with the next picture); was implemented in [ea86e616](https://github.com/idvorkin/context-grabber/commit/ea86e616)
+- **Status:** superseded by stories 1281 and 1305 (Igor, 2026-11-24: the words go with the next picture, and only 5 s or more of silence sends, whatever the words end with); was implemented in [ea86e616](https://github.com/idvorkin/context-grabber/commit/ea86e616)
 - **Issues:** bead `context-grabber-u1yy`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
