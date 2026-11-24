@@ -23,10 +23,14 @@ enum WebHit {
   }
 
   /// The menu a finger held at (x, y) brings up: `{"choices": [id], "names", "on"}`, each choice by its id
-  /// (`select`, `delete`, `make-room`, `paste`, `make-header`, `not-header`, `fold-all`, `level-n`, `unfold-all`), and
-  /// `header`, the header *Not a header* takes, when there is one.
-  static func holdMenu(_ outline: BoardOutline, x: Double, y: Double, inMargin: Bool, slop: Double) -> [String: Any] {
-    let menu = outline.holdMenu(at: CGPoint(x: x, y: y), inMargin: inMargin, slop: CGFloat(slop))
+  /// (`select`, `to-text`, `delete`, `make-room`, `paste`, `make-header`, `not-header`, `fold-all`, `level-n`,
+  /// `unfold-all`), and `header`, the header *Not a header* takes, when there is one. With `selected` (the strokes'
+  /// names selected now), a hold on the selection is about all of it, on "selection" (story 1310).
+  static func holdMenu(
+    _ outline: BoardOutline, x: Double, y: Double, inMargin: Bool, slop: Double, selected: [String] = []
+  ) -> [String: Any] {
+    let menu = outline.holdMenu(
+      at: CGPoint(x: x, y: y), inMargin: inMargin, slop: CGFloat(slop), selected: selected)
     var out: [String: Any] = ["choices": menu.choices.map(\.id), "names": menu.names, "on": menu.on]
     for case .notHeader(let id) in menu.choices { out["header"] = id }
     return out
@@ -48,5 +52,20 @@ enum WebHit {
   public func bwHoldMenu(_ x: Double, _ y: Double, _ inMargin: Int32, _ slop: Double) -> UnsafeMutableRawPointer {
     guard let loaded = outline else { return reply(json: ["error": "no outline is loaded"]) }
     return reply(json: WebHit.holdMenu(loaded, x: x, y: y, inMargin: inMargin != 0, slop: slop))
+  }
+
+  /// Story 1310: `{"x", "y", "in_margin", "slop", "selected": [name]}`, the menu a finger held still there brings up
+  /// with that selection on the board, as a reply: held on the selection, its rows take all of it.
+  @_expose(wasm, "bw_hold_menu_on")
+  @_cdecl("bw_hold_menu_on")
+  public func bwHoldMenuOn(_ pointer: UnsafeRawPointer?, _ length: Int32) -> UnsafeMutableRawPointer {
+    guard let loaded = outline else { return reply(json: ["error": "no outline is loaded"]) }
+    guard let json = try? JSONSerialization.jsonObject(with: input(pointer, length)) as? [String: Any],
+      let x = JSONNumber(json["x"])?.doubleValue, let y = JSONNumber(json["y"])?.doubleValue
+    else { return reply(json: ["error": "no x and y"]) }
+    return reply(
+      json: WebHit.holdMenu(
+        loaded, x: x, y: y, inMargin: json["in_margin"] as? Bool ?? false,
+        slop: JSONNumber(json["slop"])?.doubleValue ?? 22, selected: WebApplier.strings(json["selected"])))
   }
 #endif

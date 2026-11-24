@@ -1,4 +1,4 @@
-//  A board on paper: the hold menu's rows for the thing under the finger, Select and Delete (stories 1186, 1187;
+//  A board on paper: the hold menu's rows for the thing under the finger, Select, To text and Delete (stories 1186, 1187, 1309;
 //  spec 2026-11-16-whiteboard-board-ops-design.md, *Press and hold*; context-grabber-y4y).
 
 import ContextCore
@@ -14,7 +14,7 @@ extension PaperBoardController {
     log.event("board_outline", ["action": "hold_lifted", "board": model.board.id, "at": point(at)])
   }
 
-  /// Story 1186: the thing under the held finger selected, as a lasso round it would, its label and To text beside it.
+  /// Story 1186: the thing under the held finger selected, as a lasso round it would, its label above it.
   /// A beat later the log says whether the selection held.
   func holdSelect(_ names: [String]) {
     guard let markup = paper.markup, !names.isEmpty else { return }
@@ -35,6 +35,14 @@ extension PaperBoardController {
           "held": !now.isEmpty && self.paper.selection == now, "selected": self.paper.selection.count,
         ])
     }
+  }
+
+  /// Story 1309 (#1386): the thing under the held finger (or his whole selection, held on it, story 1310) read and typed
+  /// in its place: selected as Select would, then To text, which shows nowhere else.
+  func holdToText(_ names: [String]) {
+    holdSelect(names)
+    log.event("board_outline", ["action": "hold_to_text", "board": model.board.id, "strokes": names.count])
+    toTextTapped()
   }
 
   /// Story 1187: the thing under the held finger erased, one Undo named *Delete*; Larry hears it erased.

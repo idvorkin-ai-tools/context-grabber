@@ -178,6 +178,12 @@ public struct BoardOutline: Sendable {
 
   private func isText(_ tag: String?) -> Bool { tag.map { id in texts.contains { $0.id == id } } ?? false }
 
+  /// Story 1309: these strokes' names are one kept text, whole, as `word(at:)` finds one.
+  func isKeptText(_ chosen: [String]) -> Bool {
+    let wanted = Set(chosen)
+    return units().contains { isText($0.tag) && Set(names($0.members)) == wanted }
+  }
+
   // MARK: - Headers
 
   /// A fold that still holds: what it hid is still hidden. An Undo that shows it again opens the fold.

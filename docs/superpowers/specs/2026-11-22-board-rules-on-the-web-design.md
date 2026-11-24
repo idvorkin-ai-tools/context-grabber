@@ -517,6 +517,20 @@ folded board (stories 900, 1046).
 
 `bw_info` says `"abi": 20`. Every other export's arguments and answers are as in version 19.
 
+### Interface 21: To text in the hold menu, and a hold on the selection (stories 1309, 1310; #1386)
+
+Igor, 2026-11-24: To text appears only in the long-press menu, never beside a selection. The hold menu's rules are
+the shared core's, so the web board's long-press menu gets the row the same way.
+
+- `bw_hold_menu` and `bw_hold_menu_on` offer `to-text` right after `select`: on a word of his, a group and a header's
+  row. Not on a kept text, which is text already.
+- New, `bw_hold_menu_on`, input `{"x", "y", "in_margin", "slop", "selected": [name]}`, the strokes selected now:
+  held on a thing any of whose strokes are selected, the menu is about the whole selection, `on: "selection"`, with
+  `to-text` (unless it is all one kept text) and `delete` and then the line's rows, and no `select`. Held anywhere
+  else, or with nothing selected, it answers as `bw_hold_menu`. No `x` or `y` is a reply `{"error": "no x and y"}`.
+
+`bw_info` says `"abi": 21`. Every other export's arguments and answers are as in version 20.
+
 ## Precision: a known difference from the iPad
 
 In WebAssembly the rules' arithmetic is 32-bit (the SDK has no 64-bit target), where the iPad's is 64-bit. Boxes

@@ -36,7 +36,7 @@ final class BoardSelectionLabelTests: XCTestCase {
   }
 
   func testPlainInkOffersToText() throws {
-    XCTAssertEqual(try label(["i1", "i2"]), "Ink · To text")
+    XCTAssertEqual(try label(["i1", "i2"]), "Ink · hold for To text")
   }
 
   func testAWholeKeptTextIsRewordedWithATapAndSaysAConnectorFollowsIt() throws {
@@ -51,7 +51,7 @@ final class BoardSelectionLabelTests: XCTestCase {
     let picked = [Piece(names: ["h1"], t: 100)]
     let left = BoardSelectionLabel.label(
       picked: picked, board: picked, texts: [], metas: try metas(), connectReady: false)
-    XCTAssertEqual(left?.text, "Ink · To text")
+    XCTAssertEqual(left?.text, "Ink · hold for To text")
   }
 
   func testAGroupMovesAsOneAndPartOfItSaysSo() throws {
@@ -134,7 +134,7 @@ final class BoardSelectionLabelTests: XCTestCase {
     let picked = [board[0]]
     let label = BoardSelectionLabel.label(
       picked: picked, board: board, texts: texts, metas: try metas(), connectReady: false)
-    XCTAssertEqual(label?.spoken, "Selected: Ink, To text")
+    XCTAssertEqual(label?.spoken, "Selected: Ink, hold for To text")
     XCTAssertEqual(label?.kind, .ink)
   }
 }

@@ -92,7 +92,7 @@ final class WhiteboardDropRoomUITests: XCTestCase {
 
     // A tap on one circle selects the group (story 947); a finger drags it onto my second line.
     PaperScreen.tap(app, CGPoint(x: kept.minX + 0.003, y: kept.center.y))
-    XCTAssertTrue(app.buttons["whiteboard-to-text"].appears(within: 5), "the tap selected it: \(app.debugDescription)")
+    XCTAssertTrue(app.selectionLabel.appears(within: 5), "the tap selected it: \(app.debugDescription)")
     sleep(2)
     // PaperKit holds a drag about 20 points before the group starts to move (bead context-grabber-o1x8: 213 points of
     // finger moved it 193 to 196). Aimed centre on centre it landed about 20 points high and only grazed the line, 2

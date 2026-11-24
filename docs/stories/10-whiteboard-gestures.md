@@ -344,7 +344,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Select from the hold menu
 - **Given:** two words on a line
 - **When:** I hold a finger still on the first and choose Select
-- **Then:** that word alone is selected, as a lasso round it would leave it, with its label and To text beside it; on a group of Larry's the whole group is, and on a header's row the row is
+- **Then:** that word alone is selected, as a lasso round it would leave it, with its label above it and nothing beside it; on a group of Larry's the whole group is, and on a header's row the row is
 
 ---
 
@@ -503,13 +503,13 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** writing on the board with the Pencil
-- **I want to** lasso some of my handwriting and tap To text
+- **I want to** lasso some of my handwriting, hold a finger on it and choose To text
 - **so that** the words are typed where I wrote them, for me and for Larry
 
 #### Acceptance Criteria:
 - **Scenario:** Two written lines
 - **Given:** I lasso two lines of my handwriting on a board drawn on here
-- **When:** I tap To text beside the selection and the Cockpit reads it
+- **When:** I hold a finger still on the selection, choose To text from the hold menu, and the Cockpit reads it
 - **Then:** the ink goes and its words show in its place as two typed lines in the print lettering and the ink's colour, one kept text that Larry gets back as text; one undo brings the ink back
 
 ---
@@ -528,7 +528,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** The Cockpit fails
 - **Given:** some ink lassoed, and a Cockpit that is away or answers with an error
-- **When:** I tap To text
+- **When:** I choose To text from the hold menu on it
 - **Then:** the ink stays exactly as it was and a copyable problem says "To text failed:" with the Cockpit's reason, naming the board, the Cockpit and its status
 
 ---
@@ -547,7 +547,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** A drawing with no words
 - **Given:** I lasso a doodle with no writing in it, or more than 500 characters of writing
-- **When:** I tap To text
+- **When:** I choose To text from the hold menu on it
 - **Then:** the ink stays and the board's note says "No writing found there", or "Too much writing for one text (500 characters): select less"
 
 ---
@@ -1154,7 +1154,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** My handwriting
 - **Given:** a board on paper with my handwriting
 - **When:** I lasso my handwriting
-- **Then:** the label says *Ink · To text*; it sits just above the selection, never takes a touch (my next stroke draws), and is in no picture Larry gets
+- **Then:** the label says *Ink · hold for To text*; it sits just above the selection, never takes a touch (my next stroke draws), and is in no picture Larry gets
 
 ---
 
@@ -1187,14 +1187,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** whose board holds Larry's kept texts beside my handwriting
-- **I want** the label on a selected text to say *Text · tap to reword*, and to say *Ink · To text* once an erase has broken it
+- **I want** the label on a selected text to say *Text · tap to reword*, and to say *Ink · hold for To text* once an erase has broken it
 - **so that** I know a tap rewords it before I try, and know when it has become ink
 
 #### Acceptance Criteria:
 - **Scenario:** A kept text, then one an erase broke
 - **Given:** a board on paper with a kept text of Larry's, and another kept text with one letter erased
 - **When:** I select each one in turn
-- **Then:** the label says *Text · tap to reword* on the whole text, and *Ink · To text* on the one with the erased letter
+- **Then:** the label says *Text · tap to reword* on the whole text, and *Ink · hold for To text* on the one with the erased letter
 
 ---
 
@@ -1255,3 +1255,43 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** some of my ink selected
 - **When:** I tap the selection
 - **Then:** its menu offers what acts on it (Copy, Delete) and never *Paste* or *Select All*
+
+---
+
+### User Story 1309:
+
+- **Summary:** To text is in the hold menu, and nowhere else
+- **Issues:** [#1386](https://github.com/idvorkin/context-grabber/issues/1386) (Igor, 2026-11-24 05:19: "To text only in the long-press menu")
+- **Status:** in progress
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*; [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold*
+
+#### Use Case:
+- **As someone** writing on the board
+- **I want** To text offered when I hold a finger on my writing, and never popping up on its own beside a selection
+- **so that** nothing appears over the board unless I ask for it
+
+#### Acceptance Criteria:
+- **Scenario:** Held on my writing
+- **Given:** a word of my handwriting on a board drawn on here, on the iPad or the web board
+- **When:** I hold a finger still on it
+- **Then:** the menu offers *Select*, then *To text*, then *Delete*, and nothing shows beside a selection made any other way
+
+---
+
+### User Story 1310:
+
+- **Summary:** A hold on my selection acts on all of it
+- **Issues:** [#1386](https://github.com/idvorkin/context-grabber/issues/1386) (the vision's "a tap inside his selection acts on the selection")
+- **Status:** in progress
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold*; [Board rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), *Interface 21*
+
+#### Use Case:
+- **As someone** who lassoed two lines of my handwriting
+- **I want** a finger held on them to offer To text for the whole selection
+- **so that** I can turn more than one word into text at once, now that To text lives only in the hold menu
+
+#### Acceptance Criteria:
+- **Scenario:** Two lines lassoed
+- **Given:** two lines of my handwriting selected with the lasso
+- **When:** I hold a finger still on one of their words and choose To text
+- **Then:** both lines are read and typed in their place, one undo, as To text does

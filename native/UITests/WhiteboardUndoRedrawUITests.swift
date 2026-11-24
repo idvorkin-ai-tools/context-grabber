@@ -86,7 +86,7 @@ final class WhiteboardUndoRedrawUITests: XCTestCase {
 
     // A tap on one circle selects the group (story 947); a finger drags it down onto my lower line.
     PaperScreen.tap(app, CGPoint(x: kept.minX + 0.003, y: kept.center.y))
-    XCTAssertTrue(app.buttons["whiteboard-to-text"].appears(within: 5), "the tap selected it: \(app.debugDescription)")
+    XCTAssertTrue(app.selectionLabel.appears(within: 5), "the tap selected it: \(app.debugDescription)")
     sleep(2)
     let dy = left.center.y - kept.center.y
     let from = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y))
