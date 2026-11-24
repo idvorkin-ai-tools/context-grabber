@@ -72,7 +72,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 345:
 
 - **Summary:** Talk while I draw
-- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); the words to the turn verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone, and the new words by `WhiteboardSpeechTests`; real dictation over the Pencil and a real model answer to try on the iPad
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76), waiting for the next picture since [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103) (story 1281, verified on the host by `WhiteboardGhostTurnsTests`); the words to the turn verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone, and the new words by `WhiteboardSpeechTests`; real dictation over the Pencil and a real model answer to try on the iPad
 - **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -91,14 +91,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 1281:
 
-- **Summary:** The board's mic listens continuously, and my words go with the next picture
-- **Status:** not implemented
+- **Summary:** The board's mic listens continuously, and a pause to think sends nothing
+- **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103); the waiting words verified on the host by `WhiteboardGhostTurnsTests`; real dictation on the iPad not yet
 - **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
 
 #### Use Case:
 - **As someone** who talks, stops to think, and draws on the board
-- **I want to** keep the mic open with my words showing as I say them, and have them go only with the next picture
+- **I want to** keep the mic open with my words showing as I say them, and have them go only with the next picture (the Pencil's pause, story 345)
 - **so that** a pause to think never sends half a thought to Larry
 
 #### Acceptance Criteria:
@@ -107,21 +107,61 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I say "I see a chip that says", stop for ten seconds, and go on
 - **Then:** nothing is sent, and the note's line shows my words as I say them
 
-- **Scenario:** The Pencil's pause sends them
-- **Given:** the mic is open and I said "mark the dip"
-- **When:** I draw a curve and lift the Pencil, and the board's pause passes
-- **Then:** the picture goes with "mark the dip", and words I say after it go with the next picture
+---
 
-- **Scenario:** Send takes my words even when the drawing hasn't changed
+### User Story 1287:
+
+- **Summary:** *Send to Larry* takes my waiting words even when the drawing hasn't changed
+- **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103); verified on the host by `WhiteboardLarryTurnTests` and `WhiteboardGhostTurnsTests`; on the iPad not yet
+- **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
+
+#### Use Case:
+- **As someone** who talks to Larry over the board
+- **I want to** send what I said with the board even when he already has the drawing
+- **so that** a spoken question never waits for me to draw something new
+
+#### Acceptance Criteria:
+- **Scenario:** Send takes my words
 - **Given:** Larry already has the board as it is, and the mic heard "what about Tuesday"
-- **When:** I look at *Send to Larry*
-- **Then:** it is not dimmed, and a tap sends the board with "what about Tuesday"
+- **When:** I tap *Send to Larry*, which is not dimmed
+- **Then:** the board goes to him with "what about Tuesday"
 
+---
+
+### User Story 1288:
+
+- **Summary:** Closing the mic sends the words waiting
+- **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103), words waiting from before a switch since the review fix; verified on the host by `WhiteboardGhostTurnsTests`; on the iPad not yet
+- **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
+
+#### Use Case:
+- **As someone** who finishes a thought by closing the mic
+- **I want to** have what the mic heard go at once
+- **so that** closing the mic is how I say "that's it"
+
+#### Acceptance Criteria:
 - **Scenario:** Closing the mic
-- **Given:** the mic heard words no picture took
+- **Given:** the mic heard words no picture took, some of them before I switched microphones
 - **When:** I tap the mic to close it
-- **Then:** the words go at once, as before
+- **Then:** all of those words go at once, as before
 
+---
+
+### User Story 1289:
+
+- **Summary:** Switching microphones keeps my words waiting
+- **Status:** implemented in [77f56103](https://github.com/idvorkin/context-grabber/commit/77f56103); on the iPad not yet
+- **Issues:** Igor's whiteboard picks, 2026-11-24 (pick 5, via Larry)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md) (*Talking while drawing*)
+
+#### Use Case:
+- **As someone** who changes microphones mid-thought
+- **I want to** keep what I already said
+- **so that** a new microphone never sends or loses half a thought
+
+#### Acceptance Criteria:
 - **Scenario:** Switching microphones
 - **Given:** the mic is open and heard "so the plan is"
 - **When:** I pick another microphone

@@ -242,12 +242,12 @@ extension WhiteboardModel {
     log.event("whiteboard", event)
   }
 
-  /// Closing the mic (or the say hook): the new words go now, or with the next turn if one is on its way. Discards them
-  /// if the pause switch is off.
+  /// Closing the mic (or the say hook): the new words and those already waiting go now, or with the next turn if one
+  /// is on its way. Discards them if the pause switch is off.
   private func spoke() {
-    guard let words = speech.takeNew() else { return }
+    let words = speech.takeNew()
     let went = turns.spoke(words)
-    logSpoke(words, went: went.rawValue, end: "closed")
+    if let words { logSpoke(words, went: went.rawValue, end: "closed") }
     guard went == .now else { return }
     // This turn's picture has the strokes a waiting pause would ask about.
     cancelPause()
