@@ -29,9 +29,9 @@ extension BoardReview {
       var into: String?
       for id in added {
         guard let unit = after.units[id] else { continue }
-        let grownInto = after.folds.first { header, fold in
-          fold.held.contains(id) && !(before.folds[header]?.held.contains(id) ?? false)
-        }?.key
+        let grownInto = after.folds.keys.sorted().first { header in
+          (after.folds[header]?.held.contains(id) ?? false) && !(before.folds[header]?.held.contains(id) ?? false)
+        }
         guard unit.hidden || grownInto != nil else { continue }
         let foldedHeaders = after.folds.filter { $0.value.folded }.keys.sorted()
         let onHeaderLine = foldedHeaders.contains { header in
