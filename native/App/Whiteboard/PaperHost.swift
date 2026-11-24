@@ -68,6 +68,8 @@ class PaperHost: UIViewController {
   var fingerRadii: [ObjectIdentifier: CGFloat] = [:]
   var pinchHold: String?
   var heldPinches: [UIPinchGestureRecognizer] = []
+  /// Story 1296: when the Pencil last lifted (`CACurrentMediaTime`), nil before it has.
+  var pencilLiftedAt: Double?
 
   private static let features: FeatureSet = {
     var set = FeatureSet.empty

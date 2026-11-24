@@ -1920,3 +1920,21 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** nothing on the glass
 - **When:** I pinch in with two fingertips
 - **Then:** the board zooms in, as before
+
+### User Story 1296:
+
+- **Summary:** Fingers landing just as the Pencil lifts never zoom the board
+- **Status:** not implemented (bead `context-grabber-hxzv`)
+- **Issues:** bead `context-grabber-hxzv` (Larry, 2026-11-24: match the web board's 400 ms after a Pencil lift)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), Who draws
+
+#### Use Case:
+- **As Igor,** lifting the Pencil at the end of a word, my hand still settling on the glass
+- **I want to** have fingers that land in that moment leave the zoom alone
+- **so that** the board doesn't zoom between words, and agrees with the web board
+
+#### Acceptance Criteria:
+- **Scenario:** Two fingers within 400 ms of the Pencil lifting
+- **Given:** a board at its fitted zoom, and I have just lifted the Pencil
+- **When:** two fingers land and spread apart less than 400 ms after the lift
+- **Then:** the board doesn't zoom, and the log says the pinch was held off for the Pencil's lift

@@ -183,8 +183,10 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - **Writing never zooms the board** (Igor, 2026-11-24: "it zooms while I write"). Only a deliberate pinch of two
     fingertips zooms. While the Pencil is on the glass, or a palm rests on it, the board holds its zoom: a palm shifting
     under the writing hand, or a palm and a fingertip together, never pinches. A palm is a contact far wider than a
-    fingertip (on Igor's iPad a fingertip reads about 30–50 points in radius, a resting palm 60 or more). Once everything
-    lifts, the next two fingertips pinch as before. Panning is unchanged.
+    fingertip (on Igor's iPad a fingertip reads about 30–50 points in radius, a resting palm 60 or more). The Pencil
+    never counts as a pinch's finger, and fingers that land within 400 ms of the Pencil lifting don't zoom either, the
+    hand still settling after a word (the same number as the web board, cockpit-kp5). Once everything lifts, the next two
+    fingertips pinch as before. Panning is unchanged.
   - Without a Pencil (an iPad with none paired), a finger draws and two fingers move the board.
   - This follows the system's "Only Draw with Apple Pencil" setting, and on paper also the Pencil itself: once it has
     touched a board, a finger only pans, selects and taps until the app is next launched (context-grabber-2eml; the
@@ -870,6 +872,8 @@ that ghosts need the tailnet.
 - Pinching out stops at the page's width. The page number reads right while scrolling, and isn't in any picture.
 - Writing a page with the hand resting on the glass leaves the zoom where it was; so does a palm and a fingertip landing
   together. Two fingertips, with nothing else down, still pinch in and out.
+- Lifting the Pencil and putting two fingers down at once (within 400 ms) doesn't zoom; a moment later the same two
+  fingers pinch.
 - A board drawn on the old canvas is not in the boards list, and a link to one shows the copyable problem that says why.
 - There is no *New boards on paper* switch and no *Try on paper*: every new board is on paper.
 - A new board made after the default ships is on paper, shows no test cross or ring, and an older build still opens it.

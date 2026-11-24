@@ -69,6 +69,19 @@ final class PaperProbeTests: XCTestCase {
       PaperProbe.pinchHeld(pencilDown: true, largestFingerRadius: 94), "pencil", "the Pencil names it first")
   }
 
+  /// Story 1296: as the web board (cockpit-kp5), fingers landing within 400 ms of the Pencil lifting never pinch.
+  func testFingersJustAfterThePencilLiftsDontPinch() {
+    XCTAssertEqual(
+      PaperProbe.pinchHeld(pencilDown: false, largestFingerRadius: 31.3, sincePencilLift: 0.1), "pencil_lift")
+    XCTAssertEqual(
+      PaperProbe.pinchHeld(pencilDown: false, largestFingerRadius: 31.3, sincePencilLift: 0.399), "pencil_lift")
+    XCTAssertNil(PaperProbe.pinchHeld(pencilDown: false, largestFingerRadius: 31.3, sincePencilLift: 0.4), "settled")
+    XCTAssertNil(
+      PaperProbe.pinchHeld(pencilDown: false, largestFingerRadius: 31.3, sincePencilLift: nil), "no Pencil yet")
+    XCTAssertEqual(
+      PaperProbe.pinchHeld(pencilDown: false, largestFingerRadius: 94, sincePencilLift: 0.1), "palm", "a palm says so")
+  }
+
   /// Story 968: the iPad's own start views, 2026-11-22. The menu's Delete was taken for a board tap that let the selection go.
   func testATapOnTheSelectionMenuIsTheMenus() {
     XCTAssertTrue(PaperProbe.isSelectionMenu("_UIHostingView<MiniMenu<MiniMenuPalette>>"))
