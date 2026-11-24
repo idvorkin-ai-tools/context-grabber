@@ -1810,7 +1810,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1164:
 
 - **Summary:** The web board asks the app's own rules whether each batch of Larry's applies now, waits for the Pencil, or is refused, and keeps the board's revision as the app keeps it
-- **Status:** implemented in COMMIT (`bw_applier`, interface 16); verified by the host tests (`WebApplierTests`: the recorded sessions' batches on their own look, after Igor moved what they name and after a batch of Larry's, and 60 seeded runs of 80 steps, each step's decision and the whole applier checked against the app's own) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 230 checks, a hand-worked run of the applier among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
+- **Status:** implemented in 3372bd1d (`bw_applier`, interface 16); verified by the host tests (`WebApplierTests`: the recorded sessions' batches on their own look, after Igor moved what they name and after a batch of Larry's, and 60 seeded runs of 80 steps, each step's decision and the whole applier checked against the app's own) and `just wasm-test` in OrbStack Docker (swift:6.4-noble, the 6.4.3 wasm SDK: 230 checks, a hand-worked run of the applier among them), 2026-11-23. On the Mac, `HOST_LANES=6 just native-test` passes.
 - **Spec:** [The board's rules on the web](../superpowers/specs/2026-11-22-board-rules-on-the-web-design.md), The interface, version 16
 - **Issues:** bead `context-grabber-dwow`
 
