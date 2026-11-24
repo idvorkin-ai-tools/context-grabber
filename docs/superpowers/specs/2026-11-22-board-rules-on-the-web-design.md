@@ -376,6 +376,8 @@ untouched. `bw_info` says `"abi": 15`; versions 1 to 14 are unchanged.
 - `observes` says what the surface saw for the three checks that need its eyes: `"yes"`, `"approx"` (the web board's
   pen in hand, *Larry's answer* in the review's spec), or absent; a check reads `checked`, `approximate` or
   `not_checked` as its `sight`.
+- A change with neither `after` nor `hidden` removes the unit; one with `hidden` alone hides or shows it where it
+  stands.
 - Evidence numbers are printed to one decimal, so the 32-bit arithmetic below never changes a report's text.
 
 ## Precision: a known difference from the iPad

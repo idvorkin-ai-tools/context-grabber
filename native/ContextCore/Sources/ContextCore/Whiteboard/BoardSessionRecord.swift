@@ -121,7 +121,8 @@ public struct BoardSessionRecord: Equatable, Sendable {
     }
   }
 
-  /// One unit's change in a step: added (no `before`), removed (no `after`), moved or resized, hidden or shown.
+  /// One unit's change in a step: added (no `before`), removed (neither `after` nor `hidden`), moved or resized,
+  /// hidden or shown (`hidden` alone is enough).
   public struct Change: Equatable, Sendable, Codable {
     public var id: String
     public var owner: String?
