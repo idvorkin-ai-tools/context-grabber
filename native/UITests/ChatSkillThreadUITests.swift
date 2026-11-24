@@ -55,11 +55,20 @@ final class ChatSkillThreadUITests: XCTestCase {
     let app = try openList()
     let thread = app.buttons["chat-thread-\(skill)"]
     let larrys = app.buttons["chat-thread-igor2-88g.1268"]
-    let other = app.buttons["chat-thread-igor2-88g.592"]
     XCTAssertTrue(larrys.appears(within: 5), app.debugDescription)
-    XCTAssertTrue(other.appears(within: 5), app.debugDescription)
-    XCTAssertLessThan(larrys.frame.minY, thread.frame.minY, "under Larry's")
-    XCTAssertLessThan(thread.frame.minY, other.frame.minY, "above the rest")
+    // Bead context-grabber-rg6x: which other rows are on screen depends on what earlier classes in the run wrote to the
+    // fake Cockpit (a named row such as .592 sat below the fold on the iPad every run), so the order is read off every
+    // thread row the list shows: Larry's first, the skill's next, every other one below (not an open thread's toolbar
+    // buttons, which share the prefix and stay up beside the list on the iPad).
+    let toolbar = ["chat-thread-board", "chat-thread-more"]
+    let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "chat-thread-"))
+      .allElementsBoundByIndex
+      .filter { $0.exists && !$0.frame.isEmpty && !toolbar.contains($0.identifier) }
+      .sorted { $0.frame.minY < $1.frame.minY }
+      .map(\.identifier)
+    XCTAssertGreaterThanOrEqual(rows.count, 3, "Larry's, the skill's and at least one more: \(app.debugDescription)")
+    XCTAssertEqual(
+      Array(rows.prefix(2)), [larrys.identifier, thread.identifier], "under Larry's, above the rest: \(rows)")
     XCTAssertTrue(thread.label.contains("Pinned"), thread.label)
     XCTAssertTrue(thread.label.contains("Ask idvorkin"), thread.label)
     // A pinned row has no swipe, no tick and no menu to archive it from: ChatArchiverTests
