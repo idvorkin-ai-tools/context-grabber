@@ -454,7 +454,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1282:
 
 - **Summary:** A small mark inside a scratched-out word goes with it
-- **Status:** implemented in [e5201c99](https://github.com/idvorkin/context-grabber/commit/e5201c99); verified on the host (`WhiteboardScratchOutTests`: Igor's board-nov-23 scratch-out replayed, failing before the fix with the mark left; the web board's *t* crossbar now goes too), the Mac build and the iPad simulator (`WhiteboardScratchOutUITests`), the Pencil on the iPad still to see
+- **Status:** implemented in [485bd9c0](https://github.com/idvorkin/context-grabber/commit/485bd9c0); verified on the host (`WhiteboardScratchOutTests`: Igor's board-nov-23 scratch-out replayed, failing before the fix with the mark left; the web board's *t* crossbar now goes too), the Mac build and the iPad simulator (`WhiteboardScratchOutUITests`), the Pencil on the iPad still to see
 - **Issues:** cockpit-9g1 (a scratch-out over ten fresh strokes left one, a mark its sweeps passed either side of, Igor 2026-11-23, board-nov-23)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
@@ -494,7 +494,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1283:
 
 - **Summary:** A small zigzag scratches out at a small zigzag's speed
-- **Status:** implemented in [e5201c99](https://github.com/idvorkin/context-grabber/commit/e5201c99); verified on the host (`WhiteboardScratchOutTests`: the 37-point retry, refused as slow before the fix, and every pen path from Igor's iPad logs of 2026-11-21 and 22 keeping its verdict), the Mac build and the iPad simulator, the Pencil on the iPad still to see
+- **Status:** implemented in [485bd9c0](https://github.com/idvorkin/context-grabber/commit/485bd9c0); verified on the host (`WhiteboardScratchOutTests`: the 37-point retry, refused as slow before the fix, and every pen path from Igor's iPad logs of 2026-11-21 and 22 keeping its verdict), the Mac build and the iPad simulator, the Pencil on the iPad still to see
 - **Issues:** cockpit-9g1 (the retry over the left-behind mark, a 37-point zigzag at 0.35 points per millisecond, was refused as slow, Igor 2026-11-23)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
@@ -514,7 +514,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1268:
 
 - **Summary:** Slow small writing that looks like a zigzag stays ink
-- **Status:** implemented in [e5201c99](https://github.com/idvorkin/context-grabber/commit/e5201c99); verified on the host (`WhiteboardScratchOutTests`: every pen path from Igor's iPad logs of 2026-11-21 and 22 keeping its verdict, his slow writing of 37 points at 0.23 and 45 at 0.30 among them)
+- **Status:** implemented in [485bd9c0](https://github.com/idvorkin/context-grabber/commit/485bd9c0); verified on the host (`WhiteboardScratchOutTests`: every pen path from Igor's iPad logs of 2026-11-21 and 22 keeping its verdict, his slow writing of 37 points at 0.23 and 45 at 0.30 among them)
 - **Issues:** cockpit-9g1
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
