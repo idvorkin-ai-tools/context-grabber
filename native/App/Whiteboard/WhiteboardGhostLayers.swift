@@ -153,6 +153,38 @@ final class GhostLayers {
     return true
   }
 
+  /// Story 1285 (#1383): the dashed outline round each reply of Larry's showing two or more marks, by reply.
+  private var outlines: [String: CAShapeLayer] = [:]
+
+  /// Story 1285 (#1383): a faint dashed outline in Larry's colour round each of `groups` (board points), so a reply of
+  /// several marks reads as one thing; gone with the reply, or once only one of its marks shows.
+  func outline(_ groups: [(reply: String, box: CGRect)]) {
+    let live = Set(groups.map(\.reply))
+    for (reply, gone) in outlines where !live.contains(reply) {
+      gone.removeFromSuperlayer()
+      outlines[reply] = nil
+    }
+    for group in groups {
+      let path = CGPath(roundedRect: group.box, cornerWidth: 8, cornerHeight: 8, transform: nil)
+      if let layer = outlines[group.reply] {
+        guard layer.path != path else { continue }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.path = path
+        CATransaction.commit()
+        continue
+      }
+      let layer = CAShapeLayer()
+      layer.path = path
+      layer.fillColor = nil
+      layer.strokeColor = WhiteboardTurn.Who.larry.color.withAlphaComponent(0.25).cgColor
+      layer.lineWidth = 1.5
+      layer.lineDashPattern = [6, 4]
+      holder.addSublayer(layer)
+      outlines[group.reply] = layer
+    }
+  }
+
   /// The lines each layer draws, to redraw one only when its mark moved.
   private var drawnLines: [String: [[CGPoint]]] = [:]
 

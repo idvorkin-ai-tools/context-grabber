@@ -125,6 +125,7 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.center.y))
     let keep = app.buttons["whiteboard-mark-keep"]
     XCTAssertTrue(keep.appears(within: 5), "the first circle chosen: \(app.debugDescription)")
+    XCTAssertEqual(keep.label, "Keep group", "a reply of three is chosen whole (story 1285)")
     keep.tap()
     XCTAssertTrue(keep.waitForNonExistence(timeout: 5), "kept")
     XCTAssertTrue(toKeep(app, 1).waitForNonExistence(timeout: 5), "none of his reply left to keep")
@@ -139,5 +140,23 @@ final class WhiteboardTheirsTapUITests: XCTestCase {
     let gone = PaperScreen.showing(app, within: 5, { $0.larryKept }, { _ in true })
     shot(app, "after one undo")
     XCTAssertNil(gone, "one Undo took all three back")
+  }
+
+  /// Story 1286 (#1383): Dismiss group beside one circle of his reply takes all three.
+  func testDismissGroupBesideOneMarkTakesTheWholeReply() throws {
+    let app = try boardWithHisCircles(separate: false)
+    let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
+    PaperScreen.tap(app, CGPoint(x: marks.maxX - 0.003, y: marks.center.y))
+    let dismiss = app.buttons["whiteboard-mark-dismiss"]
+    XCTAssertTrue(dismiss.appears(within: 5), "the last circle chosen: \(app.debugDescription)")
+    XCTAssertEqual(dismiss.label, "Dismiss group")
+    dismiss.tap()
+    XCTAssertTrue(dismiss.waitForNonExistence(timeout: 5), "dismissed")
+    XCTAssertTrue(toKeep(app, 3).waitForNonExistence(timeout: 5), "none of his reply left to keep")
+    sleep(1)  // the marks fade out over 0.3 s
+    let left = PaperScreen.showing(app, within: 1, { $0.larryGhost }, { _ in true })
+    shot(app, "Dismiss group took the reply")
+    XCTAssertNil(left, "all three went")
+    XCTAssertNil(PaperScreen.showing(app, within: 1, { $0.larryKept }, { _ in true }), "nothing kept")
   }
 }

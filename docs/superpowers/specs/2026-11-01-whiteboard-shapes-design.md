@@ -39,7 +39,7 @@ suggest changes the board until Igor keeps it.
   - **Keep all keeps every mark of Larry's showing, each reply as one thing** (#942; Igor, 2026-11-17, via Larry:
     "accept the group", after keeping his four named boxes one mark at a time; Igor, 2026-11-22, bead
     context-grabber-yqau: "Keep group and Keep all become one button, Keep all"). There is one such button, **Keep all**,
-    in the note's line beside the count of marks to keep (below); beside a chosen mark there are only Keep (its whole reply, below) and Dismiss.
+    in the note's line beside the count of marks to keep (below); beside a chosen mark there are only Keep and Dismiss, which read *Keep group* and *Dismiss group* when the mark's reply shows two or more (below).
     One tap keeps every mark of Larry's still showing, from every reply of his that shows, where each showed, as ink in
     his colours: nothing of Igor's moves, as with one Keep, unless the marks would land on what he wrote after Larry
     looked (below). It is **one keep**: one room made for all of them and **one undo takes them all back**, named
@@ -67,8 +67,19 @@ suggest changes the board until Igor keeps it.
     replies keeps every mark of that reply still showing, where each showed, as one group named for the reply, exactly
     as *Keep all* keeps that reply; his other replies' marks stay showing. It is one keep: one room made, one undo
     named *Keep* takes the whole reply back. A reply with only that mark left showing, his text from a change (which
-    belongs to no reply) and any mark of Claude's are kept alone, as before. **Dismiss** still takes only the chosen
-    mark, so dismissing a stray piece first and then keeping the rest keeps the rest as one group.
+    belongs to no reply) and any mark of Claude's are kept alone, as before.
+  - **A reply of several marks shows, is chosen and is turned down as one group** (#1383; Igor, 2026-11-24, 05:10,
+    after dismissing three of Larry's four list lines one at a time and keeping the fourth: "it should've come in as
+    keep group"). While two or more marks of one of Larry's replies show, a faint dashed outline in his colour sits
+    round all of them, so the reply reads as one thing before anything is tapped. A tap on any of its marks chooses
+    the whole reply: the buttons sit beside the outline, not beside the one mark, and read **Keep group** and
+    **Dismiss group**. A tap on another mark of the same reply changes nothing; a tap on another reply's mark, or off
+    the marks, moves or puts the buttons away as before. **Keep group** is Keep above (the whole reply, one group, one
+    undo). **Dismiss group** takes every mark of that reply still showing, and none of them comes back when the board
+    opens again; his other replies' marks stay. To drop one piece of a reply, keep the group and erase that piece. A
+    reply with one mark showing, his text from a change and Claude's marks show no outline and keep Keep and Dismiss
+    for that one mark. Kept, the group is picked up and dragged whole, as any group (below). No new Cockpit op is
+    needed: the marks of one reply of Larry's are its group.
   - **A finger tap on any stroke of a group selects the whole group, ready to drag** (#947; Igor, 2026-11-18: "when I
     click select-all, I want some notion of fixed object on finger-click to move"). A group is a reply kept with
     *Keep all*, or one of Larry's own groups. The tap must land on one of the group's strokes, within a finger's
@@ -189,7 +200,8 @@ suggest changes the board until Igor keeps it.
       reply mark by mark).
     - The session log's keep line says whether it made room, where and how far, how many things it landed on that Igor
       wrote after the picture, and when that picture was taken, or that its time isn't known.
-  - **Dismiss** removes that mark and only that mark. It isn't kept, and it doesn't come back, on the next look or the
+  - **Dismiss** removes that mark and only that mark (beside a reply of several marks it is *Dismiss group* and takes
+    the whole reply: *A reply of several marks shows, is chosen and is turned down as one group*, above). It isn't kept, and it doesn't come back, on the next look or the
     next time the board opens. The other marks stay, and the rest of an answer still on its way still lands.
   - **A tap anywhere else puts the buttons away and changes nothing**: no mark is kept or dismissed by a stray tap.
     Starting to draw puts them away too, and the Pencil keeps drawing while they show. If their mark goes (Claude's

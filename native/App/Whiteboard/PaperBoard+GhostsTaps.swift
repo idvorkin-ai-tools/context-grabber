@@ -21,7 +21,10 @@ extension PaperBoardController {
   /// when written over and not at all while its ink is folded away or erased (stories 1180, 1181, 1269, 1271).
   func show(_ ghosts: [Ghost]) {
     Task { @MainActor [weak self] in self?.showChoice() }
-    defer { lines.ghostLayers.restyle(ghosts, look: { self.model.markHolds.places[$0] }) }
+    defer {
+      lines.ghostLayers.restyle(ghosts, look: { self.model.markHolds.places[$0] })
+      lines.ghostLayers.outline(model.groupOutlines)
+    }
     guard lines.ghostLayers.show(ghosts) else { return }
     fingerTaps(marks: !ghosts.isEmpty, controls: !model.overlays.list.isEmpty)
     let drawn = ghosts.flatMap(\.lines)
@@ -53,8 +56,10 @@ extension PaperBoardController {
   /// a shift, so two corners place the whole box.
   func showChoice() {
     var frame: CGRect?
-    if let ghost = model.chosen {
-      let box = WhiteboardMarkChoice.bounds(ghost.lines)
+    // Story 1285 (#1383): a reply of several is chosen whole, and its buttons sit beside all of it.
+    let chosen = model.chosenMarks
+    if !chosen.isEmpty {
+      let box = WhiteboardMarkChoice.bounds(chosen.flatMap(\.lines))
       if !box.isNull {
         let a = lines.convert(lines.spot(of: CGPoint(x: box.minX, y: box.minY)), to: view)
         let b = lines.convert(lines.spot(of: CGPoint(x: box.maxX, y: box.maxY)), to: view)
@@ -66,7 +71,7 @@ extension PaperBoardController {
     log.event(
       "whiteboard",
       [
-        "action": "mark_buttons", "board": model.board.id, "chosen": model.chosen != nil,
+        "action": "mark_buttons", "board": model.board.id, "chosen": model.chosen != nil, "marks": chosen.count,
         "frame": frame.map { rect($0) } ?? [], "view": rect(view.bounds),
       ])
   }
