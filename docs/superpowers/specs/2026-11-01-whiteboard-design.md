@@ -84,7 +84,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   device's board, one that can't be read or moved aside, is repaired by the next good sync: iCloud holds the original.
   A board of this device's that can't be read or moved aside is never replaced from iCloud.
 - **A board's meaning goes through iCloud with its ink** (proposed, bead context-grabber-cc75 step 2; not built,
-  waiting on Igor's yes). Besides the strokes, a board holds what the strokes mean: Larry's kept texts, his notes and
+  waiting on Igor's yes; Igor decided on 2026-11-24 to move boards off iCloud into the Cockpit, ink and meaning
+  together: [boards in the Cockpit](2026-11-22-boards-in-the-cockpit-design.md)). Besides the strokes, a board holds what the strokes mean: Larry's kept texts, his notes and
   groups, the headers and their folds, the question cards, the names moved strokes keep, and the count Larry's changes
   are checked against. Today that stays on the iPad that drew the board; with this it goes up with the drawing.
   - On the iPhone, the Mac, and the iPad back after a reinstall, a board opens with the folds, headers, question cards
