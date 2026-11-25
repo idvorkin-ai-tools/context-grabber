@@ -116,7 +116,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A scratch-out flashes and fades the ink it took
 - **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
-- **Status:** implemented in [dedaa13](https://github.com/idvorkin/context-grabber/commit/dedaa13), [d70e8e4](https://github.com/idvorkin/context-grabber/commit/d70e8e4); verified by `just test`, the Mac build, and on the iPad simulator by `WhiteboardScratchOutUITests.testWordScratchOutAndEraserSweep` (the hook's zigzag, the flash held for its picture). The flash check now runs in `testWordScratchOutAndEraserSweep`. The Pencil's zigzag is the iPad's.
+- **Status:** implemented in [dedaa13](https://github.com/idvorkin/context-grabber/commit/dedaa13), [d70e8e4](https://github.com/idvorkin/context-grabber/commit/d70e8e4); verified by `just test`, the Mac build, and on the iPad simulator by the scratch-out flash UI test (the hook's zigzag, the flash held for its picture). The flash check now runs in `WhiteboardScratchOutUITests.testWordScratchOutAndEraserSweep`. The Pencil's zigzag is the iPad's.
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
 
 #### Use Case:
@@ -1201,7 +1201,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1108:
 
 - **Summary:** The eraser scrubbed back and forth over ink erases, and is never a scratch-out
-- **Status:** implemented in [11de5bf2](https://github.com/idvorkin/context-grabber/commit/11de5bf2) and verified by `just native-test`, the Mac build and the iPad simulator. `WhiteboardScratchOutUITests.testWordScratchOutAndEraserSweep` reproduced the scratch-out before the fix and passed afterward, along with all 66 tests in the whiteboard UI suite. The author reported all three `WhiteboardScratchOutUITests` passing on the iPad simulator at [a371c3af](https://github.com/idvorkin/context-grabber/commit/a371c3af). The eraser check now runs in `testWordScratchOutAndEraserSweep`. The Pencil's eraser scrub on the iPad, which crashed, is still to see.
+- **Status:** implemented in [11de5bf2](https://github.com/idvorkin/context-grabber/commit/11de5bf2) and verified by `just native-test`, the Mac build and the iPad simulator. The eraser UI test, then a test of its own, reproduced the scratch-out before the fix and passed afterward, along with all 66 tests in the whiteboard UI suite. The author reported all three `WhiteboardScratchOutUITests` passing on the iPad simulator at [a371c3af](https://github.com/idvorkin/context-grabber/commit/a371c3af). The eraser check now runs in `WhiteboardScratchOutUITests.testWordScratchOutAndEraserSweep`. The Pencil's eraser scrub on the iPad, which crashed, is still to see.
 - **Issues:** [#1121](https://github.com/idvorkin/context-grabber/issues/1121), [#1120](https://github.com/idvorkin/context-grabber/issues/1120): the iPad crashed (signal 5, PaperKit trapping inside Undo) when the board took back the "zigzag" of an eraser sweep it had read as a scratch-out
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 

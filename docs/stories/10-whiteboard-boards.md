@@ -604,7 +604,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 403:
 
 - **Summary:** The colour follows light and dark mode
-- **Status:** retired on paper 2026-11-22: Igor decided paper stays light, in light and dark mode alike (story 609); was implemented on the old canvas in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels; a screenshot of white ink on the deep Cream comes from the run before the menu moved); ink contrast on every colour by host tests (`BoardPaperTests`). On paper, which stays light, its colour staying with the board is `WhiteboardPaperLinesUITests.testRuledLinesAndTheGridAreOneChoiceAndNeverInk` since bead `context-grabber-y8r`, since story 757 part of `testANewBoardOpensWithTheGrid`
+- **Status:** retired on paper 2026-11-22: Igor decided paper stays light, in light and dark mode alike (story 609); was implemented on the old canvas in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels; a screenshot of white ink on the deep Cream comes from the run before the menu moved); ink contrast on every colour by host tests (`BoardPaperTests`). On paper, which stays light, its colour staying with the board is the ruled-lines-stay UI test since bead `context-grabber-y8r`, since story 757 part of `WhiteboardPaperLinesUITests.testANewBoardOpensWithTheGrid`
 - **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
 
 #### Use Case:

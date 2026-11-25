@@ -33,7 +33,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 351:
 
 - **Summary:** Turn off *Ask at my pauses*
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardGhostTurnsTests.testGhostsOffAsksNothingForAStrokeAndOnAgainDoes` (no note with Ghosts off, the note back on), which passed with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3). Since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`: a stroke with Ghosts off starts no pause, Claude's go and Larry's stay, an answer on its way lands stale, on again asks), and that UI test is gone. Renamed *Ask at my pauses* in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac) (story 1171): off asks no one on a Larry board or a Haiku board, verified on the iPad simulator (`WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`)
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of the Ghosts-off UI test (no note with Ghosts off, the note back on), which passed with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3). Since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests.testGhostsOffAsksNothingForAStrokeAndOnAgainDoes`: a stroke with Ghosts off starts no pause, Claude's go and Larry's stay, an answer on its way lands stale, on again asks), and that UI test is gone. Renamed *Ask at my pauses* in [767aabac](https://github.com/idvorkin/context-grabber/commit/767aabac) (story 1171): off asks no one on a Larry board or a Haiku board, verified on the iPad simulator (`WhiteboardTurnUITests.testAskAtMyPausesOffAsksNoOneOnALarryOrAHaikuBoard`)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -631,7 +631,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 358:
 
 - **Summary:** Claude's ghosts fade when they're left alone
-- **Status:** implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11); verified on the simulator by `WhiteboardTurnUITests` (`WhiteboardGhostTurnsTests.testClaudesGhostsFadeAfterTheirTimeAndLarrysStay`, with the time shortened); since bead `context-grabber-5eq` by host tests instead (`WhiteboardGhostTurnsTests`: Claude's go at 30 s and Larry's stay, a newer answer starts the 30 s over, Larry's never fade)
+- **Status:** implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11); verified on the simulator by `WhiteboardTurnUITests` (its Claude's-ghosts-fade test, with the time shortened); since bead `context-grabber-5eq` by host tests instead (`WhiteboardGhostTurnsTests.testClaudesGhostsFadeAfterTheirTimeAndLarrysStay`: Claude's go at 30 s and Larry's stay, a newer answer starts the 30 s over, Larry's never fade)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:

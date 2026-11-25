@@ -391,7 +391,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Hold the Gym Timer tile to start a preset
 - **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
-- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: the four presets and Custom, each starting) and `HoldChoicesTests.testTimerPresetsStartAndCustomIsTheRememberedOne` (simulator: 1 MIN opens the timer running); since [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed) that UI test is a host test, `HomeStackTests.testEveryHeldChoiceOpensItsScreenFromHome` (each preset brings the timer up at once, started), verified on the Linux rung (host tests); the train's simulator pass on native/larry-train-1110 (iPhone 17, 2026-11-10: the Mac build and the UI tests green); the phone pending; on the phone not yet
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: the four presets and Custom, each starting) and HoldPopoverUITests' timer test (simulator: 1 MIN opens the timer running); since [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed) that UI test is a host test, `HomeStackTests.testEveryHeldChoiceOpensItsScreenFromHome` (each preset brings the timer up at once, started), verified on the Linux rung (host tests); the train's simulator pass on native/larry-train-1110 (iPhone 17, 2026-11-10: the Mac build and the UI tests green); the phone pending; on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -431,7 +431,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Hold the card tile to think, see a card or drill
 - **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391), [#400](https://github.com/idvorkin/context-grabber/issues/400) (the drill's prompt is a button, so the UI test looks for one)
-- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: think, face up, drill in order) and `HoldChoicesTests.testTheCardPopoverThinksFirstThenFaceUpThenTheDrill` (simulator: Drill the stack opens the drill; since [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed) a host test, `HomeStackTests.testEveryHeldChoiceOpensItsScreenFromHome`, the drill over the card, verified on the Linux rung (host tests); the train's simulator pass on native/larry-train-1110 (iPhone 17, 2026-11-10: the Mac build and the UI tests green); the phone pending), which looks for the prompt as a button since #400; a hand simulator run at [ea7e334](https://github.com/idvorkin/context-grabber/commit/ea7e334) passed 4 tests with 0 failures, but its record does not name them, so whether it re-ran this test is unconfirmed; on the phone not yet
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: think, face up, drill in order) and HoldPopoverUITests' card test (simulator: Drill the stack opens the drill; since [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed) a host test, `HomeStackTests.testEveryHeldChoiceOpensItsScreenFromHome`, the drill over the card, verified on the Linux rung (host tests); the train's simulator pass on native/larry-train-1110 (iPhone 17, 2026-11-10: the Mac build and the UI tests green); the phone pending), which looks for the prompt as a button since #400; a hand simulator run at [ea7e334](https://github.com/idvorkin/context-grabber/commit/ea7e334) passed 4 tests with 0 failures, but its record does not name them, so whether it re-ran this test is unconfirmed; on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -900,7 +900,7 @@ lapsed, and nothing said so or what to do (#1371).
 
 - **Summary:** Holding Random offers the blog's topics
 - **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
-- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `HoldChoicesTests` (host: the eight choices in order) and `HoldChoicesTests.testTheRandomPopoverIsAnythingThenTheSevenTopics` (simulator; dropped in [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed), the choices' order being `HoldChoicesTests`' and the popover itself still shown by `testATapOutsideOpensNothing`); the tick and the look on the phone not yet
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `HoldChoicesTests` (host: the eight choices in order) and HoldPopoverUITests' Random test (simulator; dropped in [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed), the choices' order being `HoldChoicesTests`' and the popover itself still shown by `testATapOutsideOpensNothing`); the tick and the look on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -920,7 +920,7 @@ lapsed, and nothing said so or what to do (#1371).
 
 - **Summary:** A topic opens the blog's random link for that topic
 - **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
-- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `BlogLinksTests` (host: each topic's link) and `HoldChoicesTests.testTheRandomPopoverIsAnythingThenTheSevenTopics` (simulator: AI brings the browser forward; since [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed) the host's `HomeStackTests.testEveryHeldChoiceOpensItsScreenFromHome` checks AI asks for its topic, and the browser coming forward is the phone's to see); the post being on that topic needs the blog's change (story 468)
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `BlogLinksTests` (host: each topic's link) and HoldPopoverUITests' Random test (simulator: AI brings the browser forward; since [35457eed](https://github.com/idvorkin/context-grabber/commit/35457eed) the host's `HomeStackTests.testEveryHeldChoiceOpensItsScreenFromHome` checks AI asks for its topic, and the browser coming forward is the phone's to see); the post being on that topic needs the blog's change (story 468)
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
