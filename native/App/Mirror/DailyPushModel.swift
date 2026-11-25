@@ -29,6 +29,8 @@ final class DailyPushModel: ObservableObject {
   private var sending: Task<Void, Never>?
   private var retry: Task<Void, Never>?
   private var retryDelay: Double = 30
+  /// Bumped by the switch: a send that started before it lands on nothing.
+  private var generation = 0
 
   init(log: SessionLog, database: AppDatabase, environment: [String: String]) {
     self.log = log
@@ -61,7 +63,9 @@ final class DailyPushModel: ObservableObject {
     on = value
     database.setSetting(Self.onKey, value ? "1" : "0")
     log.event("daily_push", ["action": "switch", "on": value, "dropped": value ? 0 : state.waiting.count])
+    generation += 1
     sending?.cancel()
+    sending = nil
     retry?.cancel()
     // Off drops what waited; on checks the week afresh at the next grab.
     state = DailyPushState()
@@ -79,17 +83,10 @@ final class DailyPushModel: ObservableObject {
       var strip: [DailyItem: [String: Int]] = [:]
       for item in DailyItem.allCases { strip[item] = try database.dailyStrip?.values(item) ?? [:] }
       let activity = try database.activityLog?.entries(since: Date().addingTimeInterval(-9 * 24 * 3600)) ?? []
-      let dates = (snap.weekly[.steps]?.dates ?? []).sorted()
-      let habits = Dictionary(
-        uniqueKeysWithValues: dates.map { date in
-          (
-            date,
-            DailyPush.habits(
-              date: date, strip: strip, activity: activity, workouts: snap.workoutsByDay[date] ?? [],
-              mindfulMinutes: snap.weeklyData.meditation.first { $0.date == date }?.value)
-          )
-        })
-      let records = DailyPush.week(snap, places: places, namedPlaces: named, habits: habits).map {
+      let records = DailyPush.week(
+        snap, places: places, namedPlaces: named, strip: strip, activity: activity,
+        today: AccessoryLog.dateKey(Date())
+      ).map {
         DailyPush.record($0, device: device, build: BuildInfo.sha, now: now, clock: clock)
       }
       let queued = state.consider(records)
@@ -122,12 +119,14 @@ final class DailyPushModel: ObservableObject {
     let start = state
     let log = self.log
     let today = AccessoryLog.dateKey(Date())
+    let generation = self.generation
     sending = Task {
       let result = await sender.send(start, today: today) { name, fields in
         var fields = fields
         fields["trigger"] = reason
         log.event(name, fields)
       }
+      guard generation == self.generation else { return }
       merge(sent: start, into: result.state)
       sending = nil
       if result.ended == .retry {

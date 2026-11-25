@@ -49,7 +49,8 @@ numbers Today and the export show, so Larry doesn't have to work them out again.
   minutes spent at unnamed places, in transit and with no data.
 - **Habits**: every item on the daily strip, by the strip's own names, so a new habit flows without a change on
   Larry's side. A check says whether it was done and what made it count (a tap, a finished Gym Timer workout or Box
-  breathing session, or Health); a counter says how many.
+  breathing session, or Health); a counter says how many. As on the strip, Health's mindful minutes make meditation
+  count only for today; a past day's meditation counts by a tap or Box breathing (its mindful minutes still go).
 
 Times carry Igor's own offset, as the arrivals Larry already gets do.
 
@@ -74,7 +75,8 @@ on again, the week is checked afresh.
 ## Explaining itself
 
 Each record queued, sent, refused, dropped or waiting is a `daily_push` line in the session log, with the day and
-why. A grab whose day records couldn't be worked out says so with a copyable error naming the day.
+why. A grab whose day records couldn't be worked out logs an error in the session log. The push is silent by design,
+with no screen of its own, so there is no error on screen to copy.
 
 ## Acceptance criteria
 

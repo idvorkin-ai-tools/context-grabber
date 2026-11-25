@@ -3597,6 +3597,11 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I open Today, and then open it again with nothing changed
 - **Then:** each of the last seven days was sent once, oldest first, with sleep asleep and in bed kept apart, where the sleep was measured, steps, exercise minutes, heart rate, weight, workouts, the minutes per named place and every strip habit by its own name; the second opening sent nothing
 
+- **Scenario:** A habit reads as the strip reads it
+- **Given:** Health has mindful minutes for Monday and for today, and I tapped neither day's meditation or ran Box breathing
+- **When:** the week is sent
+- **Then:** today's meditation is done by Health and Monday's is not done, while both days still carry their mindful minutes; and a day whose steps Health couldn't give still carries its habits
+
 ---
 
 ### User Story 1612:

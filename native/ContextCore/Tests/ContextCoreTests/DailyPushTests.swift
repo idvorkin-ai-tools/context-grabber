@@ -85,16 +85,9 @@ private func monday() -> PlaceDaySummary {
 private func records(
   _ snap: MirrorSnapshot = aWeek(), strip: [DailyItem: [String: Int]] = [:], now: Double = tuesdayNine
 ) -> [DailyPushRecord] {
-  let habits = Dictionary(
-    uniqueKeysWithValues: days.map { day in
-      (
-        day,
-        DailyPush.habits(
-          date: day, strip: strip, activity: [], workouts: snap.workoutsByDay[day] ?? [], mindfulMinutes: nil)
-      )
-    })
-  return DailyPush.week(
-    snap, places: ["2026-11-23": monday()], namedPlaces: ["Kettlebility", "Home"], habits: habits
+  DailyPush.week(
+    snap, places: ["2026-11-23": monday()], namedPlaces: ["Kettlebility", "Home"], strip: strip, activity: [],
+    today: "2026-11-24"
   ).map { DailyPush.record($0, device: "phone-1", build: "abc123", now: now, clock: clock) }
 }
 
@@ -254,5 +247,32 @@ final class DailyPushTests: XCTestCase {
     XCTAssertEqual(result.ended, .retry)
     XCTAssertEqual(result.state.waiting.count, 6)
     XCTAssertEqual(lines.last?["action"] as? String, "waiting")
+  }
+
+  // Story 1611: as on the strip, Health's mindful minutes make meditation count only for today; every day keeps them.
+  func testMindfulMinutesCountMeditationForTodayOnly() throws {
+    var snap = aWeek()
+    snap.weekly[.meditation] = .daily(days.map { DailyValue(date: $0, value: 10) })
+    let all = records(snap)
+    func meditation(_ date: String) throws -> [String: Any] {
+      let habits = try XCTUnwrap(try body(try XCTUnwrap(all.first { $0.date == date }))["habits"] as? [String: Any])
+      return try XCTUnwrap(habits["meditation"] as? [String: Any])
+    }
+    XCTAssertEqual(try meditation("2026-11-23")["done"] as? Bool, false)
+    XCTAssertEqual(try meditation("2026-11-24")["done"] as? Bool, true)
+    XCTAssertEqual(try meditation("2026-11-24")["by"] as? [String], ["health"])
+    let monday = try body(try XCTUnwrap(all.first { $0.date == "2026-11-23" }))
+    XCTAssertEqual((monday["health"] as? [String: Any])?["mindful_min"] as? Double, 10)
+  }
+
+  // Story 1611: a failed steps reading leaves the day's habits as they were.
+  func testAFailedStepsReadingKeepsTheHabits() throws {
+    var snap = aWeek()
+    snap.weekly[.steps] = nil
+    snap.weekly[.sleep] = .daily(days.map { DailyValue(date: $0, value: 7) })
+    let strip: [DailyItem: [String: Int]] = [.journal: ["2026-11-23": 1]]
+    let record = try XCTUnwrap(records(snap, strip: strip).first { $0.date == "2026-11-23" })
+    let habits = try XCTUnwrap(try body(record)["habits"] as? [String: Any])
+    XCTAssertEqual((habits["journal"] as? [String: Any])?["done"] as? Bool, true)
   }
 }

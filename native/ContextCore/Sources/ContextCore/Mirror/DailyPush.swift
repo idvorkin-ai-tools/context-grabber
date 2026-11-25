@@ -75,10 +75,10 @@ public enum DailyPush {
     return "other"
   }
 
-  /// The week's days from a grab, today last. `places` by date key, `habits` by date key.
+  /// The week's days from a grab, today last. `places` by date key; each day's habits from the strip and the activity.
   public static func week(
     _ snap: MirrorSnapshot, places: [String: PlaceDaySummary], namedPlaces: Set<String>,
-    habits: [String: [DailyPushHabit]]
+    strip: [DailyItem: [String: Int]], activity: [ActivityEntry], today: String
   ) -> [DailyPushDay] {
     let data = snap.weeklyData
     let dates = (snap.weekly[.steps]?.dates ?? data.sleep.map(\.date)).sorted()
@@ -100,15 +100,18 @@ public enum DailyPush {
       day.workouts = snap.workoutsByDay[date] ?? []
       day.places = places[date]
       day.namedPlaces = namedPlaces
-      day.habits = habits[date] ?? []
+      day.habits = habits(
+        date: date, strip: strip, activity: activity, workouts: day.workouts, mindfulMinutes: day.mindfulMinutes,
+        today: today)
       return day
     }
   }
 
-  /// The strip's habits for one day: a check's value and what made it count, a counter's count.
+  /// The strip's habits for one day: a check's value and what made it count, a counter's count. As on the strip,
+  /// Health's mindful minutes make meditation count only for today.
   public static func habits(
     date: String, strip: [DailyItem: [String: Int]], activity: [ActivityEntry], workouts: [WorkoutEntry],
-    mindfulMinutes: Double?
+    mindfulMinutes: Double?, today: String
   ) -> [DailyPushHabit] {
     DailyItem.allCases.map { item in
       let tapped = (strip[item]?[date] ?? 0) > 0
@@ -120,7 +123,7 @@ public enum DailyPush {
         if workouts.contains(where: { DailyStrip.strengthWorkouts.contains($0.activityType) }) { by.append("health") }
       case .meditation:
         if activity.contains(where: { $0.kind == .breathing && $0.dateKey == date }) { by.append("breathing") }
-        if let m = mindfulMinutes, m > 0 { by.append("health") }
+        if date == today, let m = mindfulMinutes, m > 0 { by.append("health") }
       default: break
       }
       return DailyPushHabit(name: item.rawValue, done: !by.isEmpty, by: by)
