@@ -3582,7 +3582,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1611:
 
 - **Summary:** Each day of the week goes to Larry as one record: sleep, movement, workouts, places by name, habits
-- **Status:** native app: in progress
+- **Status:** native app: implemented in 5f3f4fe4; verified by ContextCore's host tests (DailyPushTests), the Mac build and the iPad simulator smoke; the iPhone (Health, the trail, the Cockpit's /daily) still to check
 - **Issues:** Igor, 2026-11-24 09:07, via Larry (Cockpit thread igor2-88g.1620, msg faf3017bc6cd); shape agreed in msg 567ab576db57; Cockpit side cockpit-61m
 - **Spec:** [The day, summed up, to Larry](../superpowers/specs/2026-11-24-daily-summary-to-larry-design.md)
 
@@ -3602,7 +3602,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1612:
 
 - **Summary:** A day that changes later is sent again, and only that day
-- **Status:** native app: in progress
+- **Status:** native app: implemented in 5f3f4fe4; verified by ContextCore's host tests (DailyPushTests), the Mac build and the iPad simulator smoke; the iPhone (Health, the trail, the Cockpit's /daily) still to check
 - **Issues:** Igor, 2026-11-24 09:07, via Larry (Cockpit thread igor2-88g.1620, msg faf3017bc6cd)
 - **Spec:** [The day, summed up, to Larry](../superpowers/specs/2026-11-24-daily-summary-to-larry-design.md), *When it goes*
 
@@ -3622,7 +3622,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1613:
 
 - **Summary:** No coordinates, nothing from the iPad, and a reading Health refused leaves only that reading empty
-- **Status:** native app: in progress
+- **Status:** native app: implemented in 5f3f4fe4; verified by ContextCore's host tests (DailyPushTests), the Mac build and the iPad simulator smoke; the iPhone (Health, the trail, the Cockpit's /daily) still to check
 - **Issues:** Igor, 2026-11-24 09:07, via Larry (Cockpit thread igor2-88g.1620, msg faf3017bc6cd)
 - **Spec:** [The day, summed up, to Larry](../superpowers/specs/2026-11-24-daily-summary-to-larry-design.md), *Goals*
 
