@@ -140,9 +140,9 @@ session log.
 ## Moving off iCloud and the web's old boards (migration)
 
 - On the first launch of a build with this, each device puts up every board **it drew** from its own disk (its own
-  copy is the truth for those, as today) with the board's id, name, ink, meaning and times. A board already in the
-  Cockpit with the same id, whose move has already been answered, is left alone, and a move that stopped partway
-  and runs again never puts the same ink up twice.
+  copy is the truth for those, as today) with the board's id, name, ink, meaning and times. Ink the Cockpit
+  already holds is never put up twice: not when a move that stopped partway runs again, and not when the board's
+  ink already went up during rollout step 2.
 - The iPad also puts up each board's drawing exactly as it was saved, kept beside the board in the Cockpit and never
   shown, so anything the shared format can't yet hold is not lost.
 - Boards from other devices aren't put up by this device: the device that drew them does it. A board whose drawing
@@ -185,19 +185,23 @@ changes, the refused-change notes, the migration of iCloud boards) is this repo'
 the batch of changes, the nightly backup, */ink* moving from names to ids) is Larry's, once the shapes in the plan
 are confirmed.
 
-## Open questions for Larry (the Cockpit side)
+## Larry's answers (the Cockpit side, 2026-11-24)
 
-The store's shape is in the plan. What the Cockpit has to decide:
+The store's shape and his full answers are in the plan.
 
-- Reachable from the iPad and the iPhone away from home with the same sign-in as the chat (the chat already is).
-- Backups: the Cockpit becomes the only server copy of Igor's boards. How is it backed up, and how far back can a
-  board be restored?
-- Size: how big is the biggest board's ink and meaning today? The iPad's cache holds every board, so this decides
-  whether old boards' ink is cached on demand.
-- The web board's boards are known by name today, the iPad's by id. The store keys every board by id, with the name
-  as a field: can */ink* move to ids?
-- Larry's own changes go through the same store and the same clash rule as a device's. Does anything Larry does on a
-  board today skip a version check?
+- **Reach:** the boards are reachable wherever the chat is, away from home too, with the chat's sign-in.
+- **Backups:** every change is backed up nightly, and a board can be restored to any version it ever had. This must
+  be in place before the Cockpit becomes the only server copy (rollout step 3).
+- **Size:** the biggest board today is about 1.5 MB with 1,288 strokes, so every device caches every board whole.
+- **Names to ids:** */ink* moves to ids, and each board's old name link keeps working.
+- **Changes that skip the version check:** only the web board's whole-board save; it is replaced by checked changes
+  when */ink* moves onto the store, and until then it must not write to a board the store holds.
+
+Still open:
+
+- Where the web board's pasted images live today; settled before the web boards move.
+- How the Cockpit rebuilds a board's latest version from its changes (it leans toward running the shared board
+  rules itself; the fallback is each device sending its own copy with each change).
 
 ## Acceptance criteria (for when it's built)
 

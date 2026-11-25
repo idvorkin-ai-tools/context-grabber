@@ -50,7 +50,9 @@ POST /boards/<id>/ops
 ```
 
 - **Idempotent by `batch_id`**: a resend returns the first answer.
-- **Adds always land** (`add_strokes`, `add_text`, `add_card`, new group of new ids).
+- **Adds always land** (`add_strokes`, `add_text`, `add_card`, new group of new ids), **once per id**: an add whose id
+  the board already has (live or erased) is a no-op, reported as applied. Stroke ids are stable creation moments, so a
+  stroke sent twice by any path is one stroke.
 - **A change to an existing thing lands only if `changed_at_rev(id) <= base_rev`**. Otherwise that one op is refused
   with who changed it and when; the rest of the batch still applies (the spec's "everything else still goes up").
 - **Ops on a deleted board are refused** (`reason: "deleted"`, with `deleted_at` and device): new ink does not
@@ -143,11 +145,10 @@ The listing is small enough to call on every list open. Sign-in is the chat's; r
 
 - **iPad (and any device with boards it drew)**: per board, decode the drawing, write the board as one `POST /boards`
   plus one batch of `add_strokes` and meaning ops at `base_rev: 0`, the picture and the **original drawing blob** as
-  assets. The migration batch's `batch_id` is derived from the board id and the source's `inkPrint`, and `POST
-  /boards` with an id the Cockpit already has is a no-op, so a rerun (next launch, or after a partial run) resends the
-  same batch and gets the first answer back instead of adding every stroke twice. A board is done, and skipped from
-  then on, once its migration batch has an answer. The iPad's local `rev` is never compared with the Cockpit's: one
-  counts ink changes, the other accepted batches.
+  assets. `POST /boards` with an id the Cockpit already has is a no-op, and adds are once per id (section 3), so a
+  rerun (next launch, after a partial run or a lost answer, or over strokes rollout step 2 already wrote) never adds a
+  stroke twice. A board is done, and skipped from then on, once its migration batch has an answer. The iPad's local
+  `rev` is never compared with the Cockpit's: one counts ink changes, the other accepted batches.
 - **Web boards**: a one-off Cockpit job turns each `{board, folds}` JSON into a board with a new id and one batch; its
   name stays and the old `/ink` link redirects by name.
 - Boards whose device is gone: after a week with no upload from the owner, the newest copy any device holds goes up.
