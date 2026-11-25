@@ -2,8 +2,8 @@
 
 Companion to `docs/superpowers/specs/2026-11-22-boards-in-the-cockpit-design.md`. The spec says what Igor sees; this
 says what the Cockpit store holds and how the devices talk to it, at the level Larry needs to build the Cockpit side.
-Proposed, not approved: it waits on Igor's A/B/C. Everything assumes **C** (any device draws; a change to something
-changed since is refused out loud). B is noted where it differs.
+Decided by Igor on 2026-11-24 (section 10): **C**, any drawing device draws, and a change to something changed since
+is refused out loud.
 
 ## 1. What exists today (2026-11-24)
 
@@ -14,6 +14,9 @@ changed since is refused out loud). B is noted where it differs.
 | Identity | board: UUID. Stroke: its creation moment in ms (`BoardMoment`, `PKStrokePath.creationDate`), named through `strokeIDs` once moved or noted | board: its **name** (rename moves the file). Stroke: an `id` string |
 | History | `rev` counts every change of the ink; Larry's op batches name `base_rev` and are refused on a clash (`BoardOpApplier`) | none: the whole file is saved, last write wins; a session log (`ink-logs/*.jsonl`) and audio sit beside it |
 | Sync | CloudKit private DB, own boards up, every board down; only the drawing device draws | none; one server copy |
+
+The rules already run in BoardCore on both sides, compiled to WebAssembly for the web board (ABI versions up to 20 on
+2026-11-24); what isn't shared is the board.
 
 Larry (2026-11-24): build the store from the events/ops log, not from the ink JSON.
 
@@ -43,7 +46,7 @@ POST /boards/<id>/ops
 { "batch_id": "<uuid>", "device": "ipad-air-11", "by": "igor", "base_rev": 92,
   "ops": [ ... ], "picture": "<sha>"? }
 → 200 { "rev": 95, "applied": [0, 1, 3], "refused": [ { "op": 2, "id": "s-1795...", "reason": "moved",
-         "by": "web", "rev": 94, "at": "..." } ] }
+         "device": "web", "by": "igor", "rev": 94, "at": "..." } ] }
 ```
 
 - **Idempotent by `batch_id`**: a resend returns the first answer.
@@ -54,8 +57,8 @@ POST /boards/<id>/ops
   override a delete.
 - **Rename** is a change to the board's name field and follows the same rule.
 - Each accepted batch is one new `rev`. The answer always carries the new `rev` so the device rebases its cache.
-- *Under B instead*: no per-thing check; a batch with `base_rev < rev` replaces the board wholesale and the loser is
-  saved as a copy board. Simpler server, but it loses the "named refusal" and the vision draft rejects it.
+- *B, rejected*: no per-thing check; a batch with `base_rev < rev` would replace the board wholesale and save the
+  loser as a copy board. Simpler server, but it loses the named refusal, and Igor picked C.
 
 The device checks the same rule before sending (BoardCore already does this for Larry's batches), so a refusal is
 rare and explained; the Cockpit's check is the authority. The Cockpit's check is a per-id integer comparison, so it
@@ -130,14 +133,21 @@ The listing is small enough to call on every list open. Sign-in is the chat's; r
 - A snapshot per board at its last-seen `rev`, plus a queue of unsent batches (oldest first), on disk.
 - Opening a board shows the snapshot with the queue applied. Online, the device pulls `ops?since=rev`, rebases its
   queue on them, then sends.
-- A refused op is shown as the spec's copyable note and dropped from the queue; the rest stays.
+- A refused op is shown as the spec's copyable note and dropped from the queue; the rest stays. Ops refused as
+  `deleted` are kept on disk, out of the queue, until Igor answers the problem: *Keep my ink as a new board* sends a
+  `POST /boards` with a new id, the old name plus " (kept ink)" and the old paper, then one batch at `base_rev: 0` of
+  the refused `add_strokes` and the meaning ops on those strokes; dismissing the problem discards them.
 - Undo works on the local history only; an undo after sync is a new change and can itself be refused.
 
 ## 8. Migration
 
 - **iPad (and any device with boards it drew)**: per board, decode the drawing, write the board as one `POST /boards`
   plus one batch of `add_strokes` and meaning ops at `base_rev: 0`, the picture and the **original drawing blob** as
-  assets. Skip a board the Cockpit already has at the same or newer rev.
+  assets. The migration batch's `batch_id` is derived from the board id and the source's `inkPrint`, and `POST
+  /boards` with an id the Cockpit already has is a no-op, so a rerun (next launch, or after a partial run) resends the
+  same batch and gets the first answer back instead of adding every stroke twice. A board is done, and skipped from
+  then on, once its migration batch has an answer. The iPad's local `rev` is never compared with the Cockpit's: one
+  counts ink changes, the other accepted batches.
 - **Web boards**: a one-off Cockpit job turns each `{board, folds}` JSON into a board with a new id and one batch; its
   name stays and the old `/ink` link redirects by name.
 - Boards whose device is gone: after a week with no upload from the owner, the newest copy any device holds goes up.

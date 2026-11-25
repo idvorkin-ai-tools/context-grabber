@@ -3,7 +3,7 @@
 Status: **decided, ready to build** (bead context-grabber-t12b). Igor made every pick on 2026-11-24 (see "Decided"
 below); Larry: "Go ahead and start the build per your v2 plan." Design only so far, no code. Refreshed 2026-11-24
 against that day's board work and Larry's answer on the Cockpit side (below). Larry brings the Cockpit side; the plan
-beside this spec (`docs/superpowers/plans/2026-11-24-boards-in-the-cockpit-plan.md`) holds the store's shape for him.
+beside this spec holds the store's shape for him.
 Nothing here is built.
 
 Igor, 2026-11-22, in the whiteboard vision review (via Larry): drop iCloud for boards. Every board lives in the
@@ -20,8 +20,8 @@ expand and stuff should work. Do we not have a shared format?" Not yet: the rule
   Larry's web board (*/ink*) keeps its own boards and can't open an iPad board, and the iPad can't open a web board:
   a web board's link only opens its page in the browser (#1354).
 - **The rules are already one.** Folding and expanding, scratch-out, making room, keeping and dismissing Larry's marks,
-  groups, headers and question cards run the same code on the iPad and on the web board (BoardCore as WebAssembly,
-  interface versions up to 20 on 2026-11-24). What isn't shared is the board those rules act on.
+  groups, headers and question cards run the same code on the iPad and on the web board. What isn't shared is the
+  board those rules act on.
 - **Neither store today can be the one copy.** The web board keeps each board as one whole copy: the last save wins
   and there is no history, so two devices saving one board would lose ink silently. iCloud keeps the iPad's drawing
   and its meaning as two files with no revisions the Cockpit can see. Only the iPad's own record of changes, each
@@ -100,7 +100,7 @@ session log.
 ### Two devices, one board, apart (the conflict rule)
 
 **A change to something another hand changed since is refused, and says so; the board does no other merging**
-(the final whiteboard vision draft, waiting on Igor's approval).
+(option C, decided by Igor on 2026-11-24).
 
 - New strokes touch nothing already there, so new strokes from either device both land.
 - A change to an existing stroke, mark, group, header, card or text (moved, erased, recoloured, written over, kept,
@@ -141,7 +141,8 @@ session log.
 
 - On the first launch of a build with this, each device puts up every board **it drew** from its own disk (its own
   copy is the truth for those, as today) with the board's id, name, ink, meaning and times. A board already in the
-  Cockpit with the same id and the same or newer ink is left alone.
+  Cockpit with the same id, whose move has already been answered, is left alone, and a move that stopped partway
+  and runs again never puts the same ink up twice.
 - The iPad also puts up each board's drawing exactly as it was saved, kept beside the board in the Cockpit and never
   shown, so anything the shared format can't yet hold is not lost.
 - Boards from other devices aren't put up by this device: the device that drew them does it. A board whose drawing
@@ -179,7 +180,7 @@ week of step 2 with no missing changes on the Cockpit's debug page.
 - **Ink refused because its board was deleted:** offer *Keep my ink as a new board*.
 - **Deleted boards are kept forever:** a soft delete, never purged, and in the nightly backup.
 
-Who builds what (Larry, 2026-11-24): the clash check in BoardCore and every device's side (the cache, the queue of
+Who builds what (Larry, 2026-11-24): the clash check on the devices and every device's side (the cache, the queue of
 changes, the refused-change notes, the migration of iCloud boards) is this repo's. The Cockpit's store (its history,
 the batch of changes, the nightly backup, */ink* moving from names to ids) is Larry's, once the shapes in the plan
 are confirmed.
