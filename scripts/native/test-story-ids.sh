@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Host test for scripts/native/story-ids.py (#993, story 789): hand-written story trees, each with the exact failures
 # a reader finds in it; its reserve command against a fake gh and a fake main (stories 791, 792, 794); the pre-merge
-# check on a throwaway repository (story 793); then the repo's own docs/stories, which must pass. Runs anywhere with
+# check on a throwaway repository (story 793); the pipeline's claim check (story 1515); then the repo's own docs/stories, which must pass. Runs anywhere with
 # python3 and git.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
@@ -169,8 +169,15 @@ case "$1 $2" in
   # Its changed-file count is the list's length, or $FAKE_PRS/<n>.changed when GitHub's list would come up short.
   "api --paginate") n=$(sed -n 's|.*/pulls/\([0-9]*\)/files.*|\1|p' <<<"$3"); [ -e "$FAKE_PRS/$n.files" ] || exit 1
     cat "$FAKE_PRS/$n.files" ;;
-  "pr view") if [ -e "$FAKE_PRS/$3.changed" ]; then c=$(cat "$FAKE_PRS/$3.changed"); else c=$(grep -c . "$FAKE_PRS/$3.files"); fi
-    printf '{"headRefOid": "head%s", "changedFiles": %s}\n' "$3" "$c" ;;
+  # Its branch is $FAKE_PRS/<n>.branch (default pr<n>) and its commit subjects $FAKE_PRS/<n>.subjects, one per line,
+  # each cut as GitHub cuts a long one (seen on PR #1406, 2026-11-24): the headline's first 69 characters and "…", the
+  # rest after a "…" on the body's first line.
+  "pr view") if [ -e "$FAKE_PRS/$3.changed" ]; then c=$(cat "$FAKE_PRS/$3.changed"); else c=$(grep -cs . "$FAKE_PRS/$3.files"); fi
+    b=$(cat "$FAKE_PRS/$3.branch" 2>/dev/null || echo "pr$3")
+    subjects=$(python3 -c 'import json,sys
+cut = lambda l: {"messageHeadline": l[:69] + "\u2026", "messageBody": "\u2026" + l[69:]} if len(l) > 72 else {"messageHeadline": l}
+print(json.dumps([cut(l.rstrip("\n")) for l in sys.stdin]))' <"$FAKE_PRS/$3.subjects" 2>/dev/null || echo '[]')
+    printf '{"headRefOid": "head%s", "changedFiles": %s, "headRefName": "%s", "commits": %s}\n' "$3" "${c:-0}" "$b" "$subjects" ;;
   "api -H") n=$(sed -n 's|.*?ref=head||p' <<<"$4"); f=$(sed -n 's|.*/contents/\([^?]*\)?.*|\1|p' <<<"$4")
     cat "$FAKE_PRS/$n.head.$(basename "$f")" ;;
   *) exit 2 ;;
@@ -314,6 +321,50 @@ F
 cp "$tmp/lres/README.md" "$tmp/lmain/"
 check "reserve hands out 1620–1639 like any other IDs" \
   "$(dir=$tmp/lres main=$tmp/lmain reserve lledger 03-c.md 12 | tr '\n' ' ')" "1610 1611 1612 1613 1614 1615 1616 1617 1618 1619 1620 1621 "
+
+# --- claimed (story 1515, bead context-grabber-6p52): the pipeline's lint step fails a branch that adds a story ID another
+# open PR adds; the branch's own PR (sharing a commit subject with its commits over main) doesn't count.
+entry() { printf '### User Story %s:\n\n- **Summary:** s%s\n\n---\n\n' "$1" "$1"; }
+cl=$tmp/cl
+g init -q "$cl"
+tree clmain
+story clmain 01-a.md 1
+mkdir -p "$cl/docs" && cp -R "$tmp/clmain" "$cl/docs/stories"
+(cd "$cl" && g add -A && g commit -qm base && g branch -q base && g checkout -q -b mine && entry 3 >>docs/stories/01-a.md \
+  && g commit -qam "Story 3: the new thing" && g commit -q --allow-empty -m "no-mistakes(review): split story 3") >/dev/null 2>&1
+mkdir -p "$tmp/clprs"
+claimed() {  # claimed: the check on $cl's branch against the PRs in $tmp/clprs; stdout and stderr together
+  FAKE_PRS=$tmp/clprs STORY_IDS_GH=$tmp/gh STORY_IDS_MAIN=$tmp/clmain STORY_IDS_BASE=base STORY_IDS_REPO=$cl \
+    scripts/native/story-ids.py claimed --dir "$cl/docs/stories" 2>&1
+}
+out=$(claimed)
+check "claimed passes a branch whose new ID no open PR adds" "$?|$(grep -c '^ok   claimed: 1 new story ID (3)' <<<"$out")" "0|1"
+printf 'diff --git a/docs/stories/01-a.md b/docs/stories/01-a.md\n+### User Story 3:\n' >"$tmp/clprs/52.diff"
+printf 'Story 3: the new thing\n' >"$tmp/clprs/52.subjects"
+echo mine >"$tmp/clprs/52.branch"
+out=$(claimed)
+check "claimed passes when the only open PR adding the ID is the branch's own, found by a shared commit subject" \
+  "$?|$(grep -c '^ok   claimed' <<<"$out")" "0|1"
+printf 'diff --git a/docs/stories/01-a.md b/docs/stories/01-a.md\n+### User Story 3:\n+### User Story 4:\n' >"$tmp/clprs/51.diff"
+printf 'Story 3: something else\n' >"$tmp/clprs/51.subjects"
+echo other >"$tmp/clprs/51.branch"
+out=$(claimed)
+check "claimed fails a branch that adds an ID another open PR adds, naming the ID, the PR and its branch" \
+  "$?|$(grep -c '^FAIL claimed: story 3 is also added by open PR #51 (branch other); take a new ID with scripts/native/story-ids.py reserve' <<<"$out")" "1|1"
+(cd "$cl" && g checkout -q -b side base && g commit -q --allow-empty -m "side work" && g checkout -q mine \
+  && g merge -q --no-ff -m "Merge remote-tracking branch 'origin/main' into HEAD" side) >/dev/null 2>&1
+printf "Story 3: something else\nMerge remote-tracking branch 'origin/main' into HEAD\n" >"$tmp/clprs/51.subjects"
+out=$(claimed)
+check "claimed still fails when the other PR shares only a merge commit's subject with the branch" \
+  "$?|$(grep -c '^FAIL claimed: story 3 is also added by open PR #51' <<<"$out")" "1|1"
+long="Story 3: a subject long enough that GitHub cuts its headline short and carries the rest in the body"
+(cd "$cl" && g commit -q --allow-empty -m "$long") >/dev/null 2>&1
+printf '%s\n' "$long" >"$tmp/clprs/51.subjects"
+out=$(claimed)
+check "claimed finds the branch's own PR by a long commit subject that GitHub's headline cuts short" \
+  "$?|$(grep -c '^ok   claimed' <<<"$out")" "0|1"
+out=$(FAKE_GH_FAIL=1 claimed)
+check "claimed fails rather than guess when the open PRs can't be listed" "$?|$(grep -c '^FAIL claimed: ' <<<"$out")" "1|1"
 
 # --- pre-merge (story 793): two branches that each pass alone but add the same ID fail once merged with main.
 repo=$tmp/repo

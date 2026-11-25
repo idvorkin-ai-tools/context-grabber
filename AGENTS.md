@@ -104,7 +104,10 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   this repo: `no-mistakes axi run --intent "…"` (or push to the `no-mistakes` remote). When the run reaches
   `checks-passed`, run `just pre-merge` in the branch's checkout immediately before `gh pr merge` (story 793: the
   story IDs on the branch as pushed, merged with main as it is now; if it fails, renumber with a fresh reservation,
-  push and rerun), then merge the PR yourself and check that its commits reached `origin/main`. Don't wait for PR
+  push and rerun), then merge the PR yourself and check that its commits reached `origin/main`. Chain them, `just
+  pre-merge && gh pr merge …`, so its exit status decides: never pipe its output (`| tail` hid a failure and #1400
+  merged duplicate story IDs onto main, 2026-11-24). The pipeline's lint step (`just pipeline-lint`, story 1515)
+  already fails a branch that adds a story ID another open PR adds. Don't wait for PR
   feedback, because nobody gives it: the pipeline is the review.
 - **One pipeline run per train** (Igor, 2026-10-11). Finish the whole stack before the first push, and don't push
   while a run is in flight unless review or test asked for that fix. Never restart the no-mistakes daemon or reboot

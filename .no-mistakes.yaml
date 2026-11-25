@@ -8,6 +8,10 @@ commands:
   # (rung 2) is the driving session's, in its build turn. Nothing to prepare:
   # SwiftPM resolves ContextCore itself.
   test: "just test"
+  # Story 1515 (bead context-grabber-6p52): the lint step runs after review and document, so it catches a story ID
+  # either step picked by hand that another open PR adds, before the push. The review and document steps' fix
+  # commits are what it checks; the instructions below alone didn't stop them on 2026-11-24.
+  lint: "just pipeline-lint"
 
 # No .github/workflows in this repo; the gate's test step is the only automated check.
 no_ci: true

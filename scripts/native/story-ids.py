@@ -27,11 +27,18 @@ pushed in between; then it reads the ledger again and picks again, up to five ti
 nothing else on the remote is touched. Main is read from that same remote.
 Fails, handing out nothing, when main can't be fetched, the open PRs can't be listed, or the shared ledger can't be
 read or written.
+
+       story-ids.py claimed [--dir stories-dir]   (story 1515, bead context-grabber-6p52; the gate's lint step, as
+                                                    just pipeline-lint)
+Fails naming each story ID the tree adds over the shared remote's main that another open PR adds too; the branch's own
+PR (the open one sharing a non-merge commit subject with the branch's commits over main) doesn't count. Fails rather
+than guess when main can't be fetched or the open PRs can't be listed.
 Overrides, for the tests: STORY_IDS_REMOTE (the remote, a name or a path, instead of the one found by URL),
 STORY_IDS_REPO (the repository git runs in, default the stories dir's), STORY_IDS_LOCK (default
 ~/tmp/agent/locks/story-ids.lock), STORY_IDS_GH (the gh command), STORY_IDS_MAIN (a stories dir read as main instead
 of the remote's main), STORY_IDS_NOW (epoch seconds), STORY_IDS_BRANCH (the branch the ledger records),
-STORY_IDS_HOLD (seconds to wait between reading the ledger and writing it, so the race tests overlap).
+STORY_IDS_HOLD (seconds to wait between reading the ledger and writing it, so the race tests overlap), STORY_IDS_BASE
+(a ref claimed reads as main's head instead of fetching it).
 """
 import fcntl
 import json
@@ -287,21 +294,31 @@ def one_pr_ids(gh, number):
             return set(), f"diff: {diff_error}; files: {files_error}"
 
 
-def pr_ids():
-    """The story IDs every open PR adds (from any machine). One PR that can't be read at all is named in a warning
-    and skipped, so it can't block every reservation (bead context-grabber-1338); the listing itself failing still
-    fails the reservation."""
-    gh = shlex.split(os.environ.get("STORY_IDS_GH", "gh"))
+def gh_cmd():
+    return shlex.split(os.environ.get("STORY_IDS_GH", "gh"))
+
+
+def pr_id_map(who="reserve"):
+    """{PR number: the story IDs it adds} for every open PR (from any machine). One PR that can't be read at all is
+    named in a warning and skipped, so it can't block every reservation (bead context-grabber-1338); the listing itself
+    failing still fails."""
+    gh = gh_cmd()
     prs = json.loads(run(gh + ["pr", "list", "--state", "open", "--limit", "500", "--json", "number"]))
     with ThreadPoolExecutor(8) as pool:
         results = list(pool.map(lambda p: one_pr_ids(gh, p["number"]), prs))
-    ids = set()
+    got_by = {}
     for p, (got, why) in zip(prs, results):
-        ids |= got
+        got_by[p["number"]] = got
         if why:
-            print(f"WARN reserve: open PR #{p['number']} could not be read, so the IDs it adds are not known and "
+            print(f"WARN {who}: open PR #{p['number']} could not be read, so the IDs it adds are not known and "
                   f"may be handed out again; check it by hand ({why})", file=sys.stderr)
-    return ids, len(prs)
+    return got_by
+
+
+def pr_ids():
+    """The story IDs every open PR adds, and how many open PRs there are."""
+    got_by = pr_id_map()
+    return set().union(*got_by.values()) if got_by else set(), len(got_by)
 
 
 def find_journey(query, ranges, journey, titles):
@@ -389,7 +406,80 @@ def reserve_cli(args):
         return 1
 
 
+def main_head(root):
+    """The commit main is at on the shared remote, fetched (or STORY_IDS_BASE, a ref in the repository, for the tests)."""
+    base = os.environ.get("STORY_IDS_BASE")
+    repo = repo_of(root)
+    if base:
+        return run(["git", "rev-parse", base], cwd=repo).strip()
+    remote = shared_remote(repo)
+    head = run(["git", "ls-remote", remote, "refs/heads/main"], cwd=repo).split()[0]
+    run(["git", "fetch", "-q", remote, "main"], cwd=repo)
+    return head
+
+
+def full_subject(commit):
+    """A PR commit's whole subject line. GitHub cuts a long one at about 70 characters, ending the headline in "…" and
+    carrying the rest, after a "…", on the body's first line; matched as cut, a branch's own PR was not found."""
+    head, body = commit.get("messageHeadline", ""), commit.get("messageBody") or ""
+    if head.endswith("\u2026") and body.startswith("\u2026"):
+        return head[:-1] + body.split("\n", 1)[0][1:]
+    return head
+
+
+def claimed(root):
+    """Story 1515, bead context-grabber-6p52: every story ID this tree adds over main that another open PR adds too.
+    The branch's own PR is the open PR sharing a commit subject with the branch's commits over main (the pipeline's
+    worktree is on no branch, and its rebase changes the commits but not their subjects)."""
+    on_main = main_ids(root)[0]
+    new = sorted(tree_ids(root) - on_main)
+    got_by = pr_id_map("claimed")
+    clashes = {n: [pr for pr, ids in got_by.items() if n in ids] for n in new}
+    if any(clashes.values()):
+        repo = repo_of(root)
+        mine = set(run(["git", "log", "--no-merges", "--format=%s", f"{main_head(root)}..HEAD"], cwd=repo).splitlines())
+        gh = gh_cmd()
+        info = {}
+        for pr in sorted({pr for prs in clashes.values() for pr in prs}):
+            view = json.loads(run(gh + ["pr", "view", str(pr), "--json", "headRefName,commits"]))
+            subjects = {full_subject(c) for c in view.get("commits") or []
+                        if not c.get("messageHeadline", "").startswith("Merge ")}
+            info[pr] = (view.get("headRefName") or "?", bool(subjects & mine))
+        failed = False
+        for n, prs in clashes.items():
+            for pr in prs:
+                branch, ours = info[pr]
+                if not ours:
+                    failed = True
+                    print(f"FAIL claimed: story {n} is also added by open PR #{pr} (branch {branch}); take a new ID with "
+                          f"scripts/native/story-ids.py reserve <journey> and renumber this branch's story")
+        if failed:
+            return 1
+    word = "ID" if len(new) == 1 else "IDs"
+    listed = f" ({', '.join(map(str, new))})" if new else ""
+    print(f"ok   claimed: {len(new)} new story {word}{listed}, none added by another open PR ({len(got_by)} open)")
+    return 0
+
+
+def claimed_cli(args):
+    root = "docs/stories"
+    if "--dir" in args:
+        k = args.index("--dir")
+        root = args[k + 1]
+        args = args[:k] + args[k + 2:]
+    if args:
+        print("usage: story-ids.py claimed [--dir stories-dir]", file=sys.stderr)
+        return 2
+    try:
+        return claimed(root)
+    except (RuntimeError, OSError, ValueError, KeyError, IndexError) as e:
+        print(f"FAIL claimed: {e}")
+        return 1
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "reserve":
         sys.exit(reserve_cli(sys.argv[2:]))
+    if len(sys.argv) > 1 and sys.argv[1] == "claimed":
+        sys.exit(claimed_cli(sys.argv[2:]))
     sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "docs/stories"))

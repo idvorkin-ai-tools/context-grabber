@@ -857,6 +857,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1515:
+
+- **Summary:** The pipeline won't push a story ID another open PR holds
+- **Status:** implemented in babe86bc on branch `chore/story-ids-claimed-6p52` (bead context-grabber-6p52); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a throwaway repository: a new ID no open PR adds passes, one another open PR adds fails naming the ID, the PR and its branch, one whose only other PR shares a commit subject with the branch passes, and with the open PRs unlisted it fails; run once against GitHub from this branch it passed (1515, 3 open PRs). The gate runs it as its lint command once this config is on main
+- **Issues:** bead context-grabber-6p52 (on 2026-11-24 the pipeline's review and document steps picked story IDs themselves three times despite the instruction to reserve: 1609/1610, and 1292/1293 twice, the last two colliding with another open PR and failing every lane's pre-merge until main was renumbered in #1408)
+- **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
+
+#### Use Case:
+- **As Igor,** with the pipeline's own steps adding and splitting stories on many branches at once
+- **I want to** have the pipeline refuse to push a story ID that another open PR already adds
+- **so that** a hand-picked ID is caught on its branch, not on main where it blocks every merge
+
+#### Acceptance Criteria:
+- **Scenario:** The review step splits a story and takes an ID another open PR adds
+- **Given:** an open PR on another branch adds story N, and this branch's commits over main add story N too
+- **When:** the pipeline's lint step runs the story ID claim check
+- **Then:** it fails naming N, that PR and its branch, and says to take a new ID from `story-ids.py reserve` and renumber; it passes when the only open PR adding N is this branch's own, found by a shared commit subject even after a rebase, and fails rather than guess when it can't fetch main or list the open PRs
+
+---
+
 ### User Story 796:
 
 - **Summary:** A journey's stories can live in several files, and every ID is still checked once and in range
