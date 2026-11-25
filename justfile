@@ -128,6 +128,8 @@ native-test-host:
     scripts/native/test-story-ids.sh
     # Beads t309, lldg: every commit a story links is in this branch's history (no sha left behind by a rebase).
     scripts/native/test-story-commits.sh
+    # Story 1624: every test a story's Status names still exists in native/ (or names its other repo).
+    scripts/native/test-story-tests.sh
     # Bead wq2j: every board test file is in BoardCoreTests or listed as staying in ContextCoreTests.
     scripts/native/test-board-tests-listed.sh
     # Story 1502 (bead 2b54): docs/TESTING.md's one-a-line lists match the host checks and the suites' classes.
