@@ -168,6 +168,8 @@ final class MirrorModel: ObservableObject {
     snap.sleepBundle = week.sleepBundle
     snap.workoutsByDay = await grab.workoutsByDay(now: now)
     snapshot = snap
+    // Stories 1611-1613: the week, summed up, to Larry; never the fixture week (the hook pins the time).
+    if fixedNow == nil { app.dailyPush.afterGrab(snap) }
     phase = nil
     grabStartedAt = nil
     let failures = grab.takeFailures()

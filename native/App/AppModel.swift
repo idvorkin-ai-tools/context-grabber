@@ -28,6 +28,8 @@ final class AppModel: ObservableObject {
   private let chatNotifications = ChatNotificationDelegate()
   /// Everything the app collects, to the Cockpit's archive every few hours (story 270).
   let archive: ArchiveModel
+  /// Stories 1611-1613: the day, summed up, to Larry after each grab (the iPhone only).
+  let dailyPush: DailyPushModel
   /// Shake (hard or gentle), ⌘I or the Settings button opens BugKit's report dialog (stories 142, 146). Set at the
   /// end of init: its hooks read this model.
   // swiftlint:disable:next implicitly_unwrapped_optional
@@ -187,6 +189,7 @@ final class AppModel: ObservableObject {
     liveContext = LiveContextModel(log: log, database: database, cockpit: chatCockpit)
     chat.registerBackgroundTask()  // before the launch finishes, or iOS refuses the handler
     archive = ArchiveModel(log: log, database: database, environment: LaunchHooks.environment)
+    dailyPush = DailyPushModel(log: log, database: database, environment: LaunchHooks.environment)
     archive.registerBackgroundTasks()  // before the launch finishes, or iOS refuses the handlers
     call = CallModel(log: log, database: database, environment: LaunchHooks.environment)
     chatVoice = ChatVoiceModel(log: log, callLive: call.$snapshot.map(\.isActive).eraseToAnyPublisher())
@@ -312,6 +315,7 @@ final class AppModel: ObservableObject {
     inbox.refresh(reason: "foreground")  // #305: what was shared while the app was away, then on to Larry
     Task { await chat.refreshList(reason: "foreground") }  // the tile's unread count, and nothing notified twice
     chat.scheduleBackgroundCheck()
+    dailyPush.foreground()  // stories 1611-1613: days that waited for the Cockpit
     archive.runIfDue(reason: "foreground")  // story 270: the delta, once four hours have passed
   }
 

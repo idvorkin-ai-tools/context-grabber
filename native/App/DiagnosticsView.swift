@@ -528,6 +528,8 @@ private struct HomeSettingsView: View {
         } footer: {
           Text("Every few hours the trail, Health and the strip go to the Cockpit on their own.")
         }
+        // Stories 1611-1613: the day, summed up, to Larry.
+        DailyPushSection(push: model.dailyPush)
         Section("Build") {
           LabeledContent("Commit", value: BuildInfo.sha)
           LabeledContent("Branch", value: BuildInfo.branch)
@@ -647,5 +649,24 @@ extension View {
     #else
       self
     #endif
+  }
+}
+
+/// Stories 1611-1613: *Send the day to Larry*, and under it the last day sent or why nothing goes.
+private struct DailyPushSection: View {
+  @ObservedObject var push: DailyPushModel
+
+  var body: some View {
+    Section {
+      Toggle("Send the day to Larry", isOn: Binding(get: { push.on }, set: { push.setOn($0) }))
+        .disabled(!push.sends)
+        .accessibilityIdentifier("daily-push-switch")
+      Text(push.statusLine).font(.footnote).foregroundStyle(.secondary)
+        .accessibilityIdentifier("daily-push-status")
+    } header: {
+      Text("The day to Larry")
+    } footer: {
+      Text("Each day's sleep, movement, places by name and habits, for the weekly report. Never coordinates.")
+    }
   }
 }
