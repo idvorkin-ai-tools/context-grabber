@@ -451,6 +451,86 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1282:
+
+- **Summary:** A small mark inside a scratched-out word goes with it
+- **Status:** implemented in [485bd9c0](https://github.com/idvorkin/context-grabber/commit/485bd9c0); verified on the host (`WhiteboardScratchOutTests`: Igor's board-nov-23 scratch-out replayed, failing before the fix with the mark left; the web board's *t* crossbar now goes too), the Mac build and the iPad simulator (`WhiteboardScratchOutUITests`), the Pencil on the iPad still to see
+- **Issues:** cockpit-9g1 (a scratch-out over ten fresh strokes left one, a mark its sweeps passed either side of, Igor 2026-11-23, board-nov-23)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** scratching out a word with the Pencil
+- **I want to** have the whole word go, its dots and small marks included
+- **so that** I don't have to scratch out a speck the zigzag happened to miss
+
+#### Acceptance Criteria:
+- **Scenario:** A mark between two sweeps
+- **Given:** a board on paper with a word written on it, a small mark among its letters
+- **When:** I scratch the word out and no sweep of the zigzag touches the small mark
+- **Then:** the word, the small mark and the zigzag are gone, and one undo brings the word and the mark back
+
+---
+
+### User Story 1266:
+
+- **Summary:** A scratch-out never takes the line below, even when it touches a long stroke
+- **Status:** implemented in the commit that adds this story; verified on the host (`WhiteboardScratchOutTests`: the line below a struck word stays, and so do small letters below it when the zigzag also touches an arrow running down past them)
+- **Issues:** cockpit-9g1 (review of story 1282: a long touched stroke stretched the outline over the line below)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** scratching out a word with the Pencil
+- **I want to** keep the writing around it, even where a stroke of the word runs down past it
+- **so that** a scratch-out takes only what I struck
+
+#### Acceptance Criteria:
+- **Scenario:** Ink beside the word stays
+- **Given:** a board on paper with a word written on it, an arrow running down from it, and small writing on the line below beside the arrow
+- **When:** I scratch out the word and the zigzag touches the start of the arrow
+- **Then:** the writing on the line below stays, even where it is close
+
+---
+
+### User Story 1283:
+
+- **Summary:** A small zigzag scratches out at a small zigzag's speed
+- **Status:** implemented in [485bd9c0](https://github.com/idvorkin/context-grabber/commit/485bd9c0); verified on the host (`WhiteboardScratchOutTests`: the 37-point retry, refused as slow before the fix, and every pen path from Igor's iPad logs of 2026-11-21 and 22 keeping its verdict), the Mac build and the iPad simulator, the Pencil on the iPad still to see
+- **Issues:** cockpit-9g1 (the retry over the left-behind mark, a 37-point zigzag at 0.35 points per millisecond, was refused as slow, Igor 2026-11-23)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** scratching out a single letter or a small mark
+- **I want to** have a small quick zigzag count
+- **so that** I don't have to scribble as fast as over a long word
+
+#### Acceptance Criteria:
+- **Scenario:** A small quick zigzag
+- **Given:** a board on paper with a small mark on it
+- **When:** I draw a quick zigzag about 40 points long over it, at a third of a point per millisecond
+- **Then:** the mark and the zigzag are gone
+
+---
+
+### User Story 1268:
+
+- **Summary:** Slow small writing that looks like a zigzag stays ink
+- **Status:** implemented in [485bd9c0](https://github.com/idvorkin/context-grabber/commit/485bd9c0); verified on the host (`WhiteboardScratchOutTests`: every pen path from Igor's iPad logs of 2026-11-21 and 22 keeping its verdict, his slow writing of 37 points at 0.23 and 45 at 0.30 among them)
+- **Issues:** cockpit-9g1
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** writing small letters with the Pencil
+- **I want to** have a small back-and-forth I write slowly stay ink
+- **so that** a lower speed floor for small zigzags never eats my handwriting
+
+#### Acceptance Criteria:
+- **Scenario:** Slow writing still stays ink
+- **Given:** a board on paper with writing on it
+- **When:** I write a small back-and-forth slowly, under a quarter of a point per millisecond
+- **Then:** it stays ink
+
+---
+
 ### User Story 891:
 
 - **Summary:** Writing that only looks like a zigzag stays ink

@@ -20,8 +20,11 @@ public enum WhiteboardScratchOut {
   static let driftSweep: CGFloat = 40
   /// Jitter, in board points, that is no turn when a drifting scribble's sweeps are first measured.
   static let jitter: CGFloat = 10
-  /// Board points per millisecond, at least.
+  /// Board points per millisecond, at least, for a zigzag `fullSpeedLength` long or longer.
   public static let speed: Double = 0.5
+  /// The zigzag's length, in board points, from which it is held to the whole `speed`; a shorter one can't reach a
+  /// long one's speed, so its floor scales down with it (cockpit-9g1: a 37-point zigzag went at 0.35).
+  static let fullSpeedLength: CGFloat = 60
   /// How near the zigzag a stroke's own line passes to be taken, beyond half its pen.
   static let reach: CGFloat = 4
   /// The part of the touched ink's points that lies inside the zigzag's box (grown by 6).
@@ -244,12 +247,23 @@ public enum WhiteboardScratchOut {
     return (points, 100)
   }
 
+  /// The least speed, in board points per millisecond, a zigzag `length` points long (its box's longer side) is held to:
+  /// `speed` from `fullSpeedLength` up, in proportion below it (cockpit-9g1, story 1283).
+  public static func speedFloor(length: CGFloat) -> Double {
+    speed * Double(min(1, max(0, length) / fullSpeedLength))
+  }
+
+  static func speedFloor(of points: [CGPoint]) -> Double {
+    let own = box(points)
+    return speedFloor(length: max(own.width, own.height))
+  }
+
   /// A zigzag fast enough to be a scratch-out, whatever is under it: over a fold's marker there is no ink, and the fold
   /// goes all the same (story 903).
   public static func isZigzag(_ points: [CGPoint], ms: Double?) -> Bool {
     guard shape(points).ok else { return false }
     guard let speed = Self.speed(of: points, ms: ms) else { return true }
-    return speed >= Self.speed
+    return speed >= speedFloor(of: points)
   }
 
   /// Board points per millisecond along `points`, to two places; nil when the time wasn't known.
@@ -269,7 +283,7 @@ public enum WhiteboardScratchOut {
       Outcome(ok: false, gone: [], reversals: shape.reversals, speed: speed, why: why)
     }
     guard shape.ok else { return no(shape.why) }
-    if let speed, speed < Self.speed { return no("slow") }
+    if let speed, speed < speedFloor(of: points) { return no("slow") }
     let hits = touched(by: points, in: ink)
     // A wandering scribble over nothing, or beside ink, is hatching or writing: it stays ink, unsaid (4kj).
     guard !hits.isEmpty else { return no(shape.wanders ? "wanders, no ink" : "no ink") }
@@ -284,7 +298,52 @@ public enum WhiteboardScratchOut {
       }
     }
     if all > 0, Double(inside) / Double(all) < over { return no(shape.wanders ? "wanders, beside ink" : "beside ink") }
-    return Outcome(ok: true, gone: hits, reversals: shape.reversals, speed: speed, why: nil)
+    return Outcome(
+      ok: true, gone: hits + enclosed(by: points, in: zone, taking: taken, of: ink), reversals: shape.reversals,
+      speed: speed,
+      why: nil)
+  }
+
+  /// The strokes the zigzag doesn't touch that lie wholly within the outline round it and the ink it `taken` (their
+  /// convex hull) and within the zigzag's own `zone`, both grown by the reach a sweep has: a mark between two sweeps,
+  /// a dot or a crossbar inside the struck word, never ink a long touched stroke stretched the outline over
+  /// (cockpit-9g1, stories 1282, 1266). In the board's order.
+  static func enclosed(by points: [CGPoint], in zone: CGRect, taking taken: Set<String>, of ink: [Ink]) -> [String] {
+    let outline = hull(points + ink.filter { taken.contains($0.id) }.flatMap(\.points))
+    guard outline.count >= 3 else { return [] }
+    return ink.filter { stroke in
+      guard !taken.contains(stroke.id), !stroke.points.isEmpty else { return false }
+      let pad = reach + stroke.width / 2
+      let near = zone.insetBy(dx: -pad, dy: -pad)
+      return stroke.points.allSatisfy { within($0, near) && inHull($0, outline, grownBy: pad) }
+    }.map(\.id)
+  }
+
+  /// The convex hull of `points`, counterclockwise in board space (y down), by the monotone chain.
+  static func hull(_ points: [CGPoint]) -> [CGPoint] {
+    let sorted = points.sorted { $0.x != $1.x ? $0.x < $1.x : $0.y < $1.y }
+    guard sorted.count >= 3 else { return sorted }
+    func turn(_ o: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
+      (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+    }
+    func chain(_ run: [CGPoint]) -> [CGPoint] {
+      var out: [CGPoint] = []
+      for p in run {
+        while out.count >= 2, turn(out[out.count - 2], out[out.count - 1], p) <= 0 { out.removeLast() }
+        out.append(p)
+      }
+      return out
+    }
+    let lower = chain(sorted)
+    let upper = chain(sorted.reversed())
+    return Array(lower.dropLast() + upper.dropLast())
+  }
+
+  /// Inside the convex `outline` (from `hull`), or within `pad` of its edge.
+  static func inHull(_ p: CGPoint, _ outline: [CGPoint], grownBy pad: CGFloat) -> Bool {
+    let edges = zip(outline, outline.dropFirst() + [outline[0]])
+    if edges.allSatisfy({ a, b in (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x) >= 0 }) { return true }
+    return edges.contains { a, b in toSegment(p, a, b) <= pad }
   }
 
   /// The strokes a line along `path` touches within `reach` of their own line (half the pen added): whole strokes, as
