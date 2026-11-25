@@ -1,0 +1,4 @@
+# Dry-run manifest for the context-grabber whiteboard walk (would live at docs/stories/walk.toml).
+[surfaces]
+just = "host"
+script = "host"
