@@ -46,6 +46,7 @@ line of its own here and in the recipe; `scripts/native/test-testing-lists.sh` f
 - `scripts/native/test-linux-imports.sh`: Apple-only imports checked against Linux branches, including `#if canImport` and `#if os` (#943, bead context-grabber-cmk)
 - `scripts/native/test-story-ids.sh`: that every user story's ID is used once and sits in its journey's ranges (story 789), with the reserve command against a fake gh and main and a bare repository as the shared ledger's remote, two checkouts standing in for two machines, the pre-merge check on a throwaway repository (stories 791–794), and the pipeline's claim check, which fails a branch adding a story ID another open PR adds unless that PR is the branch's own (story 1515; the gate's lint step runs it as `just pipeline-lint`)
 - `scripts/native/test-story-commits.sh`: checks links to Context Grabber commits in the stories against the checkout's history and reports each missing hash with its file and line (beads context-grabber-t309, context-grabber-lldg). If a shallow checkout can't verify a link, it fails and asks you to run `git fetch --unshallow` and rerun the check.
+- `scripts/native/test-story-tests.sh`: checks that every test a story's Status line names (a test class, `Class.testMethod` or a bare `testMethod`) still exists under native/, and names each one that is gone with its file and line (story 1624). A test in another repo is written with the repo first, `bug-kit:WhatsNewTests`, and is not looked for.
 - `scripts/native/test-board-tests-listed.sh`: that every board test file is in the board's own bundle or listed as staying in ContextCore's
 - `scripts/native/test-testing-lists.sh`: that this list, the chat suite's and the whiteboard suite's below each name, one line apiece, exactly what their scripts run, the UI classes in name order (story 1502)
 
@@ -67,8 +68,8 @@ it before every push. In order, it:
 4. runs the host rung's portable script checks (each described in the host list above): the ladder's map
    (`test-ladder-map.sh`), the breath clips and the UI timing digest, the ladder report (`test-ladder-report.sh`), the
    smoke on a locked Mac (`test-smoke-lock.sh`), the Linux import check (`test-linux-imports.sh`), the build lanes
-   (`test-build-lane.sh`), the story IDs (`test-story-ids.sh`), the stories' commit links (`test-story-commits.sh`),
-   the vendored board sessions (`test-board-sessions.py`), and this guide's one-a-line lists (`test-testing-lists.sh`). The asset
+   (`test-build-lane.sh`), the story IDs (`test-story-ids.sh`), the stories' commit links (`test-story-commits.sh`), the tests
+   their Status lines cite (`test-story-tests.sh`), the vendored board sessions (`test-board-sessions.py`), and this guide's one-a-line lists (`test-testing-lists.sh`). The asset
    catalog check needs `actool` and the signing guard needs BugKit's script, so they stay the Mac's.
 
 The Mac host rung also runs `test-linux-imports.sh`, so it can catch an import problem before a Linux build. The check

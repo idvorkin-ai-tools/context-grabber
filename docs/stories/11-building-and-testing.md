@@ -1599,6 +1599,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1624:
+
+- **Summary:** A story's Status never names a test that is gone
+- **Status:** on branch `docs/stale-status-tests`; verified on the host rung by `scripts/native/test-story-tests.sh` in `just test`: hand-written stories citing a live class, a live method, a test file named for its class, another repo's test (`bug-kit:WhatsNewTests`) and a test target's folder pass; a missing class, a missing method of a live class and a missing bare method each fail by name; only Status lines are read. docs/stories passed only once the 99 stale citations on main were moved: 29 say in words what took the test away (the old canvas, the gist, BoardOpLedger's setters) or that its verification was lost; the other 70 point at the test that covers the story now, and where that test is on another rung or checks less than the old one did, the old test is named in words for what it showed then
+- **Issues:** Larry's walk-the-store dry run on 2026-11-24 (27 whiteboard stories citing 14 tests gone from main c65b94e9); bead context-grabber-o2kz (stories 252 and 643, whose verification was lost)
+
+#### Use Case:
+- **As Igor,** reading a story's Status to see how it was checked
+- **I want to** have every test the Status names still exist in the app's code
+- **so that** "verified by" means a test I can run today, and a renamed or deleted test is caught the day it goes, not weeks later by a dry run
+
+#### Acceptance Criteria:
+- **Scenario:** A story's Status cites a test that is no longer in the code
+- **Given:** the stories, and the app's test files
+- **When:** the host rung runs
+- **Then:** it fails naming the story file, the line and the test that is gone; a test in another repo, written with that repo's name first, is not looked for here
+
+---
+
 ### User Story 1623:
 
 - **Summary:** The web board asks the app's own rules how much room a reply of Larry's opens when kept over ink written since its picture, and where a text of his set on ink lands
