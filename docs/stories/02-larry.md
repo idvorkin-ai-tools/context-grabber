@@ -3597,11 +3597,6 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I open Today, and then open it again with nothing changed
 - **Then:** each of the last seven days was sent once, oldest first, with sleep asleep and in bed kept apart, where the sleep was measured, steps, exercise minutes, heart rate, weight, workouts, the minutes per named place and every strip habit by its own name; the second opening sent nothing
 
-- **Scenario:** A habit reads as the strip reads it
-- **Given:** Health has mindful minutes for Monday and for today, and I tapped neither day's meditation or ran Box breathing
-- **When:** the week is sent
-- **Then:** today's meditation is done by Health and Monday's is not done, while both days still carry their mindful minutes; and a day whose steps Health couldn't give still carries its habits
-
 ---
 
 ### User Story 1612:
@@ -3627,8 +3622,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1613:
 
 - **Summary:** No coordinates, nothing from the iPad, and a reading Health refused leaves only that reading empty
-- **Status:** native app: implemented in 5f3f4fe4; verified by ContextCore's host tests (DailyPushTests), the Mac build and the iPad simulator smoke; the iPhone (Health, the trail, the Cockpit's /daily) still to check
-- **Issues:** Igor, 2026-11-24 09:07, via Larry (Cockpit thread igor2-88g.1620, msg faf3017bc6cd)
+- **Status:** native app: implemented in 5f3f4fe4; a refused steps reading no longer empties the habits in a9f7b40e (host test DailyPushTests testAFailedStepsReadingKeepsTheHabits); verified by ContextCore's host tests (DailyPushTests), the Mac build and the iPad simulator smoke; the iPhone (Health, the trail, the Cockpit's /daily) still to check
+- **Issues:** Igor, 2026-11-24 09:07, via Larry (Cockpit thread igor2-88g.1620, msg faf3017bc6cd); review finding habits-dates-diverge (a failed steps reading sent every day with no habits)
 - **Spec:** [The day, summed up, to Larry](../superpowers/specs/2026-11-24-daily-summary-to-larry-design.md), *Goals*
 
 #### Use Case:
@@ -3641,3 +3636,23 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a day with a stay at a place I never named, and Health refusing that day's weight
 - **When:** the day's record goes
 - **Then:** the unnamed stay counts only as minutes, no latitude, longitude or circle is in the record, the weight is empty and every other reading is there; on the iPad nothing is sent at all
+
+---
+
+### User Story 1619:
+
+- **Summary:** Meditation in the day's record counts as the strip counts it: Health's mindful minutes only for today
+- **Status:** native app: implemented in a9f7b40e; verified by ContextCore's host test DailyPushTests testMindfulMinutesCountMeditationForTodayOnly; the iPhone (Health's mindful minutes) still to check
+- **Issues:** review finding meditation-health-past-days (a past day's mindful minutes marked meditation done while the strip showed it not done)
+- **Spec:** [The day, summed up, to Larry](../superpowers/specs/2026-11-24-daily-summary-to-larry-design.md), *What a day's record says*
+
+#### Use Case:
+- **As** Igor, reading the week's habits with Larry
+- **I want to** have the record say meditation was done exactly when my strip says so
+- **so that** the weekly report and the strip I see never disagree
+
+#### Acceptance Criteria:
+- **Scenario:** Mindful minutes on a past day and today
+- **Given:** Health has mindful minutes for Monday and for today, and I neither tapped meditation nor ran Box breathing on either day
+- **When:** the week is sent on Tuesday
+- **Then:** today's meditation is done by Health, Monday's is not done, and both days still carry their mindful minutes
